@@ -23,12 +23,13 @@ Primary pinned source surfaces:
 - `packages/fs/fs/src/types.ts`
 - `packages/fs/fs-local/src/index.ts`
 - `packages/fs/fs-local/src/fsio.ts`
-- `packages/fs/fs-sandbox/README.md`
+- `packages/fs/fs-sandbox/src/index.ts`
 - `packages/subprocess/subprocess/src/index.ts`
 - `packages/subprocess/subprocess/src/types.ts`
 - `packages/subprocess/subprocess-local/src/index.ts`
 - `packages/subprocess/subprocess-local/README.md`
 - `packages/sandbox/sandbox/src/index.ts`
+- `packages/sandbox/sandbox-local/src/index.ts`
 - `packages/sandbox/sandbox/README.md`
 
 `packages/adapter-dsh/source-conformance/provider-seams.contract.ts` pins the
@@ -230,8 +231,8 @@ and the policy vocabulary is explicitly **file effects only**. Network access,
 process visibility, syscall filtering as a general capability vocabulary,
 devices, and credential access are outside the contract.
 
-For confined modes, `SandboxProvider.confine()` returns wrapped argv plus an
-enforcement value:
+For confined modes, `SandboxProvider.confine()` returns wrapped argv plus a
+provider-reported enforcement value:
 
 ```text
 full | partial
@@ -241,24 +242,53 @@ If no usable backend can enforce a requested confined mode, the provider must
 fail closed with `SANDBOX_UNAVAILABLE` rather than silently run the original
 argv unconfined.
 
-This is stronger than a tool-level policy check for the file effects the active
-backend actually governs, but it still does not justify safe-runtime's general
-`process-isolated` guarantee level. The seam intentionally shares the host
-kernel/filesystem; containers, microVMs, and remote environments replace whole
-capability implementations instead of being represented as this provider.
+### 5.1 `full` is a provider report, not independent deployment attestation
+
+The rc5 local provider selects a platform runner and reports the selected
+backend's file-effect enforcement completeness. Some built-in paths obtain this
+from functional probing or backend ABI facts, while other paths use static
+provider knowledge.
+
+Most importantly, an operator-supplied `runnerCommand` is explicitly treated by
+upstream as an **operator assertion**: rc5 skips the built-in runner selection
+and functional probe and returns `enforcement: "full"` for that configured
+runner. Therefore safe-runtime MUST NOT reinterpret the string `full` by itself
+as independent evidence that the current deployment has passed an isolation
+acceptance test.
+
+The correct separation is:
+
+```text
+provider report: full/partial for the sandbox seam's declared file-effect scope
++
+environment acceptance evidence: proves the concrete deployment actually meets
+its requested safe-runtime guarantee
+```
+
+A `partial` report is always a hard ceiling: it MUST NOT be promoted to `full`.
+A `full` report is necessary provider metadata for consumers that rely on full
+file-effect enforcement, but stronger safe-runtime guarantee levels still need
+their own environment-specific evidence.
+
+This same-world sandbox is stronger than a tool-level policy check for the file
+effects the active backend actually governs, but it still does not justify
+safe-runtime's general `process-isolated` guarantee level. The seam intentionally
+shares the host kernel/filesystem; containers, microVMs, and remote environments
+replace whole capability implementations instead of being represented as this
+provider.
 
 ## 6. Guarantee classification
 
 The following classification is intentionally conservative.
 
-| rc5 configuration / mechanism | What source proves | Maximum safe-runtime claim from this evidence |
+| rc5 configuration / mechanism | What source proves | Maximum safe-runtime claim from this source evidence |
 | --- | --- | --- |
 | `fs-local` | provider-mediated text/file operations, atomic single-file mutation, opaque identity/version | provider semantics only; **no confinement** |
 | `fs-local` configured with `cwd` | relative-path resolution base | **no containment guarantee** |
 | `fs-sandbox` | trusted-code canonical mutation fence; reads pass; residual TOCTOU accepted | **provider-enforced mutation confinement** only |
 | `subprocess-local` | managed process trees and explicit cwd/env/stdio | lifecycle management; **no FS/network confinement** |
-| `sandbox` confined backend reporting `full` | OS-backed enforcement of that backend's promised **file-effect** policy | file-effect confinement only; **not universal process isolation** |
-| `sandbox` backend reporting `partial` | some promised file effects are not governed | must remain explicitly partial; callers requiring an absolute boundary fail closed |
+| sandbox provider reporting `full` | the provider claims completeness for its declared **file-effect** policy; configured custom runners may reach this report from operator assertion without built-in functional probing | provider-reported file-effect completeness only; deployment guarantee still requires acceptance evidence; **not universal process isolation** |
+| sandbox provider reporting `partial` | provider declares that some promised file effects are not governed | explicitly partial ceiling; callers requiring full enforcement fail closed |
 | remote/container/microVM execution-world replacement | architecture permits replacing whole capability implementations | stronger guarantees are possible in principle, but **not proven by this local rc5 probe** |
 
 No row above proves a universal network boundary.
@@ -291,18 +321,21 @@ Future guarantee negotiation must distinguish at least:
 - operation is routed through that provider;
 - provider supplies a policy fence;
 - OS/process confinement is active;
-- confinement completeness is `full` versus `partial` for its declared scope;
+- provider-reported completeness is `full` versus `partial` for its declared
+  scope;
+- environment-specific acceptance evidence exists for the guarantee being
+  claimed;
 - network isolation is independently available or unavailable.
 
-A package being named `sandbox` is not sufficient evidence for any stronger
-classification.
+A package being named `sandbox`, or a provider merely returning `full`, is not
+sufficient evidence for a stronger cross-capability guarantee.
 
 ### 7.4 Unknown or weaker environments fail closed
 
 When a safe-runtime operation requires a guarantee stronger than the selected
 provider combination can prove, the runtime must reject/downgrade the requested
-operation explicitly. It must not silently relabel provider mediation as
-process isolation.
+operation explicitly. It must not silently relabel provider mediation or a
+provider-reported completeness field as general process isolation.
 
 ## 8. Probe acceptance boundary
 
@@ -316,6 +349,7 @@ This provider probe is complete only when:
 5. the exact-source conformance workflow remains green.
 
 Platform-specific availability of bubblewrap, Landlock, Seatbelt, Windows ACL
-runners, or remote providers is deliberately outside this portable M2 probe.
-Those mechanisms require separate environment-specific acceptance evidence
-before safe-runtime may claim their concrete guarantee level.
+runners, configured custom runners, or remote providers is deliberately outside
+this portable M2 probe. Those mechanisms require separate environment-specific
+acceptance evidence before safe-runtime may claim their concrete guarantee
+level.
