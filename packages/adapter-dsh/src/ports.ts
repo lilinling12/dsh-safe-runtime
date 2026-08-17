@@ -78,12 +78,97 @@ export interface CompletionSteerRequest {
   readonly maxRetries: number;
 }
 
+/**
+ * Runtime-independent reference to one provider-owned filesystem target.
+ * `providerIdentity` is opaque: callers may compare it for equality but MUST
+ * NOT parse it or manufacture provider semantics from its string form.
+ */
+export interface FilesystemTargetRef {
+  readonly providerIdentity: string;
+  readonly displayPath: string;
+}
+
+export interface FilesystemInfo {
+  readonly version: string;
+  readonly type: "file" | "directory" | "other";
+  readonly size?: number;
+}
+
 export interface FilesystemPort {
-  readonly guarantee: "provider-enforced" | "process-isolated";
+  readonly mediation: "provider-service";
+  /** M2 does not claim process/kernel isolation from the filesystem service seam. */
+  readonly isolation: "not-asserted";
+
+  resolve(
+    path: string,
+    options?: { readonly cwd?: string; readonly signal?: AbortSignal },
+  ): Promise<FilesystemTargetRef>;
+
+  stat(target: Readonly<FilesystemTargetRef>, signal?: AbortSignal): Promise<FilesystemInfo | undefined>;
+
+  contains(
+    parent: Readonly<FilesystemTargetRef>,
+    child: Readonly<FilesystemTargetRef>,
+  ): boolean;
+
+  readText(target: Readonly<FilesystemTargetRef>, signal?: AbortSignal): Promise<string>;
+
+  /**
+   * Explicit security-sensitive bridge into the shared process execution world.
+   * This does not make providerIdentity a path and does not assert containment.
+   */
+  processPath(target: Readonly<FilesystemTargetRef>): string;
+}
+
+export interface SubprocessSpawnRequest {
+  readonly argv: readonly string[];
+  readonly cwd: string;
+  readonly env?: Readonly<Record<string, string | undefined>>;
+  readonly graceMs: number;
+  readonly signal?: AbortSignal;
+  readonly stdin?: string;
+  readonly stdoutMaxBytes: number;
+  readonly stderrMaxBytes: number;
+}
+
+export interface SubprocessOutcome {
+  readonly exitCode: number | null;
+  readonly signal: string | null;
+}
+
+export interface SubprocessOutputSnapshot {
+  readonly text: string;
+  readonly nextOffset: number;
+  readonly lossy: boolean;
+  readonly spillPath?: string;
+}
+
+export interface SubprocessExecution {
+  readonly pid: number;
+  readonly done: Promise<SubprocessOutcome>;
+  readStdout(fromByte: number): SubprocessOutputSnapshot;
+  readStderr(fromByte: number): SubprocessOutputSnapshot;
+  terminate(): void;
+  waitForExit(signal?: AbortSignal): Promise<boolean>;
 }
 
 export interface SubprocessPort {
-  readonly guarantee: "provider-enforced" | "process-isolated";
+  readonly mediation: "provider-service";
+  /** M2 does not promote managed process-tree ownership into process isolation. */
+  readonly isolation: "not-asserted";
+  readonly executionWorld: "shared-with-filesystem";
+
+  resolveExecutable(
+    command: string,
+    env?: Readonly<Record<string, string>>,
+    signal?: AbortSignal,
+  ): Promise<string>;
+
+  /**
+   * Start a process with bounded collected stdout/stderr only. Raw Node streams,
+   * shell interpretation, PTY policy, and command defaulting stay outside M2.
+   */
+  spawn(request: Readonly<SubprocessSpawnRequest>): SubprocessExecution;
 }
 
 export interface HarnessRuntimeAdapter {
