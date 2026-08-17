@@ -109,6 +109,27 @@ function expectedTurnRef(sessionRef: string, turn: number): string {
   return `${sessionRef}/turn:${turn}`;
 }
 
+function validateCompletionSteerBudget(request: CompletionSteerRequest): void {
+  if (!Number.isSafeInteger(request.maxRetries) || request.maxRetries < 0) {
+    throw dshAdapterError(
+      "INVALID_COMPLETION_STEER_REQUEST",
+      "completion steering maxRetries must be a non-negative safe integer",
+    );
+  }
+  if (!Number.isSafeInteger(request.retryOrdinal) || request.retryOrdinal < 1) {
+    throw dshAdapterError(
+      "INVALID_COMPLETION_STEER_REQUEST",
+      "completion steering retryOrdinal must be a positive safe integer",
+    );
+  }
+  if (request.retryOrdinal > request.maxRetries) {
+    throw dshAdapterError(
+      "COMPLETION_STEER_BUDGET_EXHAUSTED",
+      `completion steering retry ${request.retryOrdinal} exceeds caller budget ${request.maxRetries}`,
+    );
+  }
+}
+
 /**
  * Bind the runtime-independent M2 ports to the documented DeepSeek Harness
  * 0.1.0-rc.5 public seams. The adapter imports service definitions only; it
@@ -364,6 +385,7 @@ export function createDshRc5Adapter(
   };
 
   const steerCompletion = async (request: CompletionSteerRequest): Promise<void> => {
+    validateCompletionSteerBudget(request);
     const agent = requireLiveAgent(request.sessionRef);
     const turn = openTurn(agent.session);
     if (turn === undefined || expectedTurnRef(request.sessionRef, turn) !== request.turnRef) {
