@@ -1,3 +1,4 @@
+export * from "./binding.js";
 export * from "./correlation.js";
 export * from "./dispatcher.js";
 export * from "./errors.js";

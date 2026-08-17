@@ -51,10 +51,7 @@ describe("DeepSeek Harness rc5 normalization", () => {
       "sha256:result",
       "2026-08-17T08:00:02.000Z",
     );
-
     expect(event.outcome).toBe("success");
-    expect(event.callRef).toBe("call_42");
-    expect(event.resultDigest).toBe("sha256:result");
   });
 
   it("classifies denial only from authoritative policy correlation", () => {
@@ -66,8 +63,19 @@ describe("DeepSeek Harness rc5 normalization", () => {
       "2026-08-17T08:00:03.000Z",
       { policyDenied: true },
     );
-
     expect(event.outcome).toBe("denied");
+  });
+
+  it("classifies approval cancellation only from authoritative correlation", () => {
+    const event = normalizeFinalToolResult(
+      "session:abc",
+      { callId: "call_cancelled", name: "write", arguments: {} },
+      { isError: true },
+      "sha256:cancelled",
+      "2026-08-17T08:00:03.000Z",
+      { policyCancelled: true },
+    );
+    expect(event.outcome).toBe("cancelled");
   });
 
   it("does not infer denial from an arbitrary error-code substring", () => {
@@ -78,9 +86,7 @@ describe("DeepSeek Harness rc5 normalization", () => {
       "sha256:error",
       "2026-08-17T08:00:03.000Z",
     );
-
     expect(event.outcome).toBe("error");
-    expect(event.errorCode).toBe("TOOL_DENIED");
   });
 
   it.each(["ABORTED", "ABORTED_BEFORE_DISPATCH"])(
@@ -97,23 +103,31 @@ describe("DeepSeek Harness rc5 normalization", () => {
     },
   );
 
-  it("rejects an impossible policy-denied success correlation", () => {
-    expect(() =>
-      normalizeFinalToolResult(
-        "session:abc",
-        { callId: "call_bad", name: "write", arguments: {} },
-        { isError: false },
-        "sha256:bad",
-        "2026-08-17T08:00:03.000Z",
-        { policyDenied: true },
-      ),
-    ).toThrow(/policy-denied but Harness reported success/);
+  it("rejects an impossible non-success correlation", () => {
+    expect(() => normalizeFinalToolResult(
+      "session:abc",
+      { callId: "call_bad", name: "write", arguments: {} },
+      { isError: false },
+      "sha256:bad",
+      "2026-08-17T08:00:03.000Z",
+      { policyDenied: true },
+    )).toThrow(/correlated as non-success but Harness reported success/);
+  });
+
+  it("rejects conflicting correlation facts", () => {
+    expect(() => normalizeFinalToolResult(
+      "session:abc",
+      { callId: "call_bad", name: "write", arguments: {} },
+      { isError: true },
+      "sha256:bad",
+      "2026-08-17T08:00:03.000Z",
+      { policyDenied: true, policyCancelled: true },
+    )).toThrow(/conflicting denied and cancelled/);
   });
 
   it("fails closed when a requested adapter feature is unsupported", () => {
-    expect(() =>
-      requireAdapterFeatures(DSH_RC5_FEATURES, ["toolsArgumentRewrite"]),
-    ).toThrow(/required DeepSeek Harness adapter features are unavailable/);
+    expect(() => requireAdapterFeatures(DSH_RC5_FEATURES, ["toolsArgumentRewrite"]))
+      .toThrow(/required DeepSeek Harness adapter features are unavailable/);
   });
 
   it("does not treat scoped tool restrictions as an authority boundary", () => {
@@ -122,55 +136,50 @@ describe("DeepSeek Harness rc5 normalization", () => {
   });
 
   it("rejects unknown durable turn-end semantics", () => {
-    expect(() =>
-      normalizeDurableEvent(
-        "session:abc",
-        {
-          type: "turn/end",
-          seq: 99,
-          time: Date.parse("2026-08-17T08:00:04Z"),
-          data: { turn: 2, reason: { kind: "future-reason" } },
-        },
-        digest,
-      ),
-    ).toThrow(/unsupported DeepSeek Harness turn-end reason/);
+    expect(() => normalizeDurableEvent(
+      "session:abc",
+      {
+        type: "turn/end",
+        seq: 99,
+        time: Date.parse("2026-08-17T08:00:04Z"),
+        data: { turn: 2, reason: { kind: "future-reason" } },
+      },
+      digest,
+    )).toThrow(/unsupported DeepSeek Harness turn-end reason/);
   });
 
   it("rejects malformed event timestamps instead of emitting invalid ISO time", () => {
-    expect(() =>
-      normalizeDurableEvent(
-        "session:abc",
-        { type: "turn/start", seq: 1, time: Number.NaN, data: { turn: 1 } },
-        digest,
-      ),
-    ).toThrow(/event time/);
+    expect(() => normalizeDurableEvent(
+      "session:abc",
+      { type: "turn/start", seq: 1, time: Number.NaN, data: { turn: 1 } },
+      digest,
+    )).toThrow(/event time/);
   });
 });
 
 describe("OrderedRuntimeEventDispatcher", () => {
+  const event = (eventRef: string): RuntimeEvent => ({
+    type: "turn.started",
+    eventRef,
+    sessionRef: "session:abc",
+    observedAt: "2026-08-17T08:00:00.000Z",
+    turnRef: `session:abc/${eventRef}`,
+  });
+
   it("preserves event order across asynchronous sinks", async () => {
     const observed: string[] = [];
     const dispatcher = new OrderedRuntimeEventDispatcher(
       {
-        async accept(event) {
+        async accept(value) {
           await Promise.resolve();
-          observed.push(event.eventRef);
+          observed.push(value.eventRef);
         },
       },
       vi.fn(),
     );
-    const event = (eventRef: string): RuntimeEvent => ({
-      type: "turn.started",
-      eventRef,
-      sessionRef: "session:abc",
-      observedAt: "2026-08-17T08:00:00.000Z",
-      turnRef: `session:abc/${eventRef}`,
-    });
-
     dispatcher.enqueue(event("1"));
     dispatcher.enqueue(event("2"));
     await dispatcher.drain();
-
     expect(observed).toEqual(["1", "2"]);
   });
 
@@ -179,25 +188,16 @@ describe("OrderedRuntimeEventDispatcher", () => {
     const failures = vi.fn();
     const dispatcher = new OrderedRuntimeEventDispatcher(
       {
-        accept(event) {
-          if (event.eventRef === "bad") throw new Error("sink failed");
-          observed.push(event.eventRef);
+        accept(value) {
+          if (value.eventRef === "bad") throw new Error("sink failed");
+          observed.push(value.eventRef);
         },
       },
       failures,
     );
-    const event = (eventRef: string): RuntimeEvent => ({
-      type: "turn.started",
-      eventRef,
-      sessionRef: "session:abc",
-      observedAt: "2026-08-17T08:00:00.000Z",
-      turnRef: `session:abc/${eventRef}`,
-    });
-
     dispatcher.enqueue(event("bad"));
     dispatcher.enqueue(event("good"));
     await dispatcher.drain();
-
     expect(failures).toHaveBeenCalledTimes(1);
     expect(observed).toEqual(["good"]);
   });

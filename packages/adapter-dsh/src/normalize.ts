@@ -30,11 +30,12 @@ export interface HarnessToolResultSnapshot {
 /**
  * Classification facts owned by this adapter's interception path.
  * Harness denial results do not carry a canonical denial error code, so a
- * denial must be correlated from the policy/guard/approval decision that
- * actually prevented dispatch. Never infer it from human-readable text.
+ * denial/cancel classification must come from the decision path that actually
+ * prevented dispatch. Never infer it from human-readable text.
  */
 export interface FinalToolClassification {
   readonly policyDenied?: true;
+  readonly policyCancelled?: true;
 }
 
 export type Digest = (value: unknown) => string;
@@ -51,10 +52,7 @@ function observedAt(time: number): string {
   return value.toISOString();
 }
 
-function requiredNumber(
-  data: Readonly<Record<string, unknown>>,
-  key: string,
-): number {
+function requiredNumber(data: Readonly<Record<string, unknown>>, key: string): number {
   const value = data[key];
   if (typeof value !== "number" || !Number.isSafeInteger(value) || value < 0) {
     throw dshAdapterError("INVALID_HARNESS_EVENT", `Harness event field ${key} must be a non-negative safe integer`);
@@ -62,10 +60,7 @@ function requiredNumber(
   return value;
 }
 
-function requiredString(
-  data: Readonly<Record<string, unknown>>,
-  key: string,
-): string {
+function requiredString(data: Readonly<Record<string, unknown>>, key: string): string {
   const value = data[key];
   if (typeof value !== "string" || value.length === 0) {
     throw dshAdapterError("INVALID_HARNESS_EVENT", `Harness event field ${key} must be a non-empty string`);
@@ -73,20 +68,15 @@ function requiredString(
   return value;
 }
 
-function normalizeTurnEndStatus(
-  reason: unknown,
-): "completed" | "failed" | "blocked" | "cancelled" {
+function normalizeTurnEndStatus(reason: unknown): "completed" | "failed" | "blocked" | "cancelled" {
   if (typeof reason !== "object" || reason === null || !("kind" in reason)) {
     throw dshAdapterError("INVALID_HARNESS_EVENT", "Harness turn/end reason is malformed");
   }
   const kind = (reason as { readonly kind?: unknown }).kind;
   switch (kind) {
-    case "completed":
-      return "completed";
-    case "aborted":
-      return "cancelled";
-    case "blocked":
-      return "blocked";
+    case "completed": return "completed";
+    case "aborted": return "cancelled";
+    case "blocked": return "blocked";
     case "error":
     case "max-tokens":
     case "interrupted":
@@ -99,12 +89,6 @@ function normalizeTurnEndStatus(
   }
 }
 
-/**
- * Normalize only durable facts whose semantics are sufficient in isolation.
- * Durable `tool/result` is intentionally excluded here: the authoritative live
- * `tools/result` boundary owns final execution classification, while the
- * durable event is retained as a replay/evidence anchor.
- */
 export function normalizeDurableEvent(
   sessionRef: string,
   event: HarnessDurableEventSnapshot,
@@ -119,11 +103,7 @@ export function normalizeDurableEvent(
   switch (event.type) {
     case "turn/start": {
       const turn = requiredNumber(event.data, "turn");
-      return {
-        ...base,
-        type: "turn.started",
-        turnRef: `${sessionRef}/turn:${turn}`,
-      };
+      return { ...base, type: "turn.started", turnRef: `${sessionRef}/turn:${turn}` };
     }
     case "step/start": {
       const turn = requiredNumber(event.data, "turn");
@@ -163,10 +143,7 @@ export function normalizeDurableEvent(
   }
 }
 
-const CANCELLATION_CODES = new Set([
-  "ABORTED",
-  "ABORTED_BEFORE_DISPATCH",
-]);
+const CANCELLATION_CODES = new Set(["ABORTED", "ABORTED_BEFORE_DISPATCH"]);
 
 export function normalizeFinalToolResult(
   sessionRef: string,
@@ -175,18 +152,27 @@ export function normalizeFinalToolResult(
   resultDigest: string,
   nowIso: string,
   classification: FinalToolClassification = {},
+  finalEventRef = `${sessionRef}/live-tool-result:${execution.callId}`,
 ): ToolCompletedEvent {
+  if (classification.policyDenied === true && classification.policyCancelled === true) {
+    throw dshAdapterError(
+      "INCONSISTENT_HARNESS_TOOL_OUTCOME",
+      `tool ${execution.callId} has conflicting denied and cancelled policy correlation`,
+    );
+  }
+
   const errorCode = result.error?.info?.code;
   let outcome: ToolOutcome;
-
   if (!result.isError) {
-    if (classification.policyDenied === true) {
+    if (classification.policyDenied === true || classification.policyCancelled === true) {
       throw dshAdapterError(
         "INCONSISTENT_HARNESS_TOOL_OUTCOME",
-        `tool ${execution.callId} was correlated as policy-denied but Harness reported success`,
+        `tool ${execution.callId} was correlated as non-success but Harness reported success`,
       );
     }
     outcome = "success";
+  } else if (classification.policyCancelled === true) {
+    outcome = "cancelled";
   } else if (classification.policyDenied === true) {
     outcome = "denied";
   } else if (errorCode !== undefined && CANCELLATION_CODES.has(errorCode)) {
@@ -197,7 +183,7 @@ export function normalizeFinalToolResult(
 
   return {
     type: "tool.completed",
-    eventRef: `${sessionRef}/live-tool-result:${execution.callId}`,
+    eventRef: finalEventRef,
     sessionRef,
     observedAt: nowIso,
     callRef: execution.callId,
