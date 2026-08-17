@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import SessionStore, { SessionId } from "@deepseek-ai/dsh-session";
 
 import { createHarnessTestScope } from "./harness-runtime.js";
 
@@ -51,6 +52,25 @@ describe("source-conformance Cordis lifecycle fixture", () => {
       expect(scope.disposed).toBe(true);
       expect(nested.uid).toBeNull();
       expect(nestedCleanupCalls).toBe(1);
+    } finally {
+      await scope.dispose();
+    }
+  });
+
+  it("creates service consumers through explicit Cordis injection", async () => {
+    const scope = await createHarnessTestScope();
+
+    try {
+      await scope.ctx.plugin(SessionStore);
+      const consumer = await scope.inject(["sessions"]);
+      const session = consumer.sessions.create(SessionId("fixture-injection"));
+
+      expect(consumer).not.toBe(scope.ctx);
+      expect(consumer.fiber.parent).toBe(scope.fiber);
+      expect(String(session.id)).toBe("fixture-injection");
+
+      await scope.dispose();
+      expect(consumer.fiber.uid).toBeNull();
     } finally {
       await scope.dispose();
     }

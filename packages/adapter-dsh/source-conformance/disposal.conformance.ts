@@ -25,7 +25,8 @@ describe("DeepSeek Harness rc5 adapter disposal", () => {
 
   it("stops observing durable session events after disposal and tolerates repeated disposal", async () => {
     await harness.ctx.plugin(SessionStore);
-    const adapter = createDshRc5Adapter(harness.ctx, { digest });
+    const ctx = await harness.inject(["sessions"]);
+    const adapter = createDshRc5Adapter(ctx, { digest });
     const observed: RuntimeEvent[] = [];
     const subscription = adapter.observe({
       accept(event) {
@@ -33,7 +34,7 @@ describe("DeepSeek Harness rc5 adapter disposal", () => {
       },
     });
 
-    const session = harness.ctx.sessions.create(SessionId("observer-disposal"));
+    const session = ctx.sessions.create(SessionId("observer-disposal"));
     session.append("turn/start", { turn: 1 });
     await subscription.drain();
     expect(observed.map((event) => event.type)).toEqual(["turn.started"]);
@@ -48,7 +49,8 @@ describe("DeepSeek Harness rc5 adapter disposal", () => {
 
   it("drains already accepted asynchronous evidence before disposal resolves", async () => {
     await harness.ctx.plugin(SessionStore);
-    const adapter = createDshRc5Adapter(harness.ctx, { digest });
+    const ctx = await harness.inject(["sessions"]);
+    const adapter = createDshRc5Adapter(ctx, { digest });
     let release!: () => void;
     const gate = new Promise<void>((resolve) => { release = resolve; });
     let settled = 0;
@@ -60,7 +62,7 @@ describe("DeepSeek Harness rc5 adapter disposal", () => {
       },
     });
 
-    const session = harness.ctx.sessions.create(SessionId("observer-drain"));
+    const session = ctx.sessions.create(SessionId("observer-drain"));
     session.append("turn/start", { turn: 1 });
 
     let disposed = false;

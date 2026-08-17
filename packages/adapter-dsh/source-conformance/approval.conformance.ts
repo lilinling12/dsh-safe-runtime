@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import type { Context } from "@deepseek-ai/cordis";
 import AgentRegistry, { type Agent } from "@deepseek-ai/dsh-agent";
 import { CallId } from "@deepseek-ai/dsh-llm";
 import SessionStore, { SessionId } from "@deepseek-ai/dsh-session";
@@ -16,10 +15,11 @@ function digest(value: unknown): string {
   return `test:${JSON.stringify(value)}`;
 }
 
-async function setupLiveAgent(ctx: Context, sessionId: string) {
-  await ctx.plugin(SessionStore);
-  await ctx.plugin(AgentRegistry);
-  await ctx.plugin(ApprovalService);
+async function setupLiveAgent(harness: HarnessTestScope, sessionId: string) {
+  await harness.ctx.plugin(SessionStore);
+  await harness.ctx.plugin(AgentRegistry);
+  await harness.ctx.plugin(ApprovalService);
+  const ctx = await harness.inject(["sessions", "agents", "approval"]);
 
   const session = ctx.sessions.create(SessionId(sessionId));
   session.append("turn/start", { turn: 1 });
@@ -30,6 +30,7 @@ async function setupLiveAgent(ctx: Context, sessionId: string) {
   ctx.agents.register(agent);
 
   return {
+    ctx,
     session,
     agent,
     adapter: createDshRc5Adapter(ctx, { digest }),
@@ -48,8 +49,8 @@ describe("DeepSeek Harness rc5 approval binding", () => {
   });
 
   it("maps Harness allowed-once and preserves Harness-generated audit identity", async () => {
-    const { session, adapter } = await setupLiveAgent(harness.ctx, "approval-allowed");
-    harness.ctx.on("approval/request", () => Promise.resolve<ApprovalOutcome>("allowed-once"));
+    const { ctx, session, adapter } = await setupLiveAgent(harness, "approval-allowed");
+    ctx.on("approval/request", () => Promise.resolve<ApprovalOutcome>("allowed-once"));
 
     const outcome = await adapter.requestApproval({
       sessionRef: "approval-allowed",
@@ -72,7 +73,7 @@ describe("DeepSeek Harness rc5 approval binding", () => {
   });
 
   it("maps the no-answer path to UNAVAILABLE and retains the durable pair", async () => {
-    const { session, adapter } = await setupLiveAgent(harness.ctx, "approval-unavailable");
+    const { session, adapter } = await setupLiveAgent(harness, "approval-unavailable");
 
     await expect(adapter.requestApproval({
       sessionRef: "approval-unavailable",
@@ -84,10 +85,10 @@ describe("DeepSeek Harness rc5 approval binding", () => {
   });
 
   it("emits normalized approval evidence using the Harness-generated approval id", async () => {
-    const { session, adapter } = await setupLiveAgent(harness.ctx, "approval-observed");
+    const { ctx, session, adapter } = await setupLiveAgent(harness, "approval-observed");
     const events: RuntimeEvent[] = [];
     const observation = adapter.observe({ accept: (event) => { events.push(event); } });
-    harness.ctx.on("approval/request", () => Promise.resolve<ApprovalOutcome>("rejected"));
+    ctx.on("approval/request", () => Promise.resolve<ApprovalOutcome>("rejected"));
 
     await expect(adapter.requestApproval({
       sessionRef: "approval-observed",
@@ -113,7 +114,8 @@ describe("DeepSeek Harness rc5 approval binding", () => {
     await harness.ctx.plugin(SessionStore);
     await harness.ctx.plugin(AgentRegistry);
     await harness.ctx.plugin(ApprovalService);
-    const adapter = createDshRc5Adapter(harness.ctx, { digest });
+    const ctx = await harness.inject(["sessions", "agents", "approval"]);
+    const adapter = createDshRc5Adapter(ctx, { digest });
 
     await expect(adapter.requestApproval({
       sessionRef: "missing-agent",
@@ -122,7 +124,7 @@ describe("DeepSeek Harness rc5 approval binding", () => {
   });
 
   it("preserves Harness's open-turn precondition", async () => {
-    const { session, adapter } = await setupLiveAgent(harness.ctx, "approval-closed");
+    const { session, adapter } = await setupLiveAgent(harness, "approval-closed");
     session.append("turn/end", { turn: 1, reason: { kind: "completed" } });
 
     await expect(adapter.requestApproval({

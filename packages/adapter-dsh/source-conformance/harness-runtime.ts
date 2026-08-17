@@ -1,4 +1,4 @@
-import { Context, type Fiber } from "@deepseek-ai/cordis";
+import { Context, type Fiber, type Inject } from "@deepseek-ai/cordis";
 
 /**
  * A source-conformance test scope owned by a real Cordis child plugin fiber.
@@ -14,6 +14,13 @@ export interface HarnessTestScope {
   readonly ctx: Context;
   readonly fiber: Fiber;
   readonly disposed: boolean;
+
+  /**
+   * Create a nested consumer context that explicitly declares the Cordis
+   * services it reads. Providers must already be mounted in this scope.
+   */
+  inject(dependencies: Inject): Promise<Context>;
+
   dispose(): Promise<void>;
 }
 
@@ -47,6 +54,25 @@ export async function createHarnessTestScope(): Promise<HarnessTestScope> {
     fiber,
     get disposed() {
       return fiber.uid === null;
+    },
+    async inject(dependencies: Inject): Promise<Context> {
+      let injectedContext: Context | undefined;
+      const injectedFiber = ctx.inject(
+        dependencies,
+        function DshSafeRuntimeSourceConformanceConsumer(consumerCtx) {
+          injectedContext = consumerCtx;
+        },
+      );
+      await injectedFiber;
+
+      if (injectedContext === undefined) {
+        await injectedFiber.dispose();
+        throw new Error(
+          "Cordis injected consumer activated without exposing its context",
+        );
+      }
+
+      return injectedContext;
     },
     dispose(): Promise<void> {
       disposalTask ??= Promise.resolve()
