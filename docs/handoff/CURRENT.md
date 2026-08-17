@@ -5,14 +5,14 @@
 
 ## Snapshot
 
-- Recorded at: `2026-08-17T20:49:00+08:00`
+- Recorded at: `2026-08-17T20:55:14+08:00`
 - Repository: `lilinling12/dsh-safe-runtime`
 - Phase: `M2 — DeepSeek Harness Adapter Baseline`
 - Pull request: `#1 — feat(adapter-dsh): establish M2 Harness adapter baseline`
 - PR state: `OPEN / DRAFT`
 - Branch: `feat/m2-harness-adapter`
 - Last fully verified implementation head before this handoff maintenance commit:
-  `e53d13ba4531c9e315a0fd2e3f999cbf463d595c`
+  `c5d42ac67cff40102de5b5e6a3aea459e646d7ba`
 - Base: `main` / `f88b8783623c8cd15be42329077953044b9fdd3d`
 
 The handoff commit advances the branch. A resumed session MUST query the live PR
@@ -31,14 +31,14 @@ make resolution or tests pass.
 
 ## Last verified quality evidence
 
-At `e53d13ba4531c9e315a0fd2e3f999cbf463d595c`:
+At `c5d42ac67cff40102de5b5e6a3aea459e646d7ba`:
 
 | Gate | State | Evidence |
 | --- | --- | --- |
-| Normal CI | **PASS** | run `32031495534` (#54), job `95392301947` |
-| Frozen safe-runtime install | **PASS** | normal CI step 5 |
-| `pnpm check:all` | **PASS** | normal CI step 6 |
-| Exact Harness source conformance | **PASS** | run `32031495546` (#36), job `95392301956` |
+| Normal CI | **PASS** | run `32032290309`, job `95394774984` |
+| Frozen safe-runtime install | **PASS** | normal CI |
+| `pnpm check:all` | **PASS** | normal CI |
+| Exact Harness source conformance | **PASS** | run `32032290352`, job `95394780881` |
 | Pinned upstream build | **PASS** | source-conformance step 6 |
 | Frozen safe-runtime install in source gate | **PASS** | step 7 |
 | Exact package projection | **PASS** | step 8 |
@@ -48,109 +48,117 @@ At `e53d13ba4531c9e315a0fd2e3f999cbf463d595c`:
 
 ## M2 Acceptance Audit status
 
-The initial acceptance record is:
-
-`docs/acceptance/m2-acceptance-audit.md`
-
-Its verdict remains **M2 NOT ACCEPTED / PR #1 KEEP DRAFT**. The audit identified
-four P0 remediation items. Two are now closed by code plus dual-green evidence:
+`docs/acceptance/m2-acceptance-audit.md` still governs the current acceptance
+review. M2 remains **NOT ACCEPTED / PR #1 KEEP DRAFT** until the final P0
+reconnaissance blocker is closed and the audit is refreshed.
 
 ### Closed P0-B1 — Completion steering budget
 
-- `CompletionSteerRequest` carries the caller-defined `maxRetries` budget.
-- `createDshRc5Adapter().steerCompletion()` validates the budget before touching
-  Harness steering.
-- malformed ordinals/budgets fail explicitly.
-- `retryOrdinal > maxRetries` fails with
-  `COMPLETION_STEER_BUDGET_EXHAUSTED` before `agent.steer()`.
-- exact rc5 runtime conformance proves the boundary and over-budget fail-closed
-  behavior.
-
-This implements the existing Spec 0003 completion-budget requirement; it does
-not derive new protocol semantics from Harness.
+- caller-defined `maxRetries` is explicit at the runtime-independent port;
+- malformed and over-budget requests fail before Harness steering;
+- exact rc5 runtime conformance proves boundary and fail-closed behavior.
 
 ### Closed P0-B2 — Sidecar correlation boundary
 
-- `SidecarEvidenceRecord` and `SidecarEvidenceSink` define the narrow M2
-  persistence seam.
-- records are keyed by durable Harness event ref/sequence and preserve evidence
-  ref/digest.
-- `createSidecarEvidenceRecord()` accepts only durable correlation and validates
-  evidence/event anchoring.
-- projection is allow-listed and deliberately excludes `processLocalTokenRef`.
-- storage durability, retention, hash chaining, replay indexes, and the full
-  audit ledger remain later-milestone responsibilities.
+- minimal `SidecarEvidenceRecord` / `SidecarEvidenceSink` boundary exists;
+- durable Harness event ref/sequence and evidence ref/digest are preserved;
+- process-local execution tokens are excluded by allow-list projection;
+- full ledger persistence/hash-chain/replay remains later-milestone work.
 
-A real CI failure occurred while introducing this boundary: head
-`fd4e7c03ffe526cca10440933a9188d536b1454e` failed `pnpm check:all` because
-`sidecar.ts` imported `@dsh-safe/protocol` in a typecheck topology where that
-workspace package was not resolvable. Frozen install still passed. The fix kept
-the sidecar boundary package-local and runtime-independent instead of weakening
-TypeScript or CI; the final head above is dual-green.
+### Closed P0-B3 — Operational Filesystem / Subprocess ports
+
+The former guarantee-only markers were replaced with deliberately minimal,
+runtime-independent operational ports and exact-source binding proof.
+
+Filesystem:
+
+- provider-owned target identity remains opaque;
+- caller-manufactured/guessed target identities are rejected;
+- resolve/stat/contains/readText/processPath are operational;
+- `processPath()` remains an explicit security-sensitive execution-world bridge;
+- mediation is declared as provider-service and isolation remains
+  `not-asserted`.
+
+Subprocess:
+
+- executable resolution is operational;
+- spawn requires explicit argv/cwd/grace/output bounds and exposes bounded
+  collected stdout/stderr only;
+- raw Node streams, shell defaults, PTY policy and broader command semantics are
+  not promoted into the M2 port;
+- missing requested provider output collectors fail closed;
+- execution world is recorded as shared with filesystem, while isolation remains
+  `not-asserted`.
+
+Exact pinned rc5 source-conformance step 10 proves official `FileSystem` and
+`SubprocessRuntime` public types bind directly to the structural provider
+adapters. This evidence does not grant Harness semantic authority.
+
+A real intermediate CI failure on head
+`04ab5764d127be6979976c96998de0a40e36ead2` was limited to strict TypeScript
+`TS7006` implicit-any diagnostics in new callback parameters. Frozen install
+passed. The fix added explicit types only; strictness and all gates remained
+unchanged. Final implementation head `c5d42ac...` is dual-green.
 
 ## Active blocker / current gate
 
-**P0-B3 — Complete the minimal operational Filesystem / Subprocess adapter ports.**
+**P0-B4 — Exact-source subagent/workflow reconnaissance and explicit seam documentation.**
 
-Do not start M3 shared TCK or M4 Capability Broker implementation yet.
+This is a reconnaissance/documentation gate, not authorization to implement
+subagent lineage.
 
-The current `FilesystemPort` / `SubprocessPort` guarantee-only markers are not
-sufficient for roadmap M2-023/M2-024. The next implementation must use the
-exact pinned rc5 public source contracts and preserve these boundaries:
+Required next work:
 
-- `FsTargetKey` / `FsVersion` are opaque provider tokens and MUST NOT be parsed;
-- `processPath()` is a security-sensitive process-path bridge;
-- FS and Subprocess share one execution world, but this MUST NOT be promoted to
-  a process-isolation claim;
-- bare local FS `cwd` is not containment;
-- `fs-sandbox` fences mutations, not reads, and is not a kernel boundary;
-- local subprocess filesystem effects do not traverse `ctx.fs`;
-- sandbox scope is file effects only; no universal network/general process
-  confinement has been proven;
-- operational ports must remain runtime-independent and must not copy Harness
-  concrete payload types into protocol/core packages;
-- do not implement M6 workspace transactions early merely to make the M2 ports
-  look complete.
+1. inspect only official source at exact pinned Harness commit
+   `47f943859bef60e4160492346772ded9b24f765a`;
+2. identify any public subagent, child-agent, workflow/orchestration, delegation,
+   or nested-session seams relevant to roadmap M2-002;
+3. record what the pinned baseline actually exposes and what it does not prove;
+4. update `docs/compatibility/deepseek-harness-0.1.0-rc.5.md` with explicit
+   supported/non-supported claims;
+5. do not implement roadmap M2-017 subagent lineage mapping, which remains P1,
+   unless a higher-authority artifact changes that requirement;
+6. rerun normal CI and exact rc5 source-conformance on the resulting head;
+7. refresh the M2 Acceptance Audit and decide whether M2 is accepted.
 
-After B3 is implemented and dual-green, continue **P0-B4**: exact-source
-subagent/workflow reconnaissance and explicit supported/non-supported seam
-documentation. M2-017 subagent lineage implementation remains P1/deferred unless
-a higher-authority artifact changes that requirement.
+Do not start M3 shared TCK or M4 Capability Broker implementation while B4 or the
+final M2 acceptance decision remains open.
 
-## Acceptance-order reminders
-
-The audit authority order remains:
-
-1. `specs/0003-deepseek-harness-adapter-contract.md`;
-2. accepted compatibility/source evidence;
-3. `docs/tck-security-acceptance.md` expectations relevant to M2;
-4. `docs/roadmap.md` tracking items;
-5. current implementation/tests/CI.
-
-The roadmap is a planning/tracking artifact and is stale in several M2
-checkboxes. Do not bulk-mark it complete. In particular, do not invent
-`step.ended` protocol vocabulary from roadmap wording when Spec 0003 defines
-only the current M2 normalized vocabulary.
-
-The roadmap phrase “Event order TCK green” must not be used to fabricate the M3
-language-neutral shared TCK inside M2. M2 may rely on its own adapter/source
-conformance evidence; the shared language-independent TCK remains M3-owned.
-
-## Non-negotiable invariants
+## Security / architecture boundaries carried forward
 
 - Harness is an adapter, never protocol authority.
 - Protocol/core packages do not import Harness concrete payload types.
 - `tool/call` is intent; live `tools/result` is the authoritative final outcome.
 - Unknown/future security semantics fail closed.
 - Tool/provider mediation is not process isolation.
-- Do not weaken schemas, validators, TypeScript, tests, frozen installs, TCK, or
+- `FsTargetKey` / `FsVersion` are opaque provider tokens and MUST NOT be parsed.
+- bare local FS `cwd` is not containment.
+- `fs-sandbox` mutation fencing is not a kernel boundary and does not fence
+  reads.
+- local subprocess filesystem effects do not traverse `ctx.fs`.
+- sandbox/file-effect scope is not universal network/general process
+  confinement.
+- do not weaken schemas, validators, TypeScript, tests, frozen installs, TCK, or
   security claims for CI.
-- Transaction v1 remains workspace-filesystem-effects only.
+- do not implement M6 workspace transactions early.
 - M2 -> M3 shared/language-neutral TCK -> M4 Capability Broker remains the
   intended roadmap boundary unless governance explicitly changes it.
+
+## Acceptance-order reminders
+
+1. `specs/0003-deepseek-harness-adapter-contract.md`;
+2. accepted exact-source compatibility evidence;
+3. `docs/tck-security-acceptance.md` expectations relevant to M2;
+4. `docs/roadmap.md` tracking items;
+5. current implementation/tests/CI.
+
+The roadmap is a planning artifact and remains stale in several M2 checkboxes.
+Do not invent protocol vocabulary such as `step.ended` from roadmap wording when
+the normative M2 spec does not define it. Likewise, do not relabel M2 adapter
+conformance as the M3 language-neutral shared TCK.
 
 ## Resume instruction
 
 Read `docs/handoff/README.md`, this file, and live GitHub state. Continue from
-**P0-B3 — operational Filesystem / Subprocess adapter ports** unless newer live
+**P0-B4 — exact-source subagent/workflow reconnaissance** unless newer live
 evidence and an updated handoff prove the gate changed.
