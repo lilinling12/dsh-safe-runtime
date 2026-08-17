@@ -1,5 +1,6 @@
-/**
- * @dsh-safe/adapter-dsh package boundary.
- * Runtime implementation intentionally deferred until protocol/schema/TCK gates are complete.
- */
-export const PACKAGE_STAGE = "M0-M1-BOUNDARY-ONLY" as const;
+export * from "./correlation.js";
+export * from "./feature-matrix.js";
+export * from "./ports.js";
+export * from "./runtime-events.js";
+
+export const PACKAGE_STAGE = "M2-ADAPTER-CONTRACT" as const;
