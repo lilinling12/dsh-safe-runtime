@@ -1,16 +1,19 @@
-import { afterEach, describe, expect, it } from "vitest";
-import { Context } from "@deepseek-ai/cordis";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import type { Context } from "@deepseek-ai/cordis";
 import AgentRegistry, { agentEvents, type Agent } from "@deepseek-ai/dsh-agent";
 import SessionStore, { SessionId } from "@deepseek-ai/dsh-session";
 
 import { createDshRc5Adapter } from "../src/binding.js";
+import {
+  createHarnessTestScope,
+  type HarnessTestScope,
+} from "./harness-runtime.js";
 
 function digest(value: unknown): string {
   return `test:${JSON.stringify(value)}`;
 }
 
-async function setupAgent(sessionRef: string) {
-  const ctx = new Context();
+async function setupAgent(ctx: Context, sessionRef: string) {
   await ctx.plugin(SessionStore);
   await ctx.plugin(AgentRegistry);
 
@@ -23,25 +26,24 @@ async function setupAgent(sessionRef: string) {
   ctx.agents.register(agent);
 
   return {
-    ctx,
     agent,
     adapter: createDshRc5Adapter(ctx, { digest }),
   };
 }
 
 describe("DeepSeek Harness rc5 turn-stopping binding", () => {
-  const contexts: Context[] = [];
+  let harness: HarnessTestScope;
+
+  beforeEach(async () => {
+    harness = await createHarnessTestScope();
+  });
 
   afterEach(async () => {
-    while (contexts.length > 0) {
-      const ctx = contexts.pop();
-      if (ctx !== undefined) await ctx.dispose();
-    }
+    await harness.dispose();
   });
 
   it("awaits safe-runtime completion work inside Harness's serial stop boundary", async () => {
-    const { ctx, agent, adapter } = await setupAgent("turn-stop-await");
-    contexts.push(ctx);
+    const { agent, adapter } = await setupAgent(harness.ctx, "turn-stop-await");
 
     let release!: () => void;
     const gate = new Promise<void>((resolve) => { release = resolve; });
@@ -59,7 +61,7 @@ describe("DeepSeek Harness rc5 turn-stopping binding", () => {
 
     const signal = new AbortController().signal;
     let settled = false;
-    const dispatch = agentEvents(ctx, agent)
+    const dispatch = agentEvents(harness.ctx, agent)
       .serial("agent/turn-stopping", { turn: 1, signal })
       .then(() => { settled = true; });
 
@@ -75,8 +77,7 @@ describe("DeepSeek Harness rc5 turn-stopping binding", () => {
   });
 
   it("removes the serial completion hook when its registration is disposed", async () => {
-    const { ctx, agent, adapter } = await setupAgent("turn-stop-dispose");
-    contexts.push(ctx);
+    const { agent, adapter } = await setupAgent(harness.ctx, "turn-stop-dispose");
     let calls = 0;
 
     const registration = adapter.registerTurnStopping(() => {
@@ -84,17 +85,16 @@ describe("DeepSeek Harness rc5 turn-stopping binding", () => {
     });
 
     const signal = new AbortController().signal;
-    await agentEvents(ctx, agent).serial("agent/turn-stopping", { turn: 1, signal });
+    await agentEvents(harness.ctx, agent).serial("agent/turn-stopping", { turn: 1, signal });
     expect(calls).toBe(1);
 
     await registration.dispose();
-    await agentEvents(ctx, agent).serial("agent/turn-stopping", { turn: 1, signal });
+    await agentEvents(harness.ctx, agent).serial("agent/turn-stopping", { turn: 1, signal });
     expect(calls).toBe(1);
   });
 
   it("propagates completion-gate failure instead of silently allowing turn closure", async () => {
-    const { ctx, agent, adapter } = await setupAgent("turn-stop-failure");
-    contexts.push(ctx);
+    const { agent, adapter } = await setupAgent(harness.ctx, "turn-stop-failure");
 
     adapter.registerTurnStopping(() => {
       throw new Error("acceptance gate unavailable");
@@ -102,7 +102,7 @@ describe("DeepSeek Harness rc5 turn-stopping binding", () => {
 
     const signal = new AbortController().signal;
     await expect(
-      agentEvents(ctx, agent).serial("agent/turn-stopping", { turn: 1, signal }),
+      agentEvents(harness.ctx, agent).serial("agent/turn-stopping", { turn: 1, signal }),
     ).rejects.toThrow("acceptance gate unavailable");
   });
 });

@@ -1,10 +1,14 @@
-import { afterEach, describe, expect, it } from "vitest";
-import { Context } from "@deepseek-ai/cordis";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import type { Context } from "@deepseek-ai/cordis";
 import { CallId } from "@deepseek-ai/dsh-llm";
 import SystemPrompt from "@deepseek-ai/dsh-system-prompt";
 import ToolRuntime, { defineTool } from "@deepseek-ai/dsh-tools";
 
 import { createDshRc5Adapter } from "../src/binding.js";
+import {
+  createHarnessTestScope,
+  type HarnessTestScope,
+} from "./harness-runtime.js";
 
 const signal = new AbortController().signal;
 
@@ -12,8 +16,7 @@ function digest(value: unknown): string {
   return `test:${JSON.stringify(value)}`;
 }
 
-async function setup() {
-  const ctx = new Context();
+async function setup(ctx: Context) {
   await ctx.plugin(SystemPrompt);
   await ctx.plugin(ToolRuntime);
   const adapter = createDshRc5Adapter(ctx, { digest });
@@ -21,18 +24,18 @@ async function setup() {
 }
 
 describe("DeepSeek Harness rc5 real ToolRuntime binding", () => {
-  const contexts: Context[] = [];
+  let harness: HarnessTestScope;
+
+  beforeEach(async () => {
+    harness = await createHarnessTestScope();
+  });
 
   afterEach(async () => {
-    while (contexts.length > 0) {
-      const ctx = contexts.pop();
-      if (ctx !== undefined) await ctx.dispose();
-    }
+    await harness.dispose();
   });
 
   it("maps DENY to a real pre-execute denial and never invokes the body", async () => {
-    const { ctx, adapter } = await setup();
-    contexts.push(ctx);
+    const { ctx, adapter } = await setup(harness.ctx);
     let bodyCalls = 0;
 
     ctx.tools.register(defineTool({
@@ -63,8 +66,7 @@ describe("DeepSeek Harness rc5 real ToolRuntime binding", () => {
   });
 
   it("fails closed when the async policy handler throws", async () => {
-    const { ctx, adapter } = await setup();
-    contexts.push(ctx);
+    const { ctx, adapter } = await setup(harness.ctx);
     let bodyCalls = 0;
 
     ctx.tools.register(defineTool({
@@ -97,8 +99,7 @@ describe("DeepSeek Harness rc5 real ToolRuntime binding", () => {
   });
 
   it("maps ASK to Harness fail-closed behavior when no approval service is mounted", async () => {
-    const { ctx, adapter } = await setup();
-    contexts.push(ctx);
+    const { ctx, adapter } = await setup(harness.ctx);
     let bodyCalls = 0;
 
     ctx.tools.register(defineTool({
@@ -129,8 +130,7 @@ describe("DeepSeek Harness rc5 real ToolRuntime binding", () => {
   });
 
   it("restores ordinary execution after the policy registration is disposed", async () => {
-    const { ctx, adapter } = await setup();
-    contexts.push(ctx);
+    const { ctx, adapter } = await setup(harness.ctx);
     let bodyCalls = 0;
 
     ctx.tools.register(defineTool({
@@ -170,8 +170,7 @@ describe("DeepSeek Harness rc5 real ToolRuntime binding", () => {
   });
 
   it("maps a throwing monotonic guard to a final denial", async () => {
-    const { ctx, adapter } = await setup();
-    contexts.push(ctx);
+    const { ctx, adapter } = await setup(harness.ctx);
     let bodyCalls = 0;
 
     ctx.tools.register(defineTool({
