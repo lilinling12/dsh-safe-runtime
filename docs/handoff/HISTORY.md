@@ -127,3 +127,48 @@ M2 is still **NOT ACCEPTED**. The active blocker advances to **P0-B3: minimal
 operational Filesystem/Subprocess adapter ports**. P0-B4 exact-source
 subagent/workflow reconnaissance remains after B3. M3 shared TCK and M4
 Capability Broker remain unauthorized until M2 P0 remediation is complete.
+
+## 2026-08-17T20:55:14+08:00 — Close B3 operational provider ports
+
+P0-B3 closed on implementation head
+`c5d42ac67cff40102de5b5e6a3aea459e646d7ba` with dual-green evidence.
+
+The guarantee-only filesystem/subprocess markers were replaced by minimal
+operational, runtime-independent ports:
+
+- filesystem preserves opaque provider target identity and exposes only the M2
+  resolve/stat/contains/readText/processPath seam;
+- guessed/unresolved target identities fail explicitly rather than being
+  interpreted as paths;
+- subprocess exposes executable resolution and an explicit bounded
+  collected-output spawn request;
+- missing requested stdout/stderr collectors fail closed;
+- both ports declare provider mediation while explicitly refusing to assert
+  process/kernel isolation;
+- filesystem/subprocess are recorded as sharing an execution world without
+  claiming subprocess file effects traverse `ctx.fs`;
+- raw Node streams, shell defaults, PTY policy, workspace transactions and
+  broader sandbox semantics were not pulled into M2.
+
+Exact-source `provider-seams.contract.ts` now proves the official pinned rc5
+`FileSystem` and `SubprocessRuntime` public types bind directly to these
+structural adapters. No concrete Harness type was promoted into protocol/core.
+
+A real intermediate normal-CI failure on head
+`04ab5764d127be6979976c96998de0a40e36ead2` was caused only by current-head
+`TS7006` implicit-any diagnostics in new factory callbacks. Frozen install
+passed. The fix added explicit parameter/return types; TypeScript strictness and
+all validation requirements remained unchanged.
+
+Final evidence at `c5d42ac67cff40102de5b5e6a3aea459e646d7ba`:
+
+- normal CI run `32032290309` / job `95394774984`: PASS;
+- frozen install and `pnpm check:all`: PASS;
+- exact rc5 source-conformance run `32032290352` / job `95394780881`: PASS;
+- source-conformance steps 6–11 all PASS, including exact-source TypeScript
+  binding against official rc5 and real runtime conformance.
+
+M2 remains **NOT ACCEPTED**. The active blocker advances to **P0-B4: exact-source
+subagent/workflow reconnaissance and explicit supported/non-supported seam
+documentation**. Roadmap M2-017 subagent lineage implementation remains P1 and
+is not authorized by this gate. PR #1 remains Draft; M3/M4 remain unauthorized.
