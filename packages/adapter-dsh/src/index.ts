@@ -1,6 +1,7 @@
 export * from "./correlation.js";
 export * from "./feature-matrix.js";
+export * from "./normalize.js";
 export * from "./ports.js";
 export * from "./runtime-events.js";
 
-export const PACKAGE_STAGE = "M2-ADAPTER-CONTRACT" as const;
+export const PACKAGE_STAGE = "M2-ADAPTER-CONFORMANCE" as const;
