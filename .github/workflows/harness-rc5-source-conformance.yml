@@ -46,21 +46,24 @@ jobs:
       - name: Install safe-runtime dependencies reproducibly
         run: pnpm install --frozen-lockfile
 
-      - name: Link only the pinned Harness service-definition packages
-        shell: bash
+      - name: Project exact pinned Harness workspace packages
         run: |
-          set -euo pipefail
-          mkdir -p node_modules/@deepseek-ai
-          ln -s "$GITHUB_WORKSPACE/.tmp/deepseek-harness/vendor/cordis" node_modules/@deepseek-ai/cordis
-          ln -s "$GITHUB_WORKSPACE/.tmp/deepseek-harness/packages/core/agent" node_modules/@deepseek-ai/dsh-agent
-          ln -s "$GITHUB_WORKSPACE/.tmp/deepseek-harness/packages/llm/llm" node_modules/@deepseek-ai/dsh-llm
-          ln -s "$GITHUB_WORKSPACE/.tmp/deepseek-harness/packages/core/session" node_modules/@deepseek-ai/dsh-session
-          ln -s "$GITHUB_WORKSPACE/.tmp/deepseek-harness/packages/core/system-prompt" node_modules/@deepseek-ai/dsh-system-prompt
-          ln -s "$GITHUB_WORKSPACE/.tmp/deepseek-harness/packages/core/tools" node_modules/@deepseek-ai/dsh-tools
-          ln -s "$GITHUB_WORKSPACE/.tmp/deepseek-harness/packages/interaction/user-approval" node_modules/@deepseek-ai/dsh-user-approval
+          node packages/adapter-dsh/scripts/project-pinned-harness-workspace.mjs \
+            --source-root .tmp/deepseek-harness \
+            --consumer-root . \
+            --consumer-root .tmp/deepseek-harness \
+            --manifest .tmp/harness-workspace-projection.json
+          cat .tmp/harness-workspace-projection.json
+
+      - name: Verify workspace projection is idempotent
+        run: |
+          node packages/adapter-dsh/scripts/project-pinned-harness-workspace.mjs \
+            --source-root .tmp/deepseek-harness \
+            --consumer-root . \
+            --consumer-root .tmp/deepseek-harness
 
       - name: Typecheck real rc5 binding against pinned source
         run: pnpm exec tsc -p packages/adapter-dsh/tsconfig.harness-rc5.json --noEmit
 
-      - name: Execute real rc5 ToolRuntime policy conformance
+      - name: Execute real rc5 runtime conformance
         run: pnpm exec vitest run --config packages/adapter-dsh/vitest.harness-rc5.config.ts
