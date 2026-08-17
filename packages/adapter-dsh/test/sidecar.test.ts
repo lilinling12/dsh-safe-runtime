@@ -1,21 +1,19 @@
-import type { Evidence } from "@dsh-safe/protocol";
 import { describe, expect, it } from "vitest";
 
 import {
   createSidecarEvidenceRecord,
   DshAdapterError,
   type CorrelationRecord,
+  type SidecarEvidenceAnchor,
 } from "../src/index.js";
 
-const evidence = (eventRef: string): Evidence => ({
+const evidence = (eventRef: string): SidecarEvidenceAnchor => ({
   evidenceRef: "evidence:tool-result:1",
-  kind: "tool-result",
   source: {
     adapter: "deepseek-harness",
     eventRef,
   },
   digest: "sha256:0123456789abcdef",
-  observedAt: "2026-08-17T12:00:00.000Z",
 });
 
 describe("DeepSeek Harness durable sidecar correlation", () => {
@@ -92,7 +90,7 @@ describe("DeepSeek Harness durable sidecar correlation", () => {
       durableSequence: 12,
       sessionRef: "session:abc",
     };
-    const wrongAdapter = {
+    const wrongAdapter: SidecarEvidenceAnchor = {
       ...evidence("session:abc/seq:12"),
       source: { adapter: "other-adapter", eventRef: "session:abc/seq:12" },
     };
