@@ -3,6 +3,7 @@ import type {
   FilesystemInfo,
   FilesystemPort,
   FilesystemTargetRef,
+  HarnessRuntimeAdapter,
   SubprocessExecution,
   SubprocessOutcome,
   SubprocessOutputSnapshot,
@@ -87,6 +88,11 @@ export interface SubprocessProvider<Handle extends SubprocessProviderHandle> {
     signal?: AbortSignal,
   ): Promise<string>;
   spawn(spec: SubprocessProviderSpawnSpec): Handle;
+}
+
+export interface OperationalProviderPorts {
+  readonly filesystem: FilesystemPort;
+  readonly subprocess: SubprocessPort;
 }
 
 function targetRef(target: FilesystemProviderTarget): FilesystemTargetRef {
@@ -224,5 +230,21 @@ export function createSubprocessPort<Handle extends SubprocessProviderHandle>(
         },
       });
     },
+  });
+}
+
+/**
+ * Compose already-bound provider ports onto the Harness runtime adapter. This
+ * keeps the rc5 package imports in exact-source/bootstrap code while making the
+ * operational ports explicit on the adapter object used by safe-runtime.
+ */
+export function withOperationalProviderPorts(
+  adapter: HarnessRuntimeAdapter,
+  ports: Readonly<OperationalProviderPorts>,
+): HarnessRuntimeAdapter {
+  return Object.freeze({
+    ...adapter,
+    filesystem: ports.filesystem,
+    subprocess: ports.subprocess,
   });
 }
