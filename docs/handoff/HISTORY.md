@@ -85,3 +85,45 @@ The active gate advances to the **M2 Acceptance Audit**. The audit must reconcil
 the normative adapter spec, TCK/security expectations, stale roadmap tracking
 items, and live CI evidence. PR #1 remains Draft until that audit either proves
 M2 acceptance or identifies/fixes the remaining P0 blockers.
+
+## 2026-08-17T20:49:00+08:00 — Acceptance audit closes B1/B2 remediation
+
+The repository-backed M2 Acceptance Audit was recorded in
+`docs/acceptance/m2-acceptance-audit.md`. It kept PR #1 Draft and identified four
+P0 remediation items rather than treating green CI as semantic acceptance.
+
+Two normative gaps were then remediated and verified on implementation head
+`e53d13ba4531c9e315a0fd2e3f999cbf463d595c`:
+
+- **P0-B1 completion steering budget**: `CompletionSteerRequest` now carries the
+  caller-defined `maxRetries`; malformed budgets fail explicitly; over-budget
+  steering fails with `COMPLETION_STEER_BUDGET_EXHAUSTED` before Harness
+  `agent.steer()` is invoked; exact rc5 runtime conformance covers the positive
+  boundary and negative exhausted-budget path.
+- **P0-B2 sidecar correlation**: the adapter now exposes a minimal
+  `SidecarEvidenceRecord` / `SidecarEvidenceSink` boundary keyed by durable
+  Harness event ref/sequence and evidence ref/digest. Projection is allow-listed
+  and explicitly omits `processLocalTokenRef`. Full ledger persistence, hash
+  chaining, retention, and replay indexes remain later-milestone work.
+
+A real intermediate CI failure was fixed from current-head evidence rather than
+old logs: head `fd4e7c03ffe526cca10440933a9188d536b1454e` passed frozen install but failed
+`pnpm check:all`; check-run annotations reported `Cannot find module
+'@dsh-safe/protocol' or its corresponding type declarations.` The sidecar seam
+was corrected to remain package-local/runtime-independent instead of weakening
+TypeScript or frozen-install requirements.
+
+Final evidence at `e53d13ba4531c9e315a0fd2e3f999cbf463d595c`:
+
+- normal CI run `32031495534` / job `95392301947`: PASS;
+- frozen install: PASS;
+- `pnpm check:all`: PASS;
+- exact rc5 source-conformance run `32031495546` / job `95392301956`: PASS;
+- pinned upstream build, reproducible install, package projection,
+  idempotence, exact-source TypeScript, and real rc5 runtime conformance all
+  passed.
+
+M2 is still **NOT ACCEPTED**. The active blocker advances to **P0-B3: minimal
+operational Filesystem/Subprocess adapter ports**. P0-B4 exact-source
+subagent/workflow reconnaissance remains after B3. M3 shared TCK and M4
+Capability Broker remain unauthorized until M2 P0 remediation is complete.
