@@ -1,0 +1,30 @@
+name: Bootstrap pnpm lockfile
+
+on:
+  push:
+    branches: [feat/m2-harness-adapter]
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.19.0
+      - name: Enable pinned pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.7.0 --activate
+          pnpm --version
+      - name: Resolve dependency graph without mutating package manifests
+        run: pnpm install --lockfile-only --no-frozen-lockfile
+      - name: Upload generated lockfile for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: pnpm-lockfile
+          path: pnpm-lock.yaml
+          if-no-files-found: error
