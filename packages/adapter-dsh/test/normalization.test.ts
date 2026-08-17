@@ -1,10 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   DSH_RC5_FEATURES,
+  OrderedRuntimeEventDispatcher,
   normalizeDurableEvent,
   normalizeFinalToolResult,
   requireAdapterFeatures,
+  type RuntimeEvent,
 } from "../src/index.js";
 
 const digest = (value: unknown): string => `digest:${String(value)}`;
@@ -41,14 +43,10 @@ describe("DeepSeek Harness rc5 normalization", () => {
     });
   });
 
-  it("normalizes the live final result as the authoritative outcome", () => {
+  it("normalizes the live final result as the authoritative success outcome", () => {
     const event = normalizeFinalToolResult(
       "session:abc",
-      {
-        callId: "call_42",
-        name: "bash",
-        arguments: { command: "pnpm test" },
-      },
+      { callId: "call_42", name: "bash", arguments: { command: "pnpm test" } },
       { isError: false },
       "sha256:result",
       "2026-08-17T08:00:02.000Z",
@@ -59,23 +57,63 @@ describe("DeepSeek Harness rc5 normalization", () => {
     expect(event.resultDigest).toBe("sha256:result");
   });
 
-  it("classifies explicit denial-like Harness error codes as denied", () => {
+  it("classifies denial only from authoritative policy correlation", () => {
     const event = normalizeFinalToolResult(
       "session:abc",
       { callId: "call_7", name: "write", arguments: {} },
-      { isError: true, error: { info: { code: "TOOL_DENIED" } } },
+      { isError: true },
       "sha256:denied",
       "2026-08-17T08:00:03.000Z",
+      { policyDenied: true },
     );
 
     expect(event.outcome).toBe("denied");
+  });
+
+  it("does not infer denial from an arbitrary error-code substring", () => {
+    const event = normalizeFinalToolResult(
+      "session:abc",
+      { callId: "call_8", name: "write", arguments: {} },
+      { isError: true, error: { info: { code: "TOOL_DENIED" } } },
+      "sha256:error",
+      "2026-08-17T08:00:03.000Z",
+    );
+
+    expect(event.outcome).toBe("error");
     expect(event.errorCode).toBe("TOOL_DENIED");
+  });
+
+  it.each(["ABORTED", "ABORTED_BEFORE_DISPATCH"])(
+    "maps the exact Harness cancellation code %s",
+    (code) => {
+      const event = normalizeFinalToolResult(
+        "session:abc",
+        { callId: "call_cancel", name: "bash", arguments: {} },
+        { isError: true, error: { info: { code } } },
+        "sha256:cancelled",
+        "2026-08-17T08:00:03.000Z",
+      );
+      expect(event.outcome).toBe("cancelled");
+    },
+  );
+
+  it("rejects an impossible policy-denied success correlation", () => {
+    expect(() =>
+      normalizeFinalToolResult(
+        "session:abc",
+        { callId: "call_bad", name: "write", arguments: {} },
+        { isError: false },
+        "sha256:bad",
+        "2026-08-17T08:00:03.000Z",
+        { policyDenied: true },
+      ),
+    ).toThrow(/policy-denied but Harness reported success/);
   });
 
   it("fails closed when a requested adapter feature is unsupported", () => {
     expect(() =>
       requireAdapterFeatures(DSH_RC5_FEATURES, ["toolsArgumentRewrite"]),
-    ).toThrow(/UNSUPPORTED_ADAPTER_FEATURES/);
+    ).toThrow(/required DeepSeek Harness adapter features are unavailable/);
   });
 
   it("does not treat scoped tool restrictions as an authority boundary", () => {
@@ -95,6 +133,72 @@ describe("DeepSeek Harness rc5 normalization", () => {
         },
         digest,
       ),
-    ).toThrow(/UNSUPPORTED_HARNESS_TURN_END_REASON/);
+    ).toThrow(/unsupported DeepSeek Harness turn-end reason/);
+  });
+
+  it("rejects malformed event timestamps instead of emitting invalid ISO time", () => {
+    expect(() =>
+      normalizeDurableEvent(
+        "session:abc",
+        { type: "turn/start", seq: 1, time: Number.NaN, data: { turn: 1 } },
+        digest,
+      ),
+    ).toThrow(/event time/);
+  });
+});
+
+describe("OrderedRuntimeEventDispatcher", () => {
+  it("preserves event order across asynchronous sinks", async () => {
+    const observed: string[] = [];
+    const dispatcher = new OrderedRuntimeEventDispatcher(
+      {
+        async accept(event) {
+          await Promise.resolve();
+          observed.push(event.eventRef);
+        },
+      },
+      vi.fn(),
+    );
+    const event = (eventRef: string): RuntimeEvent => ({
+      type: "turn.started",
+      eventRef,
+      sessionRef: "session:abc",
+      observedAt: "2026-08-17T08:00:00.000Z",
+      turnRef: `session:abc/${eventRef}`,
+    });
+
+    dispatcher.enqueue(event("1"));
+    dispatcher.enqueue(event("2"));
+    await dispatcher.drain();
+
+    expect(observed).toEqual(["1", "2"]);
+  });
+
+  it("contains sink failures and continues later delivery", async () => {
+    const observed: string[] = [];
+    const failures = vi.fn();
+    const dispatcher = new OrderedRuntimeEventDispatcher(
+      {
+        accept(event) {
+          if (event.eventRef === "bad") throw new Error("sink failed");
+          observed.push(event.eventRef);
+        },
+      },
+      failures,
+    );
+    const event = (eventRef: string): RuntimeEvent => ({
+      type: "turn.started",
+      eventRef,
+      sessionRef: "session:abc",
+      observedAt: "2026-08-17T08:00:00.000Z",
+      turnRef: `session:abc/${eventRef}`,
+    });
+
+    dispatcher.enqueue(event("bad"));
+    dispatcher.enqueue(event("good"));
+    await dispatcher.drain();
+
+    expect(failures).toHaveBeenCalledTimes(1);
+    expect(observed).toEqual(["good"]);
   });
 });

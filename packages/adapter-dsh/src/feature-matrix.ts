@@ -1,3 +1,5 @@
+import { dshAdapterError } from "./errors.js";
+
 export const DSH_TESTED_BASELINE = {
   version: "0.1.0-rc.5",
   commit: "47f943859bef60e4160492346772ded9b24f765a",
@@ -53,6 +55,9 @@ export function requireAdapterFeatures(
 ): void {
   const missing = required.filter((feature) => features[feature] !== true);
   if (missing.length > 0) {
-    throw new Error(`UNSUPPORTED_ADAPTER_FEATURES: ${missing.join(", ")}`);
+    throw dshAdapterError(
+      "UNSUPPORTED_ADAPTER_FEATURES",
+      `required DeepSeek Harness adapter features are unavailable: ${missing.join(", ")}`,
+    );
   }
 }

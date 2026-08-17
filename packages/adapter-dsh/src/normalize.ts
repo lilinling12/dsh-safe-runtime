@@ -1,3 +1,4 @@
+import { dshAdapterError } from "./errors.js";
 import type {
   RuntimeEvent,
   ToolCompletedEvent,
@@ -26,6 +27,16 @@ export interface HarnessToolResultSnapshot {
   };
 }
 
+/**
+ * Classification facts owned by this adapter's interception path.
+ * Harness denial results do not carry a canonical denial error code, so a
+ * denial must be correlated from the policy/guard/approval decision that
+ * actually prevented dispatch. Never infer it from human-readable text.
+ */
+export interface FinalToolClassification {
+  readonly policyDenied?: true;
+}
+
 export type Digest = (value: unknown) => string;
 
 function eventRef(sessionRef: string, seq: number): string {
@@ -33,7 +44,11 @@ function eventRef(sessionRef: string, seq: number): string {
 }
 
 function observedAt(time: number): string {
-  return new Date(time).toISOString();
+  const value = new Date(time);
+  if (!Number.isSafeInteger(time) || Number.isNaN(value.getTime())) {
+    throw dshAdapterError("INVALID_HARNESS_EVENT", "Harness event time must be a valid integer epoch millisecond value");
+  }
+  return value.toISOString();
 }
 
 function requiredNumber(
@@ -42,7 +57,7 @@ function requiredNumber(
 ): number {
   const value = data[key];
   if (typeof value !== "number" || !Number.isSafeInteger(value) || value < 0) {
-    throw new Error(`INVALID_HARNESS_EVENT: ${key}`);
+    throw dshAdapterError("INVALID_HARNESS_EVENT", `Harness event field ${key} must be a non-negative safe integer`);
   }
   return value;
 }
@@ -53,7 +68,7 @@ function requiredString(
 ): string {
   const value = data[key];
   if (typeof value !== "string" || value.length === 0) {
-    throw new Error(`INVALID_HARNESS_EVENT: ${key}`);
+    throw dshAdapterError("INVALID_HARNESS_EVENT", `Harness event field ${key} must be a non-empty string`);
   }
   return value;
 }
@@ -62,7 +77,7 @@ function normalizeTurnEndStatus(
   reason: unknown,
 ): "completed" | "failed" | "blocked" | "cancelled" {
   if (typeof reason !== "object" || reason === null || !("kind" in reason)) {
-    throw new Error("INVALID_HARNESS_EVENT: reason");
+    throw dshAdapterError("INVALID_HARNESS_EVENT", "Harness turn/end reason is malformed");
   }
   const kind = (reason as { readonly kind?: unknown }).kind;
   switch (kind) {
@@ -77,7 +92,10 @@ function normalizeTurnEndStatus(
     case "interrupted":
       return "failed";
     default:
-      throw new Error(`UNSUPPORTED_HARNESS_TURN_END_REASON: ${String(kind)}`);
+      throw dshAdapterError(
+        "UNSUPPORTED_HARNESS_TURN_END_REASON",
+        `unsupported DeepSeek Harness turn-end reason: ${String(kind)}`,
+      );
   }
 }
 
@@ -145,22 +163,36 @@ export function normalizeDurableEvent(
   }
 }
 
+const CANCELLATION_CODES = new Set([
+  "ABORTED",
+  "ABORTED_BEFORE_DISPATCH",
+]);
+
 export function normalizeFinalToolResult(
   sessionRef: string,
   execution: HarnessToolExecutionSnapshot,
   result: HarnessToolResultSnapshot,
   resultDigest: string,
   nowIso: string,
+  classification: FinalToolClassification = {},
 ): ToolCompletedEvent {
-  let outcome: ToolOutcome = result.isError ? "error" : "success";
   const errorCode = result.error?.info?.code;
+  let outcome: ToolOutcome;
 
-  if (result.isError && errorCode !== undefined) {
-    if (errorCode.includes("DENIED") || errorCode.includes("REJECT")) {
-      outcome = "denied";
-    } else if (errorCode.includes("ABORT")) {
-      outcome = "cancelled";
+  if (!result.isError) {
+    if (classification.policyDenied === true) {
+      throw dshAdapterError(
+        "INCONSISTENT_HARNESS_TOOL_OUTCOME",
+        `tool ${execution.callId} was correlated as policy-denied but Harness reported success`,
+      );
     }
+    outcome = "success";
+  } else if (classification.policyDenied === true) {
+    outcome = "denied";
+  } else if (errorCode !== undefined && CANCELLATION_CODES.has(errorCode)) {
+    outcome = "cancelled";
+  } else {
+    outcome = "error";
   }
 
   return {

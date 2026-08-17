@@ -17,7 +17,7 @@ export interface RuntimeEventBase {
 
 export interface SessionStartedEvent extends RuntimeEventBase {
   readonly type: "session.started";
-  readonly source: "startup" | "resume";
+  readonly source: "startup" | "resume" | "clear" | "compact";
 }
 
 export interface TurnStartedEvent extends RuntimeEventBase {

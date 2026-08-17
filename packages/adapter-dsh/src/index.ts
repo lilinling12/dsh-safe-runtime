@@ -1,4 +1,6 @@
 export * from "./correlation.js";
+export * from "./dispatcher.js";
+export * from "./errors.js";
 export * from "./feature-matrix.js";
 export * from "./normalize.js";
 export * from "./ports.js";
