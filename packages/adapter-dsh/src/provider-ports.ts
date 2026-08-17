@@ -140,20 +140,32 @@ export function createFilesystemPort<Target extends FilesystemProviderTarget>(
   return Object.freeze({
     mediation: "provider-service" as const,
     isolation: "not-asserted" as const,
-    async resolve(path, options) {
+    async resolve(
+      path: string,
+      options?: { readonly cwd?: string; readonly signal?: AbortSignal },
+    ): Promise<FilesystemTargetRef> {
       return remember(await provider.resolve(path, options));
     },
-    async stat(target, signal) {
+    async stat(
+      target: Readonly<FilesystemTargetRef>,
+      signal?: AbortSignal,
+    ): Promise<FilesystemInfo | undefined> {
       const info = await provider.stat(requireTarget(target), signal);
       return info === undefined ? undefined : infoOf(info);
     },
-    contains(parent, child) {
+    contains(
+      parent: Readonly<FilesystemTargetRef>,
+      child: Readonly<FilesystemTargetRef>,
+    ): boolean {
       return provider.contains(requireTarget(parent), requireTarget(child));
     },
-    readText(target, signal) {
+    readText(
+      target: Readonly<FilesystemTargetRef>,
+      signal?: AbortSignal,
+    ): Promise<string> {
       return provider.readText(requireTarget(target), signal);
     },
-    processPath(target) {
+    processPath(target: Readonly<FilesystemTargetRef>): string {
       return provider.processPath(requireTarget(target));
     },
   });
@@ -187,7 +199,11 @@ export function createSubprocessPort<Handle extends SubprocessProviderHandle>(
     mediation: "provider-service" as const,
     isolation: "not-asserted" as const,
     executionWorld: "shared-with-filesystem" as const,
-    resolveExecutable(command, env, signal) {
+    resolveExecutable(
+      command: string,
+      env?: Readonly<Record<string, string>>,
+      signal?: AbortSignal,
+    ): Promise<string> {
       return provider.resolveExecutable(command, env, signal);
     },
     spawn(request: Readonly<SubprocessSpawnRequest>): SubprocessExecution {
@@ -216,16 +232,16 @@ export function createSubprocessPort<Handle extends SubprocessProviderHandle>(
       return Object.freeze({
         pid: handle.pid,
         done: handle.done.then(outcomeOf),
-        readStdout(fromByte) {
+        readStdout(fromByte: number): SubprocessOutputSnapshot {
           return snapshotOf(stdout.readFrom(fromByte));
         },
-        readStderr(fromByte) {
+        readStderr(fromByte: number): SubprocessOutputSnapshot {
           return snapshotOf(stderr.readFrom(fromByte));
         },
-        terminate() {
+        terminate(): void {
           handle.terminate();
         },
-        waitForExit(signal) {
+        waitForExit(signal?: AbortSignal): Promise<boolean> {
           return handle.waitForExit(signal);
         },
       });
