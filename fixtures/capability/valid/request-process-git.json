@@ -1,0 +1,14 @@
+{
+  "apiVersion": "safe-runtime.dev/v1alpha1",
+  "kind": "CapabilityRequest",
+  "requestId": "capreq_01",
+  "subject": { "kind": "agent", "id": "agent/root", "sessionRef": "session:abc" },
+  "sessionRef": "session:abc",
+  "turnRef": "turn:17",
+  "actionRef": "tool:438",
+  "capability": "process.exec",
+  "resource": { "scheme": "process", "locator": "git" },
+  "constraints": { "argv": ["status"], "cwdWithin": "workspace://root" },
+  "requestedLease": { "ttlMs": 300000, "maxUses": 3 },
+  "reason": "Inspect repository status"
+}

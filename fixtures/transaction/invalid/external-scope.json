@@ -1,0 +1,10 @@
+{
+  "apiVersion": "safe-runtime.dev/v1alpha1",
+  "kind": "WorkspaceTransaction",
+  "transactionRef": "tx:bad",
+  "sessionRef": "session:abc",
+  "state": "ACTIVE",
+  "scope": "database-and-network",
+  "baseRevision": "v1",
+  "createdAt": "2026-08-17T06:45:00Z"
+}

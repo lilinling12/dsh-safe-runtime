@@ -1,0 +1,9 @@
+{
+  "apiVersion": "safe-runtime.dev/v1alpha1",
+  "kind": "CapabilityPolicy",
+  "metadata": { "name": "unsafe" },
+  "spec": {
+    "defaultEffect": "allow",
+    "rules": []
+  }
+}

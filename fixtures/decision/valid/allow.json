@@ -1,0 +1,12 @@
+{
+  "apiVersion": "safe-runtime.dev/v1alpha1",
+  "kind": "CapabilityDecision",
+  "decisionId": "capdec:01",
+  "requestId": "capreq:01",
+  "effect": "allow",
+  "guaranteeLevel": "tool-enforced",
+  "policyRef": "policy:coding-safe",
+  "matchedRuleRefs": ["rule:git-read"],
+  "reasonCode": "POLICY_ALLOW",
+  "decidedAt": "2026-08-17T06:45:00Z"
+}

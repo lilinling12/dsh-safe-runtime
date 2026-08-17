@@ -1,0 +1,9 @@
+{
+  "apiVersion": "safe-runtime.dev/v1alpha1",
+  "kind": "AcceptanceVerdict",
+  "verdictRef": "verdict:bad",
+  "status": "verified",
+  "requiredCheckRefs": [],
+  "checkResultRefs": [],
+  "decidedAt": "2026-08-17T06:46:01Z"
+}

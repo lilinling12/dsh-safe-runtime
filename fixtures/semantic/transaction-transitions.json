@@ -1,0 +1,22 @@
+{
+  "profile": "safe-runtime.dev/v1alpha1",
+  "allowed": [
+    ["NEW", "PREPARING"],
+    ["PREPARING", "ACTIVE"],
+    ["ACTIVE", "VERIFYING"],
+    ["VERIFYING", "PREPARING_COMMIT"],
+    ["PREPARING_COMMIT", "COMMITTING"],
+    ["COMMITTING", "COMMITTED"],
+    ["COMMITTING", "RECOVERY_REQUIRED"],
+    ["RECOVERY_REQUIRED", "COMMITTED"],
+    ["RECOVERY_REQUIRED", "ROLLED_BACK"],
+    ["ROLLING_BACK", "ROLLED_BACK"]
+  ],
+  "forbidden": [
+    ["NEW", "COMMITTED"],
+    ["ACTIVE", "COMMITTED"],
+    ["VERIFYING", "COMMITTED"],
+    ["CONFLICTED", "COMMITTING"],
+    ["ROLLED_BACK", "COMMITTED"]
+  ]
+}

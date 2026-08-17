@@ -1,0 +1,21 @@
+{
+  "apiVersion": "safe-runtime.dev/v1alpha1",
+  "kind": "WorkspaceTransaction",
+  "transactionRef": "tx:01",
+  "sessionRef": "session:abc",
+  "turnRef": "turn:17",
+  "state": "ACTIVE",
+  "scope": "workspace-filesystem-effects",
+  "baseRevision": "fs-version:opaque-001",
+  "shadowRef": "shadow:tx-01",
+  "fileDeltas": [
+    {
+      "path": "src/auth.ts",
+      "operation": "modify",
+      "baseVersion": "opaque:v1",
+      "contentDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  ],
+  "externalEffects": [],
+  "createdAt": "2026-08-17T06:45:00Z"
+}

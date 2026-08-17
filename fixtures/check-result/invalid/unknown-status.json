@@ -1,0 +1,10 @@
+{
+  "apiVersion": "safe-runtime.dev/v1alpha1",
+  "kind": "CheckResult",
+  "checkResultRef": "check-result:bad",
+  "checkRef": "check:unit-tests",
+  "status": "maybe",
+  "evidenceRefs": [],
+  "startedAt": "2026-08-17T06:45:00Z",
+  "completedAt": "2026-08-17T06:46:00Z"
+}

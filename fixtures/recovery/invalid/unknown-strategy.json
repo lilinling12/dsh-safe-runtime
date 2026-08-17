@@ -1,0 +1,10 @@
+{
+  "apiVersion": "safe-runtime.dev/v1alpha1",
+  "kind": "RecoveryRecord",
+  "recoveryRef": "recovery:bad",
+  "transactionRef": "tx:01",
+  "journalRef": "journal:tx:01",
+  "strategy": "pretend-success",
+  "status": "PENDING",
+  "updatedAt": "2026-08-17T06:47:00Z"
+}

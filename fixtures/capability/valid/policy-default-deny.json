@@ -1,0 +1,24 @@
+{
+  "apiVersion": "safe-runtime.dev/v1alpha1",
+  "kind": "CapabilityPolicy",
+  "metadata": { "name": "coding-safe" },
+  "spec": {
+    "defaultEffect": "deny",
+    "rules": [
+      {
+        "id": "workspace-read",
+        "effect": "allow",
+        "capabilities": ["fs.read", "fs.stat", "fs.list"],
+        "resources": ["workspace://**"]
+      },
+      {
+        "id": "workspace-write",
+        "effect": "ask",
+        "capabilities": ["fs.create", "fs.write", "fs.edit", "fs.delete"],
+        "resources": ["workspace://**"],
+        "lease": { "ttlMs": 600000, "maxUses": 100 }
+      }
+    ],
+    "delegation": { "mode": "attenuating", "inheritByDefault": false }
+  }
+}

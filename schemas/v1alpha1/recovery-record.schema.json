@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://safe-runtime.dev/schema/v1alpha1/recovery-record.schema.json",
+  "title": "RecoveryRecord",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["apiVersion", "kind", "recoveryRef", "transactionRef", "journalRef", "strategy", "status", "updatedAt"],
+  "properties": {
+    "apiVersion": { "const": "safe-runtime.dev/v1alpha1" },
+    "kind": { "const": "RecoveryRecord" },
+    "recoveryRef": { "$ref": "defs.schema.json#/$defs/ref" },
+    "transactionRef": { "$ref": "defs.schema.json#/$defs/ref" },
+    "journalRef": { "$ref": "defs.schema.json#/$defs/ref" },
+    "strategy": { "type": "string", "enum": ["resume-commit", "restore-base", "manual"] },
+    "status": { "type": "string", "enum": ["PENDING", "RUNNING", "RECOVERED_COMMITTED", "RECOVERED_ROLLED_BACK", "FAILED", "MANUAL_REQUIRED"] },
+    "lastAppliedEntry": { "type": "integer", "minimum": -1 },
+    "errorCode": { "type": "string", "minLength": 1, "maxLength": 256 },
+    "updatedAt": { "$ref": "defs.schema.json#/$defs/timestamp" }
+  }
+}

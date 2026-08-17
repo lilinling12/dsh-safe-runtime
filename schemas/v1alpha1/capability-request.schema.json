@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://safe-runtime.dev/schema/v1alpha1/capability-request.schema.json",
+  "title": "CapabilityRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["apiVersion", "kind", "requestId", "subject", "sessionRef", "actionRef", "capability", "resource"],
+  "properties": {
+    "apiVersion": { "const": "safe-runtime.dev/v1alpha1" },
+    "kind": { "const": "CapabilityRequest" },
+    "requestId": { "$ref": "defs.schema.json#/$defs/ref" },
+    "subject": { "$ref": "defs.schema.json#/$defs/subject" },
+    "sessionRef": { "$ref": "defs.schema.json#/$defs/ref" },
+    "turnRef": { "$ref": "defs.schema.json#/$defs/ref" },
+    "actionRef": { "$ref": "defs.schema.json#/$defs/ref" },
+    "capability": { "type": "string", "pattern": "^[a-z][a-z0-9.-]*\\.[a-z][a-z0-9.-]*$", "maxLength": 256 },
+    "resource": { "$ref": "defs.schema.json#/$defs/resource" },
+    "constraints": { "type": "object", "additionalProperties": true },
+    "requestedLease": { "$ref": "defs.schema.json#/$defs/leaseRequest" },
+    "reason": { "type": "string", "maxLength": 4096 }
+  }
+}

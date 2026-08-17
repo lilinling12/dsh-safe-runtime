@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://safe-runtime.dev/schema/v1alpha1/evidence-episode.schema.json",
+  "title": "EvidenceEpisode",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["apiVersion", "kind", "episodeRef", "adapter", "session", "task", "claims", "evidence", "checks", "verdict"],
+  "properties": {
+    "apiVersion": { "const": "safe-runtime.dev/v1alpha1" },
+    "kind": { "const": "EvidenceEpisode" },
+    "episodeRef": { "$ref": "defs.schema.json#/$defs/ref" },
+    "adapter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "version": { "type": "string", "minLength": 1 },
+        "guaranteeLevel": { "$ref": "defs.schema.json#/$defs/guaranteeLevel" }
+      }
+    },
+    "session": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sessionRef"],
+      "properties": {
+        "sessionRef": { "$ref": "defs.schema.json#/$defs/ref" },
+        "turnRefs": { "type": "array", "items": { "$ref": "defs.schema.json#/$defs/ref" } }
+      }
+    },
+    "task": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["taskRef", "description"],
+      "properties": {
+        "taskRef": { "$ref": "defs.schema.json#/$defs/ref" },
+        "description": { "type": "string", "minLength": 1 },
+        "contractDigest": { "$ref": "defs.schema.json#/$defs/digest" }
+      }
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["claimRef", "kind", "statement", "evidenceRefs"],
+        "properties": {
+          "claimRef": { "$ref": "defs.schema.json#/$defs/ref" },
+          "kind": { "type": "string", "enum": ["completion", "test-result", "state-change", "constraint", "custom"] },
+          "statement": { "type": "string", "minLength": 1 },
+          "evidenceRefs": { "type": "array", "uniqueItems": true, "items": { "$ref": "defs.schema.json#/$defs/ref" } }
+        }
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["evidenceRef", "kind", "source", "digest", "observedAt"],
+        "properties": {
+          "evidenceRef": { "$ref": "defs.schema.json#/$defs/ref" },
+          "kind": { "type": "string", "enum": ["tool-request", "tool-result", "command-execution", "file-state", "file-mutation", "authorization", "model-error", "delegation", "custom"] },
+          "source": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["adapter", "eventRef"],
+            "properties": {
+              "adapter": { "type": "string", "minLength": 1 },
+              "eventRef": { "$ref": "defs.schema.json#/$defs/ref" }
+            }
+          },
+          "digest": { "$ref": "defs.schema.json#/$defs/digest" },
+          "payloadRef": { "type": "string", "minLength": 1 },
+          "observedAt": { "$ref": "defs.schema.json#/$defs/timestamp" }
+        }
+      }
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["checkRef", "status", "evidenceRefs"],
+        "properties": {
+          "checkRef": { "$ref": "defs.schema.json#/$defs/ref" },
+          "status": { "type": "string", "enum": ["pass", "fail", "error", "skipped"] },
+          "evidenceRefs": { "type": "array", "items": { "$ref": "defs.schema.json#/$defs/ref" } },
+          "message": { "type": "string" }
+        }
+      }
+    },
+    "verdict": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["verdictRef", "status", "checkRefs"],
+      "properties": {
+        "verdictRef": { "$ref": "defs.schema.json#/$defs/ref" },
+        "status": { "type": "string", "enum": ["verified", "failed", "incomplete", "invalid", "blocked", "error"] },
+        "checkRefs": { "type": "array", "items": { "$ref": "defs.schema.json#/$defs/ref" } },
+        "reason": { "type": "string" }
+      }
+    }
+  }
+}

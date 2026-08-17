@@ -1,0 +1,14 @@
+{
+  "apiVersion": "safe-runtime.dev/v1alpha1",
+  "kind": "CapabilityLease",
+  "leaseRef": "lease:01",
+  "subjectRef": "agent/root",
+  "capability": "process.exec",
+  "resource": { "scheme": "process", "locator": "git" },
+  "constraints": { "argvPrefix": ["push"], "cwdWithin": "workspace://root" },
+  "issuedAt": "2026-08-17T06:45:00Z",
+  "expiresAt": "2026-08-17T06:50:00Z",
+  "maxUses": 1,
+  "remainingUses": 1,
+  "authorization": { "kind": "approval", "ref": "approval:01" }
+}

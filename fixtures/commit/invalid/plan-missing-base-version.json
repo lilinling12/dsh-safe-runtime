@@ -1,0 +1,11 @@
+{
+  "apiVersion": "safe-runtime.dev/v1alpha1",
+  "kind": "CommitPlan",
+  "commitPlanRef": "commit-plan:bad",
+  "transactionRef": "tx:01",
+  "baseRevision": "workspace-version:01",
+  "entries": [
+    { "targetRef": "workspace://src/auth.ts", "operation": "replace" }
+  ],
+  "createdAt": "2026-08-17T06:45:00Z"
+}

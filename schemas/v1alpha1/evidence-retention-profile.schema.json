@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://safe-runtime.dev/schema/v1alpha1/evidence-retention-profile.schema.json",
+  "title": "EvidenceRetentionProfile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["apiVersion", "kind", "metadata", "spec"],
+  "properties": {
+    "apiVersion": { "const": "safe-runtime.dev/v1alpha1" },
+    "kind": { "const": "EvidenceRetentionProfile" },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": { "name": { "type": "string", "minLength": 1, "maxLength": 128 } }
+    },
+    "spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rawPrompt", "rawSource", "rawStdout", "rawStderr", "environment", "secrets", "defaultTtlSeconds"],
+      "properties": {
+        "rawPrompt": { "const": false },
+        "rawSource": { "type": "boolean" },
+        "rawStdout": { "type": "boolean" },
+        "rawStderr": { "type": "boolean" },
+        "environment": { "const": false },
+        "secrets": { "const": false },
+        "defaultTtlSeconds": { "type": "integer", "minimum": 0, "maximum": 31536000 },
+        "blobEncryptionRequired": { "type": "boolean" }
+      }
+    }
+  }
+}

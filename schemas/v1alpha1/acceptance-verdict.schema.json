@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://safe-runtime.dev/schema/v1alpha1/acceptance-verdict.schema.json",
+  "title": "AcceptanceVerdict",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["apiVersion", "kind", "verdictRef", "status", "requiredCheckRefs", "checkResultRefs", "decidedAt"],
+  "properties": {
+    "apiVersion": { "const": "safe-runtime.dev/v1alpha1" },
+    "kind": { "const": "AcceptanceVerdict" },
+    "verdictRef": { "$ref": "defs.schema.json#/$defs/ref" },
+    "status": { "type": "string", "enum": ["VERIFIED", "FAILED", "INCOMPLETE", "INVALID", "BLOCKED", "ERROR"] },
+    "requiredCheckRefs": { "type": "array", "uniqueItems": true, "items": { "$ref": "defs.schema.json#/$defs/ref" } },
+    "checkResultRefs": { "type": "array", "uniqueItems": true, "items": { "$ref": "defs.schema.json#/$defs/ref" } },
+    "reasonCode": { "type": "string", "minLength": 1, "maxLength": 256 },
+    "reason": { "type": "string", "maxLength": 8192 },
+    "decidedAt": { "$ref": "defs.schema.json#/$defs/timestamp" }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://safe-runtime.dev/schema/v1alpha1/capability-receipt.schema.json",
+  "title": "CapabilityReceipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["apiVersion", "kind", "receiptRef", "requestRef", "decisionRef", "effect", "guaranteeLevel", "observedAt"],
+  "properties": {
+    "apiVersion": { "const": "safe-runtime.dev/v1alpha1" },
+    "kind": { "const": "CapabilityReceipt" },
+    "receiptRef": { "$ref": "defs.schema.json#/$defs/ref" },
+    "requestRef": { "$ref": "defs.schema.json#/$defs/ref" },
+    "decisionRef": { "$ref": "defs.schema.json#/$defs/ref" },
+    "leaseRef": { "$ref": "defs.schema.json#/$defs/ref" },
+    "effect": { "type": "string", "enum": ["allowed", "denied", "approval-required", "error"] },
+    "guaranteeLevel": { "$ref": "defs.schema.json#/$defs/guaranteeLevel" },
+    "resourceDigest": { "$ref": "defs.schema.json#/$defs/digest" },
+    "argumentDigest": { "$ref": "defs.schema.json#/$defs/digest" },
+    "resultDigest": { "$ref": "defs.schema.json#/$defs/digest" },
+    "observedAt": { "$ref": "defs.schema.json#/$defs/timestamp" }
+  }
+}

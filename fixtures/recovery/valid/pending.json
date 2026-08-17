@@ -1,0 +1,11 @@
+{
+  "apiVersion": "safe-runtime.dev/v1alpha1",
+  "kind": "RecoveryRecord",
+  "recoveryRef": "recovery:01",
+  "transactionRef": "tx:01",
+  "journalRef": "journal:tx:01",
+  "strategy": "restore-base",
+  "status": "PENDING",
+  "lastAppliedEntry": 0,
+  "updatedAt": "2026-08-17T06:47:00Z"
+}

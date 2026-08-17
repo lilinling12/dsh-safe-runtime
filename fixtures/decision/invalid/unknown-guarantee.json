@@ -1,0 +1,9 @@
+{
+  "apiVersion": "safe-runtime.dev/v1alpha1",
+  "kind": "CapabilityDecision",
+  "decisionId": "capdec:bad",
+  "requestId": "capreq:01",
+  "effect": "allow",
+  "guaranteeLevel": "zero-trust-magic",
+  "decidedAt": "2026-08-17T06:45:00Z"
+}

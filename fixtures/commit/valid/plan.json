@@ -1,0 +1,18 @@
+{
+  "apiVersion": "safe-runtime.dev/v1alpha1",
+  "kind": "CommitPlan",
+  "commitPlanRef": "commit-plan:01",
+  "transactionRef": "tx:01",
+  "baseRevision": "workspace-version:01",
+  "entries": [
+    {
+      "targetRef": "workspace://src/auth.ts",
+      "operation": "replace",
+      "expectedBaseVersion": "opaque:v1",
+      "sourceRef": "shadow://tx:01/src/auth.ts",
+      "contentDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "backupRef": "backup://tx:01/src/auth.ts"
+    }
+  ],
+  "createdAt": "2026-08-17T06:45:00Z"
+}

@@ -1,0 +1,15 @@
+{
+  "apiVersion": "safe-runtime.dev/v1alpha1",
+  "kind": "EvidenceRetentionProfile",
+  "metadata": { "name": "default-safe" },
+  "spec": {
+    "rawPrompt": false,
+    "rawSource": false,
+    "rawStdout": false,
+    "rawStderr": false,
+    "environment": false,
+    "secrets": false,
+    "defaultTtlSeconds": 604800,
+    "blobEncryptionRequired": true
+  }
+}

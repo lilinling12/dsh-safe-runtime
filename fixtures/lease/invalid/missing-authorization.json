@@ -1,0 +1,12 @@
+{
+  "apiVersion": "safe-runtime.dev/v1alpha1",
+  "kind": "CapabilityLease",
+  "leaseRef": "lease:bad",
+  "subjectRef": "agent/root",
+  "capability": "process.exec",
+  "resource": { "scheme": "process", "locator": "git" },
+  "issuedAt": "2026-08-17T06:45:00Z",
+  "expiresAt": "2026-08-17T06:50:00Z",
+  "maxUses": 1,
+  "remainingUses": 1
+}

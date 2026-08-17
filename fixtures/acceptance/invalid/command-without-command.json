@@ -1,0 +1,12 @@
+{
+  "apiVersion": "safe-runtime.dev/v1alpha1",
+  "kind": "AcceptanceContract",
+  "metadata": { "name": "bad" },
+  "spec": {
+    "completionPolicy": "all-required",
+    "checks": [
+      { "id": "tests", "type": "command", "required": true }
+    ],
+    "onFailure": { "action": "steer", "maxRetries": 2, "afterExhaustion": "blocked" }
+  }
+}

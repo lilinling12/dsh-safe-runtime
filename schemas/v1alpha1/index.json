@@ -1,0 +1,21 @@
+{
+  "apiVersion": "safe-runtime.dev/schema-index/v1",
+  "protocolVersion": "v1alpha1",
+  "schemas": [
+    "defs.schema.json",
+    "capability-request.schema.json",
+    "capability-decision.schema.json",
+    "capability-lease.schema.json",
+    "capability-receipt.schema.json",
+    "capability-policy.schema.json",
+    "workspace-transaction.schema.json",
+    "commit-plan.schema.json",
+    "commit-result.schema.json",
+    "recovery-record.schema.json",
+    "acceptance-contract.schema.json",
+    "check-result.schema.json",
+    "acceptance-verdict.schema.json",
+    "evidence-episode.schema.json",
+    "evidence-retention-profile.schema.json"
+  ]
+}

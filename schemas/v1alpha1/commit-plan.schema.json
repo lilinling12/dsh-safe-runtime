@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://safe-runtime.dev/schema/v1alpha1/commit-plan.schema.json",
+  "title": "CommitPlan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["apiVersion", "kind", "commitPlanRef", "transactionRef", "baseRevision", "entries", "createdAt"],
+  "properties": {
+    "apiVersion": { "const": "safe-runtime.dev/v1alpha1" },
+    "kind": { "const": "CommitPlan" },
+    "commitPlanRef": { "$ref": "defs.schema.json#/$defs/ref" },
+    "transactionRef": { "$ref": "defs.schema.json#/$defs/ref" },
+    "baseRevision": { "type": "string", "minLength": 1 },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["targetRef", "operation", "expectedBaseVersion"],
+        "properties": {
+          "targetRef": { "$ref": "defs.schema.json#/$defs/ref" },
+          "operation": { "type": "string", "enum": ["create", "replace", "delete", "move"] },
+          "expectedBaseVersion": { "type": ["string", "null"] },
+          "sourceRef": { "type": "string", "minLength": 1 },
+          "contentDigest": { "$ref": "defs.schema.json#/$defs/digest" },
+          "backupRef": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "createdAt": { "$ref": "defs.schema.json#/$defs/timestamp" }
+  }
+}

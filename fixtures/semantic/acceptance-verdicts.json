@@ -1,0 +1,10 @@
+{
+  "profile": "safe-runtime.dev/v1alpha1",
+  "cases": [
+    { "id": "all-pass", "required": ["pass", "pass"], "expected": "VERIFIED" },
+    { "id": "one-fail", "required": ["pass", "fail"], "expected": "FAILED" },
+    { "id": "missing", "required": ["pass", "missing"], "expected": "INCOMPLETE" },
+    { "id": "skipped-required", "required": ["pass", "skipped"], "expected": "INCOMPLETE" },
+    { "id": "verifier-error", "required": ["pass", "error"], "expected": "ERROR" }
+  ]
+}

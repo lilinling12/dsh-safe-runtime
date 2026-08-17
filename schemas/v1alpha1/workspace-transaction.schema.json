@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://safe-runtime.dev/schema/v1alpha1/workspace-transaction.schema.json",
+  "title": "WorkspaceTransaction",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "apiVersion",
+    "kind",
+    "transactionRef",
+    "sessionRef",
+    "state",
+    "scope",
+    "baseRevision",
+    "createdAt"
+  ],
+  "properties": {
+    "apiVersion": {
+      "const": "safe-runtime.dev/v1alpha1"
+    },
+    "kind": {
+      "const": "WorkspaceTransaction"
+    },
+    "transactionRef": {
+      "$ref": "defs.schema.json#/$defs/ref"
+    },
+    "sessionRef": {
+      "$ref": "defs.schema.json#/$defs/ref"
+    },
+    "turnRef": {
+      "$ref": "defs.schema.json#/$defs/ref"
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "NEW",
+        "PREPARING",
+        "ACTIVE",
+        "VERIFYING",
+        "PREPARING_COMMIT",
+        "COMMITTING",
+        "RECOVERY_REQUIRED",
+        "ROLLING_BACK",
+        "COMMITTED",
+        "ROLLED_BACK",
+        "CONFLICTED",
+        "ABORTED",
+        "FAILED"
+      ]
+    },
+    "scope": {
+      "const": "workspace-filesystem-effects"
+    },
+    "baseRevision": {
+      "type": "string",
+      "minLength": 1
+    },
+    "shadowRef": {
+      "type": "string",
+      "minLength": 1
+    },
+    "fileDeltas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "operation",
+          "baseVersion"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "operation": {
+            "type": "string",
+            "enum": [
+              "create",
+              "modify",
+              "delete",
+              "move"
+            ]
+          },
+          "baseVersion": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "finalVersion": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "contentDigest": {
+            "$ref": "defs.schema.json#/$defs/digest"
+          }
+        }
+      }
+    },
+    "externalEffects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "classification",
+          "description"
+        ],
+        "properties": {
+          "classification": {
+            "type": "string",
+            "enum": [
+              "transactional",
+              "compensatable",
+              "external-nontransactional"
+            ]
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "createdAt": {
+      "$ref": "defs.schema.json#/$defs/timestamp"
+    },
+    "updatedAt": {
+      "$ref": "defs.schema.json#/$defs/timestamp"
+    }
+  }
+}

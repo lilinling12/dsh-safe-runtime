@@ -1,0 +1,11 @@
+{
+  "apiVersion": "safe-runtime.dev/v1alpha1",
+  "kind": "CapabilityReceipt",
+  "receiptRef": "receipt:01",
+  "requestRef": "capreq:01",
+  "decisionRef": "capdec:01",
+  "effect": "allowed",
+  "guaranteeLevel": "tool-enforced",
+  "argumentDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "observedAt": "2026-08-17T06:45:00Z"
+}

@@ -1,0 +1,38 @@
+{
+  "apiVersion": "safe-runtime.dev/v1alpha1",
+  "kind": "EvidenceEpisode",
+  "episodeRef": "ep:01",
+  "adapter": { "name": "deepseek-harness", "version": "adapter/0.1", "guaranteeLevel": "tool-enforced" },
+  "session": { "sessionRef": "dsh:session:abc", "turnRefs": ["dsh:turn:17"] },
+  "task": {
+    "taskRef": "task:booking-validation",
+    "description": "Implement stale booking validation",
+    "contractDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "claims": [
+    {
+      "claimRef": "claim:complete",
+      "kind": "completion",
+      "statement": "Required implementation and tests are complete",
+      "evidenceRefs": ["ev:test"]
+    }
+  ],
+  "evidence": [
+    {
+      "evidenceRef": "ev:test",
+      "kind": "command-execution",
+      "source": { "adapter": "deepseek-harness", "eventRef": "session:abc/seq:497" },
+      "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "observedAt": "2026-08-17T06:45:00Z"
+    }
+  ],
+  "checks": [
+    { "checkRef": "unit-tests", "status": "pass", "evidenceRefs": ["ev:test"] }
+  ],
+  "verdict": {
+    "verdictRef": "verdict:01",
+    "status": "verified",
+    "checkRefs": ["unit-tests"],
+    "reason": "All required deterministic checks passed"
+  }
+}

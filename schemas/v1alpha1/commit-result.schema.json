@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://safe-runtime.dev/schema/v1alpha1/commit-result.schema.json",
+  "title": "CommitResult",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["apiVersion", "kind", "commitResultRef", "transactionRef", "status", "completedAt"],
+  "properties": {
+    "apiVersion": { "const": "safe-runtime.dev/v1alpha1" },
+    "kind": { "const": "CommitResult" },
+    "commitResultRef": { "$ref": "defs.schema.json#/$defs/ref" },
+    "transactionRef": { "$ref": "defs.schema.json#/$defs/ref" },
+    "commitPlanRef": { "$ref": "defs.schema.json#/$defs/ref" },
+    "status": { "type": "string", "enum": ["COMMITTED", "CONFLICTED", "RECOVERY_REQUIRED", "FAILED"] },
+    "appliedEntries": { "type": "integer", "minimum": 0 },
+    "conflictTargetRefs": { "type": "array", "uniqueItems": true, "items": { "$ref": "defs.schema.json#/$defs/ref" } },
+    "errorCode": { "type": "string", "minLength": 1, "maxLength": 256 },
+    "completedAt": { "$ref": "defs.schema.json#/$defs/timestamp" }
+  }
+}

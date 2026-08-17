@@ -1,0 +1,26 @@
+{
+  "apiVersion": "safe-runtime.dev/v1alpha1",
+  "kind": "AcceptanceContract",
+  "metadata": { "name": "coding-change" },
+  "spec": {
+    "completionPolicy": "all-required",
+    "checks": [
+      {
+        "id": "unit-tests",
+        "type": "command",
+        "required": true,
+        "command": ["pnpm", "test"],
+        "timeoutMs": 600000,
+        "expect": { "exitCode": 0 }
+      },
+      {
+        "id": "source-scope",
+        "type": "workspace-diff",
+        "required": true,
+        "allow": ["src/**", "tests/**"],
+        "deny": [".env", "**/*.pem"]
+      }
+    ],
+    "onFailure": { "action": "steer", "maxRetries": 2, "afterExhaustion": "blocked" }
+  }
+}

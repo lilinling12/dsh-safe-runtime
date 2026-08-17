@@ -1,0 +1,10 @@
+{
+  "schemaCount": 15,
+  "fixtureCount": 28,
+  "fixtureFailures": [],
+  "architectureBoundary": "PASS",
+  "schemaShape": "PASS",
+  "schemaBaseline": "PASS",
+  "protocolTypecheck": "PASS (TypeScript 5.8.3 available in execution environment)",
+  "fullPnpmInstall": "NOT_EXECUTED: npm registry unavailable in execution environment"
+}

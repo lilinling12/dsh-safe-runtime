@@ -1,0 +1,10 @@
+{
+  "apiVersion": "safe-runtime.dev/v1alpha1",
+  "kind": "AcceptanceVerdict",
+  "verdictRef": "verdict:01",
+  "status": "VERIFIED",
+  "requiredCheckRefs": ["check:unit-tests"],
+  "checkResultRefs": ["check-result:01"],
+  "reasonCode": "ALL_REQUIRED_CHECKS_PASS",
+  "decidedAt": "2026-08-17T06:46:01Z"
+}

@@ -1,0 +1,8 @@
+{
+  "apiVersion": "safe-runtime.dev/v1alpha1",
+  "kind": "CommitResult",
+  "commitResultRef": "commit-result:bad",
+  "transactionRef": "tx:01",
+  "status": "PARTIALLY_COMMITTED",
+  "completedAt": "2026-08-17T06:46:00Z"
+}

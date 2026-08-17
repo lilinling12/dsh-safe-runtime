@@ -1,0 +1,5 @@
+# Bind real GitHub users/teams when the repository is created.
+# Example:
+# /specs/ @org/protocol-maintainers
+# /schemas/ @org/protocol-maintainers
+# /packages/protocol/ @org/protocol-maintainers

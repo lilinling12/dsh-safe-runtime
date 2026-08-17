@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://safe-runtime.dev/schema/v1alpha1/capability-decision.schema.json",
+  "title": "CapabilityDecision",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["apiVersion", "kind", "decisionId", "requestId", "effect", "guaranteeLevel", "decidedAt"],
+  "properties": {
+    "apiVersion": { "const": "safe-runtime.dev/v1alpha1" },
+    "kind": { "const": "CapabilityDecision" },
+    "decisionId": { "$ref": "defs.schema.json#/$defs/ref" },
+    "requestId": { "$ref": "defs.schema.json#/$defs/ref" },
+    "effect": { "type": "string", "enum": ["allow", "deny", "ask"] },
+    "guaranteeLevel": { "$ref": "defs.schema.json#/$defs/guaranteeLevel" },
+    "policyRef": { "$ref": "defs.schema.json#/$defs/ref" },
+    "matchedRuleRefs": { "type": "array", "uniqueItems": true, "items": { "$ref": "defs.schema.json#/$defs/ref" } },
+    "reasonCode": { "type": "string", "minLength": 1, "maxLength": 256 },
+    "reason": { "type": "string", "maxLength": 4096 },
+    "decidedAt": { "$ref": "defs.schema.json#/$defs/timestamp" }
+  }
+}

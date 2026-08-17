@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://safe-runtime.dev/schema/v1alpha1/capability-lease.schema.json",
+  "title": "CapabilityLease",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["apiVersion", "kind", "leaseRef", "subjectRef", "capability", "resource", "issuedAt", "expiresAt", "maxUses", "remainingUses", "authorization"],
+  "properties": {
+    "apiVersion": { "const": "safe-runtime.dev/v1alpha1" },
+    "kind": { "const": "CapabilityLease" },
+    "leaseRef": { "$ref": "defs.schema.json#/$defs/ref" },
+    "subjectRef": { "$ref": "defs.schema.json#/$defs/ref" },
+    "parentLeaseRef": { "$ref": "defs.schema.json#/$defs/ref" },
+    "capability": { "type": "string", "minLength": 3, "maxLength": 256 },
+    "resource": { "$ref": "defs.schema.json#/$defs/resource" },
+    "constraints": { "type": "object", "additionalProperties": true },
+    "issuedAt": { "$ref": "defs.schema.json#/$defs/timestamp" },
+    "expiresAt": { "$ref": "defs.schema.json#/$defs/timestamp" },
+    "maxUses": { "type": "integer", "minimum": 1 },
+    "remainingUses": { "type": "integer", "minimum": 0 },
+    "authorization": { "$ref": "defs.schema.json#/$defs/authorization" }
+  }
+}

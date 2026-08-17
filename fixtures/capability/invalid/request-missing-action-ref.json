@@ -1,0 +1,9 @@
+{
+  "apiVersion": "safe-runtime.dev/v1alpha1",
+  "kind": "CapabilityRequest",
+  "requestId": "capreq_bad",
+  "subject": { "kind": "agent", "id": "agent/root" },
+  "sessionRef": "session:abc",
+  "capability": "process.exec",
+  "resource": { "scheme": "process", "locator": "git" }
+}

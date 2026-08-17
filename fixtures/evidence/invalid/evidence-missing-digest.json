@@ -1,0 +1,19 @@
+{
+  "apiVersion": "safe-runtime.dev/v1alpha1",
+  "kind": "EvidenceEpisode",
+  "episodeRef": "ep:bad",
+  "adapter": { "name": "deepseek-harness", "version": "adapter/0.1" },
+  "session": { "sessionRef": "dsh:session:abc" },
+  "task": { "taskRef": "task:bad", "description": "Bad evidence example" },
+  "claims": [],
+  "evidence": [
+    {
+      "evidenceRef": "ev:bad",
+      "kind": "tool-result",
+      "source": { "adapter": "deepseek-harness", "eventRef": "session:abc/seq:1" },
+      "observedAt": "2026-08-17T06:45:00Z"
+    }
+  ],
+  "checks": [],
+  "verdict": { "verdictRef": "verdict:bad", "status": "invalid", "checkRefs": [] }
+}

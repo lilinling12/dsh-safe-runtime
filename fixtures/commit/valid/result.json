@@ -1,0 +1,10 @@
+{
+  "apiVersion": "safe-runtime.dev/v1alpha1",
+  "kind": "CommitResult",
+  "commitResultRef": "commit-result:01",
+  "transactionRef": "tx:01",
+  "commitPlanRef": "commit-plan:01",
+  "status": "COMMITTED",
+  "appliedEntries": 1,
+  "completedAt": "2026-08-17T06:46:00Z"
+}
