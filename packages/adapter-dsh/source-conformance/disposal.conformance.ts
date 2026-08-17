@@ -64,7 +64,9 @@ describe("DeepSeek Harness rc5 adapter disposal", () => {
     session.append("turn/start", { turn: 1 });
 
     let disposed = false;
-    const disposing = subscription.dispose().then(() => { disposed = true; });
+    const disposing = Promise.resolve(subscription.dispose()).then(() => {
+      disposed = true;
+    });
     await Promise.resolve();
     expect(disposed).toBe(false);
     expect(settled).toBe(0);
