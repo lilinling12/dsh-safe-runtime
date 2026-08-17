@@ -13,7 +13,7 @@ permissions:
   contents: read
 
 jobs:
-  source-typecheck:
+  source-conformance:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout safe runtime
@@ -55,8 +55,12 @@ jobs:
           ln -s "$GITHUB_WORKSPACE/.tmp/deepseek-harness/packages/core/agent" node_modules/@deepseek-ai/dsh-agent
           ln -s "$GITHUB_WORKSPACE/.tmp/deepseek-harness/packages/llm/llm" node_modules/@deepseek-ai/dsh-llm
           ln -s "$GITHUB_WORKSPACE/.tmp/deepseek-harness/packages/core/session" node_modules/@deepseek-ai/dsh-session
+          ln -s "$GITHUB_WORKSPACE/.tmp/deepseek-harness/packages/core/system-prompt" node_modules/@deepseek-ai/dsh-system-prompt
           ln -s "$GITHUB_WORKSPACE/.tmp/deepseek-harness/packages/core/tools" node_modules/@deepseek-ai/dsh-tools
           ln -s "$GITHUB_WORKSPACE/.tmp/deepseek-harness/packages/interaction/user-approval" node_modules/@deepseek-ai/dsh-user-approval
 
       - name: Typecheck real rc5 binding against pinned source
         run: pnpm exec tsc -p packages/adapter-dsh/tsconfig.harness-rc5.json --noEmit
+
+      - name: Execute real rc5 ToolRuntime policy conformance
+        run: pnpm exec vitest run --config packages/adapter-dsh/vitest.harness-rc5.config.ts
