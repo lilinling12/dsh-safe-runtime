@@ -72,7 +72,10 @@ export interface CompletionSteerRequest {
   readonly sessionRef: string;
   readonly turnRef: string;
   readonly reason: string;
+  /** One-based ordinal of the retry the caller is requesting. */
   readonly retryOrdinal: number;
+  /** Caller-defined retry budget from the governing acceptance contract. */
+  readonly maxRetries: number;
 }
 
 export interface FilesystemPort {
