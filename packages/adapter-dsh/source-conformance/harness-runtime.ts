@@ -3,10 +3,9 @@ import { Context, type Fiber, type Inject } from "@deepseek-ai/cordis";
 /**
  * A consumer created through Cordis's explicit service-injection API.
  *
- * The direct Fiber handle is retained intentionally. Structural lifecycle
- * assertions should inspect the handle returned by `ctx.inject()` rather than
- * round-tripping through the consumer Context proxy, whose normal property
- * reads are governed by Cordis injection/tracing rules.
+ * The direct Fiber handle is retained for the small number of lifecycle tests
+ * that need to assert Cordis ownership. Ordinary consumers should use
+ * `HarnessTestScope.inject()`, which preserves the fixture's Context-only API.
  */
 export interface HarnessInjectedConsumer {
   readonly ctx: Context;
@@ -29,10 +28,17 @@ export interface HarnessTestScope {
   readonly disposed: boolean;
 
   /**
-   * Create a nested consumer that explicitly declares the Cordis services it
-   * reads. Providers must already be mounted in this scope.
+   * Create a nested consumer context that explicitly declares the Cordis
+   * services it reads. Providers must already be mounted in this scope.
    */
-  inject(dependencies: Inject): Promise<HarnessInjectedConsumer>;
+  inject(dependencies: Inject): Promise<Context>;
+
+  /**
+   * Same injection path as `inject()`, but also exposes the direct Cordis Fiber
+   * handle for structural lifecycle assertions. Do not use this merely to read
+   * services; service access still belongs on the injected Context.
+   */
+  injectWithFiber(dependencies: Inject): Promise<HarnessInjectedConsumer>;
 
   dispose(): Promise<void>;
 }
@@ -61,6 +67,31 @@ export async function createHarnessTestScope(): Promise<HarnessTestScope> {
   const ctx = childContext;
   let disposalTask: Promise<void> | undefined;
 
+  async function injectWithFiber(
+    dependencies: Inject,
+  ): Promise<HarnessInjectedConsumer> {
+    let injectedContext: Context | undefined;
+    const injectedHandle = ctx.inject(
+      dependencies,
+      function DshSafeRuntimeSourceConformanceConsumer(consumerCtx) {
+        injectedContext = consumerCtx;
+      },
+    );
+    const injectedFiber = await injectedHandle;
+
+    if (injectedContext === undefined) {
+      await injectedFiber.dispose();
+      throw new Error(
+        "Cordis injected consumer activated without exposing its context",
+      );
+    }
+
+    return Object.freeze({
+      ctx: injectedContext,
+      fiber: injectedFiber,
+    });
+  }
+
   return Object.freeze({
     root,
     ctx,
@@ -68,28 +99,10 @@ export async function createHarnessTestScope(): Promise<HarnessTestScope> {
     get disposed() {
       return fiber.uid === null;
     },
-    async inject(dependencies: Inject): Promise<HarnessInjectedConsumer> {
-      let injectedContext: Context | undefined;
-      const injectedHandle = ctx.inject(
-        dependencies,
-        function DshSafeRuntimeSourceConformanceConsumer(consumerCtx) {
-          injectedContext = consumerCtx;
-        },
-      );
-      const injectedFiber = await injectedHandle;
-
-      if (injectedContext === undefined) {
-        await injectedFiber.dispose();
-        throw new Error(
-          "Cordis injected consumer activated without exposing its context",
-        );
-      }
-
-      return Object.freeze({
-        ctx: injectedContext,
-        fiber: injectedFiber,
-      });
+    async inject(dependencies: Inject): Promise<Context> {
+      return (await injectWithFiber(dependencies)).ctx;
     },
+    injectWithFiber,
     dispose(): Promise<void> {
       disposalTask ??= Promise.resolve()
         .then(() => fiber.dispose())

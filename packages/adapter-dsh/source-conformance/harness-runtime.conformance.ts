@@ -62,7 +62,7 @@ describe("source-conformance Cordis lifecycle fixture", () => {
 
     try {
       await scope.ctx.plugin(SessionStore);
-      const consumer = await scope.inject(["sessions"]);
+      const consumer = await scope.injectWithFiber(["sessions"]);
       const session = consumer.ctx.sessions.create(SessionId("fixture-injection"));
 
       expect(consumer.ctx).not.toBe(scope.ctx);
