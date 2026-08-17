@@ -1,7 +1,19 @@
-import type { Digest, Evidence } from "@dsh-safe/protocol";
-
 import type { CorrelationRecord } from "./correlation.js";
 import { dshAdapterError } from "./errors.js";
+
+/**
+ * Runtime-independent evidence anchor supplied by safe-runtime core. The
+ * adapter preserves these opaque identifiers; protocol validation remains in
+ * the protocol layer and is not redefined here.
+ */
+export interface SidecarEvidenceAnchor {
+  readonly evidenceRef: string;
+  readonly source: {
+    readonly adapter: string;
+    readonly eventRef: string;
+  };
+  readonly digest: string;
+}
 
 /**
  * Minimal durable correlation record written beside Harness session storage.
@@ -17,7 +29,7 @@ export interface SidecarEvidenceRecord {
   readonly stepRef?: string;
   readonly callRef?: string;
   readonly evidenceRef: string;
-  readonly evidenceDigest: Digest;
+  readonly evidenceDigest: string;
 }
 
 export interface SidecarEvidenceSink {
@@ -34,17 +46,18 @@ function requiredNonEmpty(value: string, field: string): void {
 }
 
 /**
- * Project a process-local correlation plus protocol evidence into the durable
- * sidecar shape. The projection is an allow-list by construction: in
- * particular, `processLocalTokenRef` is deliberately never copied.
+ * Project a process-local correlation plus protocol-owned evidence anchor into
+ * the durable sidecar shape. The projection is an allow-list by construction:
+ * in particular, `processLocalTokenRef` is deliberately never copied.
  */
 export function createSidecarEvidenceRecord(
   correlation: Readonly<CorrelationRecord>,
-  evidence: Readonly<Pick<Evidence, "evidenceRef" | "source" | "digest">>,
+  evidence: Readonly<SidecarEvidenceAnchor>,
 ): SidecarEvidenceRecord {
   requiredNonEmpty(correlation.sessionRef, "sessionRef");
   requiredNonEmpty(correlation.adapterEventRef, "durableEventRef");
   requiredNonEmpty(evidence.evidenceRef, "evidenceRef");
+  requiredNonEmpty(evidence.digest, "evidenceDigest");
 
   const sequence = correlation.durableSequence;
   if (sequence === undefined || !Number.isSafeInteger(sequence) || sequence < 0) {
