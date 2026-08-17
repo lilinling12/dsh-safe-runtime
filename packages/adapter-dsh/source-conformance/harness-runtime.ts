@@ -1,6 +1,19 @@
 import { Context, type Fiber, type Inject } from "@deepseek-ai/cordis";
 
 /**
+ * A consumer created through Cordis's explicit service-injection API.
+ *
+ * The direct Fiber handle is retained intentionally. Structural lifecycle
+ * assertions should inspect the handle returned by `ctx.inject()` rather than
+ * round-tripping through the consumer Context proxy, whose normal property
+ * reads are governed by Cordis injection/tracing rules.
+ */
+export interface HarnessInjectedConsumer {
+  readonly ctx: Context;
+  readonly fiber: Fiber;
+}
+
+/**
  * A source-conformance test scope owned by a real Cordis child plugin fiber.
  *
  * Tests deliberately do not attach effects directly to the Cordis root fiber:
@@ -16,10 +29,10 @@ export interface HarnessTestScope {
   readonly disposed: boolean;
 
   /**
-   * Create a nested consumer context that explicitly declares the Cordis
-   * services it reads. Providers must already be mounted in this scope.
+   * Create a nested consumer that explicitly declares the Cordis services it
+   * reads. Providers must already be mounted in this scope.
    */
-  inject(dependencies: Inject): Promise<Context>;
+  inject(dependencies: Inject): Promise<HarnessInjectedConsumer>;
 
   dispose(): Promise<void>;
 }
@@ -55,15 +68,15 @@ export async function createHarnessTestScope(): Promise<HarnessTestScope> {
     get disposed() {
       return fiber.uid === null;
     },
-    async inject(dependencies: Inject): Promise<Context> {
+    async inject(dependencies: Inject): Promise<HarnessInjectedConsumer> {
       let injectedContext: Context | undefined;
-      const injectedFiber = ctx.inject(
+      const injectedHandle = ctx.inject(
         dependencies,
         function DshSafeRuntimeSourceConformanceConsumer(consumerCtx) {
           injectedContext = consumerCtx;
         },
       );
-      await injectedFiber;
+      const injectedFiber = await injectedHandle;
 
       if (injectedContext === undefined) {
         await injectedFiber.dispose();
@@ -72,7 +85,10 @@ export async function createHarnessTestScope(): Promise<HarnessTestScope> {
         );
       }
 
-      return injectedContext;
+      return Object.freeze({
+        ctx: injectedContext,
+        fiber: injectedFiber,
+      });
     },
     dispose(): Promise<void> {
       disposalTask ??= Promise.resolve()
