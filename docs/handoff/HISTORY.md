@@ -59,3 +59,29 @@ With the dual-green prerequisite and authoritative final-result test now
 verified, the active M2 gate advances to the Filesystem / Subprocess Provider
 Probe. PR #1 remains Draft; M2 is not Ready until the provider probe and M2
 Acceptance Audit are complete.
+
+## 2026-08-17T19:10:00+08:00 — Complete portable rc5 provider probe
+
+The Filesystem / Subprocess Provider Probe closed on head
+`39eaaada8186ad7555456d76aeed647d1a3d7e5f`.
+
+Evidence:
+
+- normal CI run `32022994277` (#41): PASS;
+- exact source-conformance run `32022994262` (#23): PASS;
+- job `95366391189` steps 6–11 all passed;
+- exact-source TypeScript step 10 compiled the new
+  `provider-seams.contract.ts` against the pinned upstream public packages;
+- runtime conformance step 11 remained green.
+
+The probe records several security-critical negative facts: local FS cwd is not
+containment, `fs-sandbox` is mutation-only provider fencing rather than general
+isolation, local subprocess filesystem effects bypass `ctx.fs`, sandbox policy
+scope is file effects only, and a provider-reported `full` value is not by
+itself environment attestation (a configured runner can assert it without the
+built-in functional probe).
+
+The active gate advances to the **M2 Acceptance Audit**. The audit must reconcile
+the normative adapter spec, TCK/security expectations, stale roadmap tracking
+items, and live CI evidence. PR #1 remains Draft until that audit either proves
+M2 acceptance or identifies/fixes the remaining P0 blockers.
