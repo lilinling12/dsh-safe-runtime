@@ -10,6 +10,9 @@ This document records adapter assumptions derived from the DeepSeek Harness publ
 
 The source commit, not an unverified npm tag, is the authority for M2 rc5 semantics.
 
+Detailed filesystem/subprocess/sandbox evidence is maintained in
+[`deepseek-harness-0.1.0-rc.5-provider-probe.md`](deepseek-harness-0.1.0-rc.5-provider-probe.md).
+
 ## Asserted seams
 
 | Capability | rc.5 observation | Adapter consequence |
@@ -26,9 +29,13 @@ The source commit, not an unverified npm tag, is the authority for M2 rc5 semant
 | Completion interception | `agent/turn-stopping` is an awaited serial boundary before turn closure | acceptance work that must finish before closure attaches here |
 | Session log | model-visible content must be reconstructable from log | adapter evidence keeps durable references |
 | Filesystem seam | `ctx.fs` is replaceable and uses provider-owned target identity | transactional runtime must not assume local POSIX paths |
-| Subprocess seam | `ctx.subprocess` is replaceable | subprocess effects must use the provider seam |
-| Shared execution world | filesystem and subprocess providers are designed to move together | Workspace TX composes both seams |
-| Sandbox semantics | process sandbox is not treated by safe-runtime as a universal network authority | network enforcement requires a participating network/provider boundary |
+| FS process bridge | `processPath()` exposes the canonical execution-world path for an opaque target | crossing into a process capability is security-sensitive and not equivalent to provider interception |
+| Local FS cwd | `fs-local` cwd is a relative-path base, not a containment root | cwd MUST NOT be treated as resource isolation |
+| FS sandbox | `fs-sandbox` fences mutation calls; reads pass through | maximum claim is provider-enforced mutation confinement, not kernel/process isolation |
+| Subprocess seam | `ctx.subprocess` is replaceable | subprocess effects must use the provider seam where the consumer participates |
+| Local subprocess FS access | local subprocess uses OS paths directly rather than routing process IO through `ctx.fs` | replacing/intercepting `ctx.fs` does not contain subprocess file effects |
+| Shared execution world | filesystem and subprocess providers are designed to move together | Workspace TX must preserve execution-world coherence across both seams |
+| Sandbox semantics | sandbox policy vocabulary covers file effects and may report `full` or `partial` | do not infer network authority or general process isolation from sandbox presence |
 
 ## Requested versus observed tool semantics
 
@@ -64,6 +71,10 @@ The rc.5 adapter does NOT infer any of the following:
 
 - arbitrary in-process plugin isolation;
 - universal network confinement;
+- containment from an `fs-local` cwd;
+- read confinement from `fs-sandbox`;
+- confinement of local subprocess filesystem effects merely because `ctx.fs` is replaced;
+- general process isolation from the same-world sandbox seam;
 - authority from tool visibility restrictions;
 - durable persistence of process-local `ToolExecutionToken` values;
 - stable third-party custom durable event registration across future Harness releases;
@@ -76,6 +87,11 @@ Runtime code asks the adapter for capabilities. It MUST NOT select security sema
 
 A missing required feature yields `UNSUPPORTED_ADAPTER_FEATURES` and the requesting guarantee fails closed.
 
+Provider/security compatibility facts that are not optional adapter capabilities
+are recorded separately in `DSH_RC5_PROVIDER_FACTS`; they must not be converted
+into `requireAdapterFeatures()` checks that falsely imply a deployment has
+loaded or enforced a particular provider.
+
 ## Upgrade procedure
 
 For each new Harness release candidate:
@@ -84,7 +100,7 @@ For each new Harness release candidate:
 2. read the release diff for public Agent, Tools, Session, Approval, FS, Subprocess and Sandbox seams;
 3. run source-pinned adapter conformance against that commit;
 4. separately verify the npm/distribution package family if package installation is claimed;
-5. update the feature matrix only for facts proven by source or tests;
+5. update the feature matrix and provider facts only for facts proven by source or tests;
 6. add a compatibility note for changed semantics;
 7. never weaken the safe-runtime TCK to admit an incompatible release;
 8. add the release to the supported range only after acceptance evidence is attached.
