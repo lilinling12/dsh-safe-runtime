@@ -21,6 +21,12 @@ import type {
   SubprocessSpawnSpec,
 } from "@deepseek-ai/dsh-subprocess";
 
+import {
+  createFilesystemPort,
+  createSubprocessPort,
+} from "../src/provider-ports.js";
+import type { FilesystemPort, SubprocessPort } from "../src/ports.js";
+
 /** Compile-time equality used to pin closed public vocabularies in rc5. */
 type Equal<Left, Right> =
   (<T>() => T extends Left ? 1 : 2) extends
@@ -81,6 +87,14 @@ export async function assertRc5FilesystemContract(
 }
 
 /**
+ * Prove that the runtime-independent operational filesystem port binds directly
+ * to the exact pinned rc5 public FileSystem type without a concrete-type escape.
+ */
+export function bindRc5FilesystemPort(fs: FileSystem): FilesystemPort {
+  return createFilesystemPort(fs);
+}
+
+/**
  * Pin the fully-specified subprocess request shape used at the provider seam.
  * The cwd and environment cross into the execution world as explicit strings;
  * no filesystem target is part of this API.
@@ -105,6 +119,14 @@ export function assertRc5SubprocessContract(
   };
 
   return subprocess.spawn(spec);
+}
+
+/**
+ * Prove that the bounded operational subprocess port binds directly to the
+ * exact pinned rc5 public SubprocessRuntime type.
+ */
+export function bindRc5SubprocessPort(subprocess: SubprocessRuntime): SubprocessPort {
+  return createSubprocessPort(subprocess);
 }
 
 /** Pin the same-world file-effect sandbox vocabulary and confine result. */
