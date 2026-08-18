@@ -1,11 +1,11 @@
 /**
  * @dsh-safe/testkit public boundary.
  *
- * M3 starts from language-independent contracts. The exports below are a
- * TypeScript projection of Spec 0004 and its JSON Schema, not their semantic
- * authority. Fake runtimes and profile executors remain intentionally deferred.
+ * Shared TCK semantics remain specification-first. The exports below are
+ * TypeScript projections of the language-independent contracts; test fakes are
+ * deterministic infrastructure and never protocol or Harness authority.
  */
-export const PACKAGE_STAGE = "M3-SHARED-TCK-FOUNDATION" as const;
+export const PACKAGE_STAGE = "M3-FAKE-APPROVAL" as const;
 
 export {
   TCK_FIXTURE_API_VERSION,
@@ -19,3 +19,16 @@ export type {
   TckProfile,
   TckRunnerStatus,
 } from "./tck-contract.js";
+
+export {
+  FAKE_APPROVAL_ERROR_CODES,
+  FakeApprovalError,
+  FakeApprovalService,
+  TCK_APPROVAL_DECISIONS,
+} from "./fake-approval.js";
+export type {
+  FakeApprovalErrorCode,
+  FakeApprovalObservation,
+  FakeApprovalRequest,
+  TckApprovalDecision,
+} from "./fake-approval.js";

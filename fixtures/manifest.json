@@ -186,6 +186,18 @@
       "path": "tck/invalid/unknown-top-level-field.json",
       "schema": "tck-fixture.schema.json",
       "expected": "invalid"
+    },
+    {
+      "id": "TCK-AUTH-APPROVAL-001",
+      "path": "tck/valid/approval-sequence.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-AUTH-APPROVAL-002",
+      "path": "tck/valid/approval-script-exhausted.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
     }
   ]
 }
