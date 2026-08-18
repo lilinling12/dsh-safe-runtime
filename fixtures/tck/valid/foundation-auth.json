@@ -1,0 +1,25 @@
+{
+  "apiVersion": "safe-runtime.dev/tck-fixture/v1alpha1",
+  "id": "TCK_FOUNDATION_AUTH_001",
+  "profile": "AUTH",
+  "description": "Portable fixture envelope with explicit deterministic inputs.",
+  "determinism": {
+    "seed": 123456789,
+    "clock": {
+      "startUnixMs": 1787040000000,
+      "tickMs": 10
+    }
+  },
+  "stimulus": {
+    "operation": "foundation-probe",
+    "input": {
+      "value": 1
+    }
+  },
+  "expect": {
+    "status": "PASS",
+    "observed": {
+      "value": 1
+    }
+  }
+}
