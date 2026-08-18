@@ -234,8 +234,8 @@ Acceptance evidence
 - [x] `M3-001 P0` language-independent fixture format。
 - [x] `M3-002 P0` test runner contract。
 - [x] `M3-003 P0` deterministic seed/time。
-- [ ] `M3-004 P0` fake approval。
-- [ ] `M3-005 P0` fake tool runtime。
+- [x] `M3-004 P0` fake approval。 **DONE：Spec 0005 + portable fixtures + deterministic TypeScript projection；head `cc59a5db...` CI #79 PASS。**
+- [ ] `M3-005 P0` fake tool runtime。 **NEXT GATE。**
 - [ ] `M3-006 P0` fake fs/subprocess。
 - [ ] `M3-007 P0` fault injection interface。
 

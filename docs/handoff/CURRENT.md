@@ -5,17 +5,19 @@
 
 ## Snapshot
 
-- Recorded at: `2026-08-18`
+- Recorded at: `2026-08-18T18:10+08:00`
 - Repository: `lilinling12/dsh-safe-runtime`
 - Phase: `M3 — Shared TCK Foundation`
 - Pull request: `#2 — feat(testkit): establish M3 shared TCK foundation`
 - PR state: `OPEN / DRAFT`
 - Branch: `feat/m3-shared-tck-foundation`
 - Stacked base: `feat/m2-harness-adapter@6a9c64155ec6c376908e64d70f2b50d5b8de1285`
+- Verified implementation head: `cc59a5db1045346792d823e56557d78438dd37c1`
 - M2 acceptance: **ACCEPTED**
 
-PR #2 is intentionally stacked on the accepted M2 branch. M3 changes MUST NOT
-be added back into PR #1 because that would mutate the accepted M2 evidence line.
+PR #2 remains intentionally stacked on the accepted M2 branch. M3 changes MUST
+NOT be added back into PR #1 because that would mutate the accepted M2 evidence
+line.
 
 ## M2 accepted baseline carried forward
 
@@ -27,18 +29,20 @@ commit: 47f943859bef60e4160492346772ded9b24f765a
 distribution: distribution-blocked
 ```
 
-Accepted M2 head `6a9c64155ec6c376908e64d70f2b50d5b8de1285` is dual-green:
+Accepted M2 head `6a9c64155ec6c376908e64d70f2b50d5b8de1285` remains the accepted evidence line:
 
 - normal CI #71: PASS;
 - exact Harness rc5 source-conformance #53: PASS.
 
 `docs/acceptance/m2-acceptance-audit.md` remains the M2 acceptance authority.
 
-## Current M3 gate
+## Completed M3 gates
 
-**M3-001 / M3-002 / M3-003 — shared language-independent TCK foundation.**
+### M3-001 / M3-002 / M3-003 — Shared TCK foundation
 
-The current branch establishes, in governance order:
+Complete and recorded in `docs/roadmap.md`.
+
+The language-independent foundation consists of:
 
 1. `specs/0004-shared-tck-foundation.md`;
 2. `schemas/v1alpha1/tck-fixture.schema.json`;
@@ -46,121 +50,119 @@ The current branch establishes, in governance order:
 4. schema index / compatibility baseline / fixture manifest registration;
 5. `@dsh-safe/testkit` TypeScript projection and conformance tests.
 
-The shared fixture envelope is ordinary JSON and contains:
+Roadmap reconciliation head `79bd048599ac6f64975912b23f1e12f9719ef956`
+passed normal CI #78, including frozen install and `pnpm check:all`.
+
+### M3-004 — Fake approval
+
+Complete on implementation head `cc59a5db1045346792d823e56557d78438dd37c1`.
+
+Governance order was preserved:
+
+1. `specs/0005-m3-fake-approval-test-service.md` defines the portable fake first;
+2. `fixtures/tck/valid/approval-sequence.json` covers deterministic FIFO outcome
+   consumption;
+3. `fixtures/tck/valid/approval-script-exhausted.json` proves exhaustion is an
+   explicit infrastructure error rather than an implicit `UNAVAILABLE`;
+4. both fixtures are registered in `fixtures/manifest.json` and remain valid
+   shared TCK envelopes;
+5. `packages/testkit/src/fake-approval.ts` is only the TypeScript projection;
+6. `packages/testkit/src/fake-approval.test.ts` covers FIFO order, exact outcome
+   preservation, defensive observation copies, invalid script rejection, and
+   exhaustion behavior.
+
+Portable fake approval decisions are exactly:
 
 ```text
-apiVersion
-id
-profile
-description
-determinism
-stimulus
-expect
+ALLOWED_ONCE
+REJECTED
+CANCELLED
+UNAVAILABLE
 ```
 
-Deterministic inputs are explicit:
+Only `ALLOWED_ONCE` may authorize under existing approval semantics. Script
+exhaustion uses:
 
 ```text
-seed
-clock.startUnixMs
-clock.tickMs
+FAKE_APPROVAL_SCRIPT_EXHAUSTED
 ```
 
-The runner contract distinguishes at least:
+It MUST NOT be coerced to `UNAVAILABLE` or success.
 
-```text
-PASS
-FAIL
-UNSUPPORTED
-ERROR
-```
-
-`UNSUPPORTED` and `ERROR` MUST NOT be coerced to `PASS`.
-
-## Current validation evidence
-
-Foundation implementation head `9610b2bc7935ab60e050b7f4998862c82699d17a`:
+Validation evidence for `cc59a5db...`:
 
 | Gate | State | Evidence |
 | --- | --- | --- |
-| Normal CI | **PASS** | run #73 |
-| Frozen install | **PASS** | normal CI |
-| `pnpm check:all` | **PASS** | normal CI |
-| Draft 2020-12 schema shape | **PASS** | normal CI |
-| Schema compatibility baseline | **PASS** | normal CI |
-| Shared TCK positive fixture | **PASS** | testkit conformance |
-| Shared TCK negative fixtures | **PASS** | testkit conformance |
-| Harness concrete-path exclusion | **PASS** | testkit conformance |
+| Normal CI | **PASS** | run #79 |
+| Frozen install | **PASS** | job `verify`, step 5 |
+| `pnpm check:all` | **PASS** | job `verify`, step 6 |
+| Portable approval contract precedes implementation | **PASS** | Spec 0005 + testkit projection |
+| FIFO scripted decisions | **PASS** | fake approval conformance |
+| Script exhaustion fail-closed | **PASS** | fake approval conformance |
+| Unknown scripted decision rejected | **PASS** | fake approval conformance |
+| Observation exposure defensive | **PASS** | fake approval conformance |
+| Harness concrete dependency introduced | **NO** | testkit fake remains runtime-independent |
 
-An earlier foundation head `bcee18375c63c736559b9540c942aaea09e936c4`
-also passed normal CI #72. The fixture manifest was then reformatted back to the
-repository's review-friendly style so PR #2 contains only four deletions instead
-of unrelated formatting churn; head `9610b2bc...` verifies that cleanup.
+## Current gate
 
-This handoff/status maintenance advances the branch beyond the verified
-implementation head above. A resumed session MUST query the exact live PR #2
-head and its current Actions before declaring the foundation complete.
+**M3-005 P0 — fake tool runtime.**
 
-## Boundaries that remain enforced
+This is the next and only newly authorized implementation gate.
 
-- Spec/Schema/fixtures define the shared contract before TypeScript implementation.
-- `packages/testkit` is one implementation; it does not define portable semantics.
-- shared TCK fixtures MUST remain consumable by a non-TypeScript implementation.
-- shared schema MUST NOT contain concrete `@deepseek-ai/*` package paths.
-- no host wall-clock or ambient randomness may decide a fixture result.
-- unknown fixture versions/profiles/semantics fail explicitly.
-- existing M2 adapter tests are evidence inputs, not the M3 language-neutral TCK.
-- do not weaken TypeScript strictness, schemas, compatibility baseline, validators,
-  tests, frozen installs, or security claims for CI.
-- do not implement M4 Capability Broker or M6 Workspace Transaction early.
+The fake tool runtime must remain deterministic test infrastructure and expose
+only the minimum behavior required by normative TCK scenarios. Before adding a
+TypeScript fake, define the language-independent profile contract and portable
+fixtures that state the observable tool behavior.
+
+The M3-005 design MUST preserve already accepted boundaries:
+
+- a requested tool action is intent, not proof of successful execution;
+- denial must be observable without entering the tool body when the relevant TCK
+  scenario requires that boundary;
+- final result semantics must not be inferred from DeepSeek Harness internals;
+- no `@deepseek-ai/*` package path or concrete Harness type may define the shared
+  fake runtime contract;
+- no host time, ambient randomness, shell execution, real filesystem access, or
+  network access may decide a fake tool result;
+- unknown fake operations or malformed scripts fail explicitly.
+
+Do not pull M3-006 filesystem/subprocess, M3-007 fault injection, or M4 Capability
+Broker behavior into M3-005.
 
 ## Deferred M3 work
 
-The current foundation does **not** yet implement:
+Not yet implemented:
 
-- `M3-004 P0` fake approval;
-- `M3-005 P0` fake tool runtime;
+- `M3-005 P0` fake tool runtime — **CURRENT GATE**;
 - `M3-006 P0` fake filesystem/subprocess;
 - `M3-007 P0` fault injection interface;
 - `M3-010..016` Adapter DSH shared TCK scenarios;
 - `M3-017 P1` replay reconciliation.
 
-The generic `stimulus` and `expect` values are opaque JSON at the envelope layer.
-Their business semantics MUST be introduced by profile-specific normative TCK
-contracts, not inferred from the current TypeScript testkit.
+Real cancellation mechanics remain part of later Adapter DSH TCK work; M3-004
+only supports `CANCELLED` as an explicitly scripted portable approval outcome.
 
-## Planning maintenance still required
+## Boundaries that remain enforced
 
-`docs/roadmap.md` is stale in its M2 checkboxes and M2 DoD wording. When editing
-it, preserve these accepted boundaries:
-
-- mark evidence-complete M2 P0 items done;
-- keep `M2-017`, `M2-025`, and `M2-033` P1 work deferred unless separately implemented;
-- do not invent normalized `step.ended`; Spec 0003's M2 minimum vocabulary defines
-  `step.started`;
-- the language-neutral Event Order TCK belongs to M3, not retroactively to M2;
-- rc5 is the first accepted Harness baseline, so there was no previous accepted
-  baseline to test for first-baseline M2 acceptance.
-
-Roadmap maintenance is planning synchronization only and MUST NOT redefine the
-normative specs.
-
-## Next allowed gate
-
-After the exact current PR #2 head is green and M3-001/002/003 are recorded as
-complete, continue inside M3 with the fake-runtime foundation:
-
-1. `M3-004` fake approval;
-2. `M3-005` fake tool runtime;
-3. `M3-006` fake filesystem/subprocess;
-4. `M3-007` fault injection interface.
-
-These fakes must expose only the minimum behavior required by normative TCK
-scenarios and must not become an alternative protocol definition.
+- Spec/Schema/fixtures define shared semantics before TypeScript implementation.
+- `packages/testkit` is one implementation; it does not define portable semantics.
+- shared TCK fixtures MUST remain consumable by a non-TypeScript implementation.
+- DeepSeek Harness is an Adapter and MUST NOT define protocol or generic fake
+  runtime semantics.
+- shared contracts MUST NOT contain concrete `@deepseek-ai/*` package paths.
+- no host wall-clock or ambient randomness may decide a fixture result.
+- unknown versions/profiles/operations/semantics fail explicitly.
+- do not weaken TypeScript strictness, schemas, compatibility baseline,
+  validators, conformance tests, frozen installs, or security claims for CI.
+- do not implement M4 Capability Broker or M6 Workspace Transaction early.
 
 ## Resume instruction
 
 Read `docs/handoff/README.md`, this file, PR #2 live metadata, and workflow runs
-for its exact head. If the exact head is green, finish roadmap synchronization
-and continue from the M3 fake-runtime foundation. If it fails, inspect the real
-current-head diagnostic and fix it without weakening any gate.
+for the exact live head before editing. This file records `cc59a5db...` as the
+last verified implementation head; later documentation commits may advance the
+branch, so live GitHub evidence still wins.
+
+If the exact live head is green, continue with **M3-005 fake tool runtime** in
+protocol-/fixture-first order. If it fails, inspect the real current-head failing
+job/step/diagnostic and repair it without weakening any gate.

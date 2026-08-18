@@ -266,3 +266,44 @@ M3-007 fault injection, Adapter DSH shared TCK cases, M4, and M6 remain
 unimplemented. `docs/roadmap.md` still needs planning-only reconciliation; it
 must not invent normalized `step.ended` or retroactively claim that M3's
 language-neutral Event Order TCK was completed inside M2.
+
+## 2026-08-18T18:10:00+08:00 — Close M3-004 fake approval
+
+Roadmap synchronization was first completed on head
+`79bd048599ac6f64975912b23f1e12f9719ef956` without changing normative
+semantics. Normal CI #78 passed frozen install and `pnpm check:all`, so the
+recorded prerequisite for fake-runtime work was satisfied.
+
+M3-004 then closed on implementation head
+`cc59a5db1045346792d823e56557d78438dd37c1` in protocol-/fixture-first order:
+
+- `specs/0005-m3-fake-approval-test-service.md` defines a language-independent
+  deterministic approval fake and explicitly excludes production authorization,
+  Harness binding, cancellation mechanics, persistence, and later fake-runtime
+  behavior;
+- the portable decision set is `ALLOWED_ONCE`, `REJECTED`, `CANCELLED`, and
+  `UNAVAILABLE`, preserving the existing fail-closed approval boundary;
+- `fixtures/tck/valid/approval-sequence.json` proves FIFO decision consumption;
+- `fixtures/tck/valid/approval-script-exhausted.json` proves exhaustion is the
+  explicit `FAKE_APPROVAL_SCRIPT_EXHAUSTED` infrastructure error rather than an
+  implicit `UNAVAILABLE` or success;
+- both fixtures are registered in `fixtures/manifest.json`;
+- `packages/testkit/src/fake-approval.ts` is a runtime-independent TypeScript
+  projection only and imports no Harness concrete types;
+- conformance covers FIFO order, exact decision preservation, invalid scripted
+  decisions, defensive observation copies, and explicit exhaustion.
+
+Exact-head evidence for `cc59a5db...`:
+
+- normal CI #79 / job `95673419492`: PASS;
+- pinned pnpm enable: PASS;
+- `pnpm install --frozen-lockfile`: PASS;
+- `pnpm check:all`: PASS.
+
+No schema, validator, TypeScript strictness, conformance test, frozen lockfile,
+or security guarantee was weakened. M4 and M6 remain unauthorized.
+
+The next allowed gate is **M3-005 P0 — fake tool runtime**. It must again begin
+with a language-independent profile contract and portable fixtures, must retain
+the intent-vs-observed-outcome distinction, and must not pull M3-006
+filesystem/subprocess or M3-007 fault injection semantics forward.
