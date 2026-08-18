@@ -1,0 +1,14 @@
+{
+  "apiVersion": "safe-runtime.dev/tck-fixture/v1alpha1",
+  "id": "TCK_FOUNDATION_INVALID_001",
+  "profile": "AUTH",
+  "description": "Invalid because deterministic clock tick is required.",
+  "determinism": {
+    "seed": 7,
+    "clock": {
+      "startUnixMs": 1787040000000
+    }
+  },
+  "stimulus": {},
+  "expect": {}
+}
