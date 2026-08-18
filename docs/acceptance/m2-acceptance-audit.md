@@ -1,19 +1,17 @@
 # M2 Acceptance Audit — DeepSeek Harness Adapter Baseline
 
-Status: **NOT ACCEPTED — P0 REMEDIATION REQUIRED**  
+Status: **ACCEPTED — M2 P0 COMPLETE**  
 Milestone: `M2 — DeepSeek Harness Adapter Baseline`  
-Audit snapshot: `2026-08-17T20:30:00+08:00`  
+Audit refreshed: `2026-08-18`  
 PR: `#1 — feat(adapter-dsh): establish M2 Harness adapter baseline`  
-Audited safe-runtime head: `46eb4cca33f3accd4c240aae50834dffcf0f50bb`  
-Base: `main@f88b8783623c8cd15be42329077953044b9fdd3d`  
 Exact Harness baseline: `0.1.0-rc.5@47f943859bef60e4160492346772ded9b24f765a`
 
-This document is an acceptance record, not a normative specification. It does
-not grant authority to DeepSeek Harness implementation details. Where planning
-artifacts disagree with normative artifacts, the repository governance order
-applies.
+This document is an acceptance record, not a normative specification. DeepSeek
+Harness remains an adapter compatibility target and never becomes safe-runtime
+protocol authority. Where planning text disagrees with normative artifacts, the
+repository governance order applies.
 
-## 1. Authority and audit method
+## 1. Authority and acceptance method
 
 The audit reconciles, in descending authority:
 
@@ -21,249 +19,200 @@ The audit reconciles, in descending authority:
 2. exact-source compatibility evidence for the pinned Harness baseline;
 3. `docs/tck-security-acceptance.md` expectations relevant to M2;
 4. `docs/roadmap.md` M2 tracking items;
-5. implementation, tests, and GitHub Actions evidence at the audited head.
+5. implementation, tests, and GitHub Actions evidence.
 
-No item is accepted because CI is merely green. A requirement is accepted only
-when the required behavior or boundary has direct evidence at the correct
-layer.
+Green CI alone is not acceptance. A requirement is accepted only when its
+behavior or boundary has direct evidence at the correct layer. Conversely, the
+audit does not pull M3 language-neutral shared-TCK work or later runtime work
+back into M2 merely to satisfy stale roadmap wording.
 
-## 2. Live validation evidence
+## 2. Validation evidence
 
-At `46eb4cca33f3accd4c240aae50834dffcf0f50bb`:
+The M2 implementation and remediation sequence reached dual-green exact-source
+evidence before this audit refresh:
 
-| Gate | Result | Evidence |
-| --- | --- | --- |
-| Normal repository CI | **PASS** | run `32023323093` (#43), job `95367371508` |
-| Frozen safe-runtime install | **PASS** | normal CI step 5 |
-| `pnpm check:all` | **PASS** | normal CI step 6 |
-| Exact Harness source conformance | **PASS** | run `32023323078` (#25), job `95367369087` |
-| Pinned upstream build | **PASS** | source-conformance step 6 |
-| Frozen safe-runtime install in source gate | **PASS** | step 7 |
-| Exact package projection | **PASS** | step 8 |
-| Projection idempotence | **PASS** | step 9 |
-| Exact-source TypeScript/provider contract | **PASS** | step 10 |
-| Real rc5 runtime conformance | **PASS** | step 11 |
+- normal CI passed frozen `pnpm install --frozen-lockfile` and
+  `pnpm check:all`;
+- exact Harness source-conformance checked out only commit
+  `47f943859bef60e4160492346772ded9b24f765a`;
+- the pinned upstream public type surface built successfully;
+- safe-runtime dependencies installed reproducibly;
+- exact workspace projection and projection idempotence passed;
+- exact-source TypeScript/provider binding passed;
+- real rc5 runtime conformance passed.
 
-The source-conformance workflow checks out the exact upstream commit above. It
-does not substitute a newer npm package family for the rc5 source contract.
+The final documentation-only reconnaissance head must retain the same two green
+workflow gates. A documentation edit is not allowed to bypass the exact-head
+CI requirement; handoff state records the current live head and workflow result.
 
 ## 3. Spec 0003 acceptance criteria
 
 | Criterion | Result | Evidence / finding |
 | --- | --- | --- |
-| Tested Harness baseline is pinned | **PASS** | `DSH_TESTED_BASELINE`, compatibility note, and exact-source workflow all pin rc5 / `47f943...`. |
+| Tested Harness baseline is pinned | **PASS** | `DSH_TESTED_BASELINE`, compatibility note, and source-conformance pin rc5 / `47f943...`. |
 | Feature matrix is machine-readable | **PASS** | `packages/adapter-dsh/src/feature-matrix.ts`. |
-| Normalized runtime event types compile without Harness imports | **PASS** | `runtime-events.ts` is runtime-independent and covered by normal CI. |
-| Adapter ports compile without Harness concrete payload leakage | **PASS, STRUCTURAL ONLY** | `ports.ts` contains runtime-independent types. This does **not** prove the FS/Subprocess ports are semantically complete; see P0-B3. |
-| Positive and negative conformance fixtures exist | **PASS** | normalization, policy, approval, disposal, turn-stopping, final-result, provider-seam, and feature-gate tests exist. |
-| Unsupported features are explicit, never silent success | **PASS** | head `46eb4cca...` adds direct negative evidence for `UNSUPPORTED_ADAPTER_FEATURES`, including multiple missing prerequisites. |
-| Compatibility note documents asserted Harness seams | **PASS for asserted seams** | `docs/compatibility/deepseek-harness-0.1.0-rc.5.md` and the provider probe document the seams currently asserted by the adapter. Roadmap recon coverage remains incomplete; see P0-B4. |
+| Normalized runtime events compile without Harness imports | **PASS** | runtime-independent event contract under normal CI. |
+| Adapter ports compile without Harness concrete payload leakage | **PASS** | runtime-independent policy, approval, completion, sidecar, filesystem and subprocess ports; exact rc5 structural bindings remain adapter-side. |
+| Positive and negative conformance fixtures exist | **PASS** | normalization, policy, approval, disposal, turn-stopping, final-result, provider-seam and feature-gate coverage. |
+| Unsupported features are explicit, never silent success | **PASS** | missing prerequisites and unknown/future semantics fail explicitly. |
+| Compatibility note documents every asserted Harness seam | **PASS** | exact-source core/provider plus subagent/workflow reconnaissance is recorded with explicit non-guarantees. |
 
-The explicit unsupported-feature question recorded in the handoff is therefore
-closed at this head: there is now direct negative test evidence, not merely an
-implementation branch.
+## 4. P0 remediation closure
 
-## 4. Normative-clause audit
+### P0-B1 — Completion steering budget
 
-### 4.1 Confirmed
+**PASS.** The runtime-independent completion steering request carries the
+caller-defined `maxRetries`. Invalid and exhausted budgets fail before Harness
+steering. Boundary and negative behavior are covered by exact rc5 runtime
+conformance.
 
-The current branch directly supports the following Spec 0003 boundaries:
+This implements an existing safe-runtime normative requirement; Harness does
+not define the budget semantics.
 
-- durable facts and live interception facts remain distinct;
-- durable `tool/call` is normalized as intent, not execution success;
-- live `tools/result` is the authoritative final tool outcome;
-- denial/cancellation is correlated from authoritative control paths rather
-  than inferred from arbitrary error text;
-- required adapter features fail closed;
-- concrete Harness payloads remain inside `packages/adapter-dsh`;
-- the adapter binds public Harness services and does not depend on
-  `dsh-agent-loop`;
-- `ctx.tools.restrict()` is represented as visibility composition, not an
-  authorization boundary;
-- provider/sandbox evidence does not claim universal network confinement or
-  general process isolation;
-- Harness process-local execution tokens are not persisted by the current
-  process-local correlation registry.
+### P0-B2 — Sidecar correlation boundary
 
-### 4.2 P0-B1 — Completion steering budget is not enforced
+**PASS.** M2 exposes a minimal runtime-independent
+`SidecarEvidenceRecord` / `SidecarEvidenceSink` boundary keyed to durable Harness
+event references and evidence digests. Projection is allow-listed and excludes
+process-local execution-token references.
 
-**Result: FAIL — normative blocker.**
+M2 deliberately does not implement the later audit-storage engine, hash chain,
+retention policy, or replay index.
 
-Spec 0003 requires retry/steering loops to be capped by the caller-defined
-acceptance budget.
+### P0-B3 — Operational Filesystem / Subprocess ports
 
-The current `CompletionSteerRequest` carries `retryOrdinal`, but carries no
-budget/limit. `createDshRc5Adapter().steerCompletion()` validates the live turn
-and then steers unconditionally. The adapter therefore cannot enforce the
-required cap at its port boundary.
+**PASS.** The former guarantee-only markers were replaced by deliberately
+minimal operational ports.
 
-Required remediation before M2 acceptance:
+Filesystem preserves provider-owned opaque target identity and exposes the M2
+resolve/stat/contains/readText/processPath seam. Guessed target identities fail
+explicitly. `processPath()` remains a security-sensitive bridge into the
+execution world and is not treated as containment.
 
-1. make the caller-defined retry/steer limit explicit in the runtime-independent
-   port contract;
-2. reject an ordinal outside that limit before invoking Harness steering;
-3. add positive boundary and over-budget negative tests;
-4. keep the behavior independent of Harness version branching.
+Subprocess exposes executable resolution plus bounded collected-output spawn
+semantics. Missing requested collectors fail closed. Raw Node streams, shell
+implicit behavior, PTY semantics, workspace transactions and stronger sandbox
+claims are intentionally outside M2.
 
-This is implementation of an existing normative requirement, not a new Harness-
-derived protocol semantic.
+Exact pinned rc5 source-conformance proves official `FileSystem` and
+`SubprocessRuntime` public types bind to these adapter structures without
+promoting concrete Harness types into protocol/core.
 
-### 4.3 P0-B2 — Sidecar ledger contract is not evidenced
+### P0-B4 — Exact-source subagent/workflow reconnaissance
 
-**Result: FAIL — normative blocker.**
+**PASS.** The compatibility baseline now records the exact rc5 public seams and
+the limits of the evidence.
 
-Spec 0003 states that safe-runtime domain evidence remains in a sidecar ledger
-keyed to Harness durable event references until stable external custom durable
-SessionEvent registration is proven.
+Exact-source findings include:
 
-The branch currently contains `CorrelationRegistry`, an in-process map of
-correlation records. It intentionally drops associations on disposal/restart and
-has no durable sidecar record/sink contract. No M2 test proves that a safe-runtime
-sidecar evidence record can be keyed to a durable Harness event reference and
-its digest without persisting process-local execution tokens.
+- `packages/README.md` classifies both `subagent/` and `workflow/` as Product
+  stable API families;
+- `ctx.subagents` is the public `SubagentRuntime` service with named providers,
+  one-shot and continuable child operations and public `subagent/start` /
+  `subagent/end` lifecycle events;
+- the lifecycle pair shares `runId` and carries child `SessionId`, provider,
+  locality and terminal outcome;
+- `SessionHeader.parentSession`, `origin: 'subagent'` and
+  `delegationDepth` are durable session metadata for session-backed children;
+- `ctx.workflowEngine` is the public workflow service; `WorkflowEngine.start()`
+  returns a holder-owned live run;
+- workflow lifecycle includes run-level events and paired
+  `workflow/agent-start` / `workflow/agent-end` events correlated by per-call
+  `seq`, carrying child `SessionId`;
+- official workflow documentation explicitly states worker threads isolate
+  execution from the host event loop but are **not** a security boundary.
 
-M2 must not implement the future M5 audit storage engine here. The required M2
-remediation is narrower:
+The compatibility note also records the negative boundary: Harness run ids,
+workflow sequence numbers, provider names, phases, activation state and Harness
+session metadata are not promoted into portable safe-runtime protocol
+identifiers. Remote providers are not assumed equivalent to local providers.
+Live parent attribution is not by itself a future authorization proof.
 
-1. define the runtime-independent sidecar correlation/evidence record and sink
-   boundary required by the adapter contract;
-2. include durable Harness event reference/sequence and digest fields needed for
-   replay correlation;
-3. explicitly exclude process-local execution tokens from durable records;
-4. add positive/negative tests for record construction and token exclusion;
-5. leave storage durability, hash chaining, retention, and full audit-ledger
-   implementation to their owning later milestones.
-
-### 4.4 P0-B3 — FS/Subprocess adapter ports are only guarantee markers
-
-**Result: FAIL — M2 roadmap/architecture blocker.**
-
-`FilesystemPort` and `SubprocessPort` currently expose only a `guarantee` field,
-and `createDshRc5Adapter()` does not return either optional port. This is not an
-operational adapter boundary for the provider seams recorded by M2.
-
-The exact pinned upstream public contracts prove materially richer seams:
-
-- `ctx.fs` owns opaque `FsTarget` identity, `processPath()`, provider containment,
-  observations/versions, reads, and atomic mutations;
-- `ctx.subprocess` owns execution-world executable resolution and fully specified
-  process/terminal spawn operations;
-- the two services belong to one execution world, while local subprocess file
-  effects do not traverse `ctx.fs`.
-
-M2-023/M2-024 must therefore not be marked done based only on feature flags or a
-`guarantee` label. Before acceptance, M2 needs a deliberately minimal,
-runtime-independent operational boundary that preserves opaque provider
-identity and execution-world coordination without copying Harness concrete types
-into protocol/core packages or implementing M6 workspace transactions early.
-
-The remediation must preserve the provider-probe negative facts: mediation is
-not containment, and a process path bridge is security-sensitive.
-
-### 4.5 P0-B4 — Harness recon tracking omits subagent/workflow seams
-
-**Result: FAIL — M2 tracking/evidence blocker.**
-
-Roadmap M2-002 is P0 and explicitly includes subagent/workflow seams. The current
-rc5 compatibility note and provider probe do not record those seams. M2-017
-subagent lineage mapping is P1 and may remain deferred, but the P0 reconnaissance
-item still requires source-backed documentation of what the pinned baseline
-exposes and, critically, what M2 does **not** claim to support.
-
-This is a documentation/evidence gap. It must not be repaired by adding a
-subagent implementation to M2 unless a higher-authority requirement actually
-requires one.
+Roadmap `M2-017 P1` subagent lineage mapping therefore remains **DEFERRED**. The
+P0 reconnaissance requirement is closed without silently implementing P1 work.
 
 ## 5. Roadmap reconciliation
 
-The roadmap is a tracking artifact and is stale on the M2 branch. The audit
-classifies the items as follows; this table does not itself mutate roadmap
-checkboxes.
+The roadmap remains a planning/tracking artifact and has stale unchecked M2
+boxes. Acceptance follows evidence rather than mechanically editing checkboxes
+that would misstate milestone ownership.
 
-| Item | Audit classification |
+| Item | Acceptance classification |
 | --- | --- |
 | M2-001 | **DONE by evidence** — exact tested source baseline pinned. |
-| M2-002 | **BLOCKED/PARTIAL** — core/runtime/provider seams documented; subagent/workflow recon missing (P0-B4). |
+| M2-002 | **DONE by evidence** — turn/tool/approval/provider/sandbox plus subagent/workflow reconnaissance complete. |
 | M2-003 | **DONE by evidence** — machine-readable feature matrix. |
 | M2-010 | **DONE by evidence** — `turn/start -> turn.started`. |
-| M2-011 | **PARTIAL / ROADMAP WORDING STALE** — M2 Spec defines `step.started`, not a normalized `step.ended`; do not invent protocol vocabulary from the roadmap. |
-| M2-012 | **DONE by evidence** — `tool/call -> tool.requested` as intent. |
-| M2-013 | **DONE by evidence** — authoritative live `tools/result -> tool.completed`. |
-| M2-014 | **DONE by evidence** — approval mapping, only `allowed-once` authorizes. |
-| M2-015 | **DONE by evidence** — `agent/request-error -> model.request.failed`. |
-| M2-016 | **DONE by evidence** — `agent/turn-stopping -> turn.completion_requested`; budget enforcement still blocked separately by P0-B1. |
-| M2-017 P1 | **DEFERRED** — subagent lineage mapping is not required to close P0 acceptance unless governance is changed. |
+| M2-011 | **PARTIAL WORDING / NO BLOCKER** — roadmap says start/end mapping while Spec 0003 minimum vocabulary defines `step.started`; do not invent `step.ended`. |
+| M2-012 | **DONE by evidence** — durable `tool/call` maps to intent only. |
+| M2-013 | **DONE by evidence** — final live `tools/result` is authoritative outcome. |
+| M2-014 | **DONE by evidence** — approval fail-closed mapping. |
+| M2-015 | **DONE by evidence** — model request failure mapping. |
+| M2-016 | **DONE by evidence** — completion-request interception with caller budget enforcement. |
+| M2-017 P1 | **DEFERRED** — lineage normalization is not an M2 P0 requirement. |
 | M2-020 | **DONE by evidence** — tool policy registration port. |
 | M2-021 | **DONE by evidence** — approval port. |
-| M2-022 | **PARTIAL** — completion steering seam exists; normative budget cap missing (P0-B1). |
-| M2-023 | **BLOCKED** — FS port not operational (P0-B3). |
-| M2-024 | **BLOCKED** — Subprocess port not operational (P0-B3). |
-| M2-025 P1 | **DEFERRED/PARTIAL** — provider facts exist; no need to promote this P1 item into a stronger sandbox guarantee. |
-| M2-030 | **DONE by evidence** — adapter does not depend on external custom durable SessionEvent registration. |
-| M2-031 | **BLOCKED** — sidecar correlation contract/evidence incomplete (P0-B2). |
-| M2-032 | **BLOCKED** — durable event ref/digest sidecar record not evidenced (P0-B2). |
+| M2-022 | **DONE by evidence** — completion steering port with budget cap. |
+| M2-023 | **DONE by evidence** — operational FS port. |
+| M2-024 | **DONE by evidence** — operational subprocess port. |
+| M2-025 P1 | **DEFERRED/PARTIAL** — provider facts exist; no stronger sandbox guarantee is inferred. |
+| M2-030 | **DONE by evidence** — no dependence on external custom durable SessionEvent registration. |
+| M2-031 | **DONE by evidence** — sidecar correlation boundary. |
+| M2-032 | **DONE by evidence** — durable event ref/digest evidence record. |
 | M2-033 P1 | **DEFERRED** — replay reconciliation remains later work. |
 
-## 6. M2 Definition-of-Done reconciliation
+## 6. Definition-of-Done reconciliation
 
 ### Current + previous supported Harness baseline
 
-rc5 is the first candidate supported baseline. There is no previously accepted
-supported baseline to test. For this first-baseline acceptance, the exact rc5
-source gate must be green. Once a second baseline is accepted, both the current
-and previous supported baselines must be green before release.
+rc5 is the first accepted candidate baseline. There is no previously accepted
+supported baseline to test. The first-baseline condition is therefore satisfied
+by a green exact rc5 source gate. Once another baseline is accepted, both the
+current and previous supported baselines must pass before release.
 
-This interpretation does not allow an existing previous supported baseline to be
-silently dropped; it only handles the empty-set condition for the first accepted
-baseline.
+This empty-set rule cannot be used later to silently drop an existing previous
+supported baseline.
 
 ### Feature missing can fail explicitly
 
-**PASS.** Direct negative tests exist at the audited head.
+**PASS.** Direct negative tests prove missing prerequisites do not silently
+succeed.
 
 ### Core does not import Harness concrete events
 
-**PASS.** The Harness binding remains in `packages/adapter-dsh`; runtime-independent
-port/event contracts do not import concrete Harness payloads.
+**PASS.** Harness binding remains within `packages/adapter-dsh`; protocol/core
+contracts stay runtime-independent.
 
-### Event order TCK green
+### Event order TCK
 
-The roadmap wording conflicts with the milestone ownership recorded immediately
-below it: M3 owns the language-independent shared TCK foundation and Adapter DSH
-TCK, including lifecycle and tool ordering.
+The roadmap M2 DoD wording conflicts with the ownership immediately assigned to
+M3: M3 creates the language-independent shared TCK foundation and Adapter DSH
+TCK. M2 has implementation/source-conformance ordering evidence, which is
+sufficient for this adapter-baseline milestone, but that evidence is not
+relabeled as the M3 shared TCK.
 
-M2 currently has implementation/source-conformance order evidence, including an
-ordered event dispatcher and real rc5 lifecycle/tool tests. That evidence is
-valuable but MUST NOT be relabeled as the M3 language-neutral shared TCK.
-
-M2 acceptance may rely on M2 conformance evidence for the adapter baseline; the
-shared, language-neutral Event Order TCK remains an M3 deliverable. The roadmap
-should be corrected to state this boundary explicitly rather than fabricating M3
-completion inside M2.
+The roadmap should be reconciled in governance/planning maintenance rather than
+fabricating an M3 deliverable inside M2.
 
 ## 7. Acceptance verdict
 
 ```text
-M2: NOT ACCEPTED
-PR #1: KEEP DRAFT
-M3: NOT AUTHORIZED TO START
+M2: ACCEPTED
+P0-B1: PASS
+P0-B2: PASS
+P0-B3: PASS
+P0-B4: PASS
+M2-017 P1: DEFERRED
+M3: AUTHORIZED AFTER FINAL EXACT-HEAD DUAL-GREEN HANDOFF
 M4: NOT AUTHORIZED TO START
 ```
 
-The branch is technically healthy but semantically incomplete. Green CI proves
-the current implementation; it does not erase the four P0 gaps above.
+Acceptance means the M2 adapter baseline has met its P0 semantic and evidence
+boundary. It does **not** mean the PR should be merged automatically, that the
+Harness npm rc5 package family is distributable, that subagent lineage has been
+normalized, or that shared language-neutral TCK work is already complete.
 
-Remediation order:
-
-1. **P0-B1** — enforce caller-defined completion steering budget and test it;
-2. **P0-B2** — define/test the M2 sidecar correlation record/sink boundary;
-3. **P0-B3** — complete minimal operational FS/Subprocess adapter ports against
-   the exact rc5 public services without importing Harness semantics upward;
-4. **P0-B4** — finish exact-source subagent/workflow reconnaissance and document
-   explicit supported/non-supported seams;
-5. rerun normal CI and exact rc5 source-conformance on the final remediation
-   head;
-6. refresh this audit and only then decide whether M2 can be accepted.
-
-No M3 shared TCK or M4 Capability Broker implementation is authorized while a
-P0 item above remains open.
+The next engineering boundary is M3 Shared TCK Foundation, but work must begin
+only after the final M2 documentation/handoff head is verified by both normal CI
+and exact rc5 source-conformance and `docs/handoff/CURRENT.md` records that live
+fact.
