@@ -7,19 +7,19 @@
 
 - Recorded at: `2026-08-18`
 - Repository: `lilinling12/dsh-safe-runtime`
-- Phase: `M2 — DeepSeek Harness Adapter Baseline`
-- M2 acceptance: **ACCEPTED**
-- Pull request: `#1 — feat(adapter-dsh): establish M2 Harness adapter baseline`
+- Phase: `M3 — Shared TCK Foundation`
+- Pull request: `#2 — feat(testkit): establish M3 shared TCK foundation`
 - PR state: `OPEN / DRAFT`
-- Branch: `feat/m2-harness-adapter`
-- Base: `main` / `f88b8783623c8cd15be42329077953044b9fdd3d`
+- Branch: `feat/m3-shared-tck-foundation`
+- Stacked base: `feat/m2-harness-adapter@6a9c64155ec6c376908e64d70f2b50d5b8de1285`
+- M2 acceptance: **ACCEPTED**
 
-This handoff commit advances the branch. A resumed session MUST query the live PR
-head and Actions for that exact head before starting M3. If the final M2
-handoff/documentation head is not dual-green, M3 is not authorized until the
-real current-head failure is diagnosed and corrected without weakening any gate.
+PR #2 is intentionally stacked on the accepted M2 branch. M3 changes MUST NOT
+be added back into PR #1 because that would mutate the accepted M2 evidence line.
 
-## Exact Harness baseline
+## M2 accepted baseline carried forward
+
+DeepSeek Harness remains an adapter compatibility baseline, never protocol authority:
 
 ```text
 version: 0.1.0-rc.5
@@ -27,136 +27,140 @@ commit: 47f943859bef60e4160492346772ded9b24f765a
 distribution: distribution-blocked
 ```
 
-Do not substitute rc6/newer registry artifacts for the exact source baseline to
-make resolution or tests pass.
+Accepted M2 head `6a9c64155ec6c376908e64d70f2b50d5b8de1285` is dual-green:
 
-## M2 acceptance result
+- normal CI #71: PASS;
+- exact Harness rc5 source-conformance #53: PASS.
 
-`docs/acceptance/m2-acceptance-audit.md` is the current acceptance record.
+`docs/acceptance/m2-acceptance-audit.md` remains the M2 acceptance authority.
 
-All four P0 remediation blockers are closed:
+## Current M3 gate
 
-- **P0-B1 PASS — completion steering budget**
-  - caller-defined `maxRetries` is explicit at the runtime-independent port;
-  - malformed and exhausted budgets fail before Harness steering;
-  - exact rc5 runtime conformance covers the boundary.
+**M3-001 / M3-002 / M3-003 — shared language-independent TCK foundation.**
 
-- **P0-B2 PASS — sidecar correlation boundary**
-  - minimal `SidecarEvidenceRecord` / `SidecarEvidenceSink` boundary exists;
-  - durable Harness event ref/sequence and evidence ref/digest are preserved;
-  - process-local execution tokens are excluded;
-  - later audit storage/hash chaining/replay work remains out of M2.
+The current branch establishes, in governance order:
 
-- **P0-B3 PASS — operational Filesystem / Subprocess ports**
-  - opaque provider target identity is preserved;
-  - FS resolve/stat/contains/readText/processPath is operational;
-  - subprocess executable resolution and bounded collected-output spawn are
-    operational;
-  - missing requested collectors fail closed;
-  - mediation is not represented as process/kernel isolation;
-  - exact rc5 public `FileSystem` / `SubprocessRuntime` types bind at the
-    adapter-side source-conformance boundary.
+1. `specs/0004-shared-tck-foundation.md`;
+2. `schemas/v1alpha1/tck-fixture.schema.json`;
+3. positive and fail-closed negative `fixtures/tck/*` cases;
+4. schema index / compatibility baseline / fixture manifest registration;
+5. `@dsh-safe/testkit` TypeScript projection and conformance tests.
 
-- **P0-B4 PASS — exact-source subagent/workflow reconnaissance**
-  - official pinned source proves Product-stable public `ctx.subagents` and
-    `ctx.workflowEngine` seams;
-  - public subagent lifecycle pairs by `runId` and carries child `SessionId`;
-  - session-backed child lineage metadata is durable in Harness session headers;
-  - workflow child lifecycle pairs by per-call `seq` and carries child
-    `SessionId`;
-  - worker threads are explicitly not a security boundary;
-  - compatibility docs record non-guarantees and do not promote Harness ids,
-    phases, providers or metadata into portable protocol semantics;
-  - roadmap `M2-017 P1` subagent lineage normalization remains deferred.
+The shared fixture envelope is ordinary JSON and contains:
 
-A source-review wording defect was corrected: `WorkflowEngine.start()` returns a
-**holder-owned** live run; it was incorrect to say the engine itself owns that
-run. No runtime behavior or normative semantics changed.
+```text
+apiVersion
+id
+profile
+description
+determinism
+stimulus
+expect
+```
 
-## Final M2 quality gate
+Deterministic inputs are explicit:
 
-Before beginning M3, verify the exact live branch head has both:
+```text
+seed
+clock.startUnixMs
+clock.tickMs
+```
 
-| Gate | Required state |
-| --- | --- |
-| Normal CI | **PASS** |
-| Frozen safe-runtime install | **PASS** |
-| `pnpm check:all` | **PASS** |
-| Exact Harness source conformance | **PASS** |
-| Pinned upstream build | **PASS** |
-| Frozen safe-runtime install in source gate | **PASS** |
-| Exact package projection | **PASS** |
-| Projection idempotence | **PASS** |
-| Exact-source TypeScript/provider contract | **PASS** |
-| Real rc5 runtime conformance | **PASS** |
+The runner contract distinguishes at least:
 
-Do not infer these results from a prior head. Query the final live head.
+```text
+PASS
+FAIL
+UNSUPPORTED
+ERROR
+```
+
+`UNSUPPORTED` and `ERROR` MUST NOT be coerced to `PASS`.
+
+## Current validation evidence
+
+Foundation implementation head `9610b2bc7935ab60e050b7f4998862c82699d17a`:
+
+| Gate | State | Evidence |
+| --- | --- | --- |
+| Normal CI | **PASS** | run #73 |
+| Frozen install | **PASS** | normal CI |
+| `pnpm check:all` | **PASS** | normal CI |
+| Draft 2020-12 schema shape | **PASS** | normal CI |
+| Schema compatibility baseline | **PASS** | normal CI |
+| Shared TCK positive fixture | **PASS** | testkit conformance |
+| Shared TCK negative fixtures | **PASS** | testkit conformance |
+| Harness concrete-path exclusion | **PASS** | testkit conformance |
+
+An earlier foundation head `bcee18375c63c736559b9540c942aaea09e936c4`
+also passed normal CI #72. The fixture manifest was then reformatted back to the
+repository's review-friendly style so PR #2 contains only four deletions instead
+of unrelated formatting churn; head `9610b2bc...` verifies that cleanup.
+
+This handoff/status maintenance advances the branch beyond the verified
+implementation head above. A resumed session MUST query the exact live PR #2
+head and its current Actions before declaring the foundation complete.
+
+## Boundaries that remain enforced
+
+- Spec/Schema/fixtures define the shared contract before TypeScript implementation.
+- `packages/testkit` is one implementation; it does not define portable semantics.
+- shared TCK fixtures MUST remain consumable by a non-TypeScript implementation.
+- shared schema MUST NOT contain concrete `@deepseek-ai/*` package paths.
+- no host wall-clock or ambient randomness may decide a fixture result.
+- unknown fixture versions/profiles/semantics fail explicitly.
+- existing M2 adapter tests are evidence inputs, not the M3 language-neutral TCK.
+- do not weaken TypeScript strictness, schemas, compatibility baseline, validators,
+  tests, frozen installs, or security claims for CI.
+- do not implement M4 Capability Broker or M6 Workspace Transaction early.
+
+## Deferred M3 work
+
+The current foundation does **not** yet implement:
+
+- `M3-004 P0` fake approval;
+- `M3-005 P0` fake tool runtime;
+- `M3-006 P0` fake filesystem/subprocess;
+- `M3-007 P0` fault injection interface;
+- `M3-010..016` Adapter DSH shared TCK scenarios;
+- `M3-017 P1` replay reconciliation.
+
+The generic `stimulus` and `expect` values are opaque JSON at the envelope layer.
+Their business semantics MUST be introduced by profile-specific normative TCK
+contracts, not inferred from the current TypeScript testkit.
+
+## Planning maintenance still required
+
+`docs/roadmap.md` is stale in its M2 checkboxes and M2 DoD wording. When editing
+it, preserve these accepted boundaries:
+
+- mark evidence-complete M2 P0 items done;
+- keep `M2-017`, `M2-025`, and `M2-033` P1 work deferred unless separately implemented;
+- do not invent normalized `step.ended`; Spec 0003's M2 minimum vocabulary defines
+  `step.started`;
+- the language-neutral Event Order TCK belongs to M3, not retroactively to M2;
+- rc5 is the first accepted Harness baseline, so there was no previous accepted
+  baseline to test for first-baseline M2 acceptance.
+
+Roadmap maintenance is planning synchronization only and MUST NOT redefine the
+normative specs.
 
 ## Next allowed gate
 
-If and only if the final M2 handoff/documentation head is dual-green, the next
-engineering gate is:
+After the exact current PR #2 head is green and M3-001/002/003 are recorded as
+complete, continue inside M3 with the fake-runtime foundation:
 
-**M3 — Shared TCK Foundation**
+1. `M3-004` fake approval;
+2. `M3-005` fake tool runtime;
+3. `M3-006` fake filesystem/subprocess;
+4. `M3-007` fault injection interface.
 
-Start with M3's protocol-/fixture-first foundation rather than runtime features:
-
-1. reconcile the stale M2 roadmap checkboxes/DoD wording as planning maintenance
-   without changing normative protocol vocabulary;
-2. define the language-independent fixture envelope (`M3-001`) from existing
-   normative semantics;
-3. define the test runner contract (`M3-002`) independently of TypeScript and
-   DeepSeek Harness concrete package paths;
-4. define deterministic seed/time semantics (`M3-003`) before fake runtimes;
-5. only then add fake approval/tool/fs/subprocess and fault-injection seams;
-6. do not implement M4 Capability Broker or M6 workspace transactions early.
-
-M3 shared TCK must remain independently implementable by a non-TypeScript dummy
-implementation. Existing M2 adapter conformance tests are evidence inputs, not
-the language-neutral TCK itself.
-
-PR #1 remaining Draft is a separate review/merge decision. M2 acceptance does
-not authorize automatic merge or removal of Draft status.
-
-## Security / architecture boundaries carried forward
-
-- Harness is an adapter, never protocol authority.
-- Protocol/core packages do not import Harness concrete payload types.
-- `tool/call` is intent; live `tools/result` is the authoritative final outcome.
-- Unknown/future security semantics fail closed.
-- Tool/provider mediation is not process isolation.
-- `FsTargetKey` / `FsVersion` are opaque provider tokens and MUST NOT be parsed.
-- bare local FS `cwd` is not containment.
-- `fs-sandbox` mutation fencing is not a kernel boundary and does not fence
-  reads.
-- local subprocess filesystem effects do not traverse `ctx.fs`.
-- sandbox/file-effect scope is not universal network/general process
-  confinement.
-- workflow worker threads are not a security boundary.
-- Harness subagent/workflow ids and metadata are compatibility evidence, not
-  portable safe-runtime protocol identifiers.
-- do not weaken schemas, validators, TypeScript, tests, frozen installs, TCK, or
-  security claims for CI.
-- do not implement M6 workspace transactions early.
-
-## Acceptance-order reminders
-
-1. normative spec/RFC/ADR authority;
-2. accepted schemas and compatibility rules;
-3. language-independent TCK once M3 defines it;
-4. exact-source adapter compatibility evidence;
-5. implementation/tests/current-head CI;
-6. roadmap tracking.
-
-The roadmap is planning state and remains stale in several M2 checkboxes. Do not
-invent protocol vocabulary such as normalized `step.ended` merely because a
-roadmap line says `step/start/end mapping` when Spec 0003's M2 minimum vocabulary
-only defines `step.started`.
+These fakes must expose only the minimum behavior required by normative TCK
+scenarios and must not become an alternative protocol definition.
 
 ## Resume instruction
 
-Read `docs/handoff/README.md`, this file, and live GitHub state. Verify the exact
-live head is dual-green. If it is, M2 is closed and the next real task is **M3
-Shared TCK Foundation**, beginning with the language-independent fixture and
-runner contracts. If it is not, remain at the M2 final verification gate and fix
-the real current-head failure without weakening any requirement.
+Read `docs/handoff/README.md`, this file, PR #2 live metadata, and workflow runs
+for its exact head. If the exact head is green, finish roadmap synchronization
+and continue from the M3 fake-runtime foundation. If it fails, inspect the real
+current-head diagnostic and fix it without weakening any gate.
