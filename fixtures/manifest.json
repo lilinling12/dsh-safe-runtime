@@ -1,36 +1,191 @@
 {
   "apiVersion": "safe-runtime.dev/test-fixtures/v1alpha1",
   "cases": [
-    {"id":"CAP-REQ-001","path":"capability/valid/request-process-git.json","schema":"capability-request.schema.json","expected":"valid"},
-    {"id":"CAP-REQ-002","path":"capability/invalid/request-missing-action-ref.json","schema":"capability-request.schema.json","expected":"invalid"},
-    {"id":"CAP-POL-001","path":"capability/valid/policy-default-deny.json","schema":"capability-policy.schema.json","expected":"valid"},
-    {"id":"CAP-POL-002","path":"capability/invalid/policy-default-allow.json","schema":"capability-policy.schema.json","expected":"invalid"},
-    {"id":"TX-001","path":"transaction/valid/active-workspace-tx.json","schema":"workspace-transaction.schema.json","expected":"valid"},
-    {"id":"TX-002","path":"transaction/invalid/external-scope.json","schema":"workspace-transaction.schema.json","expected":"invalid"},
-    {"id":"ACC-001","path":"acceptance/valid/coding-contract.json","schema":"acceptance-contract.schema.json","expected":"valid"},
-    {"id":"ACC-002","path":"acceptance/invalid/command-without-command.json","schema":"acceptance-contract.schema.json","expected":"invalid"},
-    {"id":"EVD-001","path":"evidence/valid/verified-episode.json","schema":"evidence-episode.schema.json","expected":"valid"},
-    {"id":"EVD-002","path":"evidence/invalid/evidence-missing-digest.json","schema":"evidence-episode.schema.json","expected":"invalid"},
-    {"id":"CAP-DEC-001","path":"decision/valid/allow.json","schema":"capability-decision.schema.json","expected":"valid"},
-    {"id":"CAP-DEC-002","path":"decision/invalid/unknown-guarantee.json","schema":"capability-decision.schema.json","expected":"invalid"},
-    {"id":"CAP-LEASE-001","path":"lease/valid/one-shot.json","schema":"capability-lease.schema.json","expected":"valid"},
-    {"id":"CAP-LEASE-002","path":"lease/invalid/missing-authorization.json","schema":"capability-lease.schema.json","expected":"invalid"},
-    {"id":"CAP-RCPT-001","path":"receipt/valid/allowed.json","schema":"capability-receipt.schema.json","expected":"valid"},
-    {"id":"CAP-RCPT-002","path":"receipt/invalid/bad-digest.json","schema":"capability-receipt.schema.json","expected":"invalid"},
-    {"id":"COMMIT-PLAN-001","path":"commit/valid/plan.json","schema":"commit-plan.schema.json","expected":"valid"},
-    {"id":"COMMIT-PLAN-002","path":"commit/invalid/plan-missing-base-version.json","schema":"commit-plan.schema.json","expected":"invalid"},
-    {"id":"COMMIT-RES-001","path":"commit/valid/result.json","schema":"commit-result.schema.json","expected":"valid"},
-    {"id":"COMMIT-RES-002","path":"commit/invalid/result-invalid-status.json","schema":"commit-result.schema.json","expected":"invalid"},
-    {"id":"REC-001","path":"recovery/valid/pending.json","schema":"recovery-record.schema.json","expected":"valid"},
-    {"id":"REC-002","path":"recovery/invalid/unknown-strategy.json","schema":"recovery-record.schema.json","expected":"invalid"},
-    {"id":"CHECK-001","path":"check-result/valid/pass.json","schema":"check-result.schema.json","expected":"valid"},
-    {"id":"CHECK-002","path":"check-result/invalid/unknown-status.json","schema":"check-result.schema.json","expected":"invalid"},
-    {"id":"VERDICT-001","path":"acceptance-verdict/valid/verified.json","schema":"acceptance-verdict.schema.json","expected":"valid"},
-    {"id":"VERDICT-002","path":"acceptance-verdict/invalid/lowercase-status.json","schema":"acceptance-verdict.schema.json","expected":"invalid"},
-    {"id":"RET-001","path":"retention/valid/default-safe.json","schema":"evidence-retention-profile.schema.json","expected":"valid"},
-    {"id":"RET-002","path":"retention/invalid/secrets-enabled.json","schema":"evidence-retention-profile.schema.json","expected":"invalid"},
-    {"id":"TCK-FOUNDATION-001","path":"tck/valid/foundation-auth.json","schema":"tck-fixture.schema.json","expected":"valid"},
-    {"id":"TCK-FOUNDATION-002","path":"tck/invalid/missing-clock-tick.json","schema":"tck-fixture.schema.json","expected":"invalid"},
-    {"id":"TCK-FOUNDATION-003","path":"tck/invalid/unknown-top-level-field.json","schema":"tck-fixture.schema.json","expected":"invalid"}
+    {
+      "id": "CAP-REQ-001",
+      "path": "capability/valid/request-process-git.json",
+      "schema": "capability-request.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "CAP-REQ-002",
+      "path": "capability/invalid/request-missing-action-ref.json",
+      "schema": "capability-request.schema.json",
+      "expected": "invalid"
+    },
+    {
+      "id": "CAP-POL-001",
+      "path": "capability/valid/policy-default-deny.json",
+      "schema": "capability-policy.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "CAP-POL-002",
+      "path": "capability/invalid/policy-default-allow.json",
+      "schema": "capability-policy.schema.json",
+      "expected": "invalid"
+    },
+    {
+      "id": "TX-001",
+      "path": "transaction/valid/active-workspace-tx.json",
+      "schema": "workspace-transaction.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TX-002",
+      "path": "transaction/invalid/external-scope.json",
+      "schema": "workspace-transaction.schema.json",
+      "expected": "invalid"
+    },
+    {
+      "id": "ACC-001",
+      "path": "acceptance/valid/coding-contract.json",
+      "schema": "acceptance-contract.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "ACC-002",
+      "path": "acceptance/invalid/command-without-command.json",
+      "schema": "acceptance-contract.schema.json",
+      "expected": "invalid"
+    },
+    {
+      "id": "EVD-001",
+      "path": "evidence/valid/verified-episode.json",
+      "schema": "evidence-episode.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "EVD-002",
+      "path": "evidence/invalid/evidence-missing-digest.json",
+      "schema": "evidence-episode.schema.json",
+      "expected": "invalid"
+    },
+    {
+      "id": "CAP-DEC-001",
+      "path": "decision/valid/allow.json",
+      "schema": "capability-decision.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "CAP-DEC-002",
+      "path": "decision/invalid/unknown-guarantee.json",
+      "schema": "capability-decision.schema.json",
+      "expected": "invalid"
+    },
+    {
+      "id": "CAP-LEASE-001",
+      "path": "lease/valid/one-shot.json",
+      "schema": "capability-lease.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "CAP-LEASE-002",
+      "path": "lease/invalid/missing-authorization.json",
+      "schema": "capability-lease.schema.json",
+      "expected": "invalid"
+    },
+    {
+      "id": "CAP-RCPT-001",
+      "path": "receipt/valid/allowed.json",
+      "schema": "capability-receipt.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "CAP-RCPT-002",
+      "path": "receipt/invalid/bad-digest.json",
+      "schema": "capability-receipt.schema.json",
+      "expected": "invalid"
+    },
+    {
+      "id": "COMMIT-PLAN-001",
+      "path": "commit/valid/plan.json",
+      "schema": "commit-plan.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "COMMIT-PLAN-002",
+      "path": "commit/invalid/plan-missing-base-version.json",
+      "schema": "commit-plan.schema.json",
+      "expected": "invalid"
+    },
+    {
+      "id": "COMMIT-RES-001",
+      "path": "commit/valid/result.json",
+      "schema": "commit-result.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "COMMIT-RES-002",
+      "path": "commit/invalid/result-invalid-status.json",
+      "schema": "commit-result.schema.json",
+      "expected": "invalid"
+    },
+    {
+      "id": "REC-001",
+      "path": "recovery/valid/pending.json",
+      "schema": "recovery-record.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "REC-002",
+      "path": "recovery/invalid/unknown-strategy.json",
+      "schema": "recovery-record.schema.json",
+      "expected": "invalid"
+    },
+    {
+      "id": "CHECK-001",
+      "path": "check-result/valid/pass.json",
+      "schema": "check-result.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "CHECK-002",
+      "path": "check-result/invalid/unknown-status.json",
+      "schema": "check-result.schema.json",
+      "expected": "invalid"
+    },
+    {
+      "id": "VERDICT-001",
+      "path": "acceptance-verdict/valid/verified.json",
+      "schema": "acceptance-verdict.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "VERDICT-002",
+      "path": "acceptance-verdict/invalid/lowercase-status.json",
+      "schema": "acceptance-verdict.schema.json",
+      "expected": "invalid"
+    },
+    {
+      "id": "RET-001",
+      "path": "retention/valid/default-safe.json",
+      "schema": "evidence-retention-profile.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "RET-002",
+      "path": "retention/invalid/secrets-enabled.json",
+      "schema": "evidence-retention-profile.schema.json",
+      "expected": "invalid"
+    },
+    {
+      "id": "TCK-FOUNDATION-001",
+      "path": "tck/valid/foundation-auth.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-FOUNDATION-002",
+      "path": "tck/invalid/missing-clock-tick.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "invalid"
+    },
+    {
+      "id": "TCK-FOUNDATION-003",
+      "path": "tck/invalid/unknown-top-level-field.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "invalid"
+    }
   ]
 }
