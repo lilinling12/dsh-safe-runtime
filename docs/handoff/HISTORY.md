@@ -219,3 +219,50 @@ than changing behavior.
 
 PR #1 remains Draft during the final exact-head verification. Draft state is not
 a substitute for acceptance and acceptance is not automatic permission to merge.
+
+## 2026-08-18T17:22:00+08:00 — Enter M3 Shared TCK Foundation
+
+Final M2 head `6a9c64155ec6c376908e64d70f2b50d5b8de1285` was rechecked before crossing the
+milestone boundary:
+
+- normal CI #71: PASS;
+- exact Harness rc5 source-conformance #53: PASS.
+
+To preserve the accepted M2 evidence line, M3 work was moved to a separate
+stacked branch and Draft PR:
+
+- branch: `feat/m3-shared-tck-foundation`;
+- PR #2: `feat(testkit): establish M3 shared TCK foundation`;
+- base: `feat/m2-harness-adapter@6a9c64155ec6c376908e64d70f2b50d5b8de1285`.
+
+The first M3 foundation work follows repository governance order rather than
+letting a TypeScript runner define the contract:
+
+1. `specs/0004-shared-tck-foundation.md` defines a language-independent fixture
+   envelope and runner lifecycle;
+2. `schemas/v1alpha1/tck-fixture.schema.json` publishes the Draft 2020-12 shape;
+3. positive and fail-closed negative fixtures cover valid determinism, missing
+   clock tick, and unknown top-level fields;
+4. schema index, compatibility baseline and fixture manifest register the new
+   contract;
+5. `@dsh-safe/testkit` projects the contract into TypeScript and validates it as
+   one implementation only.
+
+The contract requires explicit seed and logical clock inputs, forbids host time
+from deciding fixture outcomes, keeps profile input/output as opaque JSON at the
+envelope layer, and distinguishes `PASS`, `FAIL`, `UNSUPPORTED`, and `ERROR`.
+`UNSUPPORTED`/`ERROR` cannot be coerced to `PASS`.
+
+CI evidence:
+
+- foundation head `bcee18375c63c736559b9540c942aaea09e936c4`: normal CI #72 PASS;
+- review-clean head `9610b2bc7935ab60e050b7f4998862c82699d17a`: normal CI #73 PASS.
+
+The second head restores the existing pretty fixture-manifest formatting so the
+PR diff contains only four deletions instead of unrelated formatting churn.
+
+M3-004 fake approval, M3-005 fake tool runtime, M3-006 fake fs/subprocess,
+M3-007 fault injection, Adapter DSH shared TCK cases, M4, and M6 remain
+unimplemented. `docs/roadmap.md` still needs planning-only reconciliation; it
+must not invent normalized `step.ended` or retroactively claim that M3's
+language-neutral Event Order TCK was completed inside M2.
