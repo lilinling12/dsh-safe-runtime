@@ -172,3 +172,50 @@ M2 remains **NOT ACCEPTED**. The active blocker advances to **P0-B4: exact-sourc
 subagent/workflow reconnaissance and explicit supported/non-supported seam
 documentation**. Roadmap M2-017 subagent lineage implementation remains P1 and
 is not authorized by this gate. PR #1 remains Draft; M3/M4 remain unauthorized.
+
+## 2026-08-18 — Close B4 and accept M2 P0 baseline
+
+P0-B4 exact-source reconnaissance was completed against only the pinned Harness
+commit `47f943859bef60e4160492346772ded9b24f765a`.
+
+The public source confirms:
+
+- `subagent/` and `workflow/` are Product-stable capability families;
+- `ctx.subagents` exposes named-provider delegation, one-shot/continuable child
+  operations, and public `subagent/start` / `subagent/end` events;
+- subagent lifecycle pairs by `runId` and exposes child `SessionId`;
+- session-backed children persist `parentSession`, `origin: 'subagent'`, and
+  `delegationDepth` metadata;
+- `ctx.workflowEngine` is public and `WorkflowEngine.start()` returns a
+  holder-owned live run;
+- workflow child lifecycle pairs `workflow/agent-start` and
+  `workflow/agent-end` by per-call `seq` and carries child `SessionId`;
+- worker-thread execution is explicitly documented upstream as not being a
+  security boundary.
+
+The compatibility note records the corresponding non-guarantees. Harness ids,
+provider names, phases, activation state and session metadata are compatibility
+evidence, not portable safe-runtime protocol semantics. Remote providers are not
+assumed equivalent to local providers, and live parent attribution alone is not
+future authorization proof.
+
+During source review one wording defect was found and corrected: the
+compatibility table had said `WorkflowEngine.start()` "owns" a live run, while
+the public rc5 contract states that it returns a **holder-owned** live run. The
+correction was documentation-only and strengthened lifecycle precision rather
+than changing behavior.
+
+`docs/acceptance/m2-acceptance-audit.md` was refreshed after B4. Its result is:
+
+- P0-B1: PASS;
+- P0-B2: PASS;
+- P0-B3: PASS;
+- P0-B4: PASS;
+- M2: **ACCEPTED**;
+- M2-017 P1 subagent lineage mapping: still DEFERRED;
+- M3 shared TCK: next authorized milestone only after the final documentation
+  head is dual-green;
+- M4 Capability Broker: still not authorized.
+
+PR #1 remains Draft during the final exact-head verification. Draft state is not
+a substitute for acceptance and acceptance is not automatic permission to merge.
