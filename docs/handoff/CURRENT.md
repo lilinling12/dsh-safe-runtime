@@ -5,14 +5,14 @@
 
 ## Snapshot
 
-- Recorded at: `2026-08-19T10:18+08:00`
+- Recorded at: `2026-08-19T15:32+08:00`
 - Repository: `lilinling12/dsh-safe-runtime`
 - Phase: `M3 — Shared TCK Foundation`
 - Pull request: `#2 — feat(testkit): establish M3 shared TCK foundation`
 - PR state: `OPEN / DRAFT`
 - Branch: `feat/m3-shared-tck-foundation`
 - Stacked base: `feat/m2-harness-adapter@6a9c64155ec6c376908e64d70f2b50d5b8de1285`
-- Verified implementation head: `728f44e73ac61dba1b40d570f2458bd456d79bbc`
+- Verified M3-011 implementation head: `1d2c92af8ec22ebae4644f1bc9a01fbef557a870`
 - M2 acceptance: **ACCEPTED**
 
 PR #2 remains intentionally stacked on the accepted M2 branch. M3 changes MUST
@@ -78,126 +78,115 @@ inside the existing fake tool/execution-world services.
 Complete on verified implementation head
 `728f44e73ac61dba1b40d570f2458bd456d79bbc`.
 
-The gate preserved the protocol/adapter authority split and added independent
-portable, adapter, and exact-upstream evidence layers:
+The gate preserves the protocol/adapter authority split, does not invent
+`step.ended`, rejects malformed portable evidence before implementation
+invocation, and is verified by normal CI #99 plus exact Harness rc5
+source-conformance #58 with oxlint 0 warnings / 0 errors.
 
-1. `specs/0009-m3-adapter-dsh-turn-lifecycle-tck.md` defines the
-   language-independent `ADAPTER_DSH` turn-lifecycle profile before the
-   TypeScript runner projection;
-2. the portable lifecycle observables are only `turn.started`, `step.started`,
-   and `turn.ended`, matching the already-authorized Spec 0003 vocabulary;
-3. real Harness durable `step/end` source evidence maps explicitly to
-   `NO_EVENT`; M3-010 does **not** invent a normalized `step.ended` event;
-4. portable fixtures cover completed, cancelled (`aborted`), blocked, failed,
-   and unsupported terminal-reason behavior;
-5. unknown Harness terminal reasons fail closed with the existing stable adapter
-   code `UNSUPPORTED_HARNESS_TURN_END_REASON` at the exact source ordinal;
-6. source-array order is authoritative and source `seq` must be strictly
-   increasing; timestamps are retained as evidence but never used to reorder or
-   infer missing lifecycle facts;
-7. malformed lifecycle grammar is rejected before invoking the implementation,
-   including mismatched step brackets, cross-turn evidence, unknown fields, and
-   non-increasing sequence data;
-8. direct TypeScript calls are constrained to portable JSON semantics, including
-   rejection of cyclic values, sparse arrays, symbol/named array properties,
-   exotic objects, and non-finite numbers;
-9. `packages/testkit/src/adapter-dsh-turn-lifecycle.ts` is generic Shared TCK
-   infrastructure and imports neither Adapter DSH nor concrete Harness types;
-10. `packages/adapter-dsh/test/turn-lifecycle-tck.test.ts` runs the portable cases
-    against the existing adapter normalization rather than reimplementing
-    production mapping semantics;
-11. `packages/adapter-dsh/source-conformance/turn-lifecycle-tck.conformance.ts`
-    writes real pinned rc5 `Session.append()` lifecycle events and proves the
-    actual upstream seam projects `turn.started -> step.started -> turn.ended`
-    while real `step/end` does not fabricate `step.ended`;
-12. production normalization semantics and schemas were not changed or weakened.
+### M3-011 — Adapter DSH tool ordering Shared TCK
+
+**Complete on verified implementation head
+`1d2c92af8ec22ebae4644f1bc9a01fbef557a870`.**
+
+The gate is intentionally limited to explicit request/completion ordering and
+correlation evidence:
+
+1. `specs/0010-m3-adapter-dsh-tool-ordering-tck.md` defines the
+   language-independent `ADAPTER_DSH` ordering contract before the TypeScript
+   projection;
+2. durable `session/event: tool/call` remains request intent and maps to
+   `tool.requested`;
+3. live `tools/result` remains the accepted final-outcome source seam and maps to
+   `tool.completed`, but M3-011 compares only ordering/correlation fields;
+4. one fixture models a completed tool batch inside one turn/step;
+5. source array order is authoritative; timestamps, scheduler timing, expected
+   output, or inferred missing events MUST NOT reorder/repair evidence;
+6. portable fixtures cover single-call, parallel-dispatch/model-order completion,
+   and barrier/sequential ordering;
+7. malformed evidence fails before implementation invocation, including
+   result-before-request, duplicate request/result, missing completion,
+   completion-order reversal, tool-name mismatch, cross-turn/cross-step evidence,
+   and non-increasing durable request sequence;
+8. direct-call values reject cyclic, sparse, exotic, non-finite, named-property,
+   and symbol-property JSON-incompatible state;
+9. Adapter DSH conformance reuses production `normalizeDurableEvent()` and
+   `normalizeFinalToolResult()` rather than redefining adapter semantics;
+10. exact pinned rc5 source-conformance uses real public `Session.append()` and
+    `ToolRuntime.execute()` seams and proves correlated
+    `tool.requested -> tool.completed` delivery through the production ordered
+    dispatcher with asynchronous sink acceptance;
+11. the final quality review hardened the reference runner so malformed projector
+    output fails closed as `ADAPTER_DSH_TOOL_ORDERING_IMPLEMENTATION_ERROR`
+    instead of being misclassified as a normal expectation mismatch;
+12. production adapter mapping, schemas, compatibility baseline, lockfile,
+    architecture rules, and security guarantees were not changed or weakened.
 
 Portable fixtures added and registered:
 
-- `adapter-dsh-turn-lifecycle-completed.json`;
-- `adapter-dsh-turn-lifecycle-cancelled.json`;
-- `adapter-dsh-turn-lifecycle-blocked.json`;
-- `adapter-dsh-turn-lifecycle-failed.json`;
-- `adapter-dsh-turn-lifecycle-unsupported-reason.json`.
+- `adapter-dsh-tool-ordering-single.json`;
+- `adapter-dsh-tool-ordering-parallel-model-order.json`;
+- `adapter-dsh-tool-ordering-barrier.json`.
 
-Quality review was stricter than green-functionality alone. A self-review found
-that direct-call sparse-array detection needed to compare enumerable index count
-to array length; this was corrected and dedicated sparse/symbol regression tests
-were added. The first resulting functional head passed all repository checks but
-had one oxlint `no-array-constructor` warning in the regression-test setup. That
-warning was treated as a quality defect rather than accepted. Final head
-`728f44e...` changes only the sparse-test construction and restores a clean lint
-baseline.
-
-Validation evidence for `728f44e...`:
+Final exact-head evidence for `1d2c92af...`:
 
 | Gate | State | Evidence |
 | --- | --- | --- |
-| Normal CI | **PASS** | run #99 / job `95936172958` |
-| Exact Harness rc5 source-conformance | **PASS** | run #58 / job `95936172462` |
+| Normal CI | **PASS** | run #117 / job `95989874919` |
+| Exact Harness rc5 source-conformance | **PASS** | run #76 / job `95989874925` |
 | Frozen install | **PASS** | `pnpm install --frozen-lockfile` |
 | Supply-chain lockfile policy | **PASS** | 123 entries verified |
 | Architecture boundaries | **PASS** | `verify-boundaries.mjs` |
 | Schema shape / compatibility baseline | **PASS** | 16 schemas / baseline green |
 | TypeScript typecheck | **PASS** | protocol + adapter packages |
-| Portable M3-010 profile tests | **PASS** | 18 tests |
-| Portable JSON boundary regression | **PASS** | 2 tests |
-| Adapter DSH lifecycle TCK | **PASS** | 6 tests |
-| Full repository tests | **PASS** | 14 files / 115 tests |
+| Portable M3-011 profile tests | **PASS** | 22 tests |
+| Adapter DSH ordering TCK | **PASS** | 4 tests |
+| Full repository tests | **PASS** | 16 files / 141 tests |
 | Lint | **PASS** | 0 warnings / 0 errors |
-| Exact pinned rc5 build/binding/runtime seam | **PASS** | source-conformance steps green |
+| Exact pinned rc5 build/binding/runtime seam | **PASS** | source-conformance steps 6–11 green |
 
-GitHub Actions currently emits external runner/action notices because
-`actions/checkout@v4` and `actions/setup-node@v4` target the deprecated Node 20
-action runtime and the hosted runner forces Node 24; the action runtime also
-emits a `punycode` deprecation notice. These are not repository oxlint warnings
-and did not weaken or bypass any repository quality gate.
-
-No schema, validator, TypeScript strictness, fixture contract, compatibility
-baseline, frozen lockfile, architecture boundary, adapter mapping, or security
-guarantee was weakened.
+The earlier CI #115 portability failure was fixed by making Spec 0010
+package-neutral while retaining the portability regression guard. The stale
+queued CI #116 was not treated as acceptance evidence; the final verified normal
+CI line is #117 on `1d2c92af...`.
 
 ## Current gate
 
-**M3-011 P0 — Adapter DSH tool ordering Shared TCK.**
+**M3-012 P0 — denied tool call never enters body Shared TCK.**
 
 This is the next and only newly authorized implementation gate.
 
-M3-011 MUST begin by reconciling Spec 0003, existing M2 adapter mapping, current
-normalization tests, and exact pinned rc5 tool-pipeline evidence before defining
-portable fixtures. The gate must remain about **ordering evidence**, not absorb
-later Adapter TCK responsibilities.
+M3-012 MUST begin by reconciling:
 
-Required boundaries for M3-011:
+- Spec 0003 request/outcome semantics;
+- Spec 0006 fake tool trace distinction between request intent, body entry, and
+  outcome (test evidence only, not normalized protocol vocabulary);
+- current Adapter DSH `registerToolPolicy()` / monotonic guard behavior;
+- exact pinned rc5 `tools/pre-execute`, guard, approval-denial, and ToolRuntime
+  execution seams;
+- existing exact-source policy/approval conformance.
 
-- define the language-independent profile semantics before TypeScript/Adapter DSH
-  projection code;
-- preserve `tool/call -> tool.requested` and the existing authoritative
-  `tools/result -> tool.completed` source boundary from M2 without expanding the
-  generic protocol vocabulary;
-- preserve the distinction between request intent, body entry, and final outcome;
-  a tool request alone MUST NOT be treated as proof that the body ran or that the
-  call succeeded;
-- establish ordering from explicit observed source evidence rather than wall
-  clock, scheduler races, fixture expectation, or inferred missing events;
-- malformed, missing, duplicate, or reordered evidence must fail explicitly and
-  must not be silently repaired by sorting timestamps or synthesizing events;
-- do not implement M3-012 denied-call/body-entry semantics inside M3-011;
-- do not implement M3-013 final-result-authority semantics beyond the already
-  accepted source boundary needed to identify ordering evidence;
+Required boundaries for M3-012:
+
+- define language-independent denied/body-entry semantics before TypeScript or
+  Adapter DSH projection code;
+- prove a denied call does not invoke the registered tool body using explicit
+  test-side instrumentation/evidence;
+- do not invent a normalized `body.entered` runtime event unless a higher
+  authority explicitly requires one;
+- request intent MUST remain distinct from body entry and final outcome;
+- denial evidence must fail closed and must not be inferred from absence alone
+  when the source seam can provide an explicit decision/result fact;
+- do not absorb M3-013 final-result content/digest/outcome authority;
 - do not pull M3-014 approval unavailable, M3-015 cancellation, M3-016 disposal,
   M3-017 replay reconciliation, M4 Capability Broker, or M6 Workspace
   Transaction semantics forward;
-- DeepSeek Harness remains adapter compatibility evidence, never protocol
-  authority, and no concrete Harness package path/type may define the portable
-  fixture contract.
+- DeepSeek Harness remains compatibility evidence, never protocol authority.
 
 ## Deferred M3 work
 
 Not yet implemented:
 
-- `M3-011 P0` tool ordering — **CURRENT GATE**;
-- `M3-012 P0` denied call never enters body;
+- `M3-012 P0` denied call never enters body — **CURRENT GATE**;
 - `M3-013 P0` final result mapping;
 - `M3-014 P0` approval unavailable;
 - `M3-015 P0` cancellation;
@@ -211,21 +200,30 @@ Not yet implemented:
 - Shared TCK fixtures MUST remain consumable by a non-TypeScript implementation.
 - DeepSeek Harness is an Adapter and MUST NOT define protocol or generic fake
   runtime semantics.
-- Shared contracts MUST NOT contain concrete `@deepseek-ai/*` package paths.
+- Shared contracts MUST NOT contain concrete Harness package paths.
 - No host wall-clock or ambient randomness may decide a fixture result.
 - Unknown versions/profiles/operations/semantics fail explicitly.
 - Do not weaken TypeScript strictness, schemas, compatibility baseline,
   validators, conformance tests, frozen installs, or security claims for CI.
 - Do not implement M4 Capability Broker or M6 Workspace Transaction early.
 
+## Governance follow-up
+
+`HISTORY.md` is append-only and `docs/roadmap.md` is a long-lived planning file.
+The current connector exposes only whole-file replacement for those files and the
+local environment cannot resolve `github.com`, so this session did not risk a
+manual 25KB+ rewrite merely to record the closure. They remain governance
+follow-ups; the live/normative M3-011 acceptance evidence above is authoritative
+for continuing from M3-012.
+
 ## Resume instruction
 
 Read `docs/handoff/README.md`, this file, PR #2 live metadata, and workflow runs
-for the exact live head before editing. This file records `728f44e...` as the
-last verified implementation head; documentation commits may advance the branch,
-so live GitHub evidence still wins.
+for the exact live head before editing. The verified M3-011 implementation head
+is `1d2c92af8ec22ebae4644f1bc9a01fbef557a870`; documentation commits may advance
+the branch, so live GitHub evidence still wins.
 
-If the exact live head is green, continue with **M3-011 Adapter DSH tool ordering
-Shared TCK** in protocol-/fixture-first order. If it fails, inspect the actual
-current-head failing job/step/diagnostic and repair it without weakening any
-gate.
+If the exact live documentation head remains green, continue with **M3-012 denied
+tool call never enters body Shared TCK** in protocol-/fixture-first order. If it
+fails, inspect the actual current-head failing job/step/diagnostic and repair it
+without weakening any gate.
