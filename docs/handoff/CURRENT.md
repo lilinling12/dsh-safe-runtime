@@ -5,14 +5,14 @@
 
 ## Snapshot
 
-- Recorded at: `2026-08-19T09:18+08:00`
+- Recorded at: `2026-08-19T09:41+08:00`
 - Repository: `lilinling12/dsh-safe-runtime`
 - Phase: `M3 — Shared TCK Foundation`
 - Pull request: `#2 — feat(testkit): establish M3 shared TCK foundation`
 - PR state: `OPEN / DRAFT`
 - Branch: `feat/m3-shared-tck-foundation`
 - Stacked base: `feat/m2-harness-adapter@6a9c64155ec6c376908e64d70f2b50d5b8de1285`
-- Verified implementation head: `d5cc341594e79e7203d2203052db27f37984dfa7`
+- Verified implementation head: `de5d4e0cc7099cfa35d91211f81b87f2784ca5df`
 - M2 acceptance: **ACCEPTED**
 
 PR #2 remains intentionally stacked on the accepted M2 branch. M3 changes MUST
@@ -66,89 +66,115 @@ error `FAKE_APPROVAL_SCRIPT_EXHAUSTED`. CI #79 is green.
 
 Complete on implementation head `d5cc341594e79e7203d2203052db27f37984dfa7`.
 
-Governance order and the intent/result authority boundary were preserved:
+`specs/0006-m3-fake-tool-runtime-test-service.md` defines the portable fake before
+its TypeScript projection. Portable outcomes are exactly `RESULT`, `ERROR`, and
+`DENIED`; a request is intent only, `DENIED` never enters the fake body, and
+script exhaustion is the explicit infrastructure error
+`FAKE_TOOL_SCRIPT_EXHAUSTED`. CI #81 is green with 73 repository tests and zero
+lint warnings/errors.
 
-1. `specs/0006-m3-fake-tool-runtime-test-service.md` defines language-independent
-   deterministic fake tool semantics before implementation;
-2. `fixtures/tck/valid/tool-runtime-sequence.json` proves that a request is only
-   intent, and distinguishes `REQUESTED`, `BODY_ENTERED`, and final `OUTCOME`;
-3. `fixtures/tck/valid/tool-runtime-denied.json` proves `DENIED` is observable
-   without entering the tool body;
-4. `fixtures/tck/valid/tool-runtime-script-exhausted.json` proves exhaustion is
-   `FAKE_TOOL_SCRIPT_EXHAUSTED` and adds no invented execution trace;
-5. all three fixtures are registered in `fixtures/manifest.json` as portable
-   shared TCK envelopes;
-6. `packages/testkit/src/fake-tool-runtime.ts` is only the TypeScript projection;
-7. `packages/testkit/src/fake-tool-runtime.test.ts` covers exact outcome
-   preservation, request/body/outcome ordering, denial-before-body, fail-closed
-   malformed input, explicit exhaustion, defensive trace reads, and Harness
-   concrete-path exclusion.
+### M3-006 — Fake filesystem/subprocess execution world
 
-Portable fake outcomes are exactly:
+Complete on verified implementation head
+`de5d4e0cc7099cfa35d91211f81b87f2784ca5df`.
 
-```text
-RESULT
-ERROR
-DENIED
-```
+Governance order and the accepted provider non-guarantees were preserved:
 
-`RESULT` and deliberate scripted `ERROR` enter the fake body. `DENIED` MUST NOT
-enter it. The fake trace phases are test evidence only and MUST NOT be promoted
-into the safe-runtime normalized event vocabulary.
+1. `specs/0007-m3-fake-filesystem-subprocess-test-service.md` defines the
+   language-independent deterministic fake execution world before the TypeScript
+   projection;
+2. `fixtures/tck/valid/execution-world-filesystem.json` proves filesystem
+   resolution, stat, containment, read, and process-path behavior comes only
+   from explicit portable facts rather than host path interpretation;
+3. `fixtures/tck/valid/execution-world-subprocess.json` proves executable
+   resolution and spawn outcomes come only from exact inert JSON mappings and a
+   deterministic FIFO script;
+4. `fixtures/tck/valid/execution-world-non-mediation.json` proves that sharing a
+   `worldRef` does not imply subprocess filesystem effects traverse the fake
+   filesystem provider;
+5. `fixtures/tck/valid/execution-world-subprocess-exhausted.json` proves script
+   exhaustion is `FAKE_SUBPROCESS_SCRIPT_EXHAUSTED` and fabricates no second
+   execution observation;
+6. all four fixtures are registered in `fixtures/manifest.json` as portable
+   Shared TCK envelopes;
+7. `packages/testkit/src/fake-execution-world.ts` is a deterministic TypeScript
+   projection with exact-key validation, duplicate/ambiguous configuration
+   rejection, structural request matching, immutable defensive snapshots, and
+   no host filesystem/process/shell/network/environment dependency;
+8. `packages/testkit/src/fake-execution-world.test.ts` adds eight conformance
+   tests, including explicit non-containment derivation and the rule that an
+   unexpected spawn request does not consume the next scripted outcome.
 
-Validation evidence for `d5cc3415...`:
+Security-sensitive comments in the implementation document why path libraries
+and real process APIs are intentionally absent, why a spawn mismatch cannot
+advance FIFO state, and why `worldRef` is identity/correlation metadata rather
+than an isolation or transaction guarantee.
+
+M3-006 intentionally does **not** implement path canonicalization, symlink or
+junction policy, workspace rollback/commit, shell semantics, process isolation,
+real output buffering/spilling algorithms, capability authorization, or fault
+injection. Those remain later-gate concerns.
+
+Validation evidence for `de5d4e0c...`:
 
 | Gate | State | Evidence |
 | --- | --- | --- |
-| Normal CI | **PASS** | run #81 / job `95923943524` |
+| Normal CI | **PASS** | run #86 / job `95928288279` |
 | Frozen install | **PASS** | `pnpm install --frozen-lockfile` |
 | Supply-chain lockfile policy | **PASS** | 123 entries verified |
 | `pnpm check:all` | **PASS** | job `verify` |
 | Architecture boundaries | **PASS** | `verify-boundaries.mjs` |
 | Schema shape / compatibility baseline | **PASS** | 16 schemas / baseline green |
 | TypeScript typecheck | **PASS** | protocol + adapter packages |
-| Fake tool conformance | **PASS** | 6 tests |
-| Full repository tests | **PASS** | 9 files / 73 tests |
+| Fake execution-world conformance | **PASS** | 8 tests |
+| Full repository tests | **PASS** | 10 files / 81 tests |
 | Lint | **PASS** | 0 warnings / 0 errors |
-| Harness concrete dependency introduced | **NO** | shared fake remains runtime-independent |
+| Harness concrete dependency introduced | **NO** | portable fake remains runtime-independent |
+
+An earlier implementation head `78f04e2e...` had already passed all functional
+checks and all 81 tests in CI #85, but oxlint reported one unused-type warning.
+That warning was removed rather than accepted as completion evidence; CI #86 is
+the clean quality baseline above.
 
 No schema, validator, TypeScript strictness, fixture contract, frozen lockfile,
 architecture boundary, or security guarantee was weakened.
 
 ## Current gate
 
-**M3-006 P0 — fake filesystem/subprocess.**
+**M3-007 P0 — fault injection interface.**
 
 This is the next and only newly authorized implementation gate.
 
-M3-006 must begin with a language-independent test-service contract and portable
-fixtures before TypeScript implementation. It must remain deterministic fake
-infrastructure, not a host filesystem/process implementation and not a workspace
-transaction runtime.
+M3-007 must again begin with a language-independent contract and portable
+fixtures before a TypeScript projection. The interface must remain deterministic
+test infrastructure and MUST NOT turn fault scheduling into production runtime
+semantics.
 
-The M3-006 design MUST preserve accepted provider facts and security boundaries:
+The M3-007 design must preserve the following boundaries:
 
-- filesystem and subprocess may model one execution world, but this MUST NOT be
-  interpreted as proof that subprocess filesystem effects traverse a filesystem
-  provider;
-- provider mediation MUST NOT be promoted into process/kernel isolation;
-- fake filesystem targets/paths and subprocess requests are inert portable data;
-  fixtures MUST NOT cause real host file access, shell interpretation, command
-  execution, network access, or environment access;
-- no path-containment or rollback semantics from M6 Workspace Transaction may be
-  pulled into this gate;
-- deterministic outcomes must come only from explicit fixture state/script;
-- malformed/unknown operations and exhausted scripted behavior fail explicitly;
+- injected faults must be explicit fixture/script facts; host timing, ambient
+  randomness, scheduler races, filesystem state, process state, or network state
+  MUST NOT decide whether a fault occurs;
+- a fault must remain distinguishable from an ordinary successful, denied, or
+  deliberate business/runtime outcome; the fake MUST NOT silently rewrite one
+  category into another;
+- injection points and consumption order must be explicit and fail closed when
+  malformed, unknown, ambiguous, or exhausted;
+- M3-006 filesystem/subprocess behavior MUST NOT gain hidden fault behavior or
+  implicit host effects merely to support M3-007;
+- no M4 Capability Broker policy/authorization, M6 Workspace Transaction,
+  crash-recovery journal, or later Adapter DSH lifecycle semantics may be pulled
+  into this gate;
 - no `@deepseek-ai/*` package path or concrete Harness type may define the
-  portable contract;
-- do not implement M3-007 fault injection inside M3-006.
+  portable fault contract;
+- professional implementation comments should explain failure-boundary and
+  determinism decisions rather than restating syntax.
 
 ## Deferred M3 work
 
 Not yet implemented:
 
-- `M3-006 P0` fake filesystem/subprocess — **CURRENT GATE**;
-- `M3-007 P0` fault injection interface;
+- `M3-007 P0` fault injection interface — **CURRENT GATE**;
 - `M3-010..016` Adapter DSH shared TCK scenarios;
 - `M3-017 P1` replay reconciliation.
 
@@ -171,10 +197,11 @@ Real cancellation mechanics remain part of later Adapter DSH TCK work.
 ## Resume instruction
 
 Read `docs/handoff/README.md`, this file, PR #2 live metadata, and workflow runs
-for the exact live head before editing. This file records `d5cc3415...` as the
+for the exact live head before editing. This file records `de5d4e0c...` as the
 last verified implementation head; documentation commits may advance the branch,
 so live GitHub evidence still wins.
 
-If the exact live head is green, continue with **M3-006 fake filesystem/subprocess**
-in protocol-/fixture-first order. If it fails, inspect the real current-head
-failing job/step/diagnostic and repair it without weakening any gate.
+If the exact live head is green, continue with **M3-007 fault injection
+interface** in protocol-/fixture-first order. If it fails, inspect the real
+current-head failing job/step/diagnostic and repair it without weakening any
+gate.
