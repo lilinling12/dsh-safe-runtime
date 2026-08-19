@@ -306,6 +306,12 @@
       "path": "tck/valid/adapter-dsh-tool-ordering-barrier.json",
       "schema": "tck-fixture.schema.json",
       "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-DENIED-BODY-ENTRY-001",
+      "path": "tck/valid/adapter-dsh-denied-body-entry.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
     }
   ]
 }
