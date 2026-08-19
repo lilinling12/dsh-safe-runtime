@@ -89,6 +89,25 @@ describe("DeepSeek Harness rc5 normalization", () => {
     expect(event.outcome).toBe("error");
   });
 
+  it("preserves an explicit generic error code from the authoritative final result", () => {
+    const event = normalizeFinalToolResult(
+      "session:abc",
+      { callId: "call_error", name: "write", arguments: {} },
+      { isError: true, error: { info: { code: "TOOL_FAILED" } } },
+      "sha256:error",
+      "2026-08-17T08:00:03.000Z",
+    );
+
+    expect(event).toMatchObject({
+      type: "tool.completed",
+      callRef: "call_error",
+      toolName: "write",
+      outcome: "error",
+      resultDigest: "sha256:error",
+      errorCode: "TOOL_FAILED",
+    });
+  });
+
   it.each(["ABORTED", "ABORTED_BEFORE_DISPATCH"])(
     "maps the exact Harness cancellation code %s",
     (code) => {
