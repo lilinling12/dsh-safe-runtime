@@ -1,0 +1,42 @@
+{
+  "apiVersion": "safe-runtime.dev/tck-fixture/v1alpha1",
+  "id": "TCK_FULL_TOOL_002",
+  "profile": "FULL",
+  "description": "Fake tool runtime records denial without entering the tool body.",
+  "determinism": {
+    "seed": 11,
+    "clock": {
+      "startUnixMs": 1787040000000,
+      "tickMs": 10
+    }
+  },
+  "stimulus": {
+    "operation": "tool.sequence",
+    "script": [
+      { "kind": "DENIED", "errorCode": "SCRIPTED_TOOL_DENIAL" }
+    ],
+    "requests": [
+      { "callRef": "call-denied", "toolName": "demo.write", "arguments": { "path": "ignored" } }
+    ]
+  },
+  "expect": {
+    "outcomes": [
+      { "kind": "DENIED", "errorCode": "SCRIPTED_TOOL_DENIAL" }
+    ],
+    "trace": [
+      {
+        "sequence": 1,
+        "callOrdinal": 1,
+        "phase": "REQUESTED",
+        "request": { "callRef": "call-denied", "toolName": "demo.write", "arguments": { "path": "ignored" } }
+      },
+      {
+        "sequence": 2,
+        "callOrdinal": 1,
+        "phase": "OUTCOME",
+        "callRef": "call-denied",
+        "outcome": { "kind": "DENIED", "errorCode": "SCRIPTED_TOOL_DENIAL" }
+      }
+    ]
+  }
+}

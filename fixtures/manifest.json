@@ -198,6 +198,24 @@
       "path": "tck/valid/approval-script-exhausted.json",
       "schema": "tck-fixture.schema.json",
       "expected": "valid"
+    },
+    {
+      "id": "TCK-FULL-TOOL-001",
+      "path": "tck/valid/tool-runtime-sequence.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-FULL-TOOL-002",
+      "path": "tck/valid/tool-runtime-denied.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-FULL-TOOL-003",
+      "path": "tck/valid/tool-runtime-script-exhausted.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
     }
   ]
 }

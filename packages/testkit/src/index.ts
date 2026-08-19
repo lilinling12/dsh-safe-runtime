@@ -5,7 +5,7 @@
  * TypeScript projections of the language-independent contracts; test fakes are
  * deterministic infrastructure and never protocol or Harness authority.
  */
-export const PACKAGE_STAGE = "M3-FAKE-APPROVAL" as const;
+export const PACKAGE_STAGE = "M3-FAKE-TOOL-RUNTIME" as const;
 
 export {
   TCK_FIXTURE_API_VERSION,
@@ -32,3 +32,17 @@ export type {
   FakeApprovalRequest,
   TckApprovalDecision,
 } from "./fake-approval.js";
+
+export {
+  FAKE_TOOL_ERROR_CODES,
+  FakeToolRuntime,
+  FakeToolRuntimeError,
+  TCK_FAKE_TOOL_OUTCOME_KINDS,
+} from "./fake-tool-runtime.js";
+export type {
+  FakeToolErrorCode,
+  FakeToolOutcome,
+  FakeToolOutcomeKind,
+  FakeToolRequest,
+  FakeToolTraceEntry,
+} from "./fake-tool-runtime.js";
