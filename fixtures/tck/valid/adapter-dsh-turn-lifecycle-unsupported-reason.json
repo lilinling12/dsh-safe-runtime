@@ -1,0 +1,36 @@
+{
+  "apiVersion": "safe-runtime.dev/tck-fixture/v1alpha1",
+  "id": "TCK_ADAPTER_DSH_TURN_LIFECYCLE_UNSUPPORTED_REASON_001",
+  "profile": "ADAPTER_DSH",
+  "description": "Fails closed when Harness exposes a turn-end reason not authorized by the accepted adapter mapping.",
+  "determinism": {
+    "seed": 31005,
+    "clock": {
+      "startUnixMs": 1770000004000,
+      "tickMs": 10
+    }
+  },
+  "stimulus": {
+    "operation": "turn-lifecycle",
+    "sessionRef": "session:tck-unsupported",
+    "sourceEvents": [
+      {
+        "type": "turn/start",
+        "seq": 50,
+        "time": 1770000004000,
+        "data": { "turn": 7 }
+      },
+      {
+        "type": "turn/end",
+        "seq": 51,
+        "time": 1770000004010,
+        "data": { "turn": 7, "reason": { "kind": "future-reason" } }
+      }
+    ]
+  },
+  "expect": {
+    "kind": "ERROR",
+    "code": "UNSUPPORTED_HARNESS_TURN_END_REASON",
+    "atOrdinal": 2
+  }
+}

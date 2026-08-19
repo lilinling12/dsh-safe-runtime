@@ -5,7 +5,7 @@
  * TypeScript projections of the language-independent contracts; test fakes are
  * deterministic infrastructure and never protocol or Harness authority.
  */
-export const PACKAGE_STAGE = "M3-FAULT-INJECTION" as const;
+export const PACKAGE_STAGE = "M3-ADAPTER-DSH-TURN-LIFECYCLE" as const;
 
 export {
   TCK_FIXTURE_API_VERSION,
@@ -79,3 +79,21 @@ export type {
   FakeFaultObservation,
   FakeFaultProbe,
 } from "./fake-fault-injection.js";
+
+export {
+  ADAPTER_DSH_TURN_LIFECYCLE_ERROR_CODES,
+  ADAPTER_DSH_TURN_LIFECYCLE_OPERATION,
+  AdapterDshTurnLifecycleFixtureError,
+  parseAdapterDshTurnLifecycleFixture,
+  runAdapterDshTurnLifecycleFixture,
+} from "./adapter-dsh-turn-lifecycle.js";
+export type {
+  AdapterDshTurnLifecycleCaseResult,
+  AdapterDshTurnLifecycleErrorCode,
+  AdapterDshTurnLifecycleExpectation,
+  AdapterDshTurnLifecycleFixture,
+  AdapterDshTurnLifecycleObservable,
+  AdapterDshTurnLifecycleProjection,
+  AdapterDshTurnLifecycleSourceEvent,
+  AdapterDshTurnLifecycleStimulus,
+} from "./adapter-dsh-turn-lifecycle.js";

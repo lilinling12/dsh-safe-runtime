@@ -1,0 +1,62 @@
+{
+  "apiVersion": "safe-runtime.dev/tck-fixture/v1alpha1",
+  "id": "TCK_ADAPTER_DSH_TURN_LIFECYCLE_FAILED_001",
+  "profile": "ADAPTER_DSH",
+  "description": "Maps a Harness error turn end to failed after a complete source step bracket.",
+  "determinism": {
+    "seed": 31004,
+    "clock": {
+      "startUnixMs": 1770000003000,
+      "tickMs": 10
+    }
+  },
+  "stimulus": {
+    "operation": "turn-lifecycle",
+    "sessionRef": "session:tck-failed",
+    "sourceEvents": [
+      {
+        "type": "turn/start",
+        "seq": 40,
+        "time": 1770000003000,
+        "data": { "turn": 6 }
+      },
+      {
+        "type": "step/start",
+        "seq": 41,
+        "time": 1770000003010,
+        "data": { "turn": 6, "step": 0 }
+      },
+      {
+        "type": "step/end",
+        "seq": 42,
+        "time": 1770000003020,
+        "data": { "turn": 6, "step": 0 }
+      },
+      {
+        "type": "turn/end",
+        "seq": 43,
+        "time": 1770000003030,
+        "data": {
+          "turn": 6,
+          "reason": { "kind": "error", "error": { "message": "scripted failure", "code": "TEST_FAILURE" } }
+        }
+      }
+    ]
+  },
+  "expect": {
+    "kind": "EVENTS",
+    "events": [
+      { "type": "turn.started", "turnRef": "session:tck-failed/turn:6" },
+      {
+        "type": "step.started",
+        "turnRef": "session:tck-failed/turn:6",
+        "stepRef": "session:tck-failed/turn:6/step:0"
+      },
+      {
+        "type": "turn.ended",
+        "turnRef": "session:tck-failed/turn:6",
+        "status": "failed"
+      }
+    ]
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "apiVersion": "safe-runtime.dev/tck-fixture/v1alpha1",
+  "id": "TCK_ADAPTER_DSH_TURN_LIFECYCLE_CANCELLED_001",
+  "profile": "ADAPTER_DSH",
+  "description": "Maps an aborted zero-step Harness turn to a cancelled normalized turn end.",
+  "determinism": {
+    "seed": 31002,
+    "clock": {
+      "startUnixMs": 1770000001000,
+      "tickMs": 10
+    }
+  },
+  "stimulus": {
+    "operation": "turn-lifecycle",
+    "sessionRef": "session:tck-cancelled",
+    "sourceEvents": [
+      {
+        "type": "turn/start",
+        "seq": 20,
+        "time": 1770000001000,
+        "data": { "turn": 4 }
+      },
+      {
+        "type": "turn/end",
+        "seq": 21,
+        "time": 1770000001010,
+        "data": {
+          "turn": 4,
+          "reason": { "kind": "aborted", "reason": { "kind": "user" } }
+        }
+      }
+    ]
+  },
+  "expect": {
+    "kind": "EVENTS",
+    "events": [
+      { "type": "turn.started", "turnRef": "session:tck-cancelled/turn:4" },
+      {
+        "type": "turn.ended",
+        "turnRef": "session:tck-cancelled/turn:4",
+        "status": "cancelled"
+      }
+    ]
+  }
+}
