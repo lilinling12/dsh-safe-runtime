@@ -5,7 +5,7 @@
  * TypeScript projections of the language-independent contracts; test fakes are
  * deterministic infrastructure and never protocol or Harness authority.
  */
-export const PACKAGE_STAGE = "M3-ADAPTER-DSH-APPROVAL-UNAVAILABLE" as const;
+export const PACKAGE_STAGE = "M3-ADAPTER-DSH-CANCELLATION" as const;
 
 export {
   TCK_FIXTURE_API_VERSION,
@@ -165,3 +165,21 @@ export type {
   AdapterDshApprovalUnavailableSourceFact,
   AdapterDshApprovalUnavailableStimulus,
 } from "./adapter-dsh-approval-unavailable.js";
+
+export {
+  ADAPTER_DSH_CANCELLATION_ERROR_CODES,
+  ADAPTER_DSH_CANCELLATION_OPERATION,
+  AdapterDshCancellationFixtureError,
+  parseAdapterDshCancellationFixture,
+  runAdapterDshCancellationFixture,
+} from "./adapter-dsh-cancellation.js";
+export type {
+  AdapterDshCancellationCaseResult,
+  AdapterDshCancellationErrorCode,
+  AdapterDshCancellationFixture,
+  AdapterDshCancellationObservable,
+  AdapterDshCancellationRequest,
+  AdapterDshCancellationSourceFact,
+  AdapterDshCancellationStimulus,
+  AdapterDshCancellationToolCode,
+} from "./adapter-dsh-cancellation.js";
