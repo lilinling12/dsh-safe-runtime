@@ -1,0 +1,48 @@
+{
+  "apiVersion": "safe-runtime.dev/tck-fixture/v1alpha1",
+  "id": "TCK-ADAPTER-DSH-FINAL-RESULT-SUCCESS-001",
+  "profile": "ADAPTER_DSH",
+  "description": "Adapter DSH maps the authoritative materialized tools/result success fact to tool.completed without using a body-return value as authority.",
+  "determinism": {
+    "seed": 13001,
+    "clock": {
+      "startUnixMs": 1787126400000,
+      "tickMs": 1
+    }
+  },
+  "stimulus": {
+    "operation": "final-result-mapping",
+    "sessionRef": "session:final-result-success",
+    "sourceObservation": {
+      "source": "tools/result",
+      "observedAt": "2026-08-19T02:00:01.000Z",
+      "execution": {
+        "callId": "final-success-1",
+        "name": "read",
+        "arguments": {
+          "path": "a.txt"
+        }
+      },
+      "result": {
+        "isError": false,
+        "content": [
+          {
+            "type": "text",
+            "text": "post-final"
+          }
+        ]
+      },
+      "resultDigest": "fixture:post-final-result"
+    }
+  },
+  "expect": {
+    "kind": "EVENT",
+    "event": {
+      "type": "tool.completed",
+      "callRef": "final-success-1",
+      "toolName": "read",
+      "outcome": "success",
+      "resultDigest": "fixture:post-final-result"
+    }
+  }
+}
