@@ -139,8 +139,13 @@ function portableJson(value: unknown, label: string, seen = new Set<object>()): 
   if (Array.isArray(value)) {
     if (seen.has(value)) invalid(`${label} must not contain cyclic values`);
     seen.add(value);
-    if (Object.keys(value).some((key) => !/^(0|[1-9]\d*)$/.test(key) || Number(key) >= value.length)) {
-      invalid(`${label} must contain dense JSON arrays without named properties`);
+    const keys = Object.keys(value);
+    if (
+      Object.getOwnPropertySymbols(value).length !== 0
+      || keys.length !== value.length
+      || keys.some((key) => !/^(0|[1-9]\d*)$/.test(key) || Number(key) >= value.length)
+    ) {
+      invalid(`${label} must contain dense JSON arrays without named or symbol properties`);
     }
     const result = value.map((entry, index) => portableJson(entry, `${label}[${index}]`, seen));
     seen.delete(value);
