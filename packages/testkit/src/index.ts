@@ -5,7 +5,7 @@
  * TypeScript projections of the language-independent contracts; test fakes are
  * deterministic infrastructure and never protocol or Harness authority.
  */
-export const PACKAGE_STAGE = "M3-FAKE-EXECUTION-WORLD" as const;
+export const PACKAGE_STAGE = "M3-FAULT-INJECTION" as const;
 
 export {
   TCK_FIXTURE_API_VERSION,
@@ -66,3 +66,16 @@ export type {
   FakeSubprocessOutputSnapshot,
   FakeSubprocessSpawnRequest,
 } from "./fake-execution-world.js";
+
+export {
+  FAKE_FAULT_ERROR_CODES,
+  FakeFaultInjectionError,
+  FakeFaultInjectionService,
+} from "./fake-fault-injection.js";
+export type {
+  FakeFaultDescriptor,
+  FakeFaultDirective,
+  FakeFaultErrorCode,
+  FakeFaultObservation,
+  FakeFaultProbe,
+} from "./fake-fault-injection.js";

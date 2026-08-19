@@ -1,0 +1,54 @@
+{
+  "apiVersion": "safe-runtime.dev/tck-fixture/v1alpha1",
+  "id": "TCK_FULL_FAULT_INJECTION_UNEXPECTED_001",
+  "profile": "FULL",
+  "description": "An unexpected probe fails closed without consuming the next scripted directive or creating an observation.",
+  "determinism": {
+    "seed": 41,
+    "clock": {
+      "startUnixMs": 1776502800000,
+      "tickMs": 10
+    }
+  },
+  "stimulus": {
+    "operation": "fault-injection.unexpected-probe",
+    "config": {
+      "points": ["subprocess.before-spawn"],
+      "script": [
+        {
+          "probe": {
+            "pointRef": "subprocess.before-spawn",
+            "context": { "requestRef": "spawn-1" }
+          },
+          "directive": {
+            "kind": "INJECT_FAULT",
+            "fault": {
+              "faultRef": "fault-spawn-1",
+              "faultCode": "TEST_SPAWN_FAILURE"
+            }
+          }
+        }
+      ]
+    },
+    "unexpectedProbe": {
+      "pointRef": "subprocess.before-spawn",
+      "context": { "requestRef": "spawn-other" }
+    },
+    "expectedProbe": {
+      "pointRef": "subprocess.before-spawn",
+      "context": { "requestRef": "spawn-1" }
+    }
+  },
+  "expect": {
+    "errorCode": "FAKE_FAULT_UNEXPECTED_PROBE",
+    "remainingAfterError": 1,
+    "observationCountAfterError": 0,
+    "directiveAfterRetry": {
+      "kind": "INJECT_FAULT",
+      "fault": {
+        "faultRef": "fault-spawn-1",
+        "faultCode": "TEST_SPAWN_FAILURE"
+      }
+    }
+  }
+}
