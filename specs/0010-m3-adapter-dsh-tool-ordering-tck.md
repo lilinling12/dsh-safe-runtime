@@ -36,7 +36,7 @@ The authorities for this gate are:
 3. the accepted exact Harness `0.1.0-rc.5` source baseline only for
    adapter-specific compatibility evidence.
 
-No concrete `@deepseek-ai/*` package path, TypeScript type name, private Harness
+No concrete Harness package import path, TypeScript type name, private Harness
 module path, or agent-loop implementation detail is part of this portable
 fixture contract.
 
