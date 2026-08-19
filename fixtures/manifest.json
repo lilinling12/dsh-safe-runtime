@@ -330,6 +330,18 @@
       "path": "tck/valid/adapter-dsh-final-result-error-code.json",
       "schema": "tck-fixture.schema.json",
       "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-APPROVAL-UNAVAILABLE-001",
+      "path": "tck/valid/adapter-dsh-approval-unavailable-service-absent.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-APPROVAL-UNAVAILABLE-002",
+      "path": "tck/valid/adapter-dsh-approval-unavailable-service-decision.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
     }
   ]
 }
