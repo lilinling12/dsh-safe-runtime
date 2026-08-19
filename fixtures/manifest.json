@@ -258,6 +258,36 @@
       "path": "tck/valid/fault-injection-script-exhausted.json",
       "schema": "tck-fixture.schema.json",
       "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-TURN-LIFECYCLE-001",
+      "path": "tck/valid/adapter-dsh-turn-lifecycle-completed.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-TURN-LIFECYCLE-002",
+      "path": "tck/valid/adapter-dsh-turn-lifecycle-cancelled.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-TURN-LIFECYCLE-003",
+      "path": "tck/valid/adapter-dsh-turn-lifecycle-blocked.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-TURN-LIFECYCLE-004",
+      "path": "tck/valid/adapter-dsh-turn-lifecycle-failed.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-TURN-LIFECYCLE-005",
+      "path": "tck/valid/adapter-dsh-turn-lifecycle-unsupported-reason.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
     }
   ]
 }
