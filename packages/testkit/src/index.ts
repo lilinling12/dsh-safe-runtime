@@ -5,7 +5,7 @@
  * TypeScript projections of the language-independent contracts; test fakes are
  * deterministic infrastructure and never protocol or Harness authority.
  */
-export const PACKAGE_STAGE = "M3-ADAPTER-DSH-DENIED-BODY-ENTRY" as const;
+export const PACKAGE_STAGE = "M3-ADAPTER-DSH-FINAL-RESULT-MAPPING" as const;
 
 export {
   TCK_FIXTURE_API_VERSION,
@@ -132,3 +132,19 @@ export type {
   AdapterDshDeniedBodyEntryObservable,
   AdapterDshDeniedBodyEntryStimulus,
 } from "./adapter-dsh-denied-body-entry.js";
+
+export {
+  ADAPTER_DSH_FINAL_RESULT_MAPPING_ERROR_CODES,
+  ADAPTER_DSH_FINAL_RESULT_MAPPING_OPERATION,
+  AdapterDshFinalResultMappingFixtureError,
+  parseAdapterDshFinalResultMappingFixture,
+  runAdapterDshFinalResultMappingFixture,
+} from "./adapter-dsh-final-result-mapping.js";
+export type {
+  AdapterDshFinalResultMappingCaseResult,
+  AdapterDshFinalResultMappingErrorCode,
+  AdapterDshFinalResultMappingFixture,
+  AdapterDshFinalResultMappingObservable,
+  AdapterDshFinalResultMappingStimulus,
+  AdapterDshFinalResultOutcome,
+} from "./adapter-dsh-final-result-mapping.js";
