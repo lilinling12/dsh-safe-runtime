@@ -236,8 +236,8 @@ Acceptance evidence
 - [x] `M3-003 P0` deterministic seed/time。
 - [x] `M3-004 P0` fake approval。 **DONE：Spec 0005 + portable fixtures + deterministic TypeScript projection；head `cc59a5db...` CI #79 PASS。**
 - [x] `M3-005 P0` fake tool runtime。 **DONE：Spec 0006 + portable RESULT/ERROR/DENIED fixtures + deterministic TypeScript projection；head `d5cc3415...` CI #81 PASS。**
-- [ ] `M3-006 P0` fake fs/subprocess。 **NEXT GATE。**
-- [ ] `M3-007 P0` fault injection interface。
+- [x] `M3-006 P0` fake fs/subprocess。 **DONE：Spec 0007 + portable explicit-fact fixtures + deterministic fake execution world；head `de5d4e0c...` CI #86 PASS（81 tests，oxlint 0/0）。**
+- [ ] `M3-007 P0` fault injection interface。 **NEXT GATE。**
 
 ## M3.2 Adapter TCK
 
