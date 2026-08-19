@@ -241,8 +241,8 @@ Acceptance evidence
 
 ## M3.2 Adapter TCK
 
-- [ ] `M3-010 P0` turn lifecycle。 **NEXT GATE。**
-- [ ] `M3-011 P0` tool ordering。
+- [x] `M3-010 P0` turn lifecycle。 **DONE：Spec 0009 + 5 portable ADAPTER_DSH fixtures + generic evaluator + adapter projection + exact rc5 runtime conformance；head `728f44e...` CI #99 PASS / source-conformance #58 PASS（115 tests，oxlint 0/0）。**
+- [ ] `M3-011 P0` tool ordering。 **NEXT GATE。**
 - [ ] `M3-012 P0` denied call never enters body。
 - [ ] `M3-013 P0` final result mapping。
 - [ ] `M3-014 P0` approval unavailable。
