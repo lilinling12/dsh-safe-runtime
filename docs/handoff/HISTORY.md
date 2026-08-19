@@ -425,3 +425,56 @@ The next and only newly authorized gate is **M3-007 P0 — fault injection
 interface**. It must again start from a language-independent deterministic
 contract and portable fixtures, must keep injected faults distinct from ordinary
 outcomes, and must not pull M4/M6 or Adapter DSH lifecycle semantics forward.
+
+## 2026-08-19T10:02:00+08:00 — Close M3-007 deterministic fault injection interface
+
+M3-007 closed on verified implementation head
+`494e08de5b1304ef039c5a5462f083b7e76b8a29`.
+
+- `specs/0008-m3-deterministic-fault-injection-test-service.md` defines the
+  portable test-control contract before TypeScript implementation;
+- portable directives are exactly `NO_FAULT` and `INJECT_FAULT`;
+- an injected fault is an inert descriptor only and is not automatically thrown,
+  crashed, delayed, signaled, retried, rolled back, or translated into an
+  ordinary tool/runtime outcome;
+- injection points are explicitly declared opaque identifiers, and probes are
+  exact inert JSON matched against a deterministic FIFO script;
+- unknown points, unexpected probes, malformed probes, and script exhaustion fail
+  explicitly without cursor advancement or fabricated observations;
+- direct API calls reject cyclic, sparse, exotic, non-finite, and otherwise
+  non-portable JSON values;
+- observations and directives are defensive immutable snapshots;
+- existing M3-005 tool and M3-006 execution-world fakes remain unchanged and do
+  not acquire hidden fault behavior;
+- three portable fixtures cover directive distinction, unexpected-probe
+  non-consumption, and explicit exhaustion;
+- eight conformance tests cover the portable and fail-closed boundaries.
+
+The initial implementation commit
+`0687e868c62dd373c2be2d6869c3bf4757e8bb7b` was followed by
+`494e08de...` only to restore the established pretty formatting of
+`fixtures/manifest.json`; the semantic case list was unchanged.
+
+Final exact-head evidence for `494e08de...`:
+
+- normal CI #91 / job `95931880009`: PASS;
+- pinned pnpm 11.7.0 enable: PASS;
+- `pnpm install --frozen-lockfile`: PASS;
+- supply-chain lockfile policy: PASS (123 entries);
+- architecture boundaries: PASS;
+- schema shape: PASS (16 schemas);
+- schema compatibility baseline: PASS;
+- TypeScript typecheck: PASS;
+- fault-injection conformance: 8 tests PASS;
+- repository tests: 11 files / 89 tests PASS;
+- oxlint: **0 warnings / 0 errors**.
+
+No validator, schema, compatibility baseline, TypeScript strictness, frozen
+install, architecture boundary, TCK expectation, or security guarantee was
+weakened.
+
+M3.1 Test Harness foundation work is now complete through M3-007. The next and
+only newly authorized gate is **M3-010 P0 — Adapter DSH turn lifecycle Shared
+TCK**. It must begin by reconciling the existing normalized event spec, accepted
+M2 adapter mapping, and exact rc5 lifecycle evidence; Harness lifecycle names
+remain compatibility evidence rather than portable protocol authority.
