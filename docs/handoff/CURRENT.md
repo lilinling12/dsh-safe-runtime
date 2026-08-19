@@ -5,14 +5,14 @@
 
 ## Snapshot
 
-- Recorded at: `2026-08-19T18:37+08:00`
+- Recorded at: `2026-08-20`
 - Repository: `lilinling12/dsh-safe-runtime`
 - Phase: `M3 — Shared TCK Foundation`
 - Pull request: `#2 — feat(testkit): establish M3 shared TCK foundation`
 - PR state: `OPEN / DRAFT`
 - Branch: `feat/m3-shared-tck-foundation`
 - Stacked base: `feat/m2-harness-adapter@6a9c64155ec6c376908e64d70f2b50d5b8de1285`
-- Verified M3-012 implementation head: `7dcabbe1f93c9cc91285584b43b6f24213ffed93`
+- Verified M3-013 implementation head: `92b742fa4250d5703023ebc560923eceaab86b0b`
 - M2 acceptance: **ACCEPTED**
 
 PR #2 remains intentionally stacked on the accepted M2 branch. M3 changes MUST
@@ -42,36 +42,31 @@ Accepted M2 head `6a9c64155ec6c376908e64d70f2b50d5b8de1285` remains the accepted
 
 Complete. The language-independent envelope, runner status semantics, explicit
 deterministic seed/logical-clock inputs, Draft 2020-12 schema, portable fixtures,
-and TypeScript projection remain the foundation for later profile-specific TCK
-contracts.
+and TypeScript projection remain the foundation for profile-specific TCK contracts.
 
 ### M3-004 — Fake approval
 
-Complete on implementation head `cc59a5db1045346792d823e56557d78438dd37c1`
-(CI #79 PASS). Portable decisions remain exactly `ALLOWED_ONCE`, `REJECTED`,
-`CANCELLED`, and `UNAVAILABLE`; exhaustion remains an explicit infrastructure
-error rather than an approval decision.
+Complete on implementation head `cc59a5db1045346792d823e56557d78438dd37c1`.
+Portable decisions remain exactly `ALLOWED_ONCE`, `REJECTED`, `CANCELLED`, and
+`UNAVAILABLE`; exhaustion remains an explicit infrastructure error.
 
 ### M3-005 — Fake tool runtime
 
-Complete on implementation head `d5cc341594e79e7203d2203052db27f37984dfa7`
-(CI #81 PASS). Portable outcomes remain exactly `RESULT`, `ERROR`, and `DENIED`;
-request intent, body entry, and final outcome remain distinct.
+Complete on implementation head `d5cc341594e79e7203d2203052db27f37984dfa7`.
+Portable outcomes remain exactly `RESULT`, `ERROR`, and `DENIED`; request intent,
+body entry, and final outcome remain distinct.
 
 ### M3-006 — Fake filesystem/subprocess execution world
 
-Complete on implementation head `de5d4e0cc7099cfa35d91211f81b87f2784ca5df`
-(CI #86 PASS). Filesystem/subprocess results remain explicit fake facts, paths are
-inert data, same-world correlation does not imply provider mediation of process
-file effects, and no process/kernel isolation or workspace transaction guarantee
-is claimed.
+Complete on implementation head `de5d4e0cc7099cfa35d91211f81b87f2784ca5df`.
+Filesystem/subprocess results remain explicit fake facts; no process/kernel
+isolation or workspace transaction guarantee is claimed.
 
 ### M3-007 — Deterministic fault injection interface
 
-Complete on implementation head `494e08de5b1304ef039c5a5462f083b7e76b8a29`
-(CI #91 PASS). Fault injection remains explicit deterministic test-control data;
-it does not become production crash/timeout/rollback semantics or hidden behavior
-inside the existing fake tool/execution-world services.
+Complete on implementation head `494e08de5b1304ef039c5a5462f083b7e76b8a29`.
+Fault injection remains deterministic test-control data and does not become
+production crash/timeout/rollback semantics.
 
 ### M3-010 — Adapter DSH turn lifecycle Shared TCK
 
@@ -80,31 +75,24 @@ Complete on verified implementation head
 
 The gate preserves the protocol/adapter authority split, does not invent
 `step.ended`, rejects malformed portable evidence before implementation
-invocation, and is verified by normal CI #99 plus exact Harness rc5
-source-conformance #58 with oxlint 0 warnings / 0 errors.
+invocation, and is verified by normal CI plus exact pinned Harness rc5
+source-conformance.
 
 ### M3-011 — Adapter DSH tool ordering Shared TCK
 
 Complete on verified implementation head
 `1d2c92af8ec22ebae4644f1bc9a01fbef557a870`.
 
-The gate is limited to explicit request/completion ordering and correlation:
+The gate establishes:
 
-- durable `session/event: tool/call` is request intent and maps to
-  `tool.requested`;
-- live `tools/result` is the accepted final-outcome source seam and maps to
-  `tool.completed`, while M3-011 compares only ordering/correlation fields;
-- source array order is authoritative; timestamps or inferred evidence do not
-  repair/reorder a fixture;
-- exact pinned rc5 source-conformance uses real public `Session.append()` and
-  `ToolRuntime.execute()` seams through the production ordered dispatcher;
-- malformed projector output fails closed as an implementation error;
-- production mappings, schemas, compatibility baseline, lockfile, architecture
-  rules, and security guarantees were not weakened.
+- durable `session/event: tool/call` -> `tool.requested` request intent;
+- live `tools/result` -> `tool.completed` final-outcome source seam;
+- source observation order remains authoritative;
+- malformed/reordered/correlation-invalid evidence fails closed;
+- final-result content/digest/outcome authority remains outside M3-011.
 
-Final evidence for `1d2c92af...`: normal CI #117 PASS, exact Harness rc5
-source-conformance #76 PASS, 16 files / 141 tests PASS, and oxlint 0 warnings /
-0 errors.
+Final evidence: normal CI #117 PASS, exact Harness rc5 #76 PASS, 16 files / 141
+tests PASS, oxlint 0 warnings / 0 errors.
 
 ### M3-012 — denied tool call never enters body Shared TCK
 
@@ -112,101 +100,124 @@ source-conformance #76 PASS, 16 files / 141 tests PASS, and oxlint 0 warnings /
 `7dcabbe1f93c9cc91285584b43b6f24213ffed93`.**
 
 Normative/profile authority remains in
-`specs/0011-m3-adapter-dsh-denied-body-entry-tck.md` and the portable Shared TCK
-fixture `fixtures/tck/valid/adapter-dsh-denied-body-entry.json`. The TypeScript
-runner and exact Harness test are projections/evidence, not semantic authority.
+`specs/0011-m3-adapter-dsh-denied-body-entry-tck.md` and its portable fixture.
+The accepted proof keeps request intent, body entry, and final outcome distinct,
+uses explicit DENY evidence plus live test-side body-entry instrumentation, and
+does not invent a normalized `body.entered` event.
+
+Final evidence: normal CI #129 PASS, exact Harness rc5 #88 PASS, 17 files / 151
+tests PASS, oxlint 0 warnings / 0 errors, exact binding typecheck/runtime green.
+
+### M3-013 — Adapter DSH final result mapping Shared TCK
+
+**ACCEPTED on verified implementation head
+`92b742fa4250d5703023ebc560923eceaab86b0b`.**
+
+Normative/profile authority is defined in
+`specs/0012-m3-adapter-dsh-final-result-mapping-tck.md`. The TypeScript runner,
+Adapter conformance tests, and pinned Harness tests are projections/evidence,
+never semantic authority.
 
 Accepted semantic proof:
 
-1. request intent, body entry, and final outcome remain distinct;
-2. M3-012 does not add a normalized `body.entered` protocol/runtime event;
-3. the denial path requires an explicit Adapter DSH `DENY` fact rather than
-   inferring denial from missing completion/body evidence;
-4. the exact pinned rc5 test registers a real tool body with explicit body-entry
-   instrumentation;
-5. an allowed positive control enters that body first, proving the instrumentation
-   is live before negative evidence is trusted;
-6. the denied target is then executed through the real pinned rc5 `ToolRuntime`
-   and production Adapter DSH policy seam;
-7. explicit denial is observed and the denied target does not increment the body
-   entry counter;
-8. generic `@dsh-safe/testkit` owns portable JSON fixture parsing/strictness;
-   exact source conformance replays the same registered operative case inside the
-   adapter package so exact Harness compilation does not depend on testkit source
-   internals or Node-only ambient types;
-9. M3-013 final-result authority, M3-014 approval unavailable, M3-015
-   cancellation, M3-016 disposal, M3-017 replay reconciliation, M4, and M6 remain
-   outside this gate;
-10. no production Adapter mapping, schema, compatibility baseline, TypeScript
-    strictness, frozen lockfile, architecture rule, or security guarantee was
-    weakened to obtain CI success.
+1. live `tools/result` remains the authoritative Adapter DSH final-result source;
+2. durable request intent, tool-body entry, and the body's direct return value do
+   not establish final success;
+3. a real rc5 `tools/post-execute` replacement proves final materialization can
+   differ from the body return and the Adapter digests the materialized result;
+4. success maps to `tool.completed/outcome=success` only from an authoritative
+   final `isError: false` result;
+5. a real rc5 tool body throwing an ordinary `Error` produces a materialized
+   generic `isError: true` result and maps to `tool.completed/outcome=error`;
+6. an explicit non-cancellation source `error.info.code` is preserved as
+   normalized `errorCode` by the production final-result normalizer;
+7. the portable profile deliberately covers only SUCCESS and GENERIC_ERROR;
+8. `ABORTED` and `ABORTED_BEFORE_DISPATCH` are rejected by the M3-013 portable
+   profile because cancellation classification belongs to M3-015;
+9. policy denial, approval-unavailable, disposal, replay, M4, and M6 semantics are
+   not pulled into this gate;
+10. `resultDigest` is explicit authoritative source data in the portable TCK;
+    M3-013 does not standardize a digest algorithm/canonicalization/version;
+11. malformed, contradictory, cancellation-reserved, non-portable, or malformed
+    implementation evidence fails closed;
+12. expectation/oracle data cannot manufacture implementation output;
+13. all three portable M3-013 fixtures are bound directly through production
+    `normalizeFinalToolResult()` in Adapter package conformance;
+14. no production Adapter source mapping was changed to satisfy M3-013;
+15. no schema, compatibility baseline, TypeScript strictness, frozen lockfile,
+    architecture rule, validator, TCK expectation, or security guarantee was
+    weakened.
 
-Final exact-head evidence for `7dcabbe1...`:
+Implemented artifacts include:
+
+- `specs/0012-m3-adapter-dsh-final-result-mapping-tck.md`;
+- `fixtures/tck/valid/adapter-dsh-final-result-success.json`;
+- `fixtures/tck/valid/adapter-dsh-final-result-error.json`;
+- `fixtures/tck/valid/adapter-dsh-final-result-error-code.json`;
+- generic fail-closed parser/runner and boundary tests in `packages/testkit`;
+- public testkit exports and fixture-manifest registration;
+- production-normalizer explicit generic-error-code regression coverage;
+- Adapter Shared TCK -> production normalizer bridge conformance;
+- exact pinned rc5 post-execute authority and real generic-error runtime proof.
+
+Final exact-head evidence for `92b742fa...`:
 
 | Gate | State | Evidence |
 | --- | --- | --- |
-| Normal CI | **PASS** | run #129 / run id `32242949423` / job `96037295669` |
-| Exact Harness rc5 source-conformance | **PASS** | run #88 / run id `32242949297` / job `96037295171` |
+| Normal CI | **PASS** | run #141 / run id `32296376737` / job `96208503077` |
+| Exact Harness rc5 source-conformance | **PASS** | run #100 / run id `32296376733` / job `96208503325` |
 | Frozen install | **PASS** | `pnpm install --frozen-lockfile` |
 | Supply-chain lockfile policy | **PASS** | 123 entries verified |
 | Architecture boundaries | **PASS** | `verify-boundaries.mjs` |
 | Schema shape / compatibility baseline | **PASS** | 16 schemas / baseline green |
 | TypeScript typecheck | **PASS** | repository typecheck green |
-| Full repository tests | **PASS** | 17 files / 151 tests |
+| Full repository tests | **PASS** | 19 files / 172 tests |
+| M3-013 generic runner | **PASS** | 16 tests |
+| Adapter M3-013 production bridge | **PASS** | 4 tests |
 | Lint | **PASS** | 0 warnings / 0 errors |
 | Exact pinned rc5 binding typecheck | **PASS** | source-conformance step 10 green |
 | Real pinned rc5 runtime conformance | **PASS** | source-conformance step 11 green |
 
-Two exact-source-only failures were repaired without weakening boundaries:
-
-- `c27c04e213fa4d081e25c362f79bae9a87fb9a5c` removed a cross-package source
-  dependency that violated the adapter exact-test `rootDir` boundary;
-- `7dcabbe1f93c9cc91285584b43b6f24213ffed93` removed the Node-only fixture
-  loader after exact CI exposed `TS2591` for `node:fs/promises`, `node:path`, and
-  `node:url`; no `@types/node`, lockfile change, tsconfig relaxation, shim, or
-  unsafe cast was introduced.
-
-The final fix does not duplicate generic TCK validation in the Adapter test. The
-portable JSON fixture remains validated by the generic testkit, while exact
-source-conformance supplies the real pinned Harness compatibility proof.
+No per-test name was required as acceptance authority: the completed pinned rc5
+workflow records the whole exact runtime-conformance step as successful. The
+runtime test itself uses only public pinned rc5 seams and does not fabricate a
+private Harness error representation.
 
 ## Current gate
 
-**M3-013 P0 — Adapter DSH final result mapping Shared TCK.**
+**M3-014 P0 — Adapter DSH approval unavailable Shared TCK.**
 
-M3-013 is the next and only newly authorized implementation gate. It MUST begin
-with a language-independent definition of the final-result authority/mapping
-contract before TypeScript runner or Adapter DSH changes.
+M3-014 is the next and only newly authorized implementation gate. It MUST begin
+with a language-independent approval-unavailable contract before TypeScript or
+Adapter-specific implementation work.
 
-Required boundaries for M3-013:
+Required boundaries for M3-014:
 
-- reconcile Spec 0003 final-outcome semantics with the production Adapter DSH
-  `tools/result` normalization seam and existing M3-011 ordering evidence;
-- define what source fact is authoritative for a final tool result before adding
-  implementation-specific projection fields;
-- keep request intent and body-entry evidence separate from final-result
-  authority;
-- preserve stable call correlation and fail closed on malformed, duplicate, or
-  contradictory final-result evidence;
-- do not infer a successful result merely from body entry, durable request
-  existence, or missing error evidence;
-- do not retroactively expand M3-011 ordering or M3-012 denial/body-entry
-  semantics;
-- do not pull M3-014 approval unavailable, M3-015 cancellation, M3-016 disposal,
-  M3-017 replay reconciliation, M4 Capability Broker, or M6 Workspace
-  Transaction semantics forward;
+- reconcile Spec 0003 approval-port semantics and the accepted fake approval
+  `UNAVAILABLE` decision with the production Adapter DSH `requestApproval()`
+  feature/service detection path;
+- define exactly which source fact means approval is unavailable before adding
+  an Adapter projection;
+- preserve the rule that only `ALLOWED_ONCE` authorizes execution;
+- distinguish `UNAVAILABLE` from `REJECTED` and `CANCELLED`;
+- fail closed when approval cannot be obtained or the required approval service
+  is absent;
+- do not infer unavailable from an arbitrary exception/string when an explicit
+  capability/service fact exists;
+- do not change M3-012 body-entry or M3-013 final-result authority semantics;
+- do not pull M3-015 cancellation, M3-016 disposal, M3-017 replay, M4 Capability
+  Broker, or M6 Workspace Transaction semantics forward;
 - DeepSeek Harness remains compatibility evidence, never protocol authority.
 
-Before implementation, inspect the current production final-result normalization
-and exact pinned rc5 `tools/result` public source seam, then write the portable
-contract/fixtures first.
+Before implementation, inspect Spec 0003, the accepted fake-approval profile,
+production `requestApproval()`, and pinned rc5 approval public seams. Then define
+the portable M3-014 contract/fixtures first.
 
 ## Deferred M3 work
 
 Not yet implemented:
 
-- `M3-013 P0` final result mapping — **CURRENT GATE**;
-- `M3-014 P0` approval unavailable;
+- `M3-014 P0` approval unavailable — **CURRENT GATE**;
 - `M3-015 P0` cancellation;
 - `M3-016 P0` disposal;
 - `M3-017 P1` replay reconciliation.
@@ -229,19 +240,19 @@ Not yet implemented:
 ## Governance follow-up
 
 `HISTORY.md` is append-only and `docs/roadmap.md` is a long-lived planning file.
-The current connector exposes only whole-file replacement for those files and the
-local environment cannot resolve `github.com`, so this closure does not risk a
-manual large-file rewrite merely to duplicate evidence already recorded here.
-They remain explicit governance follow-ups and MUST NOT be claimed as updated.
+The current connector exposes only whole-file replacement for those files, so
+this closure does not risk a large manual rewrite merely to duplicate evidence
+already recorded here. They remain explicit governance follow-ups and MUST NOT be
+claimed as updated.
 
 ## Resume instruction
 
 Read `docs/handoff/README.md`, this file, PR #2 live metadata, and workflow runs
-for the exact live head before editing. The verified M3-012 implementation head
-is `7dcabbe1f93c9cc91285584b43b6f24213ffed93`; this documentation commit advances
+for the exact live head before editing. The verified M3-013 implementation head
+is `92b742fa4250d5703023ebc560923eceaab86b0b`; this documentation commit advances
 the branch beyond that implementation head, so live GitHub evidence still wins.
 
 Only after the exact live governance head's triggered checks are green, continue
-with **M3-013 Adapter DSH final result mapping Shared TCK** in
+with **M3-014 Adapter DSH approval unavailable Shared TCK** in
 protocol-/fixture-first order. If the governance head fails, repair that exact
-failure without weakening any gate and do not start M3-013 early.
+failure without weakening any gate and do not start M3-014 early.
