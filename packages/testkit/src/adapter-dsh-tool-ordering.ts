@@ -385,6 +385,38 @@ export function parseAdapterDshToolOrderingFixture(value: unknown): AdapterDshTo
   return { envelope, stimulus, expect };
 }
 
+/**
+ * Projectors are implementation boundaries, not trusted TypeScript-only calls.
+ * JavaScript consumers, cross-language bridges, or unsafe callers can return a
+ * value that satisfies no portable M3-011 observable shape at runtime. Such a
+ * value cannot yield a normative expectation verdict, so it is an implementation
+ * ERROR rather than an ordinary TCK mismatch.
+ */
+function isOrderingProjection(value: unknown): value is AdapterDshToolOrderingProjection {
+  if (!isRecord(value) || value.kind !== "EVENT" || !isRecord(value.event)) return false;
+
+  const projectionKeys = Object.keys(value).sort();
+  if (projectionKeys.length !== 2 || projectionKeys[0] !== "event" || projectionKeys[1] !== "kind") {
+    return false;
+  }
+
+  const eventKeys = Object.keys(value.event).sort();
+  if (
+    eventKeys.length !== 3
+    || eventKeys[0] !== "callRef"
+    || eventKeys[1] !== "toolName"
+    || eventKeys[2] !== "type"
+  ) {
+    return false;
+  }
+
+  return (value.event.type === "tool.requested" || value.event.type === "tool.completed")
+    && typeof value.event.callRef === "string"
+    && value.event.callRef.length > 0
+    && typeof value.event.toolName === "string"
+    && value.event.toolName.length > 0;
+}
+
 function stableJson(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
   if (isRecord(value)) {
@@ -396,9 +428,9 @@ function stableJson(value: unknown): string {
 /**
  * Execute the already-validated source sequence without adding scheduler or
  * timestamp semantics. Every source fact has one explicit portable projection;
- * an implementation exception is infrastructure ERROR, while any missing,
- * extra, reordered, or differently correlated observable is an ordinary TCK
- * FAIL against the independent fixture oracle.
+ * an implementation exception or malformed projection is infrastructure ERROR,
+ * while any missing, extra, reordered, or differently correlated valid
+ * observable is an ordinary TCK FAIL against the independent fixture oracle.
  */
 export async function runAdapterDshToolOrderingFixture(
   fixture: AdapterDshToolOrderingFixture,
@@ -411,11 +443,12 @@ export async function runAdapterDshToolOrderingFixture(
   for (const observation of fixture.stimulus.sourceObservations) {
     let projection: AdapterDshToolOrderingProjection;
     try {
-      projection = await project(fixture.stimulus.sessionRef, observation);
+      const candidate: unknown = await project(fixture.stimulus.sessionRef, observation);
+      if (!isOrderingProjection(candidate)) {
+        return { status: "ERROR", code: "ADAPTER_DSH_TOOL_ORDERING_IMPLEMENTATION_ERROR" };
+      }
+      projection = candidate;
     } catch {
-      return { status: "ERROR", code: "ADAPTER_DSH_TOOL_ORDERING_IMPLEMENTATION_ERROR" };
-    }
-    if (projection.kind !== "EVENT") {
       return { status: "ERROR", code: "ADAPTER_DSH_TOOL_ORDERING_IMPLEMENTATION_ERROR" };
     }
     observed.push(projection.event);

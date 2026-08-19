@@ -206,6 +206,19 @@ describe("M3-011 Adapter DSH tool ordering portable profile", () => {
     });
   });
 
+  it("classifies malformed projector output as implementation ERROR", async () => {
+    const fixture = await loadFixture("adapter-dsh-tool-ordering-single.json");
+    const malformedProjector = () => ({
+      kind: "EVENT",
+      event: { type: "tool.requested", callRef: "call-a" },
+    }) as unknown as AdapterDshToolOrderingProjection;
+
+    await expect(runAdapterDshToolOrderingFixture(fixture, malformedProjector)).resolves.toEqual({
+      status: "ERROR",
+      code: "ADAPTER_DSH_TOOL_ORDERING_IMPLEMENTATION_ERROR",
+    });
+  });
+
   it("rejects malformed source evidence before any projector can be invoked", async () => {
     const fixture = await loadRawFixture("adapter-dsh-tool-ordering-parallel-model-order.json");
     const observations = observationsOf(fixture);
