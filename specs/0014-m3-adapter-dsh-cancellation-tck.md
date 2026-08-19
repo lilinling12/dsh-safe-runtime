@@ -155,22 +155,43 @@ therefore demonstrate both source families in one real execution, provided that:
 
 1. the approval decision is independently proven as `CANCELLED`;
 2. the final tool result is independently proven by the authoritative
-   `tools/result` source and an accepted exact cancellation code;
+   `tools/result` source and an accepted exact cancellation code when that code
+   is the classification authority;
 3. neither source is manufactured from the other fixture's expected value.
 
+The production Adapter also supports an explicit approval-correlation path for a
+final error result. When a durable `approval/decided(CANCELLED)` fact is
+correlated to the same call that later emits an authoritative error
+`tools/result`, that approval decision is the cancellation classification fact
+for the final normalized `tool.completed` outcome even if the Harness error
+result itself carries no accepted cancellation code. This does not broaden the
+final-result code set: without the correlated approval-cancelled fact, an
+unrecognized or missing error code remains a generic error.
+
+A conforming Adapter proof of this correlation MUST show all of the following:
+
+- the approval ask/decision pair refers to the same call as the final result;
+- the approval decision is exactly `CANCELLED`;
+- the final `tools/result` still exists and is authoritative for final result
+  materialization/digest;
+- the Adapter does not infer cancellation from denial text or a missing code;
+- a mismatched call correlation cannot classify another tool result as
+  cancelled.
+
 The portable contract does not create a third synthetic "combined cancellation"
-event.
+event. Approval cancellation remains the source authority; final-result
+materialization remains the M3-013 authority for the completed tool evidence.
 
 ## 6. Exact code boundary
 
-Cancellation classification is closed over the two accepted final-result codes.
-For example:
+Cancellation classification is closed over the two accepted final-result codes
+when no independently correlated approval-cancelled fact exists. For example:
 
 ```text
 ABORTED                  -> cancellation
 ABORTED_BEFORE_DISPATCH  -> cancellation
-TOOL_FAILED              -> not cancellation
-TOOL_DENIED              -> not cancellation
+TOOL_FAILED              -> not cancellation by code
+TOOL_DENIED              -> not cancellation by code
 "request aborted" text  -> not cancellation authority
 missing result           -> not cancellation authority
 ```
@@ -194,6 +215,9 @@ proofs for the source facts, not new portable body-entry events.
 
 Policy denial remains a distinct final outcome. A denial fact MUST NOT be
 reclassified as cancellation merely because execution did not enter the body.
+An approval-cancelled correlation is not ordinary policy denial: it must be
+backed by the explicit approval decision and matching call correlation defined in
+section 5.
 
 ## 8. Fixture shape
 
@@ -264,6 +288,11 @@ Negative/boundary tests MUST additionally prove that:
 - implementation exceptions and malformed projections produce runner `ERROR`;
 - expected data cannot manufacture cancellation output.
 
+The production Adapter bridge/exact evidence MUST additionally cover the
+approval-cancelled final-result correlation defined in section 5. A separate
+portable source kind is not required because the classification authority is the
+already-defined approval decision.
+
 ## 11. Exact pinned rc5 conformance
 
 Exact source-conformance against the accepted Harness baseline
@@ -283,7 +312,11 @@ The exact proof MUST cover:
 4. production Adapter observation mapping those final results to
    `tool.completed/outcome=cancelled` while preserving the exact error code and
    final-result digest;
-5. no result sorting, synthesis, private-field access, or exception-text
+5. production Adapter approval-cancelled correlation: a real
+   `approval/decided(cancelled)` for a call plus that call's authoritative final
+   error result maps the same call to `tool.completed/outcome=cancelled` without
+   relying on denial/error prose or broad error-code inference;
+6. no result sorting, synthesis, private-field access, or exception-text
    inference.
 
 If a real ASK/cancellation execution is used as a combined proof, approval and
@@ -309,7 +342,8 @@ M3-015 is complete only when:
 - the required portable fixtures are registered;
 - `@dsh-safe/testkit` provides strict parse/run projection without Harness imports;
 - boundary tests prove exact source-family and exact-code discrimination;
-- production Adapter normalization is exercised directly where applicable;
+- production Adapter normalization and approval-cancelled correlation are
+  exercised directly where applicable;
 - exact pinned rc5 source-conformance proves real approval and ToolRuntime
   cancellation through public seams;
 - normal CI and exact pinned rc5 source-conformance are green on the exact
