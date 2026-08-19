@@ -360,3 +360,68 @@ filesystem/subprocess**. It must start with a language-independent contract,
 retain the accepted same-world/non-isolation provider facts, execute no real
 host effects, and must not pull M6 Workspace Transaction or M3-007 fault
 injection semantics forward.
+
+## 2026-08-19T09:41:00+08:00 — Close M3-006 deterministic fake execution world
+
+M3-006 closed on verified implementation head
+`de5d4e0cc7099cfa35d91211f81b87f2784ca5df` after protocol-/fixture-first
+implementation and a stricter lint-clean follow-up.
+
+- `specs/0007-m3-fake-filesystem-subprocess-test-service.md` defines the
+  language-independent fake execution-world contract before TypeScript code;
+- filesystem resolution, stat, containment, text reads, and process-path values
+  are explicit scripted facts rather than derived host/path behavior;
+- executable resolution and subprocess spawn are inert JSON operations backed by
+  exact mappings and a deterministic FIFO script;
+- duplicate or ambiguous facts fail during configuration rather than acquiring
+  hidden precedence;
+- unknown containment is explicit and is never derived from path-looking
+  strings;
+- unexpected spawn requests and script exhaustion fail before cursor advancement
+  or observation mutation;
+- `execution-world-non-mediation.json` preserves the accepted security boundary:
+  filesystem and subprocess may share `worldRef`, but a scripted subprocess does
+  not implicitly mutate the fake filesystem and no process/kernel isolation is
+  claimed;
+- the TypeScript projection imports no Harness concrete type and invokes no real
+  filesystem, path-normalization, process, shell, network, environment, clock,
+  or randomness facility;
+- implementation comments document these non-guarantees and fail-closed reasons
+  rather than restating syntax.
+
+Portable fixtures added and registered:
+
+- `execution-world-filesystem.json`;
+- `execution-world-subprocess.json`;
+- `execution-world-non-mediation.json`;
+- `execution-world-subprocess-exhausted.json`.
+
+The first implementation head `78f04e2ea1dee5e62d02a6ee8e840c948ecd70cf`
+passed CI #85 and all 81 tests, but oxlint reported one unused-type warning. The
+warning was treated as a quality defect rather than accepted because the gate
+requires a clean implementation. Follow-up head `de5d4e0c...` removed only that
+unused declaration.
+
+Final exact-head evidence for `de5d4e0c...`:
+
+- normal CI #86 / job `95928288279`: PASS;
+- pinned pnpm 11.7.0 enable: PASS;
+- `pnpm install --frozen-lockfile`: PASS;
+- supply-chain lockfile policy: PASS (123 entries);
+- architecture boundaries: PASS;
+- schema shape: PASS (16 schemas);
+- schema compatibility baseline: PASS;
+- TypeScript typecheck: PASS;
+- fake execution-world conformance: 8 tests PASS;
+- repository tests: 10 files / 81 tests PASS;
+- oxlint: **0 warnings / 0 errors**.
+
+No schema, validator, TypeScript strictness, fixture contract, frozen lockfile,
+architecture boundary, or security guarantee was weakened. M3-006 does not
+implement path containment, rollback, transactionality, shell behavior, process
+isolation, capability policy, or fault injection.
+
+The next and only newly authorized gate is **M3-007 P0 — fault injection
+interface**. It must again start from a language-independent deterministic
+contract and portable fixtures, must keep injected faults distinct from ordinary
+outcomes, and must not pull M4/M6 or Adapter DSH lifecycle semantics forward.
