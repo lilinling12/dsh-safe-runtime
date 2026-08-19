@@ -86,7 +86,7 @@ describe("M3-012 exact DeepSeek Harness rc5 denied body entry", () => {
           kind: "DENIAL_BODY_ENTRY",
           callRef: fixture.stimulus.call.callRef,
           toolName: fixture.stimulus.call.toolName,
-          decision: explicitDenialObserved ? "DENIED" : "DENIED",
+          decision: "DENIED",
           bodyEntered: bodyEntries.includes(fixture.stimulus.call.callRef),
         };
 
