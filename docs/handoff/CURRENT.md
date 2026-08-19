@@ -5,14 +5,14 @@
 
 ## Snapshot
 
-- Recorded at: `2026-08-18T18:10+08:00`
+- Recorded at: `2026-08-19T09:18+08:00`
 - Repository: `lilinling12/dsh-safe-runtime`
 - Phase: `M3 — Shared TCK Foundation`
 - Pull request: `#2 — feat(testkit): establish M3 shared TCK foundation`
 - PR state: `OPEN / DRAFT`
 - Branch: `feat/m3-shared-tck-foundation`
 - Stacked base: `feat/m2-harness-adapter@6a9c64155ec6c376908e64d70f2b50d5b8de1285`
-- Verified implementation head: `cc59a5db1045346792d823e56557d78438dd37c1`
+- Verified implementation head: `d5cc341594e79e7203d2203052db27f37984dfa7`
 - M2 acceptance: **ACCEPTED**
 
 PR #2 remains intentionally stacked on the accepted M2 branch. M3 changes MUST
@@ -57,90 +57,102 @@ passed normal CI #78, including frozen install and `pnpm check:all`.
 
 Complete on implementation head `cc59a5db1045346792d823e56557d78438dd37c1`.
 
-Governance order was preserved:
+`specs/0005-m3-fake-approval-test-service.md` defines the portable fake before the
+TypeScript projection. Portable decisions are exactly `ALLOWED_ONCE`, `REJECTED`,
+`CANCELLED`, and `UNAVAILABLE`; script exhaustion is the explicit infrastructure
+error `FAKE_APPROVAL_SCRIPT_EXHAUSTED`. CI #79 is green.
 
-1. `specs/0005-m3-fake-approval-test-service.md` defines the portable fake first;
-2. `fixtures/tck/valid/approval-sequence.json` covers deterministic FIFO outcome
-   consumption;
-3. `fixtures/tck/valid/approval-script-exhausted.json` proves exhaustion is an
-   explicit infrastructure error rather than an implicit `UNAVAILABLE`;
-4. both fixtures are registered in `fixtures/manifest.json` and remain valid
+### M3-005 — Fake tool runtime
+
+Complete on implementation head `d5cc341594e79e7203d2203052db27f37984dfa7`.
+
+Governance order and the intent/result authority boundary were preserved:
+
+1. `specs/0006-m3-fake-tool-runtime-test-service.md` defines language-independent
+   deterministic fake tool semantics before implementation;
+2. `fixtures/tck/valid/tool-runtime-sequence.json` proves that a request is only
+   intent, and distinguishes `REQUESTED`, `BODY_ENTERED`, and final `OUTCOME`;
+3. `fixtures/tck/valid/tool-runtime-denied.json` proves `DENIED` is observable
+   without entering the tool body;
+4. `fixtures/tck/valid/tool-runtime-script-exhausted.json` proves exhaustion is
+   `FAKE_TOOL_SCRIPT_EXHAUSTED` and adds no invented execution trace;
+5. all three fixtures are registered in `fixtures/manifest.json` as portable
    shared TCK envelopes;
-5. `packages/testkit/src/fake-approval.ts` is only the TypeScript projection;
-6. `packages/testkit/src/fake-approval.test.ts` covers FIFO order, exact outcome
-   preservation, defensive observation copies, invalid script rejection, and
-   exhaustion behavior.
+6. `packages/testkit/src/fake-tool-runtime.ts` is only the TypeScript projection;
+7. `packages/testkit/src/fake-tool-runtime.test.ts` covers exact outcome
+   preservation, request/body/outcome ordering, denial-before-body, fail-closed
+   malformed input, explicit exhaustion, defensive trace reads, and Harness
+   concrete-path exclusion.
 
-Portable fake approval decisions are exactly:
-
-```text
-ALLOWED_ONCE
-REJECTED
-CANCELLED
-UNAVAILABLE
-```
-
-Only `ALLOWED_ONCE` may authorize under existing approval semantics. Script
-exhaustion uses:
+Portable fake outcomes are exactly:
 
 ```text
-FAKE_APPROVAL_SCRIPT_EXHAUSTED
+RESULT
+ERROR
+DENIED
 ```
 
-It MUST NOT be coerced to `UNAVAILABLE` or success.
+`RESULT` and deliberate scripted `ERROR` enter the fake body. `DENIED` MUST NOT
+enter it. The fake trace phases are test evidence only and MUST NOT be promoted
+into the safe-runtime normalized event vocabulary.
 
-Validation evidence for `cc59a5db...`:
+Validation evidence for `d5cc3415...`:
 
 | Gate | State | Evidence |
 | --- | --- | --- |
-| Normal CI | **PASS** | run #79 |
-| Frozen install | **PASS** | job `verify`, step 5 |
-| `pnpm check:all` | **PASS** | job `verify`, step 6 |
-| Portable approval contract precedes implementation | **PASS** | Spec 0005 + testkit projection |
-| FIFO scripted decisions | **PASS** | fake approval conformance |
-| Script exhaustion fail-closed | **PASS** | fake approval conformance |
-| Unknown scripted decision rejected | **PASS** | fake approval conformance |
-| Observation exposure defensive | **PASS** | fake approval conformance |
-| Harness concrete dependency introduced | **NO** | testkit fake remains runtime-independent |
+| Normal CI | **PASS** | run #81 / job `95923943524` |
+| Frozen install | **PASS** | `pnpm install --frozen-lockfile` |
+| Supply-chain lockfile policy | **PASS** | 123 entries verified |
+| `pnpm check:all` | **PASS** | job `verify` |
+| Architecture boundaries | **PASS** | `verify-boundaries.mjs` |
+| Schema shape / compatibility baseline | **PASS** | 16 schemas / baseline green |
+| TypeScript typecheck | **PASS** | protocol + adapter packages |
+| Fake tool conformance | **PASS** | 6 tests |
+| Full repository tests | **PASS** | 9 files / 73 tests |
+| Lint | **PASS** | 0 warnings / 0 errors |
+| Harness concrete dependency introduced | **NO** | shared fake remains runtime-independent |
+
+No schema, validator, TypeScript strictness, fixture contract, frozen lockfile,
+architecture boundary, or security guarantee was weakened.
 
 ## Current gate
 
-**M3-005 P0 — fake tool runtime.**
+**M3-006 P0 — fake filesystem/subprocess.**
 
 This is the next and only newly authorized implementation gate.
 
-The fake tool runtime must remain deterministic test infrastructure and expose
-only the minimum behavior required by normative TCK scenarios. Before adding a
-TypeScript fake, define the language-independent profile contract and portable
-fixtures that state the observable tool behavior.
+M3-006 must begin with a language-independent test-service contract and portable
+fixtures before TypeScript implementation. It must remain deterministic fake
+infrastructure, not a host filesystem/process implementation and not a workspace
+transaction runtime.
 
-The M3-005 design MUST preserve already accepted boundaries:
+The M3-006 design MUST preserve accepted provider facts and security boundaries:
 
-- a requested tool action is intent, not proof of successful execution;
-- denial must be observable without entering the tool body when the relevant TCK
-  scenario requires that boundary;
-- final result semantics must not be inferred from DeepSeek Harness internals;
-- no `@deepseek-ai/*` package path or concrete Harness type may define the shared
-  fake runtime contract;
-- no host time, ambient randomness, shell execution, real filesystem access, or
-  network access may decide a fake tool result;
-- unknown fake operations or malformed scripts fail explicitly.
-
-Do not pull M3-006 filesystem/subprocess, M3-007 fault injection, or M4 Capability
-Broker behavior into M3-005.
+- filesystem and subprocess may model one execution world, but this MUST NOT be
+  interpreted as proof that subprocess filesystem effects traverse a filesystem
+  provider;
+- provider mediation MUST NOT be promoted into process/kernel isolation;
+- fake filesystem targets/paths and subprocess requests are inert portable data;
+  fixtures MUST NOT cause real host file access, shell interpretation, command
+  execution, network access, or environment access;
+- no path-containment or rollback semantics from M6 Workspace Transaction may be
+  pulled into this gate;
+- deterministic outcomes must come only from explicit fixture state/script;
+- malformed/unknown operations and exhausted scripted behavior fail explicitly;
+- no `@deepseek-ai/*` package path or concrete Harness type may define the
+  portable contract;
+- do not implement M3-007 fault injection inside M3-006.
 
 ## Deferred M3 work
 
 Not yet implemented:
 
-- `M3-005 P0` fake tool runtime — **CURRENT GATE**;
-- `M3-006 P0` fake filesystem/subprocess;
+- `M3-006 P0` fake filesystem/subprocess — **CURRENT GATE**;
 - `M3-007 P0` fault injection interface;
 - `M3-010..016` Adapter DSH shared TCK scenarios;
 - `M3-017 P1` replay reconciliation.
 
-Real cancellation mechanics remain part of later Adapter DSH TCK work; M3-004
-only supports `CANCELLED` as an explicitly scripted portable approval outcome.
+Real cancellation mechanics remain part of later Adapter DSH TCK work.
 
 ## Boundaries that remain enforced
 
@@ -159,10 +171,10 @@ only supports `CANCELLED` as an explicitly scripted portable approval outcome.
 ## Resume instruction
 
 Read `docs/handoff/README.md`, this file, PR #2 live metadata, and workflow runs
-for the exact live head before editing. This file records `cc59a5db...` as the
-last verified implementation head; later documentation commits may advance the
-branch, so live GitHub evidence still wins.
+for the exact live head before editing. This file records `d5cc3415...` as the
+last verified implementation head; documentation commits may advance the branch,
+so live GitHub evidence still wins.
 
-If the exact live head is green, continue with **M3-005 fake tool runtime** in
-protocol-/fixture-first order. If it fails, inspect the real current-head failing
-job/step/diagnostic and repair it without weakening any gate.
+If the exact live head is green, continue with **M3-006 fake filesystem/subprocess**
+in protocol-/fixture-first order. If it fails, inspect the real current-head
+failing job/step/diagnostic and repair it without weakening any gate.
