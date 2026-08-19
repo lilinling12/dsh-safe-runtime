@@ -136,7 +136,7 @@ describe("DeepSeek Harness rc5 cancellation binding", () => {
 
       expect(bodyCalls).toBe(0);
       expect(result.isError).toBe(true);
-      expect(result.error?.info.code).toBe("ABORTED_BEFORE_DISPATCH");
+      expect(result.error?.info?.code).toBe("ABORTED_BEFORE_DISPATCH");
       const completed = completedEvent(observed, "cancel-before-dispatch-1");
       expect(completed.outcome).toBe("cancelled");
       expect(completed.errorCode).toBe("ABORTED_BEFORE_DISPATCH");
@@ -189,7 +189,7 @@ describe("DeepSeek Harness rc5 cancellation binding", () => {
 
       expect(bodyCalls).toBe(1);
       expect(result.isError).toBe(true);
-      expect(result.error?.info.code).toBe("ABORTED");
+      expect(result.error?.info?.code).toBe("ABORTED");
       const completed = completedEvent(observed, "cancel-after-entry-1");
       expect(completed.outcome).toBe("cancelled");
       expect(completed.errorCode).toBe("ABORTED");
@@ -237,8 +237,8 @@ describe("DeepSeek Harness rc5 cancellation binding", () => {
 
       expect(bodyCalls).toBe(0);
       expect(result.isError).toBe(true);
-      expect(result.error?.info.code).not.toBe("ABORTED");
-      expect(result.error?.info.code).not.toBe("ABORTED_BEFORE_DISPATCH");
+      expect(result.error?.info?.code).not.toBe("ABORTED");
+      expect(result.error?.info?.code).not.toBe("ABORTED_BEFORE_DISPATCH");
 
       const audit = session.events.filter(event => event.type.startsWith("approval/"));
       expect(audit).toHaveLength(2);
