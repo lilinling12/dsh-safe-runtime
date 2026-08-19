@@ -35,7 +35,7 @@ describe("M3-012 exact DeepSeek Harness rc5 denied body entry", () => {
       await harness.ctx.plugin(ToolRuntime);
       const ctx = await harness.inject(["tools"]);
       const adapter = createDshRc5Adapter(ctx, { digest });
-      const bodyEntries: string[] = [];
+      let bodyEntryCount = 0;
 
       ctx.tools.register(defineTool({
         name: fixture.stimulus.call.toolName,
@@ -45,14 +45,14 @@ describe("M3-012 exact DeepSeek Harness rc5 denied body entry", () => {
           schema: { type: "string" },
           render: (_args, value) => [{ type: "text", text: value }],
         },
-        async execute(exec) {
-          bodyEntries.push(String(exec.callId));
+        async execute() {
+          bodyEntryCount += 1;
           return "executed";
         },
       }));
 
       // Positive control: prove the instrumentation can observe a real body
-      // entry before using its absence as the second half of the denial proof.
+      // entry before using an unchanged counter as denial-path evidence.
       const controlResult = await ctx.tools.execute({
         signal,
         callId: CallId("m3-012-control"),
@@ -60,7 +60,7 @@ describe("M3-012 exact DeepSeek Harness rc5 denied body entry", () => {
         arguments: fixture.stimulus.call.arguments,
       });
       expect(controlResult.isError).toBe(false);
-      expect(bodyEntries).toEqual(["m3-012-control"]);
+      expect(bodyEntryCount).toBe(1);
 
       let explicitDenialObserved = false;
       const registration = adapter.registerToolPolicy((request) => {
@@ -72,6 +72,7 @@ describe("M3-012 exact DeepSeek Harness rc5 denied body entry", () => {
       });
 
       try {
+        const countBeforeDeniedCall = bodyEntryCount;
         const deniedResult = await ctx.tools.execute({
           signal,
           callId: CallId(fixture.stimulus.call.callRef),
@@ -87,12 +88,12 @@ describe("M3-012 exact DeepSeek Harness rc5 denied body entry", () => {
           callRef: fixture.stimulus.call.callRef,
           toolName: fixture.stimulus.call.toolName,
           decision: "DENIED",
-          bodyEntered: bodyEntries.includes(fixture.stimulus.call.callRef),
+          bodyEntered: bodyEntryCount !== countBeforeDeniedCall,
         };
 
         await expect(runAdapterDshDeniedBodyEntryFixture(fixture, () => projection))
           .resolves.toEqual({ status: "PASS" });
-        expect(bodyEntries).toEqual(["m3-012-control"]);
+        expect(bodyEntryCount).toBe(countBeforeDeniedCall);
       } finally {
         await registration.dispose();
       }
