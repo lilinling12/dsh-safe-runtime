@@ -1,0 +1,79 @@
+{
+  "apiVersion": "safe-runtime.dev/tck-fixture/v1alpha1",
+  "id": "TCK_FULL_EXECUTION_WORLD_SUBPROCESS_EXHAUSTED_001",
+  "profile": "FULL",
+  "description": "Subprocess script exhaustion is explicit and does not fabricate an execution observation.",
+  "determinism": {
+    "seed": 31,
+    "clock": {
+      "startUnixMs": 1776502800000,
+      "tickMs": 10
+    }
+  },
+  "stimulus": {
+    "operation": "execution-world.subprocess-exhaustion",
+    "world": {
+      "worldRef": "world-exhaustion",
+      "filesystem": {
+        "targets": [],
+        "resolutions": [],
+        "containments": []
+      },
+      "subprocess": {
+        "executables": [],
+        "script": [
+          {
+            "request": {
+              "argv": ["/virtual/bin/first"],
+              "cwd": "opaque:/workspace",
+              "graceMs": 10,
+              "stdoutMaxBytes": 64,
+              "stderrMaxBytes": 64
+            },
+            "execution": {
+              "pid": 1,
+              "outcome": {
+                "exitCode": 0,
+                "signal": null
+              },
+              "stdout": {
+                "text": "",
+                "nextOffset": 0,
+                "lossy": false
+              },
+              "stderr": {
+                "text": "",
+                "nextOffset": 0,
+                "lossy": false
+              }
+            }
+          }
+        ]
+      }
+    },
+    "requests": [
+      {
+        "argv": ["/virtual/bin/first"],
+        "cwd": "opaque:/workspace",
+        "graceMs": 10,
+        "stdoutMaxBytes": 64,
+        "stderrMaxBytes": 64
+      },
+      {
+        "argv": ["/virtual/bin/second"],
+        "cwd": "opaque:/workspace",
+        "graceMs": 10,
+        "stdoutMaxBytes": 64,
+        "stderrMaxBytes": 64
+      }
+    ]
+  },
+  "expect": {
+    "firstOutcome": {
+      "exitCode": 0,
+      "signal": null
+    },
+    "errorCode": "FAKE_SUBPROCESS_SCRIPT_EXHAUSTED",
+    "observationCount": 1
+  }
+}

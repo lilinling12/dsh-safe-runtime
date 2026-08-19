@@ -216,6 +216,30 @@
       "path": "tck/valid/tool-runtime-script-exhausted.json",
       "schema": "tck-fixture.schema.json",
       "expected": "valid"
+    },
+    {
+      "id": "TCK-FULL-EXECUTION-WORLD-001",
+      "path": "tck/valid/execution-world-filesystem.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-FULL-EXECUTION-WORLD-002",
+      "path": "tck/valid/execution-world-subprocess.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-FULL-EXECUTION-WORLD-003",
+      "path": "tck/valid/execution-world-non-mediation.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-FULL-EXECUTION-WORLD-004",
+      "path": "tck/valid/execution-world-subprocess-exhausted.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
     }
   ]
 }
