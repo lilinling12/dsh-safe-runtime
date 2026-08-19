@@ -21,7 +21,8 @@ describe("M3-010 direct-call portable JSON boundary", () => {
     const fixture = await validFixture() as {
       stimulus: { sourceEvents: unknown[] };
     };
-    const sparse = new Array<unknown>(fixture.stimulus.sourceEvents.length + 1);
+    const sparse: unknown[] = [];
+    sparse.length = fixture.stimulus.sourceEvents.length + 1;
     sparse[1] = fixture.stimulus.sourceEvents[0];
     fixture.stimulus.sourceEvents = sparse;
 
