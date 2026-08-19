@@ -5,7 +5,7 @@
  * TypeScript projections of the language-independent contracts; test fakes are
  * deterministic infrastructure and never protocol or Harness authority.
  */
-export const PACKAGE_STAGE = "M3-ADAPTER-DSH-TOOL-ORDERING" as const;
+export const PACKAGE_STAGE = "M3-ADAPTER-DSH-DENIED-BODY-ENTRY" as const;
 
 export {
   TCK_FIXTURE_API_VERSION,
@@ -117,3 +117,18 @@ export type {
   AdapterDshToolOrderingSourceObservation,
   AdapterDshToolOrderingStimulus,
 } from "./adapter-dsh-tool-ordering.js";
+
+export {
+  ADAPTER_DSH_DENIED_BODY_ENTRY_ERROR_CODES,
+  ADAPTER_DSH_DENIED_BODY_ENTRY_OPERATION,
+  AdapterDshDeniedBodyEntryFixtureError,
+  parseAdapterDshDeniedBodyEntryFixture,
+  runAdapterDshDeniedBodyEntryFixture,
+} from "./adapter-dsh-denied-body-entry.js";
+export type {
+  AdapterDshDeniedBodyEntryCaseResult,
+  AdapterDshDeniedBodyEntryErrorCode,
+  AdapterDshDeniedBodyEntryFixture,
+  AdapterDshDeniedBodyEntryObservable,
+  AdapterDshDeniedBodyEntryStimulus,
+} from "./adapter-dsh-denied-body-entry.js";
