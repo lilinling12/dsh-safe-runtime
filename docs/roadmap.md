@@ -235,8 +235,8 @@ Acceptance evidence
 - [x] `M3-002 P0` test runner contract。
 - [x] `M3-003 P0` deterministic seed/time。
 - [x] `M3-004 P0` fake approval。 **DONE：Spec 0005 + portable fixtures + deterministic TypeScript projection；head `cc59a5db...` CI #79 PASS。**
-- [ ] `M3-005 P0` fake tool runtime。 **NEXT GATE。**
-- [ ] `M3-006 P0` fake fs/subprocess。
+- [x] `M3-005 P0` fake tool runtime。 **DONE：Spec 0006 + portable RESULT/ERROR/DENIED fixtures + deterministic TypeScript projection；head `d5cc3415...` CI #81 PASS。**
+- [ ] `M3-006 P0` fake fs/subprocess。 **NEXT GATE。**
 - [ ] `M3-007 P0` fault injection interface。
 
 ## M3.2 Adapter TCK
