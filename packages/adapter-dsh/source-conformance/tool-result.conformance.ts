@@ -1,52 +1,19 @@
 import type { Context } from "@deepseek-ai/cordis";
-import { Inbox, type Agent } from "@deepseek-ai/dsh-agent";
 import { CallId } from "@deepseek-ai/dsh-llm";
-import SessionStore, { SessionId, type Session } from "@deepseek-ai/dsh-session";
+import SessionStore, { SessionId } from "@deepseek-ai/dsh-session";
 import SystemPrompt from "@deepseek-ai/dsh-system-prompt";
 import ToolRuntime, { defineTool } from "@deepseek-ai/dsh-tools";
 import { describe, expect, it } from "vitest";
 
 import { createDshRc5Adapter } from "../src/binding.js";
 import type { RuntimeEvent, ToolCompletedEvent } from "../src/runtime-events.js";
-import { createHarnessTestScope } from "./harness-runtime.js";
+import {
+  createAgentFixture,
+  createHarnessTestScope,
+} from "./harness-runtime.js";
 
 function digest(value: unknown): string {
   return `test:${JSON.stringify(value)}`;
-}
-
-/**
- * Build the smallest complete public Agent handle needed to exercise an
- * agent-scoped ToolRuntime call without loading the concrete agent loop.
- *
- * The fixture deliberately satisfies the full public Agent interface instead
- * of type-casting a partial object. Session and Inbox are real pinned-Harness
- * objects; driver methods are inert because this conformance test drives only
- * ToolRuntime.execute().
- */
-function createAgentFixture(ctx: Context, session: Session): Agent {
-  const inbox = new Inbox(session, {
-    inserted() {},
-    discarded() {},
-    claimed() {},
-  });
-
-  return {
-    id: session.id,
-    options: {},
-    session,
-    inbox,
-    status: "idle",
-    ctx,
-    cancel() {},
-    async whenIdle(): Promise<void> {},
-    async runMaintenance<T>(task: (signal: AbortSignal) => Promise<T>): Promise<T> {
-      return task(new AbortController().signal);
-    },
-    send() {},
-    followup() {},
-    steer() {},
-    inject() {},
-  };
 }
 
 describe("DeepSeek Harness rc5 authoritative final tool result", () => {
@@ -60,7 +27,7 @@ describe("DeepSeek Harness rc5 authoritative final tool result", () => {
       await harness.ctx.plugin(ToolRuntime);
 
       const sessionCtx = await harness.inject(["sessions"]);
-      const toolCtx = await harness.inject(["tools"]);
+      const toolCtx: Context = await harness.inject(["tools"]);
       const session = sessionCtx.sessions.create(SessionId("tool-result-authority"));
       const agent = createAgentFixture(toolCtx, session);
       const observed: RuntimeEvent[] = [];
