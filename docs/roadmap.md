@@ -237,11 +237,11 @@ Acceptance evidence
 - [x] `M3-004 P0` fake approval。 **DONE：Spec 0005 + portable fixtures + deterministic TypeScript projection；head `cc59a5db...` CI #79 PASS。**
 - [x] `M3-005 P0` fake tool runtime。 **DONE：Spec 0006 + portable RESULT/ERROR/DENIED fixtures + deterministic TypeScript projection；head `d5cc3415...` CI #81 PASS。**
 - [x] `M3-006 P0` fake fs/subprocess。 **DONE：Spec 0007 + portable explicit-fact fixtures + deterministic fake execution world；head `de5d4e0c...` CI #86 PASS（81 tests，oxlint 0/0）。**
-- [ ] `M3-007 P0` fault injection interface。 **NEXT GATE。**
+- [x] `M3-007 P0` fault injection interface。 **DONE：Spec 0008 + portable deterministic probe/directive fixtures + TypeScript projection；head `494e08de...` CI #91 PASS（89 tests，oxlint 0/0）。**
 
 ## M3.2 Adapter TCK
 
-- [ ] `M3-010 P0` turn lifecycle。
+- [ ] `M3-010 P0` turn lifecycle。 **NEXT GATE。**
 - [ ] `M3-011 P0` tool ordering。
 - [ ] `M3-012 P0` denied call never enters body。
 - [ ] `M3-013 P0` final result mapping。
