@@ -5,7 +5,7 @@
  * TypeScript projections of the language-independent contracts; test fakes are
  * deterministic infrastructure and never protocol or Harness authority.
  */
-export const PACKAGE_STAGE = "M3-ADAPTER-DSH-FINAL-RESULT-MAPPING" as const;
+export const PACKAGE_STAGE = "M3-ADAPTER-DSH-APPROVAL-UNAVAILABLE" as const;
 
 export {
   TCK_FIXTURE_API_VERSION,
@@ -148,3 +148,20 @@ export type {
   AdapterDshFinalResultMappingStimulus,
   AdapterDshFinalResultOutcome,
 } from "./adapter-dsh-final-result-mapping.js";
+
+export {
+  ADAPTER_DSH_APPROVAL_UNAVAILABLE_ERROR_CODES,
+  ADAPTER_DSH_APPROVAL_UNAVAILABLE_OPERATION,
+  AdapterDshApprovalUnavailableFixtureError,
+  parseAdapterDshApprovalUnavailableFixture,
+  runAdapterDshApprovalUnavailableFixture,
+} from "./adapter-dsh-approval-unavailable.js";
+export type {
+  AdapterDshApprovalUnavailableCaseResult,
+  AdapterDshApprovalUnavailableErrorCode,
+  AdapterDshApprovalUnavailableFixture,
+  AdapterDshApprovalUnavailableObservable,
+  AdapterDshApprovalUnavailableRequest,
+  AdapterDshApprovalUnavailableSourceFact,
+  AdapterDshApprovalUnavailableStimulus,
+} from "./adapter-dsh-approval-unavailable.js";
