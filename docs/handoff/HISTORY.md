@@ -307,3 +307,56 @@ The next allowed gate is **M3-005 P0 — fake tool runtime**. It must again begi
 with a language-independent profile contract and portable fixtures, must retain
 the intent-vs-observed-outcome distinction, and must not pull M3-006
 filesystem/subprocess or M3-007 fault injection semantics forward.
+
+## 2026-08-19T09:18:00+08:00 — Close M3-005 deterministic fake tool runtime
+
+M3-005 closed on implementation head
+`d5cc341594e79e7203d2203052db27f37984dfa7` in protocol-/fixture-first order.
+
+- `specs/0006-m3-fake-tool-runtime-test-service.md` defines the portable fake
+  before its TypeScript projection and explicitly excludes production dispatch,
+  capability policy, filesystem/subprocess behavior, network access, Harness
+  binding, and fault injection;
+- the portable scripted outcome vocabulary is exactly `RESULT`, `ERROR`, and
+  `DENIED`;
+- a request is intent only and is separately observable from body entry and the
+  final outcome;
+- `RESULT` and deliberate scripted `ERROR` enter the fake body, while `DENIED`
+  produces no `BODY_ENTERED` trace entry;
+- the portable trace phases `REQUESTED`, `BODY_ENTERED`, and `OUTCOME` are TCK
+  test evidence only, not additions to the safe-runtime normalized event
+  vocabulary;
+- `tool-runtime-sequence.json`, `tool-runtime-denied.json`, and
+  `tool-runtime-script-exhausted.json` are ordinary JSON fixtures registered in
+  the shared fixture manifest;
+- script exhaustion is the explicit infrastructure error
+  `FAKE_TOOL_SCRIPT_EXHAUSTED` and does not invent request/body/outcome evidence;
+- malformed scripts and requests fail closed before execution evidence can be
+  produced;
+- the TypeScript projection imports no concrete Harness or adapter types and
+  executes no real filesystem, shell, subprocess, network, or environment
+  operation.
+
+Exact-head evidence for `d5cc3415...`:
+
+- normal CI #81 / job `95923943524`: PASS;
+- pinned pnpm 11.7.0 enable: PASS;
+- `pnpm install --frozen-lockfile`: PASS;
+- supply-chain lockfile policy: PASS (123 entries);
+- architecture boundaries: PASS;
+- schema shape: PASS (16 schemas);
+- schema compatibility baseline: PASS;
+- TypeScript typecheck: PASS;
+- fake tool runtime conformance: 6 tests PASS;
+- repository tests: 9 files / 73 tests PASS;
+- oxlint: 0 warnings / 0 errors.
+
+No schema, validator, TypeScript strictness, fixture contract, frozen lockfile,
+architecture boundary, or security guarantee was weakened. M4 and M6 remain
+unauthorized.
+
+The next and only newly authorized gate is **M3-006 P0 — fake
+filesystem/subprocess**. It must start with a language-independent contract,
+retain the accepted same-world/non-isolation provider facts, execute no real
+host effects, and must not pull M6 Workspace Transaction or M3-007 fault
+injection semantics forward.
