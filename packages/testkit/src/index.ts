@@ -5,7 +5,7 @@
  * TypeScript projections of the language-independent contracts; test fakes are
  * deterministic infrastructure and never protocol or Harness authority.
  */
-export const PACKAGE_STAGE = "M3-ADAPTER-DSH-TURN-LIFECYCLE" as const;
+export const PACKAGE_STAGE = "M3-ADAPTER-DSH-TOOL-ORDERING" as const;
 
 export {
   TCK_FIXTURE_API_VERSION,
@@ -97,3 +97,23 @@ export type {
   AdapterDshTurnLifecycleSourceEvent,
   AdapterDshTurnLifecycleStimulus,
 } from "./adapter-dsh-turn-lifecycle.js";
+
+export {
+  ADAPTER_DSH_TOOL_ORDERING_ERROR_CODES,
+  ADAPTER_DSH_TOOL_ORDERING_OPERATION,
+  AdapterDshToolOrderingFixtureError,
+  parseAdapterDshToolOrderingFixture,
+  runAdapterDshToolOrderingFixture,
+} from "./adapter-dsh-tool-ordering.js";
+export type {
+  AdapterDshToolOrderingCaseResult,
+  AdapterDshToolOrderingErrorCode,
+  AdapterDshToolOrderingExpectation,
+  AdapterDshToolOrderingFixture,
+  AdapterDshToolOrderingObservable,
+  AdapterDshToolOrderingProjection,
+  AdapterDshToolOrderingRequestObservation,
+  AdapterDshToolOrderingResultObservation,
+  AdapterDshToolOrderingSourceObservation,
+  AdapterDshToolOrderingStimulus,
+} from "./adapter-dsh-tool-ordering.js";
