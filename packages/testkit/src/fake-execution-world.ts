@@ -1,5 +1,3 @@
-import type { TckJsonValue } from "./tck-contract.js";
-
 export const FAKE_EXECUTION_WORLD_ERROR_CODES = [
   "FAKE_EXECUTION_WORLD_INVALID_CONFIG",
   "FAKE_FILESYSTEM_INVALID_REQUEST",
@@ -80,8 +78,6 @@ export interface FakeSubprocessObservation {
   readonly request: Readonly<FakeSubprocessSpawnRequest>;
   readonly execution: Readonly<FakeSubprocessExecutionSnapshot>;
 }
-
-type JsonRecord = Record<string, TckJsonValue>;
 
 type ParsedFilesystemTarget = Readonly<{
   targetRef: string;
