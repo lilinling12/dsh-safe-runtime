@@ -312,6 +312,24 @@
       "path": "tck/valid/adapter-dsh-denied-body-entry.json",
       "schema": "tck-fixture.schema.json",
       "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-FINAL-RESULT-001",
+      "path": "tck/valid/adapter-dsh-final-result-success.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-FINAL-RESULT-002",
+      "path": "tck/valid/adapter-dsh-final-result-error.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-FINAL-RESULT-003",
+      "path": "tck/valid/adapter-dsh-final-result-error-code.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
     }
   ]
 }
