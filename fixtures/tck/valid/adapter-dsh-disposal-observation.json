@@ -19,6 +19,7 @@
     "sourceFact": {
       "kind": "OBSERVATION_SUBSCRIPTION",
       "acceptedBeforeDispose": ["before-1"],
+      "disposeCompleted": true,
       "probedAfterDispose": ["after-1"],
       "repeatDispose": true
     }
