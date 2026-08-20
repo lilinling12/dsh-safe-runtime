@@ -19,6 +19,7 @@
     "sourceFact": {
       "kind": "TOOL_POLICY_REGISTRATION",
       "effectBeforeDispose": "DENY",
+      "disposeCompleted": true,
       "probeAfterDispose": "EXECUTE"
     }
   },
