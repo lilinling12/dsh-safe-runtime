@@ -342,6 +342,24 @@
       "path": "tck/valid/adapter-dsh-approval-unavailable-service-decision.json",
       "schema": "tck-fixture.schema.json",
       "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-CANCELLATION-APPROVAL-001",
+      "path": "tck/valid/adapter-dsh-cancellation-approval.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-CANCELLATION-TOOL-001",
+      "path": "tck/valid/adapter-dsh-cancellation-before-dispatch.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-CANCELLATION-TOOL-002",
+      "path": "tck/valid/adapter-dsh-cancellation-after-entry.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
     }
   ]
 }
