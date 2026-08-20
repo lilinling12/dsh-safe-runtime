@@ -23,22 +23,26 @@ export type AdapterDshDisposalSourceFact =
   | {
       readonly kind: "OBSERVATION_SUBSCRIPTION";
       readonly acceptedBeforeDispose: readonly string[];
+      readonly disposeCompleted: true;
       readonly probedAfterDispose: readonly string[];
       readonly repeatDispose: true;
     }
   | {
       readonly kind: "TOOL_POLICY_REGISTRATION";
       readonly effectBeforeDispose: "DENY";
+      readonly disposeCompleted: true;
       readonly probeAfterDispose: "EXECUTE";
     }
   | {
       readonly kind: "MONOTONIC_TOOL_GUARD_REGISTRATION";
       readonly effectBeforeDispose: "DENY";
+      readonly disposeCompleted: true;
       readonly probeAfterDispose: "EXECUTE";
     }
   | {
       readonly kind: "TURN_STOPPING_REGISTRATION";
       readonly effectBeforeDispose: "HANDLER_INVOKED";
+      readonly disposeCompleted: true;
       readonly probeAfterDispose: "TURN_STOPPING";
     };
 
@@ -207,12 +211,19 @@ function stringArray(value: unknown): readonly string[] | undefined {
   return result;
 }
 
+function requireDisposeCompleted(value: unknown): true {
+  if (value !== true) {
+    invalid("M3-016 source fact must carry explicit disposeCompleted true");
+  }
+  return true;
+}
+
 function parseObservationSource(
   value: Record<string, unknown>,
 ): Extract<AdapterDshDisposalSourceFact, { readonly kind: "OBSERVATION_SUBSCRIPTION" }> {
   exactKeys(
     value,
-    ["kind", "acceptedBeforeDispose", "probedAfterDispose", "repeatDispose"],
+    ["kind", "acceptedBeforeDispose", "disposeCompleted", "probedAfterDispose", "repeatDispose"],
     "fixture.stimulus.sourceFact",
   );
   if (value.repeatDispose !== true) {
@@ -224,6 +235,7 @@ function parseObservationSource(
       value.acceptedBeforeDispose,
       "fixture.stimulus.sourceFact.acceptedBeforeDispose",
     ),
+    disposeCompleted: requireDisposeCompleted(value.disposeCompleted),
     probedAfterDispose: nonEmptyStringArray(
       value.probedAfterDispose,
       "fixture.stimulus.sourceFact.probedAfterDispose",
@@ -238,9 +250,10 @@ function parseRegistrationSource(
 ): Exclude<AdapterDshDisposalSourceFact, { readonly kind: "OBSERVATION_SUBSCRIPTION" }> {
   exactKeys(
     value,
-    ["kind", "effectBeforeDispose", "probeAfterDispose"],
+    ["kind", "effectBeforeDispose", "disposeCompleted", "probeAfterDispose"],
     "fixture.stimulus.sourceFact",
   );
+  const disposeCompleted = requireDisposeCompleted(value.disposeCompleted);
   if (kind === "TURN_STOPPING_REGISTRATION") {
     if (value.effectBeforeDispose !== "HANDLER_INVOKED") {
       invalid("M3-016 turn-stopping positive control must be HANDLER_INVOKED");
@@ -251,6 +264,7 @@ function parseRegistrationSource(
     return {
       kind,
       effectBeforeDispose: "HANDLER_INVOKED",
+      disposeCompleted,
       probeAfterDispose: "TURN_STOPPING",
     };
   }
@@ -263,6 +277,7 @@ function parseRegistrationSource(
   return {
     kind,
     effectBeforeDispose: "DENY",
+    disposeCompleted,
     probeAfterDispose: "EXECUTE",
   };
 }
