@@ -52,6 +52,10 @@ The M3-016 portable operation is:
 disposal
 ```
 
+The operation is the explicit disposal invocation in the fixture. A source fact
+MUST additionally carry `disposeCompleted: true`; invocation intent without that
+source-side completion fact is insufficient disposal proof.
+
 Every fixture uses profile `ADAPTER_DSH` and exactly one disposal resource kind.
 
 ## 4. Resource kinds
@@ -81,12 +85,16 @@ Portable source form:
 {
   "kind": "OBSERVATION_SUBSCRIPTION",
   "acceptedBeforeDispose": ["before-1"],
+  "disposeCompleted": true,
   "probedAfterDispose": ["after-1"],
   "repeatDispose": true
 }
 ```
 
 The identifiers are deterministic probe references, not Harness event ids.
+`disposeCompleted: true` is source evidence that the explicit disposal invocation
+has fulfilled the observation contract, including its required drain of work
+accepted before cutoff. It is not inferred from the later absence of effects.
 
 ### 5.2 Required semantics
 
@@ -131,6 +139,7 @@ Portable observable:
 {
   "kind": "TOOL_POLICY_REGISTRATION",
   "effectBeforeDispose": "DENY",
+  "disposeCompleted": true,
   "probeAfterDispose": "EXECUTE"
 }
 ```
@@ -173,6 +182,7 @@ later normative revision.
 {
   "kind": "MONOTONIC_TOOL_GUARD_REGISTRATION",
   "effectBeforeDispose": "DENY",
+  "disposeCompleted": true,
   "probeAfterDispose": "EXECUTE"
 }
 ```
@@ -211,6 +221,7 @@ Repeat-dispose idempotence is not standardized for this resource kind in M3-016.
 {
   "kind": "TURN_STOPPING_REGISTRATION",
   "effectBeforeDispose": "HANDLER_INVOKED",
+  "disposeCompleted": true,
   "probeAfterDispose": "TURN_STOPPING"
 }
 ```
@@ -247,12 +258,16 @@ Absence of a later effect is not, by itself, disposal evidence.
 Every conforming case MUST contain all of the following:
 
 1. a positive-control effect proving the registration/subscription was active;
-2. an explicit disposal invocation;
-3. disposal completion according to the resource contract;
+2. the explicit `operation: disposal` invocation;
+3. source-side `disposeCompleted: true` according to the resource contract;
 4. a post-disposal positive-control source probe through the same still-live
    external runtime;
 5. an observable proving the disposed registration no longer contributes its
    effect.
+
+`disposeCompleted` MUST be present in `sourceFact`; it MUST NOT be synthesized
+from `expect`, from a missing later effect, or from implementation output alone.
+A false or missing value fails fixture validation.
 
 Timing delays, garbage collection, process exit, missing source probes, or
 missing results MUST NOT be used as disposal authority.
@@ -290,8 +305,10 @@ resourceRef
 `resourceRef` is fixture-local opaque correlation data. A portable consumer may
 compare it for equality but MUST NOT parse implementation identity from it.
 
-`sourceFact` is exactly one closed resource-kind form from sections 5–8.
-Unknown fields fail fixture validation.
+Every `sourceFact` contains explicit `disposeCompleted: true` plus exactly the
+resource-specific positive-control and post-disposal-probe fields defined in
+sections 5–8. Unknown fields fail fixture validation. `disposeCompleted` is a
+source-side lifecycle fact, not an expectation field.
 
 ## 12. Runner semantics
 
@@ -312,7 +329,8 @@ For M3-016:
 - exact match -> `PASS`.
 
 Expectation data is comparison-only. The runner MUST NOT use `expect` to decide
-which resource was disposed or which before/after effects occurred.
+which resource was disposed, whether disposal completed, or which before/after
+effects occurred.
 
 ## 13. Required portable cases
 
