@@ -19,6 +19,7 @@
     "sourceFact": {
       "kind": "TURN_STOPPING_REGISTRATION",
       "effectBeforeDispose": "HANDLER_INVOKED",
+      "disposeCompleted": true,
       "probeAfterDispose": "TURN_STOPPING"
     }
   },
