@@ -5,14 +5,14 @@
 
 ## Snapshot
 
-- Recorded at: `2026-08-20`
+- Recorded at: `2026-08-21`
 - Repository: `lilinling12/dsh-safe-runtime`
 - Phase: `M3 — Shared TCK Foundation`
 - Pull request: `#2 — feat(testkit): establish M3 shared TCK foundation`
 - PR state: `OPEN / DRAFT`
 - Branch: `feat/m3-shared-tck-foundation`
 - Stacked base: `feat/m2-harness-adapter@6a9c64155ec6c376908e64d70f2b50d5b8de1285`
-- Verified M3-014 implementation head: `656de1dc4bd4c8d07aa8f3079f7e4ab77e1baf3b`
+- Verified M3-015 implementation head: `1429d08c3f36c24a13f023fb037ed8c3de514b61`
 - M2 acceptance: **ACCEPTED**
 
 PR #2 remains intentionally stacked on the accepted M2 branch. M3 changes MUST
@@ -127,8 +127,7 @@ Accepted semantic proof:
    `approval/decided`, correlates both by the Harness-generated approval id, and
    records decided outcome `unavailable`;
 7. policy `never` remains `REJECTED`, not unavailable;
-8. abort/cancellation remains `CANCELLED`, not unavailable, and is reserved for
-   M3-015;
+8. abort/cancellation remains `CANCELLED`, not unavailable;
 9. `REJECTED`, `CANCELLED`, and `ALLOWED_ONCE` are rejected by the M3-014 portable
    profile when presented as unavailable source evidence;
 10. service-absent fixtures cannot manufacture decision/audit fields, while
@@ -137,87 +136,143 @@ Accepted semantic proof:
 12. implementation exceptions or malformed projections are runner `ERROR`;
     valid mismatches are runner `FAIL`;
 13. expectation/oracle data cannot manufacture unavailable source classification;
-14. no AbortSignal-based cancellation scenario, M3-015 semantics, M3-016 disposal,
-    M3-017 replay, M4 Capability Broker, or M6 Workspace Transaction semantics
-    were pulled forward;
+14. no M3-015 cancellation, M3-016 disposal, M3-017 replay, M4 Capability Broker,
+    or M6 Workspace Transaction semantics were pulled forward;
 15. no production Adapter source logic was changed to satisfy the TCK;
 16. no schema, compatibility baseline, TypeScript strictness, frozen lockfile,
     architecture rule, validator, TCK expectation, or security guarantee was
     weakened.
 
+Final exact-head evidence for `656de1dc...`: CI #150 PASS and exact Harness rc5
+#109 PASS, including source-conformance steps 10 and 11.
+
+### M3-015 — Adapter DSH cancellation Shared TCK
+
+**ACCEPTED on verified implementation head
+`1429d08c3f36c24a13f023fb037ed8c3de514b61`.**
+
+Normative/profile authority is
+`specs/0014-m3-adapter-dsh-cancellation-tck.md`. Generic testkit, production
+Adapter observation, and pinned Harness tests are projections/evidence only.
+
+Accepted semantic proof:
+
+1. approval-request cancellation and final tool-result cancellation remain two
+   distinct authority families; the portable profile does not synthesize a
+   third combined cancellation event;
+2. approval cancellation requires the explicit decision
+   `APPROVAL_DECISION/CANCELLED` and remains distinct from `REJECTED`,
+   `UNAVAILABLE`, and `ALLOWED_ONCE`;
+3. approval cancellation persists one correlated durable
+   `approval/asked + approval/decided(cancelled)` pair in the real pinned rc5
+   ApprovalService proof;
+4. final tool cancellation remains authoritative only through live
+   `tools/result` evidence and exact machine codes `ABORTED` or
+   `ABORTED_BEFORE_DISPATCH`;
+5. `ABORTED_BEFORE_DISPATCH` is proven against the real pinned rc5 ToolRuntime
+   with body-entry instrumentation showing the registered body was not invoked;
+6. `ABORTED` is proven against the real pinned rc5 ToolRuntime after the body
+   explicitly entered and cooperatively settled following caller cancellation;
+7. production Adapter observation maps both exact final-result codes to
+   `tool.completed/outcome=cancelled` while preserving exact `errorCode` and the
+   authoritative final-result digest;
+8. production `policyCancelled` same-call correlation is exercised directly:
+   an explicit approval `cancelled` decision may authoritatively classify the
+   correlated final error as cancelled even when that final error does not carry
+   either `ABORTED*` code;
+9. that correlation does not broaden arbitrary errors into cancellation and does
+   not make approval cancellation an alias for final-result code authority;
+10. arbitrary error codes, successful results carrying cancellation codes,
+    missing/malformed correlation, and non-`CANCELLED` approval decisions fail
+    closed in the portable profile;
+11. expectation/oracle data cannot manufacture cancellation classification;
+12. malformed/non-portable inputs fail before implementation invocation;
+    implementation exceptions/malformed projections are runner `ERROR`, while
+    valid mismatches are runner `FAIL`;
+13. the pinned rc5 optional `ToolFailure.info` surface is respected by the exact
+    test through safe optional metadata access; no cast, `any`, `@ts-ignore`,
+    tsconfig relaxation, dependency change, or production workaround was used;
+14. no production Adapter source logic was changed for M3-015;
+15. no schema, compatibility baseline, TypeScript strictness, frozen lockfile,
+    architecture rule, validator, TCK expectation, or security guarantee was
+    weakened;
+16. M3-016 disposal, M3-017 replay reconciliation, M4 Capability Broker, and M6
+    Workspace Transaction semantics remain out of scope.
+
 Implemented artifacts include:
 
-- `specs/0013-m3-adapter-dsh-approval-unavailable-tck.md`;
-- `fixtures/tck/valid/adapter-dsh-approval-unavailable-service-absent.json`;
-- `fixtures/tck/valid/adapter-dsh-approval-unavailable-service-decision.json`;
-- generic strict parser/runner and boundary tests in `packages/testkit`;
-- public testkit exports and fixture-manifest registration;
-- strengthened exact pinned rc5 approval source-conformance through production
-  `requestApproval()` for both unavailable source forms.
+- `specs/0014-m3-adapter-dsh-cancellation-tck.md`;
+- three portable M3-015 fixtures for approval cancellation,
+  `ABORTED_BEFORE_DISPATCH`, and `ABORTED`;
+- strict generic cancellation parser/runner and boundary tests in
+  `packages/testkit`;
+- public testkit exports and manifest registration;
+- exact pinned rc5 cancellation source-conformance through public
+  ApprovalService and ToolRuntime seams plus production Adapter observation.
 
-Final exact-head evidence for `656de1dc...`:
+Final exact-head evidence for `1429d08c...`:
 
 | Gate | State | Evidence |
 | --- | --- | --- |
-| Normal CI | **PASS** | run #150 / run id `32298046122` / job `96213934409` |
-| Exact Harness rc5 source-conformance | **PASS** | run #109 / run id `32298045869` / job `96213933565` |
-| Frozen install | **PASS** | `pnpm install --frozen-lockfile` |
-| Supply-chain lockfile policy | **PASS** | 123 entries verified |
-| Architecture boundaries | **PASS** | `verify-boundaries.mjs` |
-| Schema shape / compatibility baseline | **PASS** | 16 schemas / baseline green |
-| TypeScript typecheck | **PASS** | repository typecheck green |
-| Full repository tests | **PASS** | 20 files / 186 tests |
-| M3-014 generic runner | **PASS** | 14 tests |
-| Lint | **PASS** | 0 warnings / 0 errors |
+| Normal CI | **PASS** | run #162 / run id `32414114339` / job `96571199366` |
+| Frozen install / repository checks | **PASS** | CI `pnpm install --frozen-lockfile` + `pnpm check:all` |
+| Exact Harness rc5 source-conformance | **PASS** | run #121 / run id `32414114346` / job `96571199379` |
+| Exact pinned rc5 source projection | **PASS** | source-conformance steps 6–9 green |
 | Exact pinned rc5 binding typecheck | **PASS** | source-conformance step 10 green |
 | Real pinned rc5 runtime conformance | **PASS** | source-conformance step 11 green |
 
-The GitHub Actions runner emits a platform deprecation warning because
-`actions/checkout@v4` and `actions/setup-node@v4` target Node 20 while GitHub is
-forcing those actions onto Node 24. This is not repository lint output; oxlint
-remains 0 warnings / 0 errors. It is not used to weaken or waive any code-quality
-gate.
+The initial exact conformance head `c714ec80...` exposed a strict pinned-type
+mismatch in test-side access to optional `ToolFailure.info`. Commit
+`3b3af9291de6bb0f023a1b926929c7a0d97127ac` corrected only the test read from
+`error?.info.code` to `error?.info?.code`; its CI #161 and Harness #120 both
+passed, including steps 10/11. This preserved rather than weakened the pinned
+public type contract.
+
+The manifest registration commit `1429d08c...` was audited as one tail-only hunk:
+three M3-015 records were appended after the two M3-014 records; no existing
+fixture record was reordered or semantically modified.
 
 ## Current gate
 
-**M3-015 P0 — Adapter DSH cancellation Shared TCK.**
+**M3-016 P0 — Adapter DSH disposal Shared TCK.**
 
-M3-015 is the next and only newly authorized implementation gate. It MUST begin
-with a language-independent cancellation contract before TypeScript or
-Adapter-specific implementation work.
+M3-016 is the next and only newly authorized implementation gate, but it MUST NOT
+start until the exact live governance head containing this handoff update has
+both normal CI and exact Harness rc5 source-conformance green.
 
-Required boundaries for M3-015:
+Required boundaries for M3-016:
 
-- reconcile the existing portable approval decision `CANCELLED`, Spec 0003
-  approval semantics, production `normalizeApprovalOutcome()`, production
-  `normalizeFinalToolResult()`, and pinned rc5 public cancellation seams;
-- define explicit cancellation source facts before defining portable projection
-  fields;
-- preserve `CANCELLED != UNAVAILABLE != REJECTED`;
-- preserve the M3-013 rule that final tool outcome comes from authoritative
-  `tools/result` evidence, not request/body-entry absence;
-- distinguish approval-request cancellation from final tool-result cancellation;
-- treat `ABORTED` and `ABORTED_BEFORE_DISPATCH` only as exact accepted final-tool
-  cancellation codes; do not broaden arbitrary error strings/codes into
-  cancellation;
-- use explicit AbortSignal/public cancellation facts where applicable rather than
-  infer cancellation from timing, missing results, or exception prose;
-- preserve M3-012 denied-body-entry and M3-014 unavailable semantics;
-- do not pull M3-016 disposal, M3-017 replay reconciliation, M4 Capability Broker,
-  or M6 Workspace Transaction semantics forward;
+- begin with a language-independent disposal/lifecycle contract before adding or
+  changing TypeScript or Adapter-specific behavior;
+- define which owned subscriptions, listeners, policies, guards, and other
+  resources require explicit disposal and which are externally owned;
+- distinguish registration lifetime, subscription lifetime, observation drain,
+  and disposal completion rather than treating them as one boolean state;
+- prove disposal is idempotent or explicitly reject repeat disposal according to
+  the normative contract; do not rely on incidental implementation behavior;
+- prove disposed resources stop producing future observable effects without
+  deleting or rewriting already durable evidence;
+- preserve M3-010 through M3-015 event authority, ordering, denied-body-entry,
+  final-result, unavailable, and cancellation semantics;
+- do not infer successful disposal from missing events, timing, garbage
+  collection, or process exit;
+- use public pinned rc5 lifecycle/disposal seams only for compatibility evidence;
+  private fields or implementation-only collection inspection are not protocol
+  authority;
+- do not pull M3-017 replay reconciliation, M4 Capability Broker, or M6 Workspace
+  Transaction semantics forward;
 - DeepSeek Harness remains compatibility evidence, never protocol authority.
 
-Before implementation, inspect Spec 0003, Spec 0005, production approval/final
-result normalizers, existing exact approval/tool-result tests, and the exact
-pinned rc5 public approval/tool cancellation implementation. Then define the
-portable M3-015 contract/fixtures first.
+Before implementation, inspect existing Adapter `observe()` / policy registration
+cleanup behavior, package-local subscription/disposal tests, Spec 0003 lifecycle
+language, and the exact pinned rc5 public registration/disposal APIs. Then define
+the portable M3-016 source facts and contract before fixtures or TypeScript.
 
 ## Deferred M3 work
 
 Not yet implemented:
 
-- `M3-015 P0` cancellation — **CURRENT GATE**;
-- `M3-016 P0` disposal;
+- `M3-016 P0` disposal — **NEXT GATE AFTER GOVERNANCE DUAL-GREEN**;
 - `M3-017 P1` replay reconciliation.
 
 ## Boundaries that remain enforced
@@ -246,11 +301,11 @@ MUST NOT be claimed as updated.
 ## Resume instruction
 
 Read `docs/handoff/README.md`, this file, PR #2 live metadata, and workflow runs
-for the exact live head before editing. The verified M3-014 implementation head
-is `656de1dc4bd4c8d07aa8f3079f7e4ab77e1baf3b`; this documentation commit advances
+for the exact live head before editing. The verified M3-015 implementation head
+is `1429d08c3f36c24a13f023fb037ed8c3de514b61`; this documentation commit advances
 the branch beyond that implementation head, so live GitHub evidence still wins.
 
 Only after this exact live governance head's triggered checks are green, continue
-with **M3-015 Adapter DSH cancellation Shared TCK** in protocol-/fixture-first
-order. If the governance head fails, repair that exact failure without weakening
-any gate and do not start M3-015 early.
+with **M3-016 Adapter DSH disposal Shared TCK** in protocol-/fixture-first order.
+If the governance head fails, repair that exact failure without weakening any
+gate and do not start M3-016 early.
