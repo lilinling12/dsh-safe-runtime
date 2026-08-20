@@ -19,6 +19,7 @@
     "sourceFact": {
       "kind": "MONOTONIC_TOOL_GUARD_REGISTRATION",
       "effectBeforeDispose": "DENY",
+      "disposeCompleted": true,
       "probeAfterDispose": "EXECUTE"
     }
   },
