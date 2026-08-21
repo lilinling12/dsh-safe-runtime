@@ -101,11 +101,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
     && Object.getOwnPropertySymbols(value).length === 0;
 }
 
-function exactKeys(
-  value: Record<string, unknown>,
-  expected: readonly string[],
-  label: string,
-): void {
+function exactKeys(value: Record<string, unknown>, expected: readonly string[], label: string): void {
   const actual = Object.keys(value).sort();
   const wanted = [...expected].sort();
   if (actual.length !== wanted.length || actual.some((key, index) => key !== wanted[index])) {
@@ -113,50 +109,32 @@ function exactKeys(
   }
 }
 
-function onlyKeys(
+function allowedKeys(
   value: Record<string, unknown>,
   required: readonly string[],
   optional: readonly string[],
   label: string,
 ): void {
-  const allowed = new Set([...required, ...optional]);
+  const allowed = new Set<string>([...required, ...optional]);
   const actual = Object.keys(value);
-  if (required.some(key => !Object.hasOwn(value, key)) || actual.some(key => !allowed.has(key))) {
-    invalid(
-      `${label} must contain required fields ${required.join(", ")} and only optional fields ${optional.join(", ")}`,
-    );
+  for (const key of required) {
+    if (!Object.hasOwn(value, key)) invalid(`${label} is missing required field ${key}`);
+  }
+  for (const key of actual) {
+    if (!allowed.has(key)) invalid(`${label} contains unsupported field ${key}`);
   }
 }
 
 function nonEmptyString(value: unknown, label: string): string {
-  if (typeof value !== "string" || value.length === 0) {
-    invalid(`${label} must be a non-empty string`);
-  }
+  if (typeof value !== "string" || value.length === 0) invalid(`${label} must be a non-empty string`);
   return value;
 }
 
-function safeInteger(value: unknown, label: string, positive = false): number {
-  if (
-    typeof value !== "number"
-    || !Number.isSafeInteger(value)
-    || value < 0
-    || (positive && value === 0)
-  ) {
-    invalid(`${label} must be a ${positive ? "positive" : "non-negative"} safe integer`);
-  }
-  return value;
-}
-
-/**
- * Reject JavaScript strings that cannot denote one Unicode scalar sequence.
- * M3-017 orders evidence refs by UTF-8 bytes; accepting lone surrogates would
- * make that ordering depend on a language/runtime's replacement policy.
- */
 function unicodeScalarString(value: unknown, label: string): string {
   const text = nonEmptyString(value, label);
   for (let index = 0; index < text.length; index += 1) {
-    const unit = text.charCodeAt(index);
-    if (unit >= 0xd800 && unit <= 0xdbff) {
+    const codeUnit = text.charCodeAt(index);
+    if (codeUnit >= 0xd800 && codeUnit <= 0xdbff) {
       const next = text.charCodeAt(index + 1);
       if (!(next >= 0xdc00 && next <= 0xdfff)) {
         invalid(`${label} must contain only Unicode scalar values`);
@@ -164,23 +142,26 @@ function unicodeScalarString(value: unknown, label: string): string {
       index += 1;
       continue;
     }
-    if (unit >= 0xdc00 && unit <= 0xdfff) {
+    if (codeUnit >= 0xdc00 && codeUnit <= 0xdfff) {
       invalid(`${label} must contain only Unicode scalar values`);
     }
   }
   return text;
 }
 
+function safeInteger(value: unknown, label: string, positive = false): number {
+  if (typeof value !== "number" || !Number.isSafeInteger(value) || value < 0 || (positive && value === 0)) {
+    invalid(`${label} must be a ${positive ? "positive" : "non-negative"} safe integer`);
+  }
+  return value;
+}
+
 /**
- * Materialize only portable JSON before profile parsing. The TCK must reject
- * runtime-specific identity, cycles, sparse/decorated arrays, and non-finite
- * numbers before reconciliation semantics are evaluated.
+ * Materialize only portable JSON values before profile parsing. This rejects
+ * runtime-specific objects, symbols, cycles, sparse/decorated arrays, and
+ * non-finite numbers before replay semantics are considered.
  */
-function portableJson(
-  value: unknown,
-  label: string,
-  seen = new Set<object>(),
-): TckJsonValue {
+function portableJson(value: unknown, label: string, seen = new Set<object>()): TckJsonValue {
   if (value === null || typeof value === "string" || typeof value === "boolean") return value;
   if (typeof value === "number") {
     if (!Number.isFinite(value)) invalid(`${label} must contain only finite JSON numbers`);
@@ -238,36 +219,23 @@ function parseEnvelope(value: unknown): TckFixtureV1Alpha1 {
   return json as unknown as TckFixtureV1Alpha1;
 }
 
-function parseRequest(value: unknown): AdapterDshReplayReconciliationRequest {
-  if (!isRecord(value)) invalid("fixture.stimulus.request must be an object");
-  exactKeys(value, ["sessionRef"], "fixture.stimulus.request");
-  return {
-    sessionRef: nonEmptyString(value.sessionRef, "fixture.stimulus.request.sessionRef"),
-  };
-}
-
-function canonicalEventRef(sessionRef: string, durableSequence: number): string {
-  return `${sessionRef}/seq:${durableSequence}`;
+function canonicalEventRef(sessionRef: string, sequence: number): string {
+  return `${sessionRef}/seq:${sequence}`;
 }
 
 function parseDurableFact(
   value: unknown,
-  expectedSessionRef: string,
   label: string,
+  expectedSessionRef: string,
 ): AdapterDshReplayDurableFact {
   if (!isRecord(value)) invalid(`${label} must be an object`);
-  exactKeys(
-    value,
-    ["sessionRef", "durableSequence", "durableEventRef", "eventDigest"],
-    label,
-  );
+  exactKeys(value, ["sessionRef", "durableSequence", "durableEventRef", "eventDigest"], label);
   const sessionRef = nonEmptyString(value.sessionRef, `${label}.sessionRef`);
-  if (sessionRef !== expectedSessionRef) invalid(`${label}.sessionRef must match the replay request`);
+  if (sessionRef !== expectedSessionRef) invalid(`${label}.sessionRef must match request.sessionRef`);
   const durableSequence = safeInteger(value.durableSequence, `${label}.durableSequence`);
   const durableEventRef = nonEmptyString(value.durableEventRef, `${label}.durableEventRef`);
-  const expectedEventRef = canonicalEventRef(sessionRef, durableSequence);
-  if (durableEventRef !== expectedEventRef) {
-    invalid(`${label}.durableEventRef must equal ${expectedEventRef}`);
+  if (durableEventRef !== canonicalEventRef(sessionRef, durableSequence)) {
+    invalid(`${label}.durableEventRef is not canonical for its session/sequence`);
   }
   return {
     sessionRef,
@@ -277,25 +245,29 @@ function parseDurableFact(
   };
 }
 
-function parseFactArray(
+function parseFactList(
   value: unknown,
-  sessionRef: string,
   label: string,
+  expectedSessionRef: string,
 ): readonly AdapterDshReplayDurableFact[] {
   if (!Array.isArray(value)) invalid(`${label} must be an array`);
-  return value.map((entry, index) => parseDurableFact(entry, sessionRef, `${label}[${index}]`));
+  return value.map((entry, index) => parseDurableFact(entry, `${label}[${index}]`, expectedSessionRef));
 }
 
 function parseSnapshot(
   value: unknown,
-  sessionRef: string,
-): AdapterDshReplayReconciliationSource["snapshot"] {
+  expectedSessionRef: string,
+): { readonly facts: readonly AdapterDshReplayDurableFact[] } {
   if (!isRecord(value)) invalid("fixture.stimulus.source.snapshot must be an object");
   exactKeys(value, ["facts"], "fixture.stimulus.source.snapshot");
-  const facts = parseFactArray(value.facts, sessionRef, "fixture.stimulus.source.snapshot.facts");
-  for (let index = 0; index < facts.length; index += 1) {
-    if (facts[index]?.durableSequence !== index) {
-      invalid("fixture.stimulus.source.snapshot must be a complete contiguous prefix from sequence 0");
+  const facts = parseFactList(
+    value.facts,
+    "fixture.stimulus.source.snapshot.facts",
+    expectedSessionRef,
+  );
+  for (const [index, fact] of facts.entries()) {
+    if (fact.durableSequence !== index) {
+      invalid("M3-017 snapshot must be a complete contiguous prefix starting at sequence 0");
     }
   }
   return { facts };
@@ -303,29 +275,18 @@ function parseSnapshot(
 
 function parseLive(
   value: unknown,
-  sessionRef: string,
-): AdapterDshReplayReconciliationSource["live"] {
+  expectedSessionRef: string,
+): { readonly facts: readonly AdapterDshReplayDurableFact[] } {
   if (!isRecord(value)) invalid("fixture.stimulus.source.live must be an object");
   exactKeys(value, ["facts"], "fixture.stimulus.source.live");
-  return {
-    // Ordering/gap/overlap is reconciliation semantics, not parser authority.
-    facts: parseFactArray(value.facts, sessionRef, "fixture.stimulus.source.live.facts"),
-  };
-}
-
-function parseOptionalRef(
-  value: Record<string, unknown>,
-  key: "turnRef" | "stepRef" | "callRef",
-  label: string,
-): string | undefined {
-  if (!Object.hasOwn(value, key)) return undefined;
-  return nonEmptyString(value[key], `${label}.${key}`);
+  const facts = parseFactList(value.facts, "fixture.stimulus.source.live.facts", expectedSessionRef);
+  return { facts };
 }
 
 function parseSidecarEvidence(
   value: unknown,
-  expectedSessionRef: string,
   label: string,
+  expectedSessionRef: string,
 ): AdapterDshReplaySidecarEvidence {
   if (!isRecord(value)) invalid(`${label} must be an object`);
   const required = [
@@ -336,18 +297,17 @@ function parseSidecarEvidence(
     "evidenceDigest",
   ] as const;
   const optional = ["turnRef", "stepRef", "callRef"] as const;
-  onlyKeys(value, required, optional, label);
+  allowedKeys(value, required, optional, label);
   const sessionRef = nonEmptyString(value.sessionRef, `${label}.sessionRef`);
-  if (sessionRef !== expectedSessionRef) invalid(`${label}.sessionRef must match the replay request`);
+  if (sessionRef !== expectedSessionRef) invalid(`${label}.sessionRef must match request.sessionRef`);
   const durableSequence = safeInteger(value.durableSequence, `${label}.durableSequence`);
   const durableEventRef = nonEmptyString(value.durableEventRef, `${label}.durableEventRef`);
-  const expectedEventRef = canonicalEventRef(sessionRef, durableSequence);
-  if (durableEventRef !== expectedEventRef) {
-    invalid(`${label}.durableEventRef must equal ${expectedEventRef}`);
+  if (durableEventRef !== canonicalEventRef(sessionRef, durableSequence)) {
+    invalid(`${label}.durableEventRef is not canonical for its session/sequence`);
   }
-  const turnRef = parseOptionalRef(value, "turnRef", label);
-  const stepRef = parseOptionalRef(value, "stepRef", label);
-  const callRef = parseOptionalRef(value, "callRef", label);
+  const turnRef = value.turnRef === undefined ? undefined : nonEmptyString(value.turnRef, `${label}.turnRef`);
+  const stepRef = value.stepRef === undefined ? undefined : nonEmptyString(value.stepRef, `${label}.stepRef`);
+  const callRef = value.callRef === undefined ? undefined : nonEmptyString(value.callRef, `${label}.callRef`);
   return {
     durableEventRef,
     durableSequence,
@@ -360,21 +320,34 @@ function parseSidecarEvidence(
   };
 }
 
+function parseSidecarList(
+  value: unknown,
+  expectedSessionRef: string,
+): readonly AdapterDshReplaySidecarEvidence[] {
+  if (!Array.isArray(value)) invalid("fixture.stimulus.source.sidecar must be an array");
+  return value.map((entry, index) => parseSidecarEvidence(
+    entry,
+    `fixture.stimulus.source.sidecar[${index}]`,
+    expectedSessionRef,
+  ));
+}
+
+function parseRequest(value: unknown): AdapterDshReplayReconciliationRequest {
+  if (!isRecord(value)) invalid("fixture.stimulus.request must be an object");
+  exactKeys(value, ["sessionRef"], "fixture.stimulus.request");
+  return { sessionRef: nonEmptyString(value.sessionRef, "fixture.stimulus.request.sessionRef") };
+}
+
 function parseSource(
   value: unknown,
-  sessionRef: string,
+  expectedSessionRef: string,
 ): AdapterDshReplayReconciliationSource {
   if (!isRecord(value)) invalid("fixture.stimulus.source must be an object");
   exactKeys(value, ["snapshot", "live", "sidecar"], "fixture.stimulus.source");
-  if (!Array.isArray(value.sidecar)) invalid("fixture.stimulus.source.sidecar must be an array");
   return {
-    snapshot: parseSnapshot(value.snapshot, sessionRef),
-    live: parseLive(value.live, sessionRef),
-    sidecar: value.sidecar.map((entry, index) => parseSidecarEvidence(
-      entry,
-      sessionRef,
-      `fixture.stimulus.source.sidecar[${index}]`,
-    )),
+    snapshot: parseSnapshot(value.snapshot, expectedSessionRef),
+    live: parseLive(value.live, expectedSessionRef),
+    sidecar: parseSidecarList(value.sidecar, expectedSessionRef),
   };
 }
 
@@ -392,86 +365,56 @@ function parseStimulus(value: unknown): AdapterDshReplayReconciliationStimulus {
   };
 }
 
-function isConflictCode(value: unknown): value is AdapterDshReplayConflictCode {
-  return typeof value === "string"
-    && (ADAPTER_DSH_REPLAY_CONFLICT_CODES as readonly string[]).includes(value);
-}
-
 function parseReconciledExpectation(
   value: Record<string, unknown>,
-  requestSessionRef: string,
+  expectedSessionRef: string,
 ): Extract<AdapterDshReplayReconciliationObservable, { readonly kind: "REPLAY_RECONCILED" }> {
   exactKeys(
     value,
     ["kind", "sessionRef", "nextDurableSequence", "durableFacts", "evidence"],
     "fixture.expect",
   );
-  const sessionRef = nonEmptyString(value.sessionRef, "fixture.expect.sessionRef");
-  if (sessionRef !== requestSessionRef) invalid("fixture.expect.sessionRef must match the replay request");
-  const durableFacts = parseFactArray(value.durableFacts, sessionRef, "fixture.expect.durableFacts");
-  for (let index = 0; index < durableFacts.length; index += 1) {
-    if (durableFacts[index]?.durableSequence !== index) {
-      invalid("fixture.expect.durableFacts must be a complete contiguous prefix from sequence 0");
-    }
-  }
-  const nextDurableSequence = safeInteger(
-    value.nextDurableSequence,
-    "fixture.expect.nextDurableSequence",
-  );
-  if (nextDurableSequence !== durableFacts.length) {
-    invalid("fixture.expect.nextDurableSequence must equal the reconciled durable prefix length");
-  }
-  if (!Array.isArray(value.evidence)) invalid("fixture.expect.evidence must be an array");
-  const evidence = value.evidence.map((entry, index) => parseSidecarEvidence(
-    entry,
-    sessionRef,
-    `fixture.expect.evidence[${index}]`,
-  ));
-  const durableRefs = new Set(durableFacts.map(fact => fact.durableEventRef));
-  if (evidence.some(record => !durableRefs.has(record.durableEventRef))) {
-    invalid("fixture.expect.evidence must anchor only to fixture.expect.durableFacts");
-  }
+  if (value.kind !== "REPLAY_RECONCILED") invalid("fixture.expect.kind must be REPLAY_RECONCILED");
+  if (value.sessionRef !== expectedSessionRef) invalid("fixture.expect.sessionRef must match request.sessionRef");
   return {
     kind: "REPLAY_RECONCILED",
-    sessionRef,
-    nextDurableSequence,
-    durableFacts,
-    evidence,
+    sessionRef: expectedSessionRef,
+    nextDurableSequence: safeInteger(value.nextDurableSequence, "fixture.expect.nextDurableSequence"),
+    durableFacts: parseFactList(value.durableFacts, "fixture.expect.durableFacts", expectedSessionRef),
+    evidence: parseSidecarList(value.evidence, expectedSessionRef),
   };
 }
 
 function parseConflictExpectation(
   value: Record<string, unknown>,
-  requestSessionRef: string,
+  expectedSessionRef: string,
 ): Extract<AdapterDshReplayReconciliationObservable, { readonly kind: "REPLAY_CONFLICT" }> {
-  exactKeys(
-    value,
-    ["kind", "sessionRef", "code", "durableSequence"],
-    "fixture.expect",
-  );
-  const sessionRef = nonEmptyString(value.sessionRef, "fixture.expect.sessionRef");
-  if (sessionRef !== requestSessionRef) invalid("fixture.expect.sessionRef must match the replay request");
-  if (!isConflictCode(value.code)) invalid("fixture.expect.code is not a M3-017 conflict code");
+  exactKeys(value, ["kind", "sessionRef", "code", "durableSequence"], "fixture.expect");
+  if (value.kind !== "REPLAY_CONFLICT") invalid("fixture.expect.kind must be REPLAY_CONFLICT");
+  if (value.sessionRef !== expectedSessionRef) invalid("fixture.expect.sessionRef must match request.sessionRef");
+  if (!ADAPTER_DSH_REPLAY_CONFLICT_CODES.includes(value.code as AdapterDshReplayConflictCode)) {
+    invalid("fixture.expect.code is not a recognized M3-017 replay conflict");
+  }
   return {
     kind: "REPLAY_CONFLICT",
-    sessionRef,
-    code: value.code,
+    sessionRef: expectedSessionRef,
+    code: value.code as AdapterDshReplayConflictCode,
     durableSequence: safeInteger(value.durableSequence, "fixture.expect.durableSequence"),
   };
 }
 
 function parseExpectation(
   value: unknown,
-  requestSessionRef: string,
+  expectedSessionRef: string,
 ): AdapterDshReplayReconciliationObservable {
   if (!isRecord(value)) invalid("fixture.expect must be an object");
   switch (value.kind) {
     case "REPLAY_RECONCILED":
-      return parseReconciledExpectation(value, requestSessionRef);
+      return parseReconciledExpectation(value, expectedSessionRef);
     case "REPLAY_CONFLICT":
-      return parseConflictExpectation(value, requestSessionRef);
+      return parseConflictExpectation(value, expectedSessionRef);
     default:
-      invalid("fixture.expect.kind is not a M3-017 replay observable");
+      invalid("fixture.expect.kind is not a recognized M3-017 observable");
   }
 }
 
@@ -480,15 +423,11 @@ export function parseAdapterDshReplayReconciliationFixture(
 ): AdapterDshReplayReconciliationFixture {
   const envelope = parseEnvelope(value);
   const stimulus = parseStimulus(envelope.stimulus);
-  const expect = parseExpectation(envelope.expect, stimulus.request.sessionRef);
-  return { envelope, stimulus, expect };
-}
-
-function isPlainDenseArray(value: unknown): value is readonly unknown[] {
-  if (!Array.isArray(value) || Object.getOwnPropertySymbols(value).length !== 0) return false;
-  const keys = Object.keys(value);
-  return keys.length === value.length
-    && keys.every(key => /^(0|[1-9]\d*)$/.test(key) && Number(key) < value.length);
+  return {
+    envelope,
+    stimulus,
+    expect: parseExpectation(envelope.expect, stimulus.request.sessionRef),
+  };
 }
 
 function observableDurableFact(
@@ -504,9 +443,9 @@ function observableDurableFact(
     || keys[2] !== "eventDigest"
     || keys[3] !== "sessionRef"
   ) return undefined;
-  if (value.sessionRef !== expectedSessionRef) return undefined;
   if (
-    typeof value.durableSequence !== "number"
+    value.sessionRef !== expectedSessionRef
+    || typeof value.durableSequence !== "number"
     || !Number.isSafeInteger(value.durableSequence)
     || value.durableSequence < 0
     || typeof value.durableEventRef !== "string"
@@ -536,7 +475,7 @@ function observableSidecarEvidence(
     "evidenceDigest",
   ] as const;
   const optional = ["turnRef", "stepRef", "callRef"] as const;
-  const allowed = new Set([...required, ...optional]);
+  const allowed: ReadonlySet<string> = new Set([...required, ...optional]);
   const keys = Object.keys(value);
   if (required.some(key => !Object.hasOwn(value, key)) || keys.some(key => !allowed.has(key))) {
     return undefined;
@@ -558,30 +497,74 @@ function observableSidecarEvidence(
   } catch {
     return undefined;
   }
-  const optionalValues: Partial<Record<(typeof optional)[number], string>> = {};
   for (const key of optional) {
-    if (!Object.hasOwn(value, key)) continue;
-    const candidate = value[key];
-    if (typeof candidate !== "string" || candidate.length === 0) return undefined;
-    optionalValues[key] = candidate;
+    const entry = value[key];
+    if (entry !== undefined && (typeof entry !== "string" || entry.length === 0)) return undefined;
   }
   return {
     durableEventRef: value.durableEventRef,
     durableSequence: value.durableSequence,
     sessionRef: expectedSessionRef,
-    ...(optionalValues.turnRef === undefined ? {} : { turnRef: optionalValues.turnRef }),
-    ...(optionalValues.stepRef === undefined ? {} : { stepRef: optionalValues.stepRef }),
-    ...(optionalValues.callRef === undefined ? {} : { callRef: optionalValues.callRef }),
+    ...(typeof value.turnRef === "string" ? { turnRef: value.turnRef } : {}),
+    ...(typeof value.stepRef === "string" ? { stepRef: value.stepRef } : {}),
+    ...(typeof value.callRef === "string" ? { callRef: value.callRef } : {}),
     evidenceRef: value.evidenceRef,
     evidenceDigest: value.evidenceDigest,
   };
 }
 
+function observableFactList(
+  value: unknown,
+  expectedSessionRef: string,
+): readonly AdapterDshReplayDurableFact[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const result: AdapterDshReplayDurableFact[] = [];
+  for (const entry of value) {
+    const fact = observableDurableFact(entry, expectedSessionRef);
+    if (fact === undefined) return undefined;
+    result.push(fact);
+  }
+  return result;
+}
+
+function observableEvidenceList(
+  value: unknown,
+  expectedSessionRef: string,
+): readonly AdapterDshReplaySidecarEvidence[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const result: AdapterDshReplaySidecarEvidence[] = [];
+  for (const entry of value) {
+    const evidence = observableSidecarEvidence(entry, expectedSessionRef);
+    if (evidence === undefined) return undefined;
+    result.push(evidence);
+  }
+  return result;
+}
+
+function observableConflictCode(value: unknown): AdapterDshReplayConflictCode | undefined {
+  return ADAPTER_DSH_REPLAY_CONFLICT_CODES.find(code => code === value);
+}
+
 function isObservable(
   value: unknown,
+  expectedSessionRef: string,
 ): value is AdapterDshReplayReconciliationObservable {
-  if (!isRecord(value) || typeof value.sessionRef !== "string" || value.sessionRef.length === 0) {
-    return false;
+  if (!isRecord(value) || value.sessionRef !== expectedSessionRef) return false;
+  if (value.kind === "REPLAY_RECONCILED") {
+    const keys = Object.keys(value).sort();
+    if (
+      keys.length !== 5
+      || keys[0] !== "durableFacts"
+      || keys[1] !== "evidence"
+      || keys[2] !== "kind"
+      || keys[3] !== "nextDurableSequence"
+      || keys[4] !== "sessionRef"
+      || typeof value.nextDurableSequence !== "number"
+      || !Number.isSafeInteger(value.nextDurableSequence)
+      || value.nextDurableSequence < 0
+    ) return false;
+    return observableFactList(value.durableFacts, expectedSessionRef) !== undefined
+      && observableEvidenceList(value.evidence, expectedSessionRef) !== undefined;
   }
   if (value.kind === "REPLAY_CONFLICT") {
     const keys = Object.keys(value).sort();
@@ -590,41 +573,12 @@ function isObservable(
       && keys[1] === "durableSequence"
       && keys[2] === "kind"
       && keys[3] === "sessionRef"
-      && isConflictCode(value.code)
+      && observableConflictCode(value.code) !== undefined
       && typeof value.durableSequence === "number"
       && Number.isSafeInteger(value.durableSequence)
       && value.durableSequence >= 0;
   }
-  if (value.kind !== "REPLAY_RECONCILED") return false;
-  const keys = Object.keys(value).sort();
-  if (
-    keys.length !== 5
-    || keys[0] !== "durableFacts"
-    || keys[1] !== "evidence"
-    || keys[2] !== "kind"
-    || keys[3] !== "nextDurableSequence"
-    || keys[4] !== "sessionRef"
-    || !isPlainDenseArray(value.durableFacts)
-    || !isPlainDenseArray(value.evidence)
-  ) return false;
-  const durableFacts: AdapterDshReplayDurableFact[] = [];
-  for (const entry of value.durableFacts) {
-    const fact = observableDurableFact(entry, value.sessionRef);
-    if (fact === undefined) return false;
-    durableFacts.push(fact);
-  }
-  if (durableFacts.some((fact, index) => fact.durableSequence !== index)) return false;
-  if (
-    typeof value.nextDurableSequence !== "number"
-    || !Number.isSafeInteger(value.nextDurableSequence)
-    || value.nextDurableSequence !== durableFacts.length
-  ) return false;
-  const durableRefs = new Set(durableFacts.map(fact => fact.durableEventRef));
-  for (const entry of value.evidence) {
-    const record = observableSidecarEvidence(entry, value.sessionRef);
-    if (record === undefined || !durableRefs.has(record.durableEventRef)) return false;
-  }
-  return true;
+  return false;
 }
 
 function durableFactEqual(
@@ -637,7 +591,7 @@ function durableFactEqual(
     && left.eventDigest === right.eventDigest;
 }
 
-function sidecarEvidenceEqual(
+function sidecarEqual(
   left: AdapterDshReplaySidecarEvidence,
   right: AdapterDshReplaySidecarEvidence,
 ): boolean {
@@ -651,6 +605,17 @@ function sidecarEvidenceEqual(
     && left.evidenceDigest === right.evidenceDigest;
 }
 
+function arrayEqual<T>(
+  left: readonly T[],
+  right: readonly T[],
+  equal: (leftEntry: T, rightEntry: T) => boolean,
+): boolean {
+  return left.length === right.length && left.every((entry, index) => {
+    const other = right[index];
+    return other !== undefined && equal(entry, other);
+  });
+}
+
 function observableEqual(
   observed: AdapterDshReplayReconciliationObservable,
   expected: AdapterDshReplayReconciliationObservable,
@@ -660,33 +625,24 @@ function observableEqual(
     return observed.code === expected.code
       && observed.durableSequence === expected.durableSequence;
   }
-  if (observed.kind !== "REPLAY_RECONCILED" || expected.kind !== "REPLAY_RECONCILED") {
-    return false;
+  if (observed.kind === "REPLAY_RECONCILED" && expected.kind === "REPLAY_RECONCILED") {
+    return observed.nextDurableSequence === expected.nextDurableSequence
+      && arrayEqual(observed.durableFacts, expected.durableFacts, durableFactEqual)
+      && arrayEqual(observed.evidence, expected.evidence, sidecarEqual);
   }
-  return observed.nextDurableSequence === expected.nextDurableSequence
-    && observed.durableFacts.length === expected.durableFacts.length
-    && observed.durableFacts.every((fact, index) => {
-      const expectedFact = expected.durableFacts[index];
-      return expectedFact !== undefined && durableFactEqual(fact, expectedFact);
-    })
-    && observed.evidence.length === expected.evidence.length
-    && observed.evidence.every((record, index) => {
-      const expectedRecord = expected.evidence[index];
-      return expectedRecord !== undefined && sidecarEvidenceEqual(record, expectedRecord);
-    });
+  return false;
 }
 
 /**
- * Run one validated M3-017 case. The project receives source stimulus only;
- * expectation data is comparison-only and cannot manufacture durable facts,
- * evidence anchors, or reconciliation conflicts.
+ * Run one validated M3-017 case. The implementation receives only parsed
+ * request/source stimulus; expectation data stays comparison-only and cannot
+ * manufacture durable history, sidecar anchors, or conflict authority.
  */
 export async function runAdapterDshReplayReconciliationFixture(
   fixture: AdapterDshReplayReconciliationFixture,
   project: (
     stimulus: AdapterDshReplayReconciliationStimulus,
-  ) => AdapterDshReplayReconciliationObservable
-    | Promise<AdapterDshReplayReconciliationObservable>,
+  ) => AdapterDshReplayReconciliationObservable | Promise<AdapterDshReplayReconciliationObservable>,
 ): Promise<AdapterDshReplayReconciliationCaseResult> {
   let observed: unknown;
   try {
@@ -697,7 +653,7 @@ export async function runAdapterDshReplayReconciliationFixture(
       code: "ADAPTER_DSH_REPLAY_RECONCILIATION_IMPLEMENTATION_ERROR",
     };
   }
-  if (!isObservable(observed)) {
+  if (!isObservable(observed, fixture.stimulus.request.sessionRef)) {
     return {
       status: "ERROR",
       code: "ADAPTER_DSH_REPLAY_RECONCILIATION_IMPLEMENTATION_ERROR",
