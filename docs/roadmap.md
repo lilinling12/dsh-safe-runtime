@@ -229,6 +229,8 @@ Acceptance evidence
 
 目标：先验证语义，再开始复杂 Runtime。
 
+状态：**ACCEPTED**。权威验收记录见 `docs/acceptance/m3-acceptance-audit.md`；验收以 portable specs/schemas/fixtures、独立可打包 TCK、外部非 workspace consumer 和 exact-head CI/compatibility evidence 为依据，不以 Harness 作为协议权威。
+
 ## M3.1 Test Harness
 
 - [x] `M3-001 P0` language-independent fixture format。
@@ -242,19 +244,21 @@ Acceptance evidence
 ## M3.2 Adapter TCK
 
 - [x] `M3-010 P0` turn lifecycle。 **DONE：Spec 0009 + 5 portable ADAPTER_DSH fixtures + generic evaluator + adapter projection + exact rc5 runtime conformance；head `728f44e...` CI #99 PASS / source-conformance #58 PASS（115 tests，oxlint 0/0）。**
-- [ ] `M3-011 P0` tool ordering。 **NEXT GATE。**
-- [ ] `M3-012 P0` denied call never enters body。
-- [ ] `M3-013 P0` final result mapping。
-- [ ] `M3-014 P0` approval unavailable。
-- [ ] `M3-015 P0` cancellation。
-- [ ] `M3-016 P0` disposal。
-- [ ] `M3-017 P1` replay reconciliation。
+- [x] `M3-011 P0` tool ordering。
+- [x] `M3-012 P0` denied call never enters body。
+- [x] `M3-013 P0` final result mapping。
+- [x] `M3-014 P0` approval unavailable。
+- [x] `M3-015 P0` cancellation。
+- [x] `M3-016 P0` disposal。
+- [x] `M3-017 P1` replay reconciliation。
 
 ### M3 DoD
 
-- [ ] TCK 可单独发布。
-- [ ] Reference Runtime 之外的 dummy implementation 能运行。
-- [ ] Fixture 不包含 TypeScript-only 语义。
+- [x] TCK 可单独发布。
+- [x] Reference Runtime 之外的 dummy implementation 能运行。
+- [x] Fixture 不包含 TypeScript-only 语义。
+
+最终验收 remediation implementation head：`e6522a18760268b56b09f9ac5d9c822671c41666`；normal CI #218 与 exact Harness rc5 source-conformance #177 均 PASS。下一个且唯一新授权的工程 Gate 是 `M4-001 P0`，仍须 protocol/spec-first。
 
 ---
 
