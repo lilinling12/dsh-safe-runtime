@@ -10,7 +10,7 @@ import {
   writeFile,
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { dirname, join, relative, resolve, sep } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -63,11 +63,21 @@ function normalizedPackPath(path) {
 }
 
 function packPlanPaths(raw) {
+  const arrayStart = raw.indexOf("[");
+  const objectStart = raw.indexOf("{");
+  const startCandidates = [arrayStart, objectStart].filter(index => index >= 0);
+  const start = startCandidates.length > 0 ? Math.min(...startCandidates) : -1;
+  const end = Math.max(raw.lastIndexOf("]"), raw.lastIndexOf("}"));
+
+  if (start < 0 || end < start) {
+    fail("pnpm pack --dry-run --json exposed no JSON payload");
+  }
+
   let parsed;
   try {
-    parsed = JSON.parse(raw);
+    parsed = JSON.parse(raw.slice(start, end + 1));
   } catch {
-    fail("pnpm pack --dry-run --json did not return JSON");
+    fail("pnpm pack --dry-run --json returned an invalid JSON payload");
   }
   const results = Array.isArray(parsed) ? parsed : [parsed];
   const paths = [];
