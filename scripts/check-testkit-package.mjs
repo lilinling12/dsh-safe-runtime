@@ -170,7 +170,7 @@ function isRecord(value) {
 }
 
 function project(sessionRef, event) {
-  const turnRef = \`${sessionRef}/turn:${event.data.turn}\`;
+  const turnRef = sessionRef + "/turn:" + event.data.turn;
   switch (event.type) {
     case "turn/start":
       return { kind: "EVENT", event: { type: "turn.started", turnRef } };
@@ -180,7 +180,7 @@ function project(sessionRef, event) {
         event: {
           type: "step.started",
           turnRef,
-          stepRef: \`${turnRef}/step:${event.data.step}\`,
+          stepRef: turnRef + "/step:" + event.data.step,
         },
       };
     case "step/end":
@@ -207,7 +207,7 @@ async function walk(directory, prefix = "") {
   const entries = await readdir(directory, { withFileTypes: true });
   const files = [];
   for (const entry of entries) {
-    const path = prefix.length === 0 ? entry.name : \`${prefix}/${entry.name}\`;
+    const path = prefix.length === 0 ? entry.name : prefix + "/" + entry.name;
     if (entry.isDirectory()) {
       files.push(...await walk(resolve(directory, entry.name), path));
     } else {
@@ -223,9 +223,9 @@ assert(relative(repositoryRoot, consumerRoot).split(sep)[0] === "..", "dummy con
 
 const entryUrl = import.meta.resolve("@dsh-safe/testkit");
 const entryPath = fileURLToPath(entryUrl);
-assert(entryPath.includes(\`${sep}node_modules${sep}\`), "testkit did not resolve from installed node_modules");
-assert(!entryPath.startsWith(\`${repositoryRoot}${sep}\`), "testkit resolved from repository source tree");
-assert(!entryPath.includes(\`${sep}packages${sep}testkit${sep}src${sep}\`), "testkit resolved a source path");
+assert(entryPath.includes(sep + "node_modules" + sep), "testkit did not resolve from installed node_modules");
+assert(!entryPath.startsWith(repositoryRoot + sep), "testkit resolved from repository source tree");
+assert(!entryPath.includes(sep + "packages" + sep + "testkit" + sep + "src" + sep), "testkit resolved a source path");
 
 const packageRootUrl = new URL("../", entryUrl);
 const packageRoot = fileURLToPath(packageRootUrl);
@@ -246,8 +246,8 @@ const ids = new Set();
 const paths = new Set();
 for (const entry of manifest.cases) {
   assert(isRecord(entry) && typeof entry.id === "string" && typeof entry.path === "string", "installed manifest case is malformed");
-  assert(!ids.has(entry.id), \`duplicate installed case id: ${entry.id}\`);
-  assert(!paths.has(entry.path), \`duplicate installed case path: ${entry.path}\`);
+  assert(!ids.has(entry.id), "duplicate installed case id: " + entry.id);
+  assert(!paths.has(entry.path), "duplicate installed case path: " + entry.path);
   ids.add(entry.id);
   paths.add(entry.path);
   await readFile(new URL(entry.path, assetRootUrl));
@@ -285,14 +285,14 @@ assert.deepEqual(
 
 const installedFiles = await walk(packageRoot);
 for (const path of installedFiles) {
-  assert(!path.startsWith("src/"), \`installed package leaked source file ${path}\`);
-  assert(!path.includes("source-conformance"), \`installed package leaked conformance internal ${path}\`);
-  assert(!path.endsWith(".tsbuildinfo"), \`installed package leaked build cache ${path}\`);
-  assert(!path.includes(".assets-staging-"), \`installed package leaked staging file ${path}\`);
-  assert(!/\.test\.[cm]?[jt]s$/.test(path), \`installed package leaked test source ${path}\`);
+  assert(!path.startsWith("src/"), "installed package leaked source file " + path);
+  assert(!path.includes("source-conformance"), "installed package leaked conformance internal " + path);
+  assert(!path.endsWith(".tsbuildinfo"), "installed package leaked build cache " + path);
+  assert(!path.includes(".assets-staging-"), "installed package leaked staging file " + path);
+  assert(!/\.test\.[cm]?[jt]s$/.test(path), "installed package leaked test source " + path);
 }
 
-console.log(\`External dummy consumer passed ${manifest.cases.length} installed TCK asset checks.\`);
+console.log("External dummy consumer passed " + manifest.cases.length + " installed TCK asset checks.");
 `;
   await writeFile(join(consumerRoot, "consumer-check.mjs"), source.trimStart(), "utf8");
 }
