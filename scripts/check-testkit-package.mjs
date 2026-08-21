@@ -20,6 +20,7 @@ const packageCheckRoot = join(repositoryRoot, ".tmp", "testkit-package-check");
 const protocolPackRoot = join(packageCheckRoot, "protocol");
 const testkitPackRoot = join(packageCheckRoot, "testkit");
 const pnpmExecutable = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
+const tarExecutable = process.platform === "win32" ? "tar.exe" : "tar";
 
 function fail(message) {
   throw new Error(`testkit package check: ${message}`);
@@ -62,36 +63,30 @@ function normalizedPackPath(path) {
     .replaceAll("\\", "/");
 }
 
-function packPlanPaths(raw) {
-  const arrayStart = raw.indexOf("[");
-  const objectStart = raw.indexOf("{");
-  const startCandidates = [arrayStart, objectStart].filter(index => index >= 0);
-  const start = startCandidates.length > 0 ? Math.min(...startCandidates) : -1;
-  const end = Math.max(raw.lastIndexOf("]"), raw.lastIndexOf("}"));
-
-  if (start < 0 || end < start) {
-    fail("pnpm pack --dry-run --json exposed no JSON payload");
-  }
-
-  let parsed;
+function archivePaths(tarball) {
+  let raw;
   try {
-    parsed = JSON.parse(raw.slice(start, end + 1));
-  } catch {
-    fail("pnpm pack --dry-run --json returned an invalid JSON payload");
-  }
-  const results = Array.isArray(parsed) ? parsed : [parsed];
-  const paths = [];
-  for (const result of results) {
-    if (!isRecord(result) || !Array.isArray(result.files)) continue;
-    for (const file of result.files) {
-      if (typeof file === "string") {
-        paths.push(normalizedPackPath(file));
-      } else if (isRecord(file) && typeof file.path === "string") {
-        paths.push(normalizedPackPath(file.path));
-      }
+    raw = execFileSync(tarExecutable, ["-tzf", tarball], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+      maxBuffer: 16 * 1024 * 1024,
+    });
+  } catch (error) {
+    if (error && typeof error === "object") {
+      const stdout = "stdout" in error && typeof error.stdout === "string" ? error.stdout : "";
+      const stderr = "stderr" in error && typeof error.stderr === "string" ? error.stderr : "";
+      if (stdout.length > 0) process.stderr.write(stdout);
+      if (stderr.length > 0) process.stderr.write(stderr);
     }
+    throw error;
   }
-  if (paths.length === 0) fail("pnpm pack dry-run exposed no file list");
+
+  const paths = raw
+    .split(/\r?\n/u)
+    .map(path => path.trim())
+    .filter(path => path.length > 0 && !path.endsWith("/"))
+    .map(normalizedPackPath);
+  if (paths.length === 0) fail("packed testkit archive exposed no files");
   return new Set(paths);
 }
 
@@ -302,16 +297,7 @@ async function runPackageCheck() {
   const protocolTarball = await oneTarball(protocolPackRoot, "protocol pack");
   const testkitTarball = await oneTarball(testkitPackRoot, "testkit pack");
   const expectedCases = await assertCanonicalAssets();
-
-  const dryRun = command(
-    ["pack", "--dry-run", "--json"],
-    {
-      cwd: testkitRoot,
-      capture: true,
-      env: { ...process.env, npm_config_ignore_scripts: "true" },
-    },
-  );
-  assertPackPlan(packPlanPaths(dryRun), expectedCases);
+  assertPackPlan(archivePaths(testkitTarball), expectedCases);
 
   const consumerRoot = await mkdtemp(join(tmpdir(), "dsh-safe-tck-consumer-"));
   try {
