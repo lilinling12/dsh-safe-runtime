@@ -531,3 +531,51 @@ The next and only newly authorized gate is **M3-011 P0 — Adapter DSH tool
 ordering Shared TCK**. It must stay focused on explicit ordering evidence and
 must not pull M3-012 denied-body semantics or M3-013 final-result-authority
 semantics forward.
+
+## 2026-08-21 — Accept M3 Shared TCK Foundation
+
+The live PR state had advanced beyond the stale handoff snapshot: all numbered
+M3 gates through M3-017 were implemented, and the M3 acceptance audit had
+correctly identified two remaining P0 Definition-of-Done blockers rather than
+accepting the milestone from green Adapter CI alone:
+
+- **M3-A1 — Publishable Shared TCK artifact**;
+- **M3-A2 — External dummy consumer conformance**.
+
+The remediation was completed without weakening protocol, schema, validator,
+TCK, TypeScript strictness, frozen-lockfile, architecture, compatibility or
+security guarantees. The package check was wired into normal `pnpm check:all`,
+then hardened from predicted pack output to inspection of the actual generated
+`.tgz` artifact.
+
+The final accepted M3 remediation implementation head is
+`e6522a18760268b56b09f9ac5d9c822671c41666`.
+
+Direct evidence:
+
+- normal CI #218 / run `32482908193`: PASS;
+- frozen repository install: PASS;
+- architecture/schema/compatibility gates: PASS;
+- strict TypeScript: PASS;
+- 24 test files / 261 tests: PASS;
+- oxlint: 0 warnings / 0 errors;
+- actual protocol/testkit tarball construction and inspection: PASS;
+- generated package includes all 44 registered TCK assets and required schema;
+- an external consumer created outside the repository installs the same-run
+  `protocol.tgz` and `testkit.tgz` with npm 10.9.3 in offline/ignore-scripts
+  mode;
+- the consumer resolves `@dsh-safe/testkit` from installed `node_modules`, not a
+  repository/workspace source path;
+- the external dummy implementation proves required PASS, deliberate FAIL, and
+  thrown-implementation ERROR behavior through public testkit exports;
+- exact Harness rc5 source-conformance #177 / run `32482908210`: PASS, including
+  pinned source build, projection/idempotence, exact binding typecheck and real
+  rc5 runtime conformance.
+
+DeepSeek Harness remains Adapter compatibility evidence only; it did not define
+or modify Shared TCK semantics.
+
+`docs/acceptance/m3-acceptance-audit.md` now records **M3 ACCEPTED**. M4 is
+therefore authorized only as the next protocol-first milestone, beginning at
+`M4-001 P0 — YAML/JSON loader`. M4-002+ and M6 Workspace Transaction remain
+unauthorized until their respective gates are reached.
