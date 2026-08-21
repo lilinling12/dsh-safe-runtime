@@ -13,16 +13,16 @@
 - PR state: `OPEN / DRAFT`
 - Branch: `feat/m3-shared-tck-foundation`
 - Stacked base: `feat/m2-harness-adapter@6a9c64155ec6c376908e64d70f2b50d5b8de1285`
-- Verified M3-016 implementation head: `30752090db29d916dbe486365e7d7d67fd8746b3`
 - M2 acceptance: **ACCEPTED**
+- Latest accepted M3 implementation/manifest head: `2ad59d90962954e200f5aab081c3dc8ce0787571`
+- Current next gate: **M3 Acceptance / Definition-of-Done Audit**
 
-PR #2 remains intentionally stacked on the accepted M2 branch. M3 changes MUST
-NOT be added back into PR #1 because that would mutate the accepted M2 evidence
-line.
+Live GitHub state always overrides this file. PR #2 remains intentionally stacked
+on the accepted M2 branch so M3 work cannot mutate the accepted M2 evidence line.
 
 ## Accepted compatibility baseline
 
-DeepSeek Harness remains an adapter compatibility baseline, never protocol authority:
+DeepSeek Harness remains an adapter compatibility target, never protocol authority:
 
 ```text
 version: 0.1.0-rc.5
@@ -30,268 +30,221 @@ commit: 47f943859bef60e4160492346772ded9b24f765a
 distribution: distribution-blocked
 ```
 
-Accepted M2 head: `6a9c64155ec6c376908e64d70f2b50d5b8de1285`.
-`docs/acceptance/m2-acceptance-audit.md` remains the M2 acceptance authority.
+M2 acceptance authority remains `docs/acceptance/m2-acceptance-audit.md`.
 
-## Completed M3 gates
+## M3 gate status
 
-### M3-001 / M3-002 / M3-003 — Shared TCK foundation
-
-Complete. The language-independent envelope, runner statuses, deterministic
-seed/logical-clock inputs, fixture schema, portable fixtures, and TypeScript
-projection remain the common foundation.
-
-### M3-004 — Fake approval
-
-Complete on `cc59a5db1045346792d823e56557d78438dd37c1`. Portable decisions remain exactly
-`ALLOWED_ONCE`, `REJECTED`, `CANCELLED`, and `UNAVAILABLE`; script exhaustion is
-an infrastructure error rather than an approval decision.
-
-### M3-005 — Fake tool runtime
-
-Complete on `d5cc341594e79e7203d2203052db27f37984dfa7`. Request intent, body entry, and
-final outcome remain distinct.
-
-### M3-006 — Fake filesystem/subprocess execution world
-
-Complete on `de5d4e0cc7099cfa35d91211f81b87f2784ca5df`. No process/kernel isolation or
-workspace transaction guarantee is claimed.
-
-### M3-007 — Deterministic fault injection
-
-Complete on `494e08de5b1304ef039c5a5462f083b7e76b8a29`. Fault injection remains explicit
-deterministic test-control data.
-
-### M3-010 — Adapter DSH turn lifecycle Shared TCK
-
-Complete on verified implementation head
-`728f44e73ac61dba1b40d570f2458bd456d79bbc`.
-
-### M3-011 — Adapter DSH tool ordering Shared TCK
-
-Complete on verified implementation head
-`1d2c92af8ec22ebae4644f1bc9a01fbef557a870`.
-Durable `tool/call` remains request intent; live `tools/result` remains the
-accepted final-outcome source seam.
-
-### M3-012 — denied tool call never enters body Shared TCK
-
-**ACCEPTED** on verified implementation head
-`7dcabbe1f93c9cc91285584b43b6f24213ffed93`.
-
-### M3-013 — Adapter DSH final-result mapping Shared TCK
-
-**ACCEPTED** on verified implementation head
-`92b742fa4250d5703023ebc560923eceaab86b0b`.
-Normative authority is `specs/0012-m3-adapter-dsh-final-result-mapping-tck.md`.
-Live `tools/result` remains authoritative final-result evidence.
-
-### M3-014 — Adapter DSH approval unavailable Shared TCK
-
-**ACCEPTED** on verified implementation head
-`656de1dc4bd4c8d07aa8f3079f7e4ab77e1baf3b`.
-Normative authority is `specs/0013-m3-adapter-dsh-approval-unavailable-tck.md`.
-`SERVICE_ABSENT` and explicit `SERVICE_DECISION/UNAVAILABLE` remain distinct
-source families; only `ALLOWED_ONCE` authorizes.
-
-### M3-015 — Adapter DSH cancellation Shared TCK
-
-**ACCEPTED** on verified implementation head
-`1429d08c3f36c24a13f023fb037ed8c3de514b61`.
-Normative authority is `specs/0014-m3-adapter-dsh-cancellation-tck.md`.
-Approval cancellation and authoritative final `tools/result` cancellation remain
-separate source families. Exact final cancellation codes remain only `ABORTED`
-and `ABORTED_BEFORE_DISPATCH`; production same-call approval correlation does not
-broaden arbitrary failures into cancellation.
-
-Final M3-015 evidence: CI #162 PASS and exact Harness rc5 #121 PASS, including
-source-conformance steps 10 and 11.
-
-### M3-016 — Adapter DSH disposal Shared TCK
-
-**ACCEPTED on verified implementation head
-`30752090db29d916dbe486365e7d7d67fd8746b3`.**
-
-Normative/profile authority is `specs/0015-m3-adapter-dsh-disposal-tck.md`.
-Generic testkit and pinned Harness tests are projections/evidence only.
-
-M3-016 deliberately separates four lifecycle concerns:
-
-1. **ownership** — only resources owned by the returned registration/subscription
-   handle may be disposed;
-2. **cutoff** — after explicit disposal cutoff the disposed handle contributes no
-   new future effect;
-3. **drain** — observation work already accepted before cutoff settles before
-   observation disposal completes;
-4. **completion** — successful disposal requires explicit source-side completion
-   evidence rather than inference from silence.
-
-The portable resource-kind closed set is exactly:
+The following implementation gates are complete by accepted evidence:
 
 ```text
-OBSERVATION_SUBSCRIPTION
-TOOL_POLICY_REGISTRATION
-MONOTONIC_TOOL_GUARD_REGISTRATION
-TURN_STOPPING_REGISTRATION
+M3-001  language-independent fixture format
+M3-002  shared runner contract
+M3-003  deterministic seed / logical clock
+M3-004  deterministic fake approval
+M3-005  deterministic fake tool runtime
+M3-006  deterministic fake filesystem / subprocess execution world
+M3-007  deterministic fault injection
+M3-010  Adapter DSH turn lifecycle Shared TCK
+M3-011  Adapter DSH tool ordering Shared TCK
+M3-012  denied tool call never enters body Shared TCK
+M3-013  authoritative final-result mapping Shared TCK
+M3-014  approval-unavailable Shared TCK
+M3-015  cancellation Shared TCK
+M3-016  disposal Shared TCK
+M3-017  replay reconciliation Shared TCK
 ```
 
-Accepted semantic proof:
+M3-017 is the final numbered Adapter TCK item in the current roadmap. There is no
+M3-018 gate. **Do not enter M4 merely because M3-017 is complete.** The M3
+milestone must first pass its Definition-of-Done / acceptance audit.
 
-1. `operation: disposal` represents explicit disposal invocation intent; it is
-   not itself completion authority;
-2. during implementation, the protocol/fixture design exposed a real proof gap:
-   the original source facts could not prove explicit disposal completion while
-   Spec 0015 required it;
-3. that gap was repaired protocol-first by requiring
-   `sourceFact.disposeCompleted: true`; expectation data remains comparison-only
-   and cannot manufacture completion;
-4. all four source-fact forms are closed and resource-specific; wrong-kind
-   fields, unknown kinds, missing before controls, missing completion, and missing
-   post-disposal probes fail fixture validation before implementation invocation;
-5. observation requires at least one accepted-before probe and one post-disposal
-   source probe, drains accepted work before disposal resolves, rejects future
-   observer delivery after cutoff, and standardizes repeated disposal as
-   `IDEMPOTENT`;
-6. repeat-dispose idempotence is deliberately **not** standardized for policy,
-   monotonic guard, or turn-stopping registrations in M3-016;
-7. a real pinned rc5 SessionStore continues accepting durable `step/start`
-   evidence after the Adapter observation subscription is disposed, while the
-   disposed observer receives no future delivery; disposal therefore does not
-   imply external-runtime teardown or durable-evidence deletion;
-8. the observation drain proof uses an explicit Promise gate rather than sleeps,
-   wall-clock timing, garbage collection, or process exit;
-9. a real pinned rc5 ToolRuntime proves an isolated Adapter tool-policy denial is
-   active before disposal, then ordinary execution resumes after the exact
-   registration is disposed;
-10. a real pinned rc5 ToolRuntime independently proves the same before/after
-    lifecycle for the exact monotonic tool guard returned by
-    `registerMonotonicToolGuard()`;
-11. real/public `@deepseek-ai/dsh-agent` `agentEvents(...).serial()` is used to
-    exercise the turn-stopping boundary: the Adapter handler runs before
-    disposal, no longer runs afterward, and an independent handler still runs on
-    the later boundary, proving the external event seam remains live;
-12. no private Harness listener collection, private guard collection,
-    implementation-only state inspection, sleeps, GC, process exit, or concrete
-    `dsh-agent-loop` import is used as disposal evidence;
-13. valid-but-wrong implementation projections are runner `FAIL`; implementation
-    exceptions or malformed projections are runner `ERROR`;
-14. cyclic values, exotic objects, sparse/decorated arrays, symbols, and
-    non-finite JSON numbers fail closed at the generic portable boundary;
-15. the generic testkit profile contains no `@deepseek-ai/` or `dsh-agent-loop`
-    dependency/path and therefore remains Harness-independent;
-16. exact pinned rc5 evidence exposed no production correctness gap, so M3-016
-    required **no production Adapter source change**;
-17. disposal of Adapter-owned handles does not imply disposal of externally owned
-    Harness Context, SessionStore, ToolRuntime, ApprovalService, tools, agents,
-    sessions, durable evidence, or the process;
-18. M3-017 replay reconciliation, M4 Capability Broker, M6 Workspace Transaction,
-    and hard cancellation of already-running non-observation callbacks remain out
-    of scope;
-19. no schema, compatibility baseline, TypeScript strictness, frozen lockfile,
-    architecture rule, validator, TCK expectation, or security guarantee was
-    weakened.
+## M3-017 — Adapter DSH replay reconciliation
 
-Implemented artifacts include:
+**ACCEPTED on implementation/manifest head
+`2ad59d90962954e200f5aab081c3dc8ce0787571`.**
 
-- `specs/0015-m3-adapter-dsh-disposal-tck.md`;
-- four portable M3-016 fixtures, one for each resource kind;
-- strict Harness-independent parser/runner and boundary tests in
-  `packages/testkit`;
-- public `@dsh-safe/testkit` disposal exports;
-- exact pinned rc5 disposal source-conformance through public SessionStore,
-  ToolRuntime, tool guard, and `agentEvents` seams;
-- manifest registration of all four fixtures.
+Normative authority is
+`specs/0016-m3-adapter-dsh-replay-reconciliation-tck.md`.
 
-The generic runner/boundary-test head `551e25d137df7d25bd7887e89efbb906de02adbb`
-was dual-green in CI #176 and Harness #135.
+M3-017 is evidence reconciliation, not generalized execution replay. Its accepted
+portable semantics are:
 
-The exact disposal conformance head
-`b6848c056fffee95c2e67a8f58ad69453e307451` was dual-green in CI #178 and Harness
-#137, including exact source-conformance steps 10 and 11.
+1. durable fact identity is `(sessionRef, durableSequence)` with canonical
+   `<sessionRef>/seq:<durableSequence>` event reference and an opaque digest;
+2. a snapshot is a complete contiguous durable prefix beginning at sequence `0`;
+3. live durable facts are strictly increasing and may overlap the snapshot;
+4. exact same-sequence/ref/digest overlap is idempotently emitted once;
+5. a contiguous live tail extends the snapshot without wall-clock inference;
+6. sidecar evidence must anchor to an exact reconciled durable fact;
+7. exactly repeated sidecar evidence is idempotent;
+8. evidence ordering is deterministic by durable sequence and UTF-8 byte order of
+   `evidenceRef`;
+9. semantic conflicts remain explicit and fail closed in this precedence order:
 
-The manifest registration commit
-`30752090db29d916dbe486365e7d7d67fd8746b3` was audited against `b6848c05...` as
-one commit changing exactly `fixtures/manifest.json`, `+24/-0`. Its patch is one
-tail hunk appending exactly the four M3-016 records after the final M3-015 record;
-no existing manifest record was deleted, reordered, or semantically modified.
+   ```text
+   DURABLE_FACT_CONFLICT
+   DURABLE_SEQUENCE_GAP
+   SIDECAR_ORPHAN
+   EVIDENCE_CONFLICT
+   ```
 
-Final exact-head evidence for `30752090...`:
+10. malformed/non-portable input is distinct from structurally valid semantic
+    conflict;
+11. expectation data is comparison-only and never a reconciliation oracle;
+12. live authoritative `tools/result` remains the M3-013 final-result seam;
+13. crash-repair `TOOL_OUTCOME_UNKNOWN` / `TOOL_NOT_STARTED` remain opaque
+    durable history and are never promoted into `tool.completed` authority;
+14. durable approval `approval/asked` / `approval/decided` pairs remain
+    replay-linkable by exact durable event identity;
+15. no host time, sleeps, object identity, private Harness listener collections,
+    private Session fields, or concrete agent-loop implementation dependency is
+    used as reconciliation authority.
+
+### M3-017 implementation evidence
+
+Protocol/fixture/testkit work was completed before the production helper:
+
+- Spec 0016 protocol-first head: `23aa9211013c20128dc8b78b70ff63fdfe424178`;
+- eight portable replay fixtures were added before manifest registration;
+- generic testkit runner/boundary head:
+  `596a7599a35437784c4d51e473f4f4ec55e41c06`;
+- public testkit export head:
+  `1fb6a527df9f234d20f48b8a9a91bb7d871ac18d`;
+- runtime-independent Adapter reconciliation helper + independent unit tests:
+  `51858d4af1ff7f02ef9ee411225ae6520bb02f10`;
+- Adapter public replay export:
+  `465761ac45f61cdee8eac66d32a02f697b2529ed`;
+- exact pinned rc5 replay source-conformance:
+  `74331541f60e8aeb54878768d661e01f7a14ee5b`;
+- final manifest registration:
+  `2ad59d90962954e200f5aab081c3dc8ce0787571`.
+
+The Adapter helper is runtime-independent. It separates malformed input from
+semantic conflict, defensively snapshots/freezes accepted output, preserves
+opaque digests/correlation refs, and does not require a `binding.ts` correctness
+change.
+
+### Exact pinned rc5 proof
+
+The exact rc5 conformance test uses public seams only and proves:
+
+1. constructor seed events are absent from the live `session/event` firehose;
+2. `firstLiveSeq` identifies the constructor seed boundary;
+3. the auto durable `session/end-seed` marker may occupy `firstLiveSeq` before
+   store attachment and therefore is not itself a live publication;
+4. listener-before-snapshot can intentionally create snapshot/live overlap;
+5. exact overlap reconciles once and a later live append extends contiguously;
+6. a real ApprovalService durable asked/decided pair remains correlated after
+   reconstruction and supports an exact sidecar anchor;
+7. public crash repair can produce `TOOL_OUTCOME_UNKNOWN` durable history without
+   causing the Adapter to fabricate a live `tool.completed` event;
+8. a later ordinary live event still reaches the observer, proving the negative
+   crash-replay result is an authority boundary rather than a dead pipeline.
+
+Exact replay conformance head `74331541...`:
 
 | Gate | State | Evidence |
 | --- | --- | --- |
-| Normal CI | **PASS** | run #179 / run id `32443033468` |
-| Frozen install / repository checks | **PASS** | CI `pnpm install --frozen-lockfile` + `pnpm check:all` |
-| Exact Harness rc5 source-conformance | **PASS** | run #138 / run id `32443033494` / job `96657346908` |
-| Exact pinned rc5 source projection | **PASS** | source-conformance steps 6–9 green |
-| Exact pinned rc5 binding typecheck | **PASS** | source-conformance step 10 green |
-| Real pinned rc5 runtime conformance | **PASS** | source-conformance step 11 green |
+| Normal CI | **PASS** | CI #197 |
+| Exact Harness rc5 source-conformance | **PASS** | Harness #156 |
+| Exact pinned binding typecheck | **PASS** | source-conformance step 10 |
+| Real pinned rc5 runtime conformance | **PASS** | source-conformance step 11 |
 
-## Current gate
+### Final manifest registration
 
-**M3-017 P1 — Adapter DSH replay reconciliation.**
+Final manifest commit `2ad59d90...` was prepared transactionally before the PR
+branch ref moved:
 
-M3-016 implementation is accepted, but M3-017 MUST NOT begin until the exact
-live governance head containing this handoff update has both normal CI and exact
-Harness rc5 source-conformance green.
+- candidate manifest blob was created from the exact prior blob;
+- candidate tree was based on exact head tree `fc0a3640...`;
+- candidate commit was parented directly to exact replay head `74331541...`;
+- `compare_commits` proved `ahead_by=1`, `behind_by=0`;
+- exactly one file changed: `fixtures/manifest.json`;
+- patch statistics were exactly `+48/-0`;
+- the patch is one tail hunk appending exactly eight M3-017 records;
+- existing manifest entries were not deleted, reordered, or semantically changed;
+- only after patch audit passed was the branch fast-forwarded with `force=false`.
 
-Required boundaries for M3-017:
+Final exact-head evidence for `2ad59d90...`:
 
-- define replay/live reconciliation semantics in a language-independent contract
-  before adding TypeScript- or Harness-specific behavior;
-- preserve M3-010 through M3-016 authority boundaries, especially request versus
-  final-result authority and disposal cutoff/completion semantics;
-- distinguish durable replay evidence from live-only observations and define the
-  reconciliation key/order rules explicitly rather than deduplicating by timing;
-- fail closed on ambiguous, missing, contradictory, or non-correlatable evidence;
-- do not reinterpret already accepted durable evidence during replay;
-- use deterministic fixture facts, not host wall-clock, sleeps, process timing,
-  object identity, or incidental listener order as the reconciliation oracle;
-- use pinned rc5 public replay/session/event seams only as compatibility evidence;
-- do not pull M4 Capability Broker or M6 Workspace Transaction semantics forward;
-- DeepSeek Harness remains compatibility evidence, never protocol authority.
+| Gate | State | Evidence |
+| --- | --- | --- |
+| Normal CI | **PASS** | CI #198 / run `32466962066` |
+| Frozen install | **PASS** | `pnpm install --frozen-lockfile` |
+| Repository checks | **PASS** | `pnpm check:all` |
+| Exact Harness rc5 source-conformance | **PASS** | Harness #157 / run `32466962084` |
+| Exact pinned source build/projection/idempotence | **PASS** | steps 6–9 |
+| Exact pinned binding typecheck | **PASS** | step 10 |
+| Real pinned rc5 runtime conformance | **PASS** | step 11 |
 
-Before implementation, inspect Spec 0003 replay/lifecycle language, durable
-SessionStore event identity/order behavior, existing Adapter observation
-normalization/correlation, and exact pinned rc5 public replay/session APIs. Define
-the portable reconciliation contract and source facts before fixtures or code.
+No schema, validator, TypeScript strictness, frozen lockfile, architecture/security
+gate, TCK expectation, compatibility baseline, or final-result authority boundary
+was weakened to obtain this result.
 
-## Deferred M3 work
+## Current gate — M3 Acceptance / Definition-of-Done Audit
 
-Not yet implemented:
+The next work is **not another Adapter implementation gate**. Audit the milestone
+against normative artifacts and live evidence before deciding whether M3 is
+accepted and whether M4 may be unlocked.
 
-- `M3-017 P1` replay reconciliation — **NEXT GATE AFTER GOVERNANCE DUAL-GREEN**.
+At minimum the audit must resolve the current roadmap M3 DoD:
+
+```text
+TCK can be published independently
+A dummy implementation outside the Reference Runtime can run it
+Fixtures contain no TypeScript-only semantics
+```
+
+The audit must also verify:
+
+- protocol/spec precedes implementation for all Shared TCK profiles;
+- portable fixtures are language-independent and Harness-independent;
+- generic testkit remains one projection, not protocol authority;
+- PASS/FAIL/UNSUPPORTED/ERROR semantics remain intact;
+- all Adapter DSH authority boundaries established in M3-010 through M3-017 are
+  mutually consistent;
+- conflict/negative cases fail closed instead of silently degrading;
+- manifest/index coverage is complete and no fixture is orphaned;
+- release/publication readiness claims do not exceed actual package/repository
+  state;
+- M4 Capability Broker and M6 Workspace Transaction semantics were not pulled
+  forward.
+
+If an M3 DoD item lacks direct evidence, classify it as a real blocker or define
+a narrowly scoped remediation gate. **Do not mark M3 accepted merely because all
+numbered implementation items are complete or because CI is green.**
 
 ## Boundaries that remain enforced
 
 - Spec/Schema/fixtures define shared semantics before TypeScript implementation.
 - `packages/testkit` is one implementation; it does not define portable semantics.
-- Shared TCK fixtures MUST remain consumable by a non-TypeScript implementation.
-- DeepSeek Harness is an Adapter and MUST NOT define protocol or generic fake
-  runtime semantics.
-- Shared contracts MUST NOT contain concrete Harness package paths.
+- Shared TCK fixtures must remain consumable by a non-TypeScript implementation.
+- DeepSeek Harness is an Adapter and must not define protocol/core semantics.
+- Shared contracts must not leak concrete Harness package paths.
 - No host wall-clock or ambient randomness may decide a fixture result.
 - Unknown versions/profiles/operations/semantics fail explicitly.
 - Do not weaken TypeScript strictness, schemas, compatibility baseline,
   validators, conformance tests, frozen installs, architecture/security gates, or
   security claims for CI.
-- Do not implement M4 Capability Broker or M6 Workspace Transaction early.
+- Do not enter M4 or M6 until the M3 acceptance audit explicitly authorizes it.
 
 ## Governance follow-up
 
-`HISTORY.md` is append-only and `docs/roadmap.md` is a long-lived planning file.
-The current safe connector mutation path is whole-file replacement for those
-files, so this closure does not risk a large manual rewrite merely to duplicate
-evidence already recorded here. They remain explicit governance follow-ups and
-MUST NOT be claimed as updated.
+`HISTORY.md` remains append-only. The connected GitHub API has no append-file
+primitive, so do not rewrite the large history file merely to duplicate this
+snapshot; add the M3-017 closure entry only through a safe append-capable path.
+`docs/roadmap.md` is planning state and should be reconciled only as part of the
+M3 acceptance audit, not used as current semantic authority.
 
 ## Resume instruction
 
-Read `docs/handoff/README.md`, this file, PR #2 live metadata, and workflow runs
-for the exact live head before editing. The verified M3-016 implementation head
-is `30752090db29d916dbe486365e7d7d67fd8746b3`; this documentation commit advances
-the branch beyond that implementation head, so live GitHub evidence still wins.
+On the next work session:
 
-Only after this exact live governance head's triggered checks are green, continue
-with **M3-017 Adapter DSH replay reconciliation Shared TCK** in protocol-first
-order. If the governance head fails, repair that exact failure without weakening
-any gate and do not start M3-017 early.
+1. read `docs/handoff/README.md` and this file;
+2. fetch PR #2 live head and exact-head workflow results;
+3. live GitHub evidence overrides this snapshot;
+4. if this governance head is not dual-green, inspect and repair that exact
+   failure without weakening any gate;
+5. only after governance is dual-green, begin the **M3 Acceptance /
+   Definition-of-Done Audit**;
+6. do not start M4 early.
