@@ -1,0 +1,75 @@
+{
+  "apiVersion": "safe-runtime.dev/tck-fixture/v1alpha1",
+  "id": "TCK-ADAPTER-DSH-REPLAY-SIDECAR-002",
+  "profile": "ADAPTER_DSH",
+  "description": "An exactly repeated sidecar evidence record is idempotently reconciled to one durable evidence association.",
+  "determinism": {
+    "seed": 17004,
+    "clock": {
+      "startUnixMs": 1787304600000,
+      "tickMs": 1
+    }
+  },
+  "stimulus": {
+    "operation": "replay-reconciliation",
+    "request": {
+      "sessionRef": "session:replay-idempotent"
+    },
+    "source": {
+      "snapshot": {
+        "facts": [
+          {
+            "sessionRef": "session:replay-idempotent",
+            "durableSequence": 0,
+            "durableEventRef": "session:replay-idempotent/seq:0",
+            "eventDigest": "digest:event:idempotent:0"
+          }
+        ]
+      },
+      "live": {
+        "facts": []
+      },
+      "sidecar": [
+        {
+          "durableEventRef": "session:replay-idempotent/seq:0",
+          "durableSequence": 0,
+          "sessionRef": "session:replay-idempotent",
+          "callRef": "call:replay-idempotent:1",
+          "evidenceRef": "evidence:replay-idempotent:1",
+          "evidenceDigest": "digest:evidence:idempotent:1"
+        },
+        {
+          "durableEventRef": "session:replay-idempotent/seq:0",
+          "durableSequence": 0,
+          "sessionRef": "session:replay-idempotent",
+          "callRef": "call:replay-idempotent:1",
+          "evidenceRef": "evidence:replay-idempotent:1",
+          "evidenceDigest": "digest:evidence:idempotent:1"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "kind": "REPLAY_RECONCILED",
+    "sessionRef": "session:replay-idempotent",
+    "nextDurableSequence": 1,
+    "durableFacts": [
+      {
+        "sessionRef": "session:replay-idempotent",
+        "durableSequence": 0,
+        "durableEventRef": "session:replay-idempotent/seq:0",
+        "eventDigest": "digest:event:idempotent:0"
+      }
+    ],
+    "evidence": [
+      {
+        "durableEventRef": "session:replay-idempotent/seq:0",
+        "durableSequence": 0,
+        "sessionRef": "session:replay-idempotent",
+        "callRef": "call:replay-idempotent:1",
+        "evidenceRef": "evidence:replay-idempotent:1",
+        "evidenceDigest": "digest:evidence:idempotent:1"
+      }
+    ]
+  }
+}
