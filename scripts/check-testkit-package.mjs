@@ -317,15 +317,20 @@ async function runPackageCheck() {
       }, null, 2)}\n`,
       "utf8",
     );
+    const pnpmConfigHome = join(consumerRoot, ".pnpm-config");
+    await mkdir(join(pnpmConfigHome, "pnpm"), { recursive: true });
     await writeFile(
-      join(consumerRoot, "pnpm-workspace.yaml"),
+      join(pnpmConfigHome, "pnpm", "config.yaml"),
       "overrides:\n  '@dsh-safe/protocol': 'file:./protocol.tgz'\n",
       "utf8",
     );
     await writeConsumerCheck(consumerRoot);
     command(
       ["install", "--offline", "--ignore-scripts", "--lockfile=false"],
-      { cwd: consumerRoot },
+      {
+        cwd: consumerRoot,
+        env: { ...process.env, XDG_CONFIG_HOME: pnpmConfigHome },
+      },
     );
     execFileSync(process.execPath, ["consumer-check.mjs"], {
       cwd: consumerRoot,
