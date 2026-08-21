@@ -21,6 +21,12 @@ export type {
 } from "./tck-contract.js";
 
 export {
+  tckPackageAssetRootUrl,
+  tckPackageFixtureSchemaUrl,
+  tckPackageManifestUrl,
+} from "./package-assets.js";
+
+export {
   FAKE_APPROVAL_ERROR_CODES,
   FakeApprovalError,
   FakeApprovalService,
