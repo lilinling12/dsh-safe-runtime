@@ -46,12 +46,18 @@ type ParsedScriptEntry = Readonly<{
   directive: FakeFaultDirective;
 }>;
 
+type TckJsonObject = { readonly [key: string]: TckJsonValue };
+
 function isOrdinaryRecord(value: unknown): value is Record<string, unknown> {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     return false;
   }
   const prototype = Object.getPrototypeOf(value);
   return (prototype === Object.prototype || prototype === null) && Object.getOwnPropertySymbols(value).length === 0;
+}
+
+function isJsonObject(value: TckJsonValue): value is TckJsonObject {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
 function requireRecord(
@@ -215,8 +221,15 @@ function stableJson(value: TckJsonValue): string {
   if (Array.isArray(value)) {
     return `[${value.map(stableJson).join(",")}]`;
   }
-  if (value !== null && typeof value === "object") {
-    return `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${stableJson(value[key] as TckJsonValue)}`).join(",")}}`;
+  if (isJsonObject(value)) {
+    const entries = Object.keys(value).sort().map((key) => {
+      const entry = value[key];
+      if (entry === undefined) {
+        throw new TypeError("portable JSON object unexpectedly contains an undefined value");
+      }
+      return `${JSON.stringify(key)}:${stableJson(entry)}`;
+    });
+    return `{${entries.join(",")}}`;
   }
   return JSON.stringify(value);
 }
