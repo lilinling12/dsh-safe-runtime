@@ -7,3 +7,5 @@ coverage/
 .env.*
 !.env.example
 .tmp/
+packages/testkit/assets/
+packages/testkit/.assets-staging-*/
