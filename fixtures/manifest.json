@@ -360,6 +360,30 @@
       "path": "tck/valid/adapter-dsh-cancellation-after-entry.json",
       "schema": "tck-fixture.schema.json",
       "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-DISPOSAL-OBSERVATION-001",
+      "path": "tck/valid/adapter-dsh-disposal-observation.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-DISPOSAL-POLICY-001",
+      "path": "tck/valid/adapter-dsh-disposal-tool-policy.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-DISPOSAL-GUARD-001",
+      "path": "tck/valid/adapter-dsh-disposal-monotonic-guard.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-DISPOSAL-TURN-STOPPING-001",
+      "path": "tck/valid/adapter-dsh-disposal-turn-stopping.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
     }
   ]
 }
