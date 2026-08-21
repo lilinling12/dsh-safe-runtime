@@ -1,0 +1,71 @@
+{
+  "apiVersion": "safe-runtime.dev/tck-fixture/v1alpha1",
+  "id": "TCK-ADAPTER-DSH-REPLAY-SIDECAR-001",
+  "profile": "ADAPTER_DSH",
+  "description": "Sidecar evidence resolves only through its exact canonical durable session fact while preserving opaque correlation metadata.",
+  "determinism": {
+    "seed": 17003,
+    "clock": {
+      "startUnixMs": 1787304600000,
+      "tickMs": 1
+    }
+  },
+  "stimulus": {
+    "operation": "replay-reconciliation",
+    "request": {
+      "sessionRef": "session:replay-sidecar"
+    },
+    "source": {
+      "snapshot": {
+        "facts": [
+          {
+            "sessionRef": "session:replay-sidecar",
+            "durableSequence": 0,
+            "durableEventRef": "session:replay-sidecar/seq:0",
+            "eventDigest": "digest:event:sidecar:0"
+          }
+        ]
+      },
+      "live": {
+        "facts": []
+      },
+      "sidecar": [
+        {
+          "durableEventRef": "session:replay-sidecar/seq:0",
+          "durableSequence": 0,
+          "sessionRef": "session:replay-sidecar",
+          "turnRef": "session:replay-sidecar/turn:1",
+          "stepRef": "session:replay-sidecar/turn:1/step:1",
+          "callRef": "call:replay-sidecar:1",
+          "evidenceRef": "evidence:replay-sidecar:1",
+          "evidenceDigest": "digest:evidence:sidecar:1"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "kind": "REPLAY_RECONCILED",
+    "sessionRef": "session:replay-sidecar",
+    "nextDurableSequence": 1,
+    "durableFacts": [
+      {
+        "sessionRef": "session:replay-sidecar",
+        "durableSequence": 0,
+        "durableEventRef": "session:replay-sidecar/seq:0",
+        "eventDigest": "digest:event:sidecar:0"
+      }
+    ],
+    "evidence": [
+      {
+        "durableEventRef": "session:replay-sidecar/seq:0",
+        "durableSequence": 0,
+        "sessionRef": "session:replay-sidecar",
+        "turnRef": "session:replay-sidecar/turn:1",
+        "stepRef": "session:replay-sidecar/turn:1/step:1",
+        "callRef": "call:replay-sidecar:1",
+        "evidenceRef": "evidence:replay-sidecar:1",
+        "evidenceDigest": "digest:evidence:sidecar:1"
+      }
+    ]
+  }
+}
