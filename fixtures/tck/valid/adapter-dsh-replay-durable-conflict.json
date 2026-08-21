@@ -1,0 +1,48 @@
+{
+  "apiVersion": "safe-runtime.dev/tck-fixture/v1alpha1",
+  "id": "TCK-ADAPTER-DSH-REPLAY-CONFLICT-001",
+  "profile": "ADAPTER_DSH",
+  "description": "Snapshot and live durable facts that claim different content at the same durable sequence fail closed as a durable fact conflict.",
+  "determinism": {
+    "seed": 17005,
+    "clock": {
+      "startUnixMs": 1787304600000,
+      "tickMs": 1
+    }
+  },
+  "stimulus": {
+    "operation": "replay-reconciliation",
+    "request": {
+      "sessionRef": "session:replay-conflict"
+    },
+    "source": {
+      "snapshot": {
+        "facts": [
+          {
+            "sessionRef": "session:replay-conflict",
+            "durableSequence": 0,
+            "durableEventRef": "session:replay-conflict/seq:0",
+            "eventDigest": "digest:event:conflict:snapshot"
+          }
+        ]
+      },
+      "live": {
+        "facts": [
+          {
+            "sessionRef": "session:replay-conflict",
+            "durableSequence": 0,
+            "durableEventRef": "session:replay-conflict/seq:0",
+            "eventDigest": "digest:event:conflict:live"
+          }
+        ]
+      },
+      "sidecar": []
+    }
+  },
+  "expect": {
+    "kind": "REPLAY_CONFLICT",
+    "sessionRef": "session:replay-conflict",
+    "code": "DURABLE_FACT_CONFLICT",
+    "durableSequence": 0
+  }
+}
