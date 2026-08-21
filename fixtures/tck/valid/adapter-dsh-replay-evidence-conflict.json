@@ -1,0 +1,56 @@
+{
+  "apiVersion": "safe-runtime.dev/tck-fixture/v1alpha1",
+  "id": "TCK-ADAPTER-DSH-REPLAY-CONFLICT-004",
+  "profile": "ADAPTER_DSH",
+  "description": "The same evidence reference with contradictory durable association content fails closed instead of choosing one replay copy.",
+  "determinism": {
+    "seed": 17008,
+    "clock": {
+      "startUnixMs": 1787304600000,
+      "tickMs": 1
+    }
+  },
+  "stimulus": {
+    "operation": "replay-reconciliation",
+    "request": {
+      "sessionRef": "session:replay-evidence-conflict"
+    },
+    "source": {
+      "snapshot": {
+        "facts": [
+          {
+            "sessionRef": "session:replay-evidence-conflict",
+            "durableSequence": 0,
+            "durableEventRef": "session:replay-evidence-conflict/seq:0",
+            "eventDigest": "digest:event:evidence-conflict:0"
+          }
+        ]
+      },
+      "live": {
+        "facts": []
+      },
+      "sidecar": [
+        {
+          "durableEventRef": "session:replay-evidence-conflict/seq:0",
+          "durableSequence": 0,
+          "sessionRef": "session:replay-evidence-conflict",
+          "evidenceRef": "evidence:replay-conflict:1",
+          "evidenceDigest": "digest:evidence:conflict:a"
+        },
+        {
+          "durableEventRef": "session:replay-evidence-conflict/seq:0",
+          "durableSequence": 0,
+          "sessionRef": "session:replay-evidence-conflict",
+          "evidenceRef": "evidence:replay-conflict:1",
+          "evidenceDigest": "digest:evidence:conflict:b"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "kind": "REPLAY_CONFLICT",
+    "sessionRef": "session:replay-evidence-conflict",
+    "code": "EVIDENCE_CONFLICT",
+    "durableSequence": 0
+  }
+}
