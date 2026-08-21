@@ -5,7 +5,7 @@
  * TypeScript projections of the language-independent contracts; test fakes are
  * deterministic infrastructure and never protocol or Harness authority.
  */
-export const PACKAGE_STAGE = "M3-ADAPTER-DSH-DISPOSAL" as const;
+export const PACKAGE_STAGE = "M3-ADAPTER-DSH-REPLAY-RECONCILIATION" as const;
 
 export {
   TCK_FIXTURE_API_VERSION,
@@ -201,3 +201,24 @@ export type {
   AdapterDshDisposalSourceFact,
   AdapterDshDisposalStimulus,
 } from "./adapter-dsh-disposal.js";
+
+export {
+  ADAPTER_DSH_REPLAY_CONFLICT_CODES,
+  ADAPTER_DSH_REPLAY_RECONCILIATION_ERROR_CODES,
+  ADAPTER_DSH_REPLAY_RECONCILIATION_OPERATION,
+  AdapterDshReplayReconciliationFixtureError,
+  parseAdapterDshReplayReconciliationFixture,
+  runAdapterDshReplayReconciliationFixture,
+} from "./adapter-dsh-replay-reconciliation.js";
+export type {
+  AdapterDshReplayConflictCode,
+  AdapterDshReplayDurableFact,
+  AdapterDshReplayReconciliationCaseResult,
+  AdapterDshReplayReconciliationErrorCode,
+  AdapterDshReplayReconciliationFixture,
+  AdapterDshReplayReconciliationObservable,
+  AdapterDshReplayReconciliationRequest,
+  AdapterDshReplayReconciliationSource,
+  AdapterDshReplayReconciliationStimulus,
+  AdapterDshReplaySidecarEvidence,
+} from "./adapter-dsh-replay-reconciliation.js";
