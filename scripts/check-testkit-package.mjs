@@ -314,12 +314,12 @@ async function runPackageCheck() {
           "@dsh-safe/protocol": "file:./protocol.tgz",
           "@dsh-safe/testkit": "file:./testkit.tgz",
         },
-        pnpm: {
-          overrides: {
-            "@dsh-safe/protocol": "file:./protocol.tgz",
-          },
-        },
       }, null, 2)}\n`,
+      "utf8",
+    );
+    await writeFile(
+      join(consumerRoot, "pnpm-workspace.yaml"),
+      "overrides:\n  '@dsh-safe/protocol': 'file:./protocol.tgz'\n",
       "utf8",
     );
     await writeConsumerCheck(consumerRoot);
