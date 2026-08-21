@@ -384,6 +384,54 @@
       "path": "tck/valid/adapter-dsh-disposal-turn-stopping.json",
       "schema": "tck-fixture.schema.json",
       "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-REPLAY-CLEAN-001",
+      "path": "tck/valid/adapter-dsh-replay-clean-snapshot.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-REPLAY-OVERLAP-001",
+      "path": "tck/valid/adapter-dsh-replay-overlap-tail.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-REPLAY-SIDECAR-001",
+      "path": "tck/valid/adapter-dsh-replay-sidecar-anchor.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-REPLAY-SIDECAR-002",
+      "path": "tck/valid/adapter-dsh-replay-sidecar-idempotent.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-REPLAY-CONFLICT-001",
+      "path": "tck/valid/adapter-dsh-replay-durable-conflict.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-REPLAY-CONFLICT-002",
+      "path": "tck/valid/adapter-dsh-replay-sequence-gap.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-REPLAY-CONFLICT-003",
+      "path": "tck/valid/adapter-dsh-replay-sidecar-orphan.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-REPLAY-CONFLICT-004",
+      "path": "tck/valid/adapter-dsh-replay-evidence-conflict.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
     }
   ]
 }
