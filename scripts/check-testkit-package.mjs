@@ -10,7 +10,7 @@ import {
   writeFile,
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -20,6 +20,7 @@ const packageCheckRoot = join(repositoryRoot, ".tmp", "testkit-package-check");
 const protocolPackRoot = join(packageCheckRoot, "protocol");
 const testkitPackRoot = join(packageCheckRoot, "testkit");
 const pnpmExecutable = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
+const npmExecutable = process.platform === "win32" ? "npm.cmd" : "npm";
 const tarExecutable = process.platform === "win32" ? "tar.exe" : "tar";
 
 function fail(message) {
@@ -30,9 +31,9 @@ function isRecord(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function command(args, options = {}) {
+function run(executable, args, options = {}) {
   try {
-    return execFileSync(pnpmExecutable, args, {
+    return execFileSync(executable, args, {
       cwd: options.cwd ?? repositoryRoot,
       encoding: "utf8",
       env: options.env ?? process.env,
@@ -52,11 +53,13 @@ function command(args, options = {}) {
 
 async function oneTarball(directory, label) {
   const entries = (await readdir(directory)).filter(name => name.endsWith(".tgz"));
-  if (entries.length !== 1) fail(`${label} produced ${entries.length} tarballs; expected exactly one`);
+  if (entries.length !== 1) {
+    fail(`${label} produced ${entries.length} tarballs; expected exactly one`);
+  }
   return join(directory, entries[0]);
 }
 
-function normalizedPackPath(path) {
+function normalizedArchivePath(path) {
   return path
     .replace(/^\.\//, "")
     .replace(/^package\//, "")
@@ -64,42 +67,31 @@ function normalizedPackPath(path) {
 }
 
 function archivePaths(tarball) {
-  let raw;
-  try {
-    raw = execFileSync(tarExecutable, ["-tzf", tarball], {
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "pipe"],
-      maxBuffer: 16 * 1024 * 1024,
-    });
-  } catch (error) {
-    if (error && typeof error === "object") {
-      const stdout = "stdout" in error && typeof error.stdout === "string" ? error.stdout : "";
-      const stderr = "stderr" in error && typeof error.stderr === "string" ? error.stderr : "";
-      if (stdout.length > 0) process.stderr.write(stdout);
-      if (stderr.length > 0) process.stderr.write(stderr);
-    }
-    throw error;
-  }
-
+  const raw = run(tarExecutable, ["-tzf", tarball], { capture: true });
   const paths = raw
     .split(/\r?\n/u)
     .map(path => path.trim())
     .filter(path => path.length > 0 && !path.endsWith("/"))
-    .map(normalizedPackPath);
+    .map(normalizedArchivePath);
   if (paths.length === 0) fail("packed testkit archive exposed no files");
   return new Set(paths);
 }
 
 async function assertCanonicalAssets() {
-  const rootManifest = JSON.parse(await readFile(join(repositoryRoot, "fixtures", "manifest.json"), "utf8"));
-  const packageManifest = JSON.parse(await readFile(join(testkitRoot, "assets", "manifest.json"), "utf8"));
+  const rootManifest = JSON.parse(
+    await readFile(join(repositoryRoot, "fixtures", "manifest.json"), "utf8"),
+  );
+  const packageManifest = JSON.parse(
+    await readFile(join(testkitRoot, "assets", "manifest.json"), "utf8"),
+  );
   if (!isRecord(rootManifest) || !Array.isArray(rootManifest.cases)) {
     fail("canonical fixture manifest is malformed");
   }
   if (!isRecord(packageManifest) || !Array.isArray(packageManifest.cases)) {
     fail("generated package manifest is malformed");
   }
-  const expectedCases = rootManifest.cases.filter((entry) => {
+
+  const expectedCases = rootManifest.cases.filter(entry => {
     return isRecord(entry) && typeof entry.path === "string" && entry.path.startsWith("tck/");
   });
   assert.deepEqual(packageManifest, {
@@ -107,21 +99,36 @@ async function assertCanonicalAssets() {
     cases: expectedCases,
   });
 
-  const sourceSchema = await readFile(join(repositoryRoot, "schemas", "v1alpha1", "tck-fixture.schema.json"));
-  const packedSchema = await readFile(join(testkitRoot, "assets", "schemas", "v1alpha1", "tck-fixture.schema.json"));
-  assert.equal(Buffer.compare(sourceSchema, packedSchema), 0, "generated fixture schema diverged from canonical schema");
+  const sourceSchema = await readFile(
+    join(repositoryRoot, "schemas", "v1alpha1", "tck-fixture.schema.json"),
+  );
+  const generatedSchema = await readFile(
+    join(testkitRoot, "assets", "schemas", "v1alpha1", "tck-fixture.schema.json"),
+  );
+  assert.equal(
+    Buffer.compare(sourceSchema, generatedSchema),
+    0,
+    "generated fixture schema diverged from canonical schema",
+  );
 
   for (const entry of expectedCases) {
-    if (!isRecord(entry) || typeof entry.path !== "string") fail("unexpected canonical TCK case shape");
+    if (!isRecord(entry) || typeof entry.path !== "string") {
+      fail("unexpected canonical TCK case shape");
+    }
     const segments = entry.path.split("/");
     const source = await readFile(join(repositoryRoot, "fixtures", ...segments));
     const generated = await readFile(join(testkitRoot, "assets", ...segments));
-    assert.equal(Buffer.compare(source, generated), 0, `generated fixture diverged: ${entry.path}`);
+    assert.equal(
+      Buffer.compare(source, generated),
+      0,
+      `generated fixture diverged: ${entry.path}`,
+    );
   }
+
   return expectedCases;
 }
 
-function assertPackPlan(paths, expectedCases) {
+function assertPackedArtifact(paths, expectedCases) {
   const required = new Set([
     "package.json",
     "dist/index.js",
@@ -130,6 +137,7 @@ function assertPackPlan(paths, expectedCases) {
     "assets/schemas/v1alpha1/tck-fixture.schema.json",
     ...expectedCases.map(entry => `assets/${entry.path}`),
   ]);
+
   for (const path of required) {
     assert(paths.has(path), `packed testkit is missing ${path}`);
   }
@@ -139,11 +147,12 @@ function assertPackPlan(paths, expectedCases) {
     assert(!path.includes("node_modules/"), `packed testkit leaked node_modules content ${path}`);
     assert(!path.endsWith(".tsbuildinfo"), `packed testkit leaked build cache ${path}`);
     assert(!path.includes(".assets-staging-"), `packed testkit leaked staging asset ${path}`);
+    assert(!/\.test\.[cm]?[jt]s$/u.test(path), `packed testkit leaked test source ${path}`);
   }
 }
 
 async function writeConsumerCheck(consumerRoot) {
-  const source = `
+  const source = String.raw`
 import assert from "node:assert/strict";
 import { readFile, readdir } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
@@ -161,7 +170,7 @@ function isRecord(value) {
 }
 
 function project(sessionRef, event) {
-  const turnRef = \`\${sessionRef}/turn:\${event.data.turn}\`;
+  const turnRef = \`${sessionRef}/turn:${event.data.turn}\`;
   switch (event.type) {
     case "turn/start":
       return { kind: "EVENT", event: { type: "turn.started", turnRef } };
@@ -171,7 +180,7 @@ function project(sessionRef, event) {
         event: {
           type: "step.started",
           turnRef,
-          stepRef: \`\${turnRef}/step:\${event.data.step}\`,
+          stepRef: \`${turnRef}/step:${event.data.step}\`,
         },
       };
     case "step/end":
@@ -198,7 +207,7 @@ async function walk(directory, prefix = "") {
   const entries = await readdir(directory, { withFileTypes: true });
   const files = [];
   for (const entry of entries) {
-    const path = prefix.length === 0 ? entry.name : \`\${prefix}/\${entry.name}\`;
+    const path = prefix.length === 0 ? entry.name : \`${prefix}/${entry.name}\`;
     if (entry.isDirectory()) {
       files.push(...await walk(resolve(directory, entry.name), path));
     } else {
@@ -209,15 +218,18 @@ async function walk(directory, prefix = "") {
 }
 
 const repositoryRoot = resolve(process.env.DSH_SAFE_REPOSITORY_ROOT);
+const consumerRoot = resolve(process.cwd());
+assert(relative(repositoryRoot, consumerRoot).split(sep)[0] === "..", "dummy consumer is inside repository");
+
 const entryUrl = import.meta.resolve("@dsh-safe/testkit");
 const entryPath = fileURLToPath(entryUrl);
-assert(entryPath.includes(\`\${sep}node_modules\${sep}\`), "testkit did not resolve from installed node_modules");
-assert(!entryPath.startsWith(\`\${repositoryRoot}\${sep}\`), "testkit resolved from repository source tree");
-assert(!entryPath.includes(\`\${sep}packages\${sep}testkit\${sep}src\${sep}\`), "testkit resolved a source path");
+assert(entryPath.includes(\`${sep}node_modules${sep}\`), "testkit did not resolve from installed node_modules");
+assert(!entryPath.startsWith(\`${repositoryRoot}${sep}\`), "testkit resolved from repository source tree");
+assert(!entryPath.includes(\`${sep}packages${sep}testkit${sep}src${sep}\`), "testkit resolved a source path");
 
-const assetRootUrl = tckPackageAssetRootUrl();
 const packageRootUrl = new URL("../", entryUrl);
 const packageRoot = fileURLToPath(packageRootUrl);
+const assetRootUrl = tckPackageAssetRootUrl();
 const assetRoot = fileURLToPath(assetRootUrl);
 assert(relative(packageRoot, assetRoot).split(sep)[0] !== "..", "asset root escaped installed package");
 
@@ -234,8 +246,8 @@ const ids = new Set();
 const paths = new Set();
 for (const entry of manifest.cases) {
   assert(isRecord(entry) && typeof entry.id === "string" && typeof entry.path === "string", "installed manifest case is malformed");
-  assert(!ids.has(entry.id), \`duplicate installed case id: \${entry.id}\`);
-  assert(!paths.has(entry.path), \`duplicate installed case path: \${entry.path}\`);
+  assert(!ids.has(entry.id), \`duplicate installed case id: ${entry.id}\`);
+  assert(!paths.has(entry.path), \`duplicate installed case path: ${entry.path}\`);
   ids.add(entry.id);
   paths.add(entry.path);
   await readFile(new URL(entry.path, assetRootUrl));
@@ -273,14 +285,14 @@ assert.deepEqual(
 
 const installedFiles = await walk(packageRoot);
 for (const path of installedFiles) {
-  assert(!path.startsWith("src/"), \`installed package leaked source file \${path}\`);
-  assert(!path.includes("source-conformance"), \`installed package leaked conformance internal \${path}\`);
-  assert(!path.endsWith(".tsbuildinfo"), \`installed package leaked build cache \${path}\`);
-  assert(!path.includes(".assets-staging-"), \`installed package leaked staging file \${path}\`);
-  assert(!/\\.test\\.[cm]?[jt]s$/.test(path), \`installed package leaked test source \${path}\`);
+  assert(!path.startsWith("src/"), \`installed package leaked source file ${path}\`);
+  assert(!path.includes("source-conformance"), \`installed package leaked conformance internal ${path}\`);
+  assert(!path.endsWith(".tsbuildinfo"), \`installed package leaked build cache ${path}\`);
+  assert(!path.includes(".assets-staging-"), \`installed package leaked staging file ${path}\`);
+  assert(!/\.test\.[cm]?[jt]s$/.test(path), \`installed package leaked test source ${path}\`);
 }
 
-console.log(\`External dummy consumer passed \${manifest.cases.length} installed TCK asset checks.\`);
+console.log(\`External dummy consumer passed ${manifest.cases.length} installed TCK asset checks.\`);
 `;
   await writeFile(join(consumerRoot, "consumer-check.mjs"), source.trimStart(), "utf8");
 }
@@ -290,16 +302,18 @@ async function runPackageCheck() {
   await mkdir(protocolPackRoot, { recursive: true });
   await mkdir(testkitPackRoot, { recursive: true });
 
-  command(["run", "build"], { cwd: protocolRoot });
-  command(["pack", "--pack-destination", protocolPackRoot], { cwd: protocolRoot });
-  command(["pack", "--pack-destination", testkitPackRoot], { cwd: testkitRoot });
+  run(pnpmExecutable, ["run", "build"], { cwd: protocolRoot });
+  run(pnpmExecutable, ["pack", "--pack-destination", protocolPackRoot], { cwd: protocolRoot });
+  run(pnpmExecutable, ["pack", "--pack-destination", testkitPackRoot], { cwd: testkitRoot });
 
   const protocolTarball = await oneTarball(protocolPackRoot, "protocol pack");
   const testkitTarball = await oneTarball(testkitPackRoot, "testkit pack");
   const expectedCases = await assertCanonicalAssets();
-  assertPackPlan(archivePaths(testkitTarball), expectedCases);
+  assertPackedArtifact(archivePaths(testkitTarball), expectedCases);
 
   const consumerRoot = await mkdtemp(join(tmpdir(), "dsh-safe-tck-consumer-"));
+  assert(relative(repositoryRoot, consumerRoot).split(sep)[0] === "..", "dummy consumer must be outside repository");
+
   try {
     await copyFile(protocolTarball, join(consumerRoot, "protocol.tgz"));
     await copyFile(testkitTarball, join(consumerRoot, "testkit.tgz"));
@@ -317,20 +331,12 @@ async function runPackageCheck() {
       }, null, 2)}\n`,
       "utf8",
     );
-    const pnpmConfigHome = join(consumerRoot, ".pnpm-config");
-    await mkdir(join(pnpmConfigHome, "pnpm"), { recursive: true });
-    await writeFile(
-      join(pnpmConfigHome, "pnpm", "config.yaml"),
-      "overrides:\n  '@dsh-safe/protocol': 'file:./protocol.tgz'\n",
-      "utf8",
-    );
     await writeConsumerCheck(consumerRoot);
-    command(
-      ["install", "--offline", "--ignore-scripts", "--lockfile=false"],
-      {
-        cwd: consumerRoot,
-        env: { ...process.env, XDG_CONFIG_HOME: pnpmConfigHome },
-      },
+
+    run(
+      npmExecutable,
+      ["install", "--offline", "--ignore-scripts", "--package-lock=false", "--no-audit", "--no-fund"],
+      { cwd: consumerRoot },
     );
     execFileSync(process.execPath, ["consumer-check.mjs"], {
       cwd: consumerRoot,
@@ -341,7 +347,7 @@ async function runPackageCheck() {
     await rm(consumerRoot, { recursive: true, force: true });
   }
 
-  console.log("Packed @dsh-safe/testkit artifact and external dummy consumer: OK");
+  console.log("Packed @dsh-safe/testkit artifact and external non-workspace dummy consumer: OK");
 }
 
 await runPackageCheck();
