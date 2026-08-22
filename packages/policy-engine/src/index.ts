@@ -1,11 +1,11 @@
 /**
  * @dsh-safe/policy-engine public boundary.
  *
- * Only the M4-001 document-loading surface is implemented here. Policy schema
- * validation, normalization, ordering and evaluation remain later explicit
- * gates and are intentionally absent from this package surface.
+ * The M4-001 document-loading surface is implemented and acceptance-audited.
+ * Policy schema validation, normalization, ordering and evaluation remain later
+ * explicit gates and are intentionally absent from this package surface.
  */
-export const PACKAGE_STAGE = "M4-001-IN-PROGRESS" as const;
+export const PACKAGE_STAGE = "M4-001-LOADER-CONFORMANCE" as const;
 
 export {
   loadPolicyDocument,
