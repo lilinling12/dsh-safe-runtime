@@ -1,0 +1,99 @@
+{
+  "apiVersion": "safe-runtime.dev/test-fixtures/v1alpha1",
+  "kind": "PolicyDocumentLoaderCases",
+  "cases": [
+    {
+      "id": "json-policy-success",
+      "format": "JSON",
+      "sourcePath": "valid/policy-minimal.json",
+      "expect": { "status": "PASS" }
+    },
+    {
+      "id": "yaml-policy-success",
+      "format": "YAML",
+      "sourcePath": "valid/policy-minimal.yaml",
+      "expect": { "status": "PASS" }
+    },
+    {
+      "id": "json-duplicate-key",
+      "format": "JSON",
+      "sourcePath": "invalid/json-duplicate-key.json",
+      "expect": {
+        "status": "ERROR",
+        "reason": "POLICY_DOCUMENT_DUPLICATE_KEY"
+      }
+    },
+    {
+      "id": "yaml-duplicate-key",
+      "format": "YAML",
+      "sourcePath": "invalid/yaml-duplicate-key.yaml",
+      "expect": {
+        "status": "ERROR",
+        "reason": "POLICY_DOCUMENT_DUPLICATE_KEY"
+      }
+    },
+    {
+      "id": "yaml-multiple-documents",
+      "format": "YAML",
+      "sourcePath": "invalid/yaml-multiple-documents.yaml",
+      "expect": {
+        "status": "ERROR",
+        "reason": "POLICY_DOCUMENT_MULTIPLE_DOCUMENTS"
+      }
+    },
+    {
+      "id": "yaml-alias",
+      "format": "YAML",
+      "sourcePath": "invalid/yaml-alias.yaml",
+      "expect": {
+        "status": "ERROR",
+        "reason": "POLICY_DOCUMENT_YAML_ALIAS_FORBIDDEN"
+      }
+    },
+    {
+      "id": "yaml-custom-tag",
+      "format": "YAML",
+      "sourcePath": "invalid/yaml-custom-tag.yaml",
+      "expect": {
+        "status": "ERROR",
+        "reason": "POLICY_DOCUMENT_YAML_TAG_FORBIDDEN"
+      }
+    },
+    {
+      "id": "yaml-merge-key",
+      "format": "YAML",
+      "sourcePath": "invalid/yaml-merge-key.yaml",
+      "expect": {
+        "status": "ERROR",
+        "reason": "POLICY_DOCUMENT_YAML_MERGE_FORBIDDEN"
+      }
+    },
+    {
+      "id": "yaml-non-string-key",
+      "format": "YAML",
+      "sourcePath": "invalid/yaml-non-string-key.yaml",
+      "expect": {
+        "status": "ERROR",
+        "reason": "POLICY_DOCUMENT_NON_STRING_KEY"
+      }
+    },
+    {
+      "id": "json-malformed",
+      "format": "JSON",
+      "sourcePath": "invalid/json-malformed.json",
+      "expect": {
+        "status": "ERROR",
+        "reason": "POLICY_DOCUMENT_SYNTAX_INVALID"
+      }
+    },
+    {
+      "id": "yaml-malformed",
+      "format": "YAML",
+      "sourcePath": "invalid/yaml-malformed.yaml",
+      "expect": {
+        "status": "ERROR",
+        "reason": "POLICY_DOCUMENT_SYNTAX_INVALID"
+      }
+    }
+  ]
+}
