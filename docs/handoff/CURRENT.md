@@ -6,23 +6,25 @@
 
 ## Snapshot
 
-- Recorded at: `2026-08-21`
+- Recorded at: `2026-08-22`
 - Repository: `lilinling12/dsh-safe-runtime`
-- Phase: `M3 — Shared TCK Foundation (ACCEPTED)`
-- Pull request: `#2 — feat(testkit): establish M3 shared TCK foundation`
-- PR state at acceptance closure: `OPEN / DRAFT`
-- Branch: `feat/m3-shared-tck-foundation`
-- Stacked base: `feat/m2-harness-adapter@6a9c64155ec6c376908e64d70f2b50d5b8de1285`
+- Phase: `M4 — Capability Broker v0.1`
+- Active pull request: `#3 — feat(policy): begin M4 capability broker`
+- PR state: `OPEN / DRAFT`
+- Branch: `feat/m4-capability-broker`
+- Stacked base: `feat/m3-shared-tck-foundation@65870612d039ce026a6952c16d5e069b11bd24a7`
 - M2 acceptance: **ACCEPTED**
 - M3 acceptance: **ACCEPTED**
 - M3 acceptance record: `docs/acceptance/m3-acceptance-audit.md`
 - Accepted M3 remediation implementation head: `e6522a18760268b56b09f9ac5d9c822671c41666`
-- Acceptance-record commit: `37ac802df729f2a5f9f3b96082aeea6082e6b8b5`
-- Current next gate: **M4-001 P0 — Capability Broker YAML/JSON loader, protocol/spec first**
+- Final M3 governance head: `65870612d039ce026a6952c16d5e069b11bd24a7`
+- Current gate: **M4-001 P0 — YAML/JSON loader**
+- Current M4-001 protocol/fixture head: `81d2fd108e5b499700ef6eaa890026dc5f3e95b1`
+- Current M4-001 normal CI: **PASS — CI #235 / run `32580005006`**
 
-Live GitHub state always overrides this file. PR #2 remains intentionally stacked
-on the accepted M2 branch. M3 acceptance does not authorize skipping ahead within
-M4 and does not authorize M6 Workspace Transaction work.
+Live GitHub state always overrides this file. PR #3 is intentionally stacked on
+the final accepted M3 governance head so M4 work cannot mutate the accepted M3
+evidence line.
 
 ## Accepted compatibility baseline
 
@@ -34,178 +36,197 @@ commit: 47f943859bef60e4160492346772ded9b24f765a
 distribution: distribution-blocked
 ```
 
-M2 acceptance authority remains `docs/acceptance/m2-acceptance-audit.md`.
-M3 acceptance authority is `docs/acceptance/m3-acceptance-audit.md`.
+M4-001 does not depend on Harness behavior. Do not use Harness parser/API behavior
+to define CapabilityPolicy syntax or semantics.
 
-## M3 final status
+## M3 closure prerequisite
 
-All currently numbered M3 gates are complete and accepted:
+Before M4 was entered, the final M3 governance head
+`65870612d039ce026a6952c16d5e069b11bd24a7` was verified dual-green:
 
-```text
-M3-001  language-independent fixture format
-M3-002  shared runner contract
-M3-003  deterministic seed / logical clock
-M3-004  deterministic fake approval
-M3-005  deterministic fake tool runtime
-M3-006  deterministic fake filesystem / subprocess execution world
-M3-007  deterministic fault injection
-M3-010  Adapter DSH turn lifecycle Shared TCK
-M3-011  Adapter DSH tool ordering Shared TCK
-M3-012  denied tool call never enters body Shared TCK
-M3-013  authoritative final-result mapping Shared TCK
-M3-014  approval-unavailable Shared TCK
-M3-015  cancellation Shared TCK
-M3-016  disposal Shared TCK
-M3-017  replay reconciliation Shared TCK
-```
-
-There is no M3-018 gate in the current roadmap.
-
-### M3 Definition of Done
-
-All three M3 DoD requirements now have direct evidence:
-
-1. **Independent publication — PASS.** `@dsh-safe/testkit` has a package-local
-   build, explicit exports/files, canonical generated TCK assets, real tarball
-   inspection and normal-CI gating.
-2. **External dummy consumer — PASS.** A generated consumer outside the
-   repository/workspace installs the same-run `protocol.tgz` and `testkit.tgz`
-   with npm 10.9.3 in offline mode, imports only installed testkit public exports,
-   loads all 44 registered assets, and exercises PASS/FAIL/ERROR without Adapter
-   or Reference Runtime internals.
-3. **No TypeScript-only fixture semantics — PASS.** Portable TCK fixtures remain
-   JSON/schema-defined; TypeScript is a projection, not the fixture authority.
-
-## Final M3 acceptance evidence
-
-Accepted remediation implementation head:
-
-```text
-e6522a18760268b56b09f9ac5d9c822671c41666
-```
-
-Exact-head normal CI:
-
-- CI #218 / run `32482908193`: **PASS**;
-- `pnpm install --frozen-lockfile`: **PASS**;
-- architecture boundaries: **PASS**;
-- schema shape: **PASS** (`16 schemas`);
-- schema compatibility baseline: **PASS**;
-- strict TypeScript typecheck: **PASS**;
-- tests: **PASS** (`24 files / 261 tests`);
-- oxlint: **PASS** (`0 warnings / 0 errors`);
-- actual protocol/testkit tarball build and inspection: **PASS**;
-- external non-workspace offline dummy consumer: **PASS**;
-- installed TCK assets: **44**;
-- dummy implementation PASS/FAIL/ERROR behavior: **PASS**.
-
-Exact-head DeepSeek Harness compatibility evidence:
-
-- Harness rc5 source-conformance #177 / run `32482908210`: **PASS**;
-- exact baseline checkout `47f943859bef60e4160492346772ded9b24f765a`: **PASS**;
-- pinned Harness public type-surface build: **PASS**;
-- reproducible safe-runtime install: **PASS**;
-- exact workspace projection: **PASS**;
-- projection idempotence: **PASS**;
-- exact pinned binding typecheck: **PASS**;
+- normal CI #222: **PASS**;
+- Harness rc5 source-conformance #181: **PASS**;
+- exact pinned Harness public-type build: **PASS**;
+- workspace projection/idempotence: **PASS**;
+- exact binding typecheck: **PASS**;
 - real rc5 runtime conformance: **PASS**.
 
-The Harness result is compatibility evidence only. The accepted M3 protocol/TCK
-semantics continue to come from repository specs, schemas and portable fixtures.
+M3 remains **ACCEPTED** and is not reopened by M4 work.
 
-## M3 package-boundary remediation record
+## M4-001 normative boundary
 
-The acceptance audit originally identified two real P0 blockers:
-
-```text
-M3-A1 — Publishable Shared TCK artifact
-M3-A2 — External dummy consumer conformance
-```
-
-They were closed without weakening existing gates.
-
-### M3-A1
-
-The final package boundary proves the actual generated `.tgz` content rather than
-a package-manager dry-run prediction. Required public `dist` files, manifest,
-fixture schema and all registered TCK fixtures are present. Source files,
-source-conformance internals, node_modules, build cache, temporary staging and test
-sources are rejected from the artifact boundary.
-
-Generated package assets are derived from canonical repository fixtures/schemas
-and checked before consumption; they are not an independent semantic source of
-truth.
-
-### M3-A2
-
-The final accepted consumer is created under the OS temporary directory outside
-the repository. It intentionally does **not** create a `pnpm-workspace.yaml` and
-therefore is not accepted through workspace linking.
-
-Repository build/pack remains pinned to pnpm 11.7.0. External-consumer installation
-uses npm 10.9.3 with:
+Normative authority added for the current gate:
 
 ```text
---offline
---ignore-scripts
---package-lock=false
---no-audit
---no-fund
+specs/0017-m4-capability-policy-document-loader.md
 ```
 
-Both local tarballs are declared as direct file dependencies. npm installs exactly
-those same-run artifacts and resolves the testkit protocol dependency from the
-installed local protocol package. Registry availability cannot mask a missing
-publication dependency.
+Spec-first head:
 
-The consumer additionally asserts that `@dsh-safe/testkit` resolves from its own
-installed `node_modules`, not from repository source paths.
+```text
+81298c33c7c76175f8a49be26f285ecb38e2398b
+```
+
+Normal CI for that spec head: **PASS — CI #223**.
+
+Existing M1 authority remains in force:
+
+- `specs/0001-safe-runtime-core.md` defines the CapabilityPolicy model and
+  authorization semantics;
+- `schemas/v1alpha1/capability-policy.schema.json` remains the normative policy
+  schema;
+- M4-001 MUST NOT redefine those semantics in loader code.
+
+The M4-001 loader boundary is intentionally limited to converting explicitly
+selected UTF-8 JSON or YAML source text into a detached JSON-compatible value or
+an explicit portable loader failure.
+
+It does **not** perform or imply:
+
+- M4-002 CapabilityPolicy JSON Schema validation;
+- M4-003 canonical resource normalization;
+- M4-004 deterministic rule ordering;
+- M4-005 deny/ask/allow evaluation;
+- M4-006 default-deny evaluation;
+- lease/approval routing;
+- Harness plugin integration;
+- M6 Workspace Transaction behavior.
+
+A successfully parsed document is not automatically a valid CapabilityPolicy and
+does not grant any capability.
+
+## M4-001 accepted parser requirements
+
+The current normative contract requires:
+
+1. explicit `JSON | YAML` format selection — no silent content sniffing fallback;
+2. exactly one detached JSON-compatible result value on success;
+3. duplicate object/mapping keys fail explicitly;
+4. JSON must remain actual JSON syntax rather than relaxed YAML syntax;
+5. YAML is restricted to a safe JSON-compatible subset;
+6. YAML anchors/aliases are forbidden;
+7. YAML merge keys are forbidden;
+8. YAML explicit/custom tags are forbidden;
+9. YAML multi-document input is forbidden;
+10. non-string YAML mapping keys are forbidden;
+11. cyclic/shared-reference/non-finite/host-only values are forbidden;
+12. source-byte, nesting-depth and container-entry limits are finite and
+    fail closed;
+13. parser output/failure is deterministic for the same source, format and limits;
+14. parser code does not execute tags, constructors, interpolation, includes,
+    filesystem/network access or arbitrary code.
+
+Portable failure reasons are fixed by Spec 0017 and MUST NOT be replaced by
+package-specific parser messages.
+
+## M4-001 portable fixtures
+
+Language-independent loader source cases are now under:
+
+```text
+fixtures/policy-loader/
+```
+
+Case index:
+
+```text
+fixtures/policy-loader/cases.json
+```
+
+Current cases cover:
+
+- successful JSON policy text;
+- successful YAML policy text;
+- duplicate JSON key;
+- duplicate YAML key;
+- YAML multiple documents;
+- YAML alias/anchor;
+- YAML custom tag;
+- YAML merge key;
+- YAML non-string key;
+- malformed JSON;
+- malformed YAML.
+
+The fixture head is:
+
+```text
+81d2fd108e5b499700ef6eaa890026dc5f3e95b1
+```
+
+Exact-head evidence:
+
+- normal CI #235 / run `32580005006`: **PASS**.
+
+These fixtures define parser inputs/expected portable failure reasons only. They
+must not be interpreted as M4-002 schema-validation acceptance.
+
+## Dependency/security decision for implementation
+
+The production implementation should use a maintained YAML parser rather than a
+handwritten general YAML parser.
+
+`yaml@2.8.1` was rejected because current security evidence identifies an
+uncontrolled-recursion vulnerability fixed in `2.8.3+`. The intended dependency
+baseline is therefore `yaml@2.8.3` or a later explicitly reviewed compatible
+version, with frozen-lockfile evidence.
+
+Do **not**:
+
+- add the dependency without synchronizing `pnpm-lock.yaml`;
+- disable or bypass `pnpm install --frozen-lockfile`;
+- accept an older vulnerable YAML parser only because its lock metadata is easier
+  to obtain;
+- hand-edit a guessed lockfile and claim reproducibility without CI proof.
+
+The current execution environment could not resolve GitHub/npm over its local
+network, so no unverifiable dependency/lockfile change was committed. This is an
+operational tooling constraint, not authorization to weaken the supply-chain gate.
+
+## Current implementation gate
+
+The next engineering work remains inside **M4-001**:
+
+```text
+Implement the policy document loader against Spec 0017 and the portable fixtures.
+```
+
+Expected implementation shape:
+
+- package: `packages/policy-engine`;
+- explicit loader request/result/error types;
+- JSON parser path that preserves duplicate-key detection rather than relying on
+  ordinary `JSON.parse` last-write-wins behavior;
+- maintained YAML parser path pinned through the frozen lockfile;
+- AST/value checks that reject alias/tag/merge/non-string-key/non-JSON constructs
+  before exposing a result;
+- explicit finite source/depth/entry limits;
+- deterministic portable reason-code mapping;
+- unit/conformance tests consuming the portable fixture sources;
+- no M4-002 schema validation inside the loader.
+
+Do not advance to `M4-002` until M4-001 implementation is exact-head green and
+its acceptance evidence is recorded.
 
 ## Boundaries that remain enforced
 
-- Spec/Schema/fixtures define shared semantics before implementation.
-- `packages/testkit` is one implementation/projection; it does not define portable
-  semantics.
-- Shared TCK fixtures must remain consumable by a non-TypeScript implementation.
-- DeepSeek Harness is an Adapter and must not define protocol/core semantics.
-- Shared contracts must not leak concrete Harness package paths.
-- No host wall-clock or ambient randomness may decide a fixture result.
-- Unknown versions/profiles/operations/semantics fail explicitly.
+- Protocol/spec precedes implementation.
+- Existing M1 Capability semantics are authoritative where already defined.
+- DeepSeek Harness is an Adapter and cannot define Capability Broker semantics.
+- Unknown formats and unsafe parser constructs fail explicitly.
 - Do not weaken TypeScript strictness, schemas, compatibility baseline,
-  validators, conformance tests, frozen installs, architecture/security gates, or
+  validators, conformance tests, frozen installs, architecture/security gates or
   security claims for CI.
-- M6 Workspace Transaction semantics remain out of scope.
-
-## Current gate — M4-001 P0
-
-M3 acceptance authorizes entry into M4, but only at the first uncompleted M4 gate:
-
-```text
-M4-001 P0 — YAML/JSON loader
-```
-
-The next engineering work must remain protocol-first. Before production loader
-implementation, determine and document the normative M4 policy-document contract
-needed by M4-001. Reuse existing M1 Capability semantics where they are already
-normative; do not silently redefine them in loader code.
-
-Do not pull forward M4-002+ behavior merely for convenience. In particular:
-
-- validation semantics belong to their explicit schema/validation gate;
-- canonical resource normalization and deterministic rule ordering remain their
-  own later gates;
-- deny/ask/allow and default-deny behavior must not be invented by the parser;
-- DeepSeek Harness behavior must not define Capability Broker policy syntax or
-  semantics.
+- Do not enter M4-002+ merely to simplify M4-001 implementation.
+- M6 Workspace Transaction remains unauthorized.
 
 ## Resume instruction
 
 On the next work session:
 
 1. read `docs/handoff/README.md` and this file;
-2. fetch PR #2 live state, branch head and exact-head workflow results;
+2. fetch PR #3 live head and exact-head workflow results;
 3. live GitHub evidence overrides this snapshot;
-4. if the latest governance head is not green, inspect that exact job/step/log and
-   repair it without weakening any gate;
-5. otherwise continue only with **M4-001 P0** from its protocol/spec boundary;
-6. do not start M4-002+ or M6 work early.
+4. if the current head fails, inspect that exact failing job/step/diagnostic;
+5. otherwise continue only with M4-001 implementation;
+6. preserve frozen-lockfile reproducibility when introducing the YAML parser;
+7. do not start M4-002+ or M6 early.
