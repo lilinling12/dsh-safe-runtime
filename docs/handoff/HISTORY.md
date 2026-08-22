@@ -579,3 +579,47 @@ or modify Shared TCK semantics.
 therefore authorized only as the next protocol-first milestone, beginning at
 `M4-001 P0 — YAML/JSON loader`. M4-002+ and M6 Workspace Transaction remain
 unauthorized until their respective gates are reached.
+
+## 2026-08-22 — Accept M4-001 Capability Policy document loader
+
+M4-001 closed at implementation head
+`9443d907b2b9db6819fe697a49abd6bf47bf1edf` after an acceptance review that
+strengthened the YAML untrusted-input boundary rather than treating an earlier
+green run as sufficient.
+
+The accepted boundary is defined by
+`specs/0017-m4-capability-policy-document-loader.md` and recorded in
+`docs/acceptance/m4-001-acceptance-audit.md`.
+
+Key closure evidence:
+
+- explicit JSON/YAML dispatch with no content-sniffing fallback;
+- duplicate-aware custom JSON parsing before object materialization;
+- safe YAML portable subset rejecting anchors/aliases, merge keys, explicit tags,
+  duplicate keys, non-string keys and non-JSON values;
+- exact-pinned `yaml@2.9.0` with synchronized frozen lockfile;
+- finite source-byte, nesting-depth and semantic container-entry budgets;
+- YAML depth and entry budgets preflighted iteratively over Parser CST before
+  Composer, with AST projection rechecks as defense in depth;
+- flow and block deep-nesting regressions plus oversized fan-out regression;
+- `__proto__` remains ordinary own data without prototype mutation;
+- successful loading deliberately does not perform M4-002 schema validation.
+
+Exact implementation-head evidence:
+
+- normal CI #248 / run `32582943266`: PASS;
+- frozen install and 124-entry supply-chain policy: PASS;
+- architecture/schema/schema-baseline/strict TypeScript: PASS;
+- 26 test files / 288 tests: PASS;
+- M4-001 loader tests: 18 PASS;
+- JSON parser tests: 9 PASS;
+- oxlint: 0 warnings / 0 errors;
+- Shared TCK packed artifact/external consumer boundary: PASS;
+- exact Harness rc5 source-conformance #192 / run `32582943175`: PASS;
+- Harness steps 6–11 all PASS, including pinned build, reproducible install,
+  projection/idempotence, exact binding typecheck and real runtime conformance.
+
+M4-001 is accepted at its implementation boundary. Governance records are being
+updated on PR #3 and their final exact head must itself be dual-green before
+M4-002 starts. M4-002 must begin protocol-first by reconciling the existing
+`defaultEffect` schema/prose boundary; M4-003+ and M6 remain unauthorized.
