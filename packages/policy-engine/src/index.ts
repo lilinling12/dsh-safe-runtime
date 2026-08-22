@@ -1,11 +1,11 @@
 /**
  * @dsh-safe/policy-engine public boundary.
  *
- * The M4-001 document-loading surface is implemented and acceptance-audited.
- * Policy schema validation, normalization, ordering and evaluation remain later
- * explicit gates and are intentionally absent from this package surface.
+ * M4-001 document loading is acceptance-audited. M4-002 schema validation is
+ * implemented behind the current gate and remains pending exact-head acceptance.
+ * Resource normalization, ordering and evaluation are intentionally absent.
  */
-export const PACKAGE_STAGE = "M4-001-LOADER-CONFORMANCE" as const;
+export const PACKAGE_STAGE = "M4-002-SCHEMA-VALIDATION-IN-PROGRESS" as const;
 
 export {
   loadPolicyDocument,
@@ -21,3 +21,12 @@ export {
   type PolicyDocumentLoadResult,
   type PolicyDocumentLoadSuccess,
 } from "./policy-document-types.js";
+export { validateCapabilityPolicyDocument } from "./capability-policy-schema-validator.js";
+export {
+  PolicySchemaConfigurationError,
+  type PolicySchemaValidationFailure,
+  type PolicySchemaValidationIssue,
+  type PolicySchemaValidationResult,
+  type PolicySchemaValidationSuccess,
+  type ValidatedPolicyDocument,
+} from "./policy-schema-types.js";
