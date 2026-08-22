@@ -1,0 +1,140 @@
+name: M4-002 governance sync
+
+on:
+  push:
+    branches:
+      - automation/m4-002-governance-sync
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: automation/m4-002-governance-sync
+          fetch-depth: 1
+
+      - name: Apply exact governance edits
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          roadmap_path = Path("docs/roadmap.md")
+          roadmap = roadmap_path.read_text(encoding="utf-8")
+          old = "- [ ] `M4-002 P0` schema validation。"
+          new = "- [x] `M4-002 P0` schema validation。 **ACCEPTED：Spec 0018 + portable fixtures + strict Draft 2020-12 validator；accepted implementation head `7b87c812...`，CI #260 / Harness #204 PASS；验收记录 `docs/acceptance/m4-002-acceptance-audit.md`。**"
+          if roadmap.count(old) != 1:
+              raise SystemExit(f"expected exactly one roadmap target, found {roadmap.count(old)}")
+          if new in roadmap:
+              raise SystemExit("roadmap already contains accepted M4-002 line before replacement")
+          roadmap_path.write_text(roadmap.replace(old, new, 1), encoding="utf-8")
+
+          history_path = Path("docs/handoff/HISTORY.md")
+          history = history_path.read_text(encoding="utf-8")
+          marker = "## 2026-08-23 — Accept M4-002 CapabilityPolicy schema validation"
+          if marker in history:
+              raise SystemExit("M4-002 history marker already exists; refusing duplicate append")
+          if not history.endswith("\n"):
+              raise SystemExit("HISTORY.md must end with a newline before append")
+
+          entry = r'''
+          ## 2026-08-23 — Accept M4-002 CapabilityPolicy schema validation
+
+          M4-002 closed at implementation head
+          `7b87c812fafab860d5ee95bebdfc706ec6e2ba06` after protocol-first reconciliation
+          of the CapabilityPolicy schema-validation boundary in Spec 0018.
+
+          The accepted boundary preserves the existing v0.1 schema rather than
+          weakening it: `spec.defaultEffect` remains required and constrained to
+          `deny`. Core §8.3's missing-value => deny rule remains a later evaluator
+          fail-closed invariant; M4-002 does not synthesize a missing field or treat
+          a schema-invalid document as valid.
+
+          The TypeScript reference implementation uses strict Draft 2020-12
+          `Ajv2020`, trusted repository-controlled schema IDs and local `$ref`
+          registration. Validation enables no type coercion, default insertion or
+          additional-property removal and performs no runtime network schema fetch.
+          Successful validation returns a detached recursively frozen JSON-compatible
+          snapshot; invalid documents expose deterministic portable
+          `instancePath`/`keyword`/`schemaPath` issues, while trusted schema
+          initialization failures remain distinct and fail closed.
+
+          Portable `fixtures/policy-schema/` coverage includes the required valid
+          minimal/lease policies and negative defaultEffect, identity, metadata,
+          additional-property, required-rule-field, effect, uniqueness and lease
+          cases. Regression tests additionally cover input non-mutation, recursive
+          immutability, prototype safety, deterministic issue ordering and broken
+          trusted-schema configuration.
+
+          Dependency hygiene was tightened before acceptance: `@dsh-safe/policy-engine`
+          now exact-pins `ajv@8.20.0` and no longer declares unused `ajv-formats` at
+          runtime. The current CapabilityPolicy root reaches only
+          `defs.schema.json#/$defs/leaseRequest`, which has no `format` assertion; a
+          future normative root that reaches formatted definitions must add explicit
+          strict format semantics and new conformance evidence.
+
+          Exact-head evidence at `7b87c812...`:
+
+          - normal CI #260 / run `32603117802`: PASS;
+          - frozen install and 124-entry supply-chain policy: PASS;
+          - architecture/schema/schema-baseline/strict TypeScript: PASS;
+          - 27 test files / 294 tests: PASS;
+          - M4-002 validator tests: 6 PASS;
+          - M4-001 loader regressions: 18 PASS;
+          - JSON parser regressions: 9 PASS;
+          - oxlint: 0 warnings / 0 errors;
+          - Shared TCK packed artifact/external consumer boundary: PASS;
+          - exact Harness rc5 source-conformance #204 / run `32603117850`: PASS;
+          - Harness steps 6–11 all PASS.
+
+          `docs/acceptance/m4-002-acceptance-audit.md` records **M4-002 ACCEPTED AT
+          IMPLEMENTATION BOUNDARY**. Governance records must now reach their own
+          final exact-head dual-green state before M4-003 begins. M4-003 is the next
+          protocol-first gate only after that evidence; M4-004+ and M6 remain
+          unauthorized.
+          '''.lstrip().replace("          ", "")
+
+          history_path.write_text(history + "\n" + entry, encoding="utf-8")
+          PY
+
+      - name: Verify exact edit scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          changed="$(git diff --name-only)"
+          expected=$'docs/handoff/HISTORY.md\ndocs/roadmap.md'
+          if [[ "$changed" != "$expected" ]]; then
+            printf 'unexpected changed files:\n%s\n' "$changed" >&2
+            exit 1
+          fi
+          roadmap_added="$(git diff --unified=0 -- docs/roadmap.md | grep '^+' | grep -v '^+++' | wc -l | tr -d ' ')"
+          roadmap_removed="$(git diff --unified=0 -- docs/roadmap.md | grep '^-' | grep -v '^---' | wc -l | tr -d ' ')"
+          if [[ "$roadmap_added" != "1" || "$roadmap_removed" != "1" ]]; then
+            echo "roadmap edit must be exactly one-line replacement" >&2
+            git diff -- docs/roadmap.md >&2
+            exit 1
+          fi
+          if git diff --unified=0 -- docs/handoff/HISTORY.md | grep '^-' | grep -v '^---'; then
+            echo "HISTORY.md append must not delete or modify existing lines" >&2
+            exit 1
+          fi
+
+      - name: Commit generated governance blobs
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet; then
+            echo "No governance changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/roadmap.md docs/handoff/HISTORY.md
+          git commit -m "docs(governance): record M4-002 acceptance"
+          git push origin HEAD:automation/m4-002-governance-sync
