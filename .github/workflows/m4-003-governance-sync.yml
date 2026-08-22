@@ -1,0 +1,137 @@
+name: M4-003 governance sync
+
+on:
+  push:
+    branches:
+      - automation/m4-003-governance-sync
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: automation/m4-003-governance-sync
+          fetch-depth: 1
+
+      - name: Apply exact governance edits
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          roadmap_path = Path("docs/roadmap.md")
+          roadmap = roadmap_path.read_text(encoding="utf-8")
+          old = "- [ ] `M4-003 P0` canonical resource normalization。"
+          new = "- [x] `M4-003 P0` canonical resource normalization。 **ACCEPTED：Spec 0019 + 35 portable cases + runtime fail-closed hardening；accepted implementation head `edd91190...`，CI #275 / Harness #219 PASS；验收记录 `docs/acceptance/m4-003-acceptance-audit.md`。**"
+          if roadmap.count(old) != 1:
+              raise SystemExit(f"expected exactly one M4-003 roadmap target, found {roadmap.count(old)}")
+          if new in roadmap:
+              raise SystemExit("roadmap already contains accepted M4-003 line")
+          roadmap_path.write_text(roadmap.replace(old, new, 1), encoding="utf-8")
+
+          history_path = Path("docs/handoff/HISTORY.md")
+          history = history_path.read_text(encoding="utf-8")
+          marker = "## 2026-08-23 — Accept M4-003 canonical resource normalization"
+          if marker in history:
+              raise SystemExit("M4-003 history marker already exists; refusing duplicate append")
+          if not history.endswith("\n"):
+              raise SystemExit("HISTORY.md must end with newline before append")
+
+          entry = r'''
+          ## 2026-08-23 — Accept M4-003 canonical resource normalization
+
+          M4-003 closed at implementation head
+          `edd91190eb4489e7b73a8cc7fde05140939cb36d` after protocol-first recovery of
+          the M1 resource model, precedence stage, schema surface, architecture
+          constraints and accepted provider seam.
+
+          Spec 0019 defines canonicalization as a structural, rejecting boundary,
+          not an operating-system path resolver. Exact resources retain
+          `scheme`/`locator`/optional opaque `providerIdentity`; policy selector
+          strings are parsed only at the first `://`. Accepted strings are preserved
+          exactly: no trim, Unicode normalization, case folding, URL decoding,
+          slash rewriting, dot-segment resolution, realpath, DNS, executable lookup
+          or secret dereference is performed by policy-engine.
+
+          The 4096 bound is defined in Unicode code points and is implemented with a
+          bounded `for...of` traversal. Portable hardening proves both BMP and astral
+          boundaries, including `😀 x 4096` PASS, `😀 x 4097` LIMIT, and `U+007F`
+          rejection. C0 controls fail closed.
+
+          Provider identity remains opaque. The normalizer never parses or
+          synthesizes provider tokens and never treats string-prefix relationships as
+          provider containment. Provider-backed filesystem identity/containment stays
+          behind the accepted Adapter/runtime provider seam.
+
+          Acceptance review also hardened runtime values that bypass JSON Schema:
+          inherited prototype fields cannot become authorization input, required
+          resource fields are read only as own properties, and an own
+          `providerIdentity: undefined` fails rather than being silently treated as
+          absent. Unexpected own fields remain fail-closed.
+
+          Language-independent fixtures contain 35 portable resource-normalization
+          cases. TypeScript additionally exercises two runtime-only prototype/own-
+          property cases. Exact implementation-head evidence at `edd91190...`:
+
+          - normal CI #275 / run `32604956296`: PASS;
+          - frozen install and 124-entry supply-chain policy: PASS;
+          - architecture boundaries / 16-schema shape / schema baseline: PASS;
+          - strict workspace TypeScript: PASS;
+          - 29 test files / 334 tests: PASS;
+          - M4-003 portable normalizer suite: 38 PASS;
+          - M4-003 runtime object-boundary suite: 2 PASS;
+          - oxlint: 0 warnings / 0 errors;
+          - Shared TCK packed artifact + external consumer: 44 assets PASS;
+          - exact Harness rc5 source-conformance #219 / run `32604956288`: PASS;
+          - Harness steps 6–11 all PASS.
+
+          `docs/acceptance/m4-003-acceptance-audit.md` records **M4-003 ACCEPTED AT
+          IMPLEMENTATION BOUNDARY**. The governance head recording this acceptance
+          must itself reach exact-head CI/Harness dual-green before M4-004 starts.
+          M4-005+ and M6 remain unauthorized.
+          '''.lstrip().replace("          ", "")
+
+          history_path.write_text(history + "\n" + entry, encoding="utf-8")
+          PY
+
+      - name: Verify exact edit scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          changed="$(git diff --name-only)"
+          expected=$'docs/handoff/HISTORY.md\ndocs/roadmap.md'
+          if [[ "$changed" != "$expected" ]]; then
+            printf 'unexpected changed files:\n%s\n' "$changed" >&2
+            exit 1
+          fi
+          roadmap_added="$(git diff --unified=0 -- docs/roadmap.md | grep '^+' | grep -v '^+++' | wc -l | tr -d ' ')"
+          roadmap_removed="$(git diff --unified=0 -- docs/roadmap.md | grep '^-' | grep -v '^---' | wc -l | tr -d ' ')"
+          if [[ "$roadmap_added" != "1" || "$roadmap_removed" != "1" ]]; then
+            echo "roadmap edit must be exactly one-line replacement" >&2
+            git diff -- docs/roadmap.md >&2
+            exit 1
+          fi
+          if git diff --unified=0 -- docs/handoff/HISTORY.md | grep '^-' | grep -v '^---'; then
+            echo "HISTORY.md append must not delete or modify existing lines" >&2
+            exit 1
+          fi
+
+      - name: Commit generated governance blobs
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet; then
+            echo "No governance changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/roadmap.md docs/handoff/HISTORY.md
+          git commit -m "docs(governance): record M4-003 acceptance"
+          git push origin HEAD:automation/m4-003-governance-sync
