@@ -1,0 +1,41 @@
+name: Generate M4 schema lockfile
+
+on:
+  push:
+    branches:
+      - automation/m4-schema-lockfile
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.19.0
+      - name: Enable pinned pnpm
+        run: corepack enable && corepack prepare pnpm@11.7.0 --activate
+      - name: Regenerate lockfile
+        run: pnpm install --lockfile-only
+      - name: Verify frozen install
+        run: pnpm install --frozen-lockfile
+      - name: Commit generated lockfile only
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --exit-code -- packages/policy-engine/package.json
+          if git diff --quiet -- pnpm-lock.yaml; then
+            echo "Lockfile already synchronized."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pnpm-lock.yaml
+          git diff --cached --name-only | grep -qx 'pnpm-lock.yaml'
+          test "$(git diff --cached --name-only | wc -l)" -eq 1
+          git commit -m "build(policy): regenerate schema validator lockfile"
+          git push
