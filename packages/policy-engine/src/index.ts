@@ -1,11 +1,11 @@
 /**
  * @dsh-safe/policy-engine public boundary.
  *
- * M4-001 document loading is acceptance-audited. M4-002 schema validation is
- * implemented behind the current gate and remains pending exact-head acceptance.
- * Resource normalization, ordering and evaluation are intentionally absent.
+ * M4-001 document loading and M4-002 schema validation are acceptance-audited.
+ * Resource normalization, ordering and evaluation are intentionally absent until
+ * their later governance gates are explicitly authorized.
  */
-export const PACKAGE_STAGE = "M4-002-SCHEMA-VALIDATION-IN-PROGRESS" as const;
+export const PACKAGE_STAGE = "M4-002-SCHEMA-VALIDATION-CONFORMANCE" as const;
 
 export {
   loadPolicyDocument,
