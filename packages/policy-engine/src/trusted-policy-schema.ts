@@ -1,8 +1,11 @@
-import { readFileSync } from "node:fs";
 import type { AnySchemaObject } from "ajv";
 import { PolicySchemaConfigurationError } from "./policy-schema-types.js";
 
-const SCHEMA_DIRECTORY = new URL("../../../schemas/v1alpha1/", import.meta.url);
+const JSON_SCHEMA_2020_12 = "https://json-schema.org/draft/2020-12/schema";
+const CAPABILITY_POLICY_SCHEMA_ID =
+  "https://safe-runtime.dev/schema/v1alpha1/capability-policy.schema.json";
+const DEFINITIONS_SCHEMA_ID =
+  "https://safe-runtime.dev/schema/v1alpha1/defs.schema.json";
 
 export interface TrustedCapabilityPolicySchemaGraph {
   readonly capabilityPolicy: AnySchemaObject;
@@ -10,56 +13,36 @@ export interface TrustedCapabilityPolicySchemaGraph {
 }
 
 /**
- * Loads only repository-controlled schema resources. Policy documents cannot
- * alter these URLs, request remote schemas, or inject an alternate schema graph.
+ * Establishes the trusted configuration boundary without performing filesystem
+ * or network I/O. The caller is responsible for supplying repository-controlled
+ * schema resources; untrusted policy input never reaches this seam.
  */
-export function loadRepositoryCapabilityPolicySchemaGraph(): TrustedCapabilityPolicySchemaGraph {
-  return Object.freeze({
-    capabilityPolicy: loadTrustedSchema("capability-policy.schema.json"),
-    definitions: loadTrustedSchema("defs.schema.json"),
-  });
+export function createTrustedCapabilityPolicySchemaGraph(
+  capabilityPolicy: AnySchemaObject,
+  definitions: AnySchemaObject,
+): TrustedCapabilityPolicySchemaGraph {
+  assertSchemaIdentity(
+    capabilityPolicy,
+    CAPABILITY_POLICY_SCHEMA_ID,
+    "CapabilityPolicy",
+  );
+  assertSchemaIdentity(definitions, DEFINITIONS_SCHEMA_ID, "definitions");
+  return Object.freeze({ capabilityPolicy, definitions });
 }
 
-function loadTrustedSchema(fileName: string): AnySchemaObject {
-  let source: string;
-  try {
-    source = readFileSync(new URL(fileName, SCHEMA_DIRECTORY), "utf8");
-  } catch (error: unknown) {
+function assertSchemaIdentity(
+  schema: AnySchemaObject,
+  expectedId: string,
+  label: string,
+): void {
+  if (schema["$schema"] !== JSON_SCHEMA_2020_12) {
     throw new PolicySchemaConfigurationError(
-      `Unable to read trusted policy schema resource ${fileName}.`,
-      { cause: error },
+      `Trusted ${label} schema must declare JSON Schema Draft 2020-12.`,
     );
   }
-
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(source) as unknown;
-  } catch (error: unknown) {
+  if (schema["$id"] !== expectedId) {
     throw new PolicySchemaConfigurationError(
-      `Trusted policy schema resource ${fileName} is not valid JSON.`,
-      { cause: error },
+      `Trusted ${label} schema $id must be ${expectedId}.`,
     );
   }
-
-  if (!isRecord(parsed)) {
-    throw new PolicySchemaConfigurationError(
-      `Trusted policy schema resource ${fileName} must contain a JSON object.`,
-    );
-  }
-  if (typeof parsed["$id"] !== "string" || parsed["$id"].length === 0) {
-    throw new PolicySchemaConfigurationError(
-      `Trusted policy schema resource ${fileName} is missing a non-empty $id.`,
-    );
-  }
-  if (parsed["$schema"] !== "https://json-schema.org/draft/2020-12/schema") {
-    throw new PolicySchemaConfigurationError(
-      `Trusted policy schema resource ${fileName} must declare JSON Schema Draft 2020-12.`,
-    );
-  }
-
-  return parsed;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

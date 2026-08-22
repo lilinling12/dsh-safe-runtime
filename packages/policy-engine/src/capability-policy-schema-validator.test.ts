@@ -1,22 +1,28 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import type { AnySchemaObject } from "ajv";
 import { describe, expect, test } from "vitest";
 import { loadPolicyDocument } from "./policy-document-loader.js";
 import {
   compileCapabilityPolicySchemaValidator,
-  validateCapabilityPolicyDocument,
+  createCapabilityPolicySchemaValidator,
+  type CapabilityPolicySchemaValidator,
 } from "./capability-policy-schema-validator.js";
 import {
   PolicySchemaConfigurationError,
   type PolicySchemaValidationIssue,
   type ValidatedPolicyDocument,
 } from "./policy-schema-types.js";
-import type { TrustedCapabilityPolicySchemaGraph } from "./trusted-policy-schema.js";
+import {
+  createTrustedCapabilityPolicySchemaGraph,
+  type TrustedCapabilityPolicySchemaGraph,
+} from "./trusted-policy-schema.js";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
 const root = resolve(here, "../../..");
 const fixtureRoot = resolve(root, "fixtures/policy-schema");
+const schemaRoot = resolve(root, "schemas/v1alpha1");
 
 interface SchemaFixtureExpectedIssue {
   readonly instancePath: string;
@@ -93,11 +99,36 @@ async function loadJsonFixture(relativePath: string) {
   return loaded.value;
 }
 
+let repositoryValidatorPromise: Promise<CapabilityPolicySchemaValidator> | undefined;
+function repositoryValidator(): Promise<CapabilityPolicySchemaValidator> {
+  repositoryValidatorPromise ??= Promise.all([
+    readFile(resolve(schemaRoot, "capability-policy.schema.json"), "utf8"),
+    readFile(resolve(schemaRoot, "defs.schema.json"), "utf8"),
+  ]).then(([policySource, definitionsSource]) =>
+    createCapabilityPolicySchemaValidator(
+      createTrustedCapabilityPolicySchemaGraph(
+        parseSchemaObject(policySource),
+        parseSchemaObject(definitionsSource),
+      ),
+    ),
+  );
+  return repositoryValidatorPromise;
+}
+
+function parseSchemaObject(source: string): AnySchemaObject {
+  const parsed = JSON.parse(source) as unknown;
+  if (!isRecord(parsed)) {
+    throw new Error("Trusted schema fixture must be a JSON object.");
+  }
+  return parsed;
+}
+
 describe("M4-002 CapabilityPolicy schema validation", () => {
   test("matches every language-independent policy-schema fixture", async () => {
+    const validate = await repositoryValidator();
     for (const fixtureCase of await loadCases()) {
       const value = await loadJsonFixture(fixtureCase.path);
-      const result = validateCapabilityPolicyDocument(value);
+      const result = validate(value);
 
       if (fixtureCase.expected.valid) {
         expect(result, fixtureCase.id).toMatchObject({ ok: true });
@@ -119,9 +150,10 @@ describe("M4-002 CapabilityPolicy schema validation", () => {
   });
 
   test("does not synthesize missing defaultEffect", async () => {
+    const validate = await repositoryValidator();
     const input = await loadJsonFixture("invalid/missing-default-effect.json");
     const before = JSON.stringify(input);
-    const result = validateCapabilityPolicyDocument(input);
+    const result = validate(input);
 
     expect(result).toMatchObject({
       ok: false,
@@ -137,9 +169,10 @@ describe("M4-002 CapabilityPolicy schema validation", () => {
   });
 
   test("returns a detached recursively frozen snapshot without mutating input", async () => {
+    const validate = await repositoryValidator();
     const input = await loadJsonFixture("valid/lease.json");
     const before = JSON.stringify(input);
-    const result = validateCapabilityPolicyDocument(input);
+    const result = validate(input);
 
     expect(result.ok).toBe(true);
     if (!result.ok) {
@@ -157,7 +190,8 @@ describe("M4-002 CapabilityPolicy schema validation", () => {
     expect(result.value).toMatchObject({ metadata: { name: "lease" } });
   });
 
-  test("preserves __proto__ as ordinary data inside schema-open constraints", () => {
+  test("preserves __proto__ as ordinary data inside schema-open constraints", async () => {
+    const validate = await repositoryValidator();
     const loaded = loadPolicyDocument({
       format: "JSON",
       source:
@@ -168,7 +202,7 @@ describe("M4-002 CapabilityPolicy schema validation", () => {
       throw new Error("Expected JSON loader success.");
     }
 
-    const result = validateCapabilityPolicyDocument(loaded.value);
+    const result = validate(loaded.value);
     expect(result.ok).toBe(true);
     if (!result.ok) {
       throw new Error("Expected schema validation success.");
@@ -181,7 +215,8 @@ describe("M4-002 CapabilityPolicy schema validation", () => {
     expect(({} as { polluted?: boolean }).polluted).toBeUndefined();
   });
 
-  test("sorts normalized issues deterministically", () => {
+  test("sorts normalized issues deterministically", async () => {
+    const validate = await repositoryValidator();
     const loaded = loadPolicyDocument({
       format: "JSON",
       source:
@@ -191,8 +226,8 @@ describe("M4-002 CapabilityPolicy schema validation", () => {
       throw new Error("Expected M4-001 loader success.");
     }
 
-    const first = validateCapabilityPolicyDocument(loaded.value);
-    const second = validateCapabilityPolicyDocument(loaded.value);
+    const first = validate(loaded.value);
+    const second = validate(loaded.value);
     expect(first).toEqual(second);
     if (first.ok) {
       throw new Error("Expected deliberately invalid policy.");
@@ -209,19 +244,20 @@ describe("M4-002 CapabilityPolicy schema validation", () => {
     ]);
   });
 
-  test("distinguishes trusted schema configuration failure from policy invalidity", () => {
-    const brokenGraph: TrustedCapabilityPolicySchemaGraph = {
-      capabilityPolicy: {
-        $schema: "https://json-schema.org/draft/2020-12/schema",
-        $id: "https://safe-runtime.dev/schema/v1alpha1/not-capability-policy.schema.json",
-        type: "object",
-      },
-      definitions: {
-        $schema: "https://json-schema.org/draft/2020-12/schema",
-        $id: "https://safe-runtime.dev/schema/v1alpha1/defs.schema.json",
-        $defs: {},
-      },
-    };
+  test("distinguishes trusted schema compilation failure from policy invalidity", () => {
+    const brokenGraph: TrustedCapabilityPolicySchemaGraph =
+      createTrustedCapabilityPolicySchemaGraph(
+        {
+          $schema: "https://json-schema.org/draft/2020-12/schema",
+          $id: "https://safe-runtime.dev/schema/v1alpha1/capability-policy.schema.json",
+          $ref: "https://safe-runtime.dev/schema/v1alpha1/missing.schema.json",
+        },
+        {
+          $schema: "https://json-schema.org/draft/2020-12/schema",
+          $id: "https://safe-runtime.dev/schema/v1alpha1/defs.schema.json",
+          $defs: {},
+        },
+      );
 
     expect(() => compileCapabilityPolicySchemaValidator(brokenGraph)).toThrow(
       PolicySchemaConfigurationError,

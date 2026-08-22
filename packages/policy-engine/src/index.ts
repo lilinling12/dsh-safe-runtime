@@ -21,7 +21,10 @@ export {
   type PolicyDocumentLoadResult,
   type PolicyDocumentLoadSuccess,
 } from "./policy-document-types.js";
-export { validateCapabilityPolicyDocument } from "./capability-policy-schema-validator.js";
+export {
+  createCapabilityPolicySchemaValidator,
+  type CapabilityPolicySchemaValidator,
+} from "./capability-policy-schema-validator.js";
 export {
   PolicySchemaConfigurationError,
   type PolicySchemaValidationFailure,
@@ -30,3 +33,7 @@ export {
   type PolicySchemaValidationSuccess,
   type ValidatedPolicyDocument,
 } from "./policy-schema-types.js";
+export {
+  createTrustedCapabilityPolicySchemaGraph,
+  type TrustedCapabilityPolicySchemaGraph,
+} from "./trusted-policy-schema.js";

@@ -1,8 +1,8 @@
-import Ajv2020, {
+import {
+  Ajv2020,
   type ErrorObject,
   type ValidateFunction,
 } from "ajv/dist/2020.js";
-import addFormats from "ajv-formats";
 import type { PolicyDocumentJsonValue } from "./policy-document-types.js";
 import {
   PolicySchemaConfigurationError,
@@ -11,48 +11,45 @@ import {
   type PolicySchemaValidationIssue,
   type PolicySchemaValidationResult,
 } from "./policy-schema-types.js";
-import {
-  loadRepositoryCapabilityPolicySchemaGraph,
-  type TrustedCapabilityPolicySchemaGraph,
-} from "./trusted-policy-schema.js";
+import type { TrustedCapabilityPolicySchemaGraph } from "./trusted-policy-schema.js";
 
-const CAPABILITY_POLICY_SCHEMA_ID =
-  "https://safe-runtime.dev/schema/v1alpha1/capability-policy.schema.json";
-
-const validateSchema = compileCapabilityPolicySchemaValidator(
-  loadRepositoryCapabilityPolicySchemaGraph(),
-);
+export type CapabilityPolicySchemaValidator = (
+  value: PolicyDocumentJsonValue,
+) => PolicySchemaValidationResult;
 
 /**
- * Validates an already-loaded M4-001 JSON value without coercion or defaults.
- * A successful result contains a detached recursively frozen snapshot so the
- * validated policy cannot be changed by mutating the original loader value.
+ * Compiles trusted repository-controlled schemas once and returns a pure
+ * validation boundary for M4-001 values. The returned function performs no I/O,
+ * schema fetching, coercion, default insertion, or normalization.
  */
-export function validateCapabilityPolicyDocument(
-  value: PolicyDocumentJsonValue,
-): PolicySchemaValidationResult {
-  const valid = validateSchema(value);
-  if (valid) {
-    return Object.freeze({
-      ok: true as const,
-      value: cloneValidatedPolicyDocument(value),
-    });
-  }
+export function createCapabilityPolicySchemaValidator(
+  graph: TrustedCapabilityPolicySchemaGraph,
+): CapabilityPolicySchemaValidator {
+  const validateSchema = compileCapabilityPolicySchemaValidator(graph);
 
-  const errors = validateSchema.errors;
-  if (errors === null || errors === undefined || errors.length === 0) {
-    throw new PolicySchemaConfigurationError(
-      "CapabilityPolicy schema rejected a document without validation errors.",
-    );
-  }
+  return (value: PolicyDocumentJsonValue): PolicySchemaValidationResult => {
+    const valid = validateSchema(value);
+    if (valid) {
+      return Object.freeze({
+        ok: true as const,
+        value: cloneValidatedPolicyDocument(value),
+      });
+    }
 
-  return policySchemaFailure(normalizeValidationIssues(errors));
+    const errors = validateSchema.errors;
+    if (errors === null || errors === undefined || errors.length === 0) {
+      throw new PolicySchemaConfigurationError(
+        "CapabilityPolicy schema rejected a document without validation errors.",
+      );
+    }
+
+    return policySchemaFailure(normalizeValidationIssues(errors));
+  };
 }
 
 /**
- * Package-private construction seam used by conformance tests to prove trusted
- * schema initialization fails closed. Production callers use the module-level
- * validator compiled from repository-controlled resources.
+ * Lower-level compile seam retained for configuration-failure conformance tests.
+ * Production code should normally use createCapabilityPolicySchemaValidator().
  */
 export function compileCapabilityPolicySchemaValidator(
   graph: TrustedCapabilityPolicySchemaGraph,
@@ -66,16 +63,8 @@ export function compileCapabilityPolicySchemaValidator(
       useDefaults: false,
       validateSchema: true,
     });
-    addFormats(ajv);
     ajv.addSchema(graph.definitions);
-    const validator = ajv.compile<PolicyDocumentJsonValue>(graph.capabilityPolicy);
-
-    if (validator.schema["$id"] !== CAPABILITY_POLICY_SCHEMA_ID) {
-      throw new PolicySchemaConfigurationError(
-        `CapabilityPolicy schema $id must be ${CAPABILITY_POLICY_SCHEMA_ID}.`,
-      );
-    }
-    return validator;
+    return ajv.compile<PolicyDocumentJsonValue>(graph.capabilityPolicy);
   } catch (error: unknown) {
     if (error instanceof PolicySchemaConfigurationError) {
       throw error;
@@ -90,14 +79,13 @@ export function compileCapabilityPolicySchemaValidator(
 function normalizeValidationIssues(
   errors: readonly ErrorObject[],
 ): readonly PolicySchemaValidationIssue[] {
-  const issues = errors.map(error => {
-    const instancePath = normalizeInstancePath(error);
-    return Object.freeze({
-      instancePath,
+  const issues = errors.map(error =>
+    Object.freeze({
+      instancePath: normalizeInstancePath(error),
       keyword: error.keyword,
       schemaPath: error.schemaPath,
-    });
-  });
+    }),
+  );
 
   issues.sort(compareIssues);
   return Object.freeze(issues);
@@ -105,12 +93,16 @@ function normalizeValidationIssues(
 
 function normalizeInstancePath(error: ErrorObject): string {
   if (error.keyword === "required") {
-    const missingProperty = getErrorParam(error.params, "missingProperty");
-    return appendJsonPointerSegment(error.instancePath, missingProperty);
+    return appendJsonPointerSegment(
+      error.instancePath,
+      getErrorParam(error.params, "missingProperty"),
+    );
   }
   if (error.keyword === "additionalProperties") {
-    const additionalProperty = getErrorParam(error.params, "additionalProperty");
-    return appendJsonPointerSegment(error.instancePath, additionalProperty);
+    return appendJsonPointerSegment(
+      error.instancePath,
+      getErrorParam(error.params, "additionalProperty"),
+    );
   }
   return error.instancePath;
 }
