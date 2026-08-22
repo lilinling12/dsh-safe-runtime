@@ -2,10 +2,10 @@
  * @dsh-safe/policy-engine public boundary.
  *
  * M4-001 document loading and M4-002 schema validation are acceptance-audited.
- * Resource normalization, ordering and evaluation are intentionally absent until
- * their later governance gates are explicitly authorized.
+ * M4-003 resource normalization is in progress. Matching, ordering and policy
+ * evaluation remain intentionally absent until their later governance gates.
  */
-export const PACKAGE_STAGE = "M4-002-SCHEMA-VALIDATION-CONFORMANCE" as const;
+export const PACKAGE_STAGE = "M4-003-RESOURCE-NORMALIZATION-IN-PROGRESS" as const;
 
 export {
   loadPolicyDocument,
@@ -37,3 +37,19 @@ export {
   createTrustedCapabilityPolicySchemaGraph,
   type TrustedCapabilityPolicySchemaGraph,
 } from "./trusted-policy-schema.js";
+export {
+  normalizeCapabilityResource,
+  normalizePolicyResourceSelector,
+} from "./resource-normalizer.js";
+export {
+  RESOURCE_STRING_CODE_POINT_LIMIT,
+  type CanonicalResource,
+  type CanonicalResourceSelector,
+  type ExactResourceNormalizationResult,
+  type ExactResourceNormalizationSuccess,
+  type ResourceNormalizationFailure,
+  type ResourceNormalizationFailureReason,
+  type ResourceNormalizationField,
+  type ResourceSelectorNormalizationResult,
+  type ResourceSelectorNormalizationSuccess,
+} from "./resource-normalization-types.js";
