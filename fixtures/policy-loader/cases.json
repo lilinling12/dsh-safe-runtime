@@ -51,6 +51,15 @@
       }
     },
     {
+      "id": "yaml-anchor",
+      "format": "YAML",
+      "sourcePath": "invalid/yaml-anchor.yaml",
+      "expect": {
+        "status": "ERROR",
+        "reason": "POLICY_DOCUMENT_YAML_ALIAS_FORBIDDEN"
+      }
+    },
+    {
       "id": "yaml-custom-tag",
       "format": "YAML",
       "sourcePath": "invalid/yaml-custom-tag.yaml",
