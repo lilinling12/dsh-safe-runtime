@@ -24,6 +24,11 @@ interface CstFrame {
   readonly depth: number;
 }
 
+interface CstPreflightState {
+  readonly limits: PolicyDocumentLoaderLimits;
+  containerEntries: number;
+}
+
 class YamlConversionFailure extends Error {
   public constructor(
     public readonly reason:
@@ -54,10 +59,11 @@ export function parseYamlPolicyDocument(
   }
 
   try {
-    // The yaml package intentionally exposes its lexer/parser/composer pipeline.
-    // Preflighting the parser's CST lets us enforce our own nesting limit before
-    // the recursive composition stage sees attacker-controlled deep collections.
-    preflightYamlNesting(source, limits);
+    // `yaml` exposes lexer -> Parser CST -> Composer as public stages. Inspecting
+    // the iterative CST first lets this trust boundary enforce structural
+    // budgets before the recursive composition stage sees attacker-controlled
+    // nesting or a policy-sized collection fan-out.
+    preflightYamlStructure(source, limits);
 
     const documents = parseAllDocuments(source, {
       merge: false,
@@ -89,6 +95,9 @@ export function parseYamlPolicyDocument(
       return parserFailure;
     }
 
+    // Re-check structural limits while projecting the composed AST. The CST
+    // preflight protects composition; this second counter prevents parser-shape
+    // differences from weakening the public JSON-compatible output boundary.
     const state: ConversionState = { limits, containerEntries: 0 };
     const value = convertYamlNode(document.contents, 0, state);
     return Object.freeze({ ok: true as const, value });
@@ -109,7 +118,7 @@ export function parseYamlPolicyDocument(
   }
 }
 
-function preflightYamlNesting(
+function preflightYamlStructure(
   source: string,
   limits: PolicyDocumentLoaderLimits,
 ): void {
@@ -118,6 +127,7 @@ function preflightYamlNesting(
     frames.push({ node: token, depth: 0 });
   }
 
+  const state: CstPreflightState = { limits, containerEntries: 0 };
   const visited = new WeakSet<object>();
   while (frames.length > 0) {
     const frame = frames.pop();
@@ -140,6 +150,7 @@ function preflightYamlNesting(
       assertDepth(collectionDepth, limits);
       const items = frame.node["items"];
       if (Array.isArray(items)) {
+        incrementPreflightEntries(state, countCstCollectionEntries(type, items));
         for (const item of items) {
           frames.push({ node: item, depth: collectionDepth });
         }
@@ -147,9 +158,9 @@ function preflightYamlNesting(
       continue;
     }
 
-    // Block collection items are structural records without their own `type`.
-    // Their key/value children remain at the parent collection depth; any child
-    // collection increments the depth when its own frame is visited.
+    // Block and flow map entries are structural records without their own
+    // `type`. Their key/value children remain at the parent collection depth;
+    // a nested collection increments depth when that child frame is visited.
     if (type === undefined) {
       frames.push({ node: frame.node["key"], depth: frame.depth });
       frames.push({ node: frame.node["value"], depth: frame.depth });
@@ -157,7 +168,41 @@ function preflightYamlNesting(
   }
 }
 
-function isCstCollectionType(type: string | undefined): boolean {
+function countCstCollectionEntries(
+  type: "block-map" | "block-seq" | "flow-collection",
+  items: readonly unknown[],
+): number {
+  if (type !== "flow-collection") {
+    return items.length;
+  }
+
+  // Flow collections expose commas as CST items alongside actual sequence
+  // values or map-pair records. Separators are syntax, not container entries.
+  let entries = 0;
+  for (const item of items) {
+    if (!isRecord(item) || item["type"] !== "comma") {
+      entries += 1;
+    }
+  }
+  return entries;
+}
+
+function incrementPreflightEntries(
+  state: CstPreflightState,
+  count: number,
+): void {
+  state.containerEntries += count;
+  if (state.containerEntries > state.limits.maxContainerEntries) {
+    throw new YamlConversionFailure(
+      "POLICY_DOCUMENT_LIMIT_EXCEEDED",
+      `Container entries exceed configured maximum ${state.limits.maxContainerEntries}.`,
+    );
+  }
+}
+
+function isCstCollectionType(
+  type: string | undefined,
+): type is "block-map" | "block-seq" | "flow-collection" {
   return type === "block-map" || type === "block-seq" || type === "flow-collection";
 }
 
