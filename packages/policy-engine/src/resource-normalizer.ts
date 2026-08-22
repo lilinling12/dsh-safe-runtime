@@ -83,28 +83,32 @@ function validatePortableString(
 }
 
 /**
- * Canonicalize one exact CapabilityResource structurally. No host/path/URL
- * normalization is allowed here; accepted locator and provider token code points
- * are preserved exactly.
+ * Canonicalize one exact CapabilityResource structurally. Only own data
+ * properties participate in the portable structure: inherited prototype values
+ * are not resource fields and must never become authorization input.
+ *
+ * No host/path/URL normalization is allowed here; accepted locator and provider
+ * token code points are preserved exactly.
  */
 export function normalizeCapabilityResource(input: unknown): ExactResourceNormalizationResult {
   if (!isRecord(input) || hasUnexpectedResourceKey(input)) {
     return failure("RESOURCE_INPUT_INVALID", "resource");
   }
 
-  const scheme = input["scheme"];
+  const scheme = Object.hasOwn(input, "scheme") ? input["scheme"] : undefined;
   if (!isResourceScheme(scheme)) {
     return failure("RESOURCE_SCHEME_UNSUPPORTED", "scheme");
   }
 
-  const locator = input["locator"];
+  const locator = Object.hasOwn(input, "locator") ? input["locator"] : undefined;
   const locatorFailure = validatePortableString(locator, "locator", "RESOURCE_LOCATOR_INVALID");
   if (locatorFailure !== undefined) {
     return locatorFailure;
   }
 
-  const providerIdentity = input["providerIdentity"];
-  if (providerIdentity !== undefined) {
+  const hasProviderIdentity = Object.hasOwn(input, "providerIdentity");
+  const providerIdentity = hasProviderIdentity ? input["providerIdentity"] : undefined;
+  if (hasProviderIdentity) {
     const providerFailure = validatePortableString(
       providerIdentity,
       "providerIdentity",
@@ -120,9 +124,7 @@ export function normalizeCapabilityResource(input: unknown): ExactResourceNormal
   const resource = Object.freeze({
     scheme,
     locator: locator as string,
-    ...(providerIdentity === undefined
-      ? {}
-      : { providerIdentity: providerIdentity as string }),
+    ...(hasProviderIdentity ? { providerIdentity: providerIdentity as string } : {}),
   });
 
   return Object.freeze({ ok: true, resource });
