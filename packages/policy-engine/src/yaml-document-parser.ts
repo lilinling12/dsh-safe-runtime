@@ -1,4 +1,5 @@
 import {
+  Parser,
   isAlias,
   isMap,
   isScalar,
@@ -16,6 +17,11 @@ import {
 interface ConversionState {
   readonly limits: PolicyDocumentLoaderLimits;
   containerEntries: number;
+}
+
+interface CstFrame {
+  readonly node: unknown;
+  readonly depth: number;
 }
 
 class YamlConversionFailure extends Error {
@@ -48,6 +54,11 @@ export function parseYamlPolicyDocument(
   }
 
   try {
+    // The yaml package intentionally exposes its lexer/parser/composer pipeline.
+    // Preflighting the parser's CST lets us enforce our own nesting limit before
+    // the recursive composition stage sees attacker-controlled deep collections.
+    preflightYamlNesting(source, limits);
+
     const documents = parseAllDocuments(source, {
       merge: false,
       prettyErrors: false,
@@ -96,6 +107,62 @@ export function parseYamlPolicyDocument(
       "YAML parser rejected the input before a document could be produced.",
     );
   }
+}
+
+function preflightYamlNesting(
+  source: string,
+  limits: PolicyDocumentLoaderLimits,
+): void {
+  const frames: CstFrame[] = [];
+  for (const token of new Parser().parse(source)) {
+    frames.push({ node: token, depth: 0 });
+  }
+
+  const visited = new WeakSet<object>();
+  while (frames.length > 0) {
+    const frame = frames.pop();
+    if (frame === undefined || !isRecord(frame.node)) {
+      continue;
+    }
+    if (visited.has(frame.node)) {
+      continue;
+    }
+    visited.add(frame.node);
+
+    const type = typeof frame.node["type"] === "string" ? frame.node["type"] : undefined;
+    if (type === "document") {
+      frames.push({ node: frame.node["value"], depth: frame.depth });
+      continue;
+    }
+
+    if (isCstCollectionType(type)) {
+      const collectionDepth = frame.depth + 1;
+      assertDepth(collectionDepth, limits);
+      const items = frame.node["items"];
+      if (Array.isArray(items)) {
+        for (const item of items) {
+          frames.push({ node: item, depth: collectionDepth });
+        }
+      }
+      continue;
+    }
+
+    // Block collection items are structural records without their own `type`.
+    // Their key/value children remain at the parent collection depth; any child
+    // collection increments the depth when its own frame is visited.
+    if (type === undefined) {
+      frames.push({ node: frame.node["key"], depth: frame.depth });
+      frames.push({ node: frame.node["value"], depth: frame.depth });
+    }
+  }
+}
+
+function isCstCollectionType(type: string | undefined): boolean {
+  return type === "block-map" || type === "block-seq" || type === "flow-collection";
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
 }
 
 function classifyParserErrors(
