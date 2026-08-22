@@ -1,0 +1,44 @@
+name: Generate M4 YAML lockfile
+
+on:
+  push:
+    branches:
+      - automation/m4-yaml-lockfile
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout safe runtime
+        uses: actions/checkout@v4
+
+      - name: Use repository Node baseline
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.19.0
+
+      - name: Enable pinned pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.7.0 --activate
+          pnpm --version
+
+      - name: Generate lockfile from manifests
+        run: pnpm install --lockfile-only
+
+      - name: Verify frozen install from generated lockfile
+        run: pnpm install --frozen-lockfile
+
+      - name: Show scoped lockfile diff
+        run: git diff -- packages/policy-engine/package.json pnpm-lock.yaml
+
+      - name: Upload generated lockfile
+        uses: actions/upload-artifact@v4
+        with:
+          name: m4-yaml-pnpm-lock
+          path: pnpm-lock.yaml
+          if-no-files-found: error
+          retention-days: 1
