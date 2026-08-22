@@ -15,15 +15,15 @@
 - Stacked base: `feat/m3-shared-tck-foundation@65870612d039ce026a6952c16d5e069b11bd24a7`
 - M2 acceptance: **ACCEPTED**
 - M3 acceptance: **ACCEPTED**
-- M3 acceptance record: `docs/acceptance/m3-acceptance-audit.md`
-- Accepted M3 remediation implementation head: `e6522a18760268b56b09f9ac5d9c822671c41666`
-- Final M3 governance head: `65870612d039ce026a6952c16d5e069b11bd24a7`
-- Current gate: **M4-001 P0 — YAML/JSON loader**
-- Current M4-001 protocol/fixture head: `81d2fd108e5b499700ef6eaa890026dc5f3e95b1`
-- Current M4-001 normal CI: **PASS — CI #235 / run `32580005006`**
+- M4-001 acceptance: **ACCEPTED AT IMPLEMENTATION BOUNDARY**
+- M4-001 acceptance record: `docs/acceptance/m4-001-acceptance-audit.md`
+- Accepted M4-001 implementation head: `9443d907b2b9db6819fe697a49abd6bf47bf1edf`
+- M4-001 normal CI: **PASS — CI #248 / run `32582943266`**
+- M4-001 Harness rc5 source-conformance: **PASS — #192 / run `32582943175`**
+- Next gate after governance verification: **M4-002 P0 — schema validation**
 
-Live GitHub state always overrides this file. PR #3 is intentionally stacked on
-the final accepted M3 governance head so M4 work cannot mutate the accepted M3
+Live GitHub state always overrides this file. PR #3 remains intentionally stacked
+on the final accepted M3 governance head so M4 work cannot mutate the accepted M3
 evidence line.
 
 ## Accepted compatibility baseline
@@ -36,188 +36,143 @@ commit: 47f943859bef60e4160492346772ded9b24f765a
 distribution: distribution-blocked
 ```
 
-M4-001 does not depend on Harness behavior. Do not use Harness parser/API behavior
-to define CapabilityPolicy syntax or semantics.
+M4 policy syntax and semantics must not be inferred from Harness APIs or runtime
+behavior.
 
-## M3 closure prerequisite
+## M4-001 acceptance boundary
 
-Before M4 was entered, the final M3 governance head
-`65870612d039ce026a6952c16d5e069b11bd24a7` was verified dual-green:
-
-- normal CI #222: **PASS**;
-- Harness rc5 source-conformance #181: **PASS**;
-- exact pinned Harness public-type build: **PASS**;
-- workspace projection/idempotence: **PASS**;
-- exact binding typecheck: **PASS**;
-- real rc5 runtime conformance: **PASS**.
-
-M3 remains **ACCEPTED** and is not reopened by M4 work.
-
-## M4-001 normative boundary
-
-Normative authority added for the current gate:
+Normative loader authority:
 
 ```text
 specs/0017-m4-capability-policy-document-loader.md
 ```
 
-Spec-first head:
+Acceptance record:
 
 ```text
-81298c33c7c76175f8a49be26f285ecb38e2398b
+docs/acceptance/m4-001-acceptance-audit.md
 ```
 
-Normal CI for that spec head: **PASS — CI #223**.
+The accepted implementation boundary converts explicitly selected UTF-8 JSON or
+YAML source into exactly one detached JSON-compatible value or an explicit
+portable failure. It does not validate CapabilityPolicy schema or grant a
+capability.
 
-Existing M1 authority remains in force:
+Accepted properties include:
 
-- `specs/0001-safe-runtime-core.md` defines the CapabilityPolicy model and
-  authorization semantics;
-- `schemas/v1alpha1/capability-policy.schema.json` remains the normative policy
-  schema;
-- M4-001 MUST NOT redefine those semantics in loader code.
+1. explicit `JSON | YAML` format selection without content sniffing fallback;
+2. duplicate-key rejection for JSON and YAML before hidden precedence can arise;
+3. YAML single-document enforcement;
+4. anchors, aliases, merge keys, explicit/custom tags and non-string mapping keys
+   fail closed;
+5. only JSON-domain scalar/container values are returned;
+6. non-finite values fail closed;
+7. `__proto__` remains ordinary own data and does not mutate object prototypes;
+8. repeated loads return detached values;
+9. `sourceRef` is diagnostic-only;
+10. finite byte/depth/container-entry limits are enforced;
+11. YAML byte length is checked before parser invocation;
+12. YAML depth and semantic container-entry budgets are preflighted over the
+    public Parser CST before Composer runs;
+13. AST projection rechecks structural limits as defense in depth;
+14. loader code performs no M4-002 validation or later evaluation semantics.
 
-The M4-001 loader boundary is intentionally limited to converting explicitly
-selected UTF-8 JSON or YAML source text into a detached JSON-compatible value or
-an explicit portable loader failure.
+The YAML dependency is exact-pinned as `yaml@2.9.0` and the synchronized lockfile
+passes the repository's frozen-install and supply-chain gates.
 
-It does **not** perform or imply:
+## M4-001 exact-head evidence
 
-- M4-002 CapabilityPolicy JSON Schema validation;
-- M4-003 canonical resource normalization;
-- M4-004 deterministic rule ordering;
-- M4-005 deny/ask/allow evaluation;
-- M4-006 default-deny evaluation;
-- lease/approval routing;
-- Harness plugin integration;
-- M6 Workspace Transaction behavior.
-
-A successfully parsed document is not automatically a valid CapabilityPolicy and
-does not grant any capability.
-
-## M4-001 accepted parser requirements
-
-The current normative contract requires:
-
-1. explicit `JSON | YAML` format selection — no silent content sniffing fallback;
-2. exactly one detached JSON-compatible result value on success;
-3. duplicate object/mapping keys fail explicitly;
-4. JSON must remain actual JSON syntax rather than relaxed YAML syntax;
-5. YAML is restricted to a safe JSON-compatible subset;
-6. YAML anchors/aliases are forbidden;
-7. YAML merge keys are forbidden;
-8. YAML explicit/custom tags are forbidden;
-9. YAML multi-document input is forbidden;
-10. non-string YAML mapping keys are forbidden;
-11. cyclic/shared-reference/non-finite/host-only values are forbidden;
-12. source-byte, nesting-depth and container-entry limits are finite and
-    fail closed;
-13. parser output/failure is deterministic for the same source, format and limits;
-14. parser code does not execute tags, constructors, interpolation, includes,
-    filesystem/network access or arbitrary code.
-
-Portable failure reasons are fixed by Spec 0017 and MUST NOT be replaced by
-package-specific parser messages.
-
-## M4-001 portable fixtures
-
-Language-independent loader source cases are now under:
+Accepted implementation head:
 
 ```text
-fixtures/policy-loader/
+9443d907b2b9db6819fe697a49abd6bf47bf1edf
 ```
 
-Case index:
+Normal CI #248 / run `32582943266`:
+
+- `pnpm install --frozen-lockfile`: PASS;
+- supply-chain lockfile policy: PASS (124 entries);
+- architecture boundaries: PASS;
+- schema shape: PASS (16 schemas);
+- schema compatibility baseline: PASS;
+- strict workspace TypeScript: PASS;
+- repository tests: PASS (26 files / 288 tests);
+- M4-001 loader tests: PASS (18 tests);
+- JSON parser tests: PASS (9 tests);
+- oxlint: PASS (0 warnings / 0 errors);
+- packed Shared TCK + external non-workspace consumer: PASS (44 registered assets).
+
+Harness rc5 source-conformance #192 / run `32582943175`:
+
+- exact pinned Harness public type build: PASS;
+- reproducible safe-runtime install: PASS;
+- exact workspace projection: PASS;
+- projection idempotence: PASS;
+- exact rc5 binding typecheck: PASS;
+- real rc5 runtime conformance: PASS.
+
+No schema, validator, TCK, TypeScript strictness, frozen lockfile, supply-chain
+policy, architecture boundary, compatibility gate or security guarantee was
+weakened for acceptance.
+
+## Governance closure rule
+
+M4-001's implementation boundary is accepted, but the governance edits that
+record that acceptance must themselves be verified before entering M4-002.
+
+Therefore:
 
 ```text
-fixtures/policy-loader/cases.json
+M4-001 implementation: ACCEPTED
+M4-002 implementation: NOT STARTED
+M4-002 authorization: PENDING FINAL GOVERNANCE-HEAD DUAL-GREEN
+M4-003+: NOT AUTHORIZED
+M6: NOT AUTHORIZED
 ```
 
-Current cases cover:
+Do not start M4-002 production code until the final governance head containing
+this handoff, roadmap state and append-only history is green in both normal CI
+and exact Harness rc5 source-conformance.
 
-- successful JSON policy text;
-- successful YAML policy text;
-- duplicate JSON key;
-- duplicate YAML key;
-- YAML multiple documents;
-- YAML alias/anchor;
-- YAML custom tag;
-- YAML merge key;
-- YAML non-string key;
-- malformed JSON;
-- malformed YAML.
+## Next gate — M4-002 schema validation
 
-The fixture head is:
+Once the final governance head is dual-green, the next and only authorized gate
+is:
 
 ```text
-81d2fd108e5b499700ef6eaa890026dc5f3e95b1
+M4-002 P0 — schema validation
 ```
 
-Exact-head evidence:
+It must start protocol-first, not implementation-first.
 
-- normal CI #235 / run `32580005006`: **PASS**.
+A known normative question must be reconciled before validator behavior is
+changed:
 
-These fixtures define parser inputs/expected portable failure reasons only. They
-must not be interpreted as M4-002 schema-validation acceptance.
+- `schemas/v1alpha1/capability-policy.schema.json` currently requires
+  `spec.defaultEffect` and constrains it to `deny`;
+- Core normative prose states that a missing `defaultEffect` MUST deny.
 
-## Dependency/security decision for implementation
+Do not silently choose one interpretation inside validator code. Determine the
+intended portable contract, update normative authority/fixtures/compatibility
+material as required, and only then implement M4-002 validation.
 
-The production implementation should use a maintained YAML parser rather than a
-handwritten general YAML parser.
-
-`yaml@2.8.1` was rejected because current security evidence identifies an
-uncontrolled-recursion vulnerability fixed in `2.8.3+`. The intended dependency
-baseline is therefore `yaml@2.8.3` or a later explicitly reviewed compatible
-version, with frozen-lockfile evidence.
-
-Do **not**:
-
-- add the dependency without synchronizing `pnpm-lock.yaml`;
-- disable or bypass `pnpm install --frozen-lockfile`;
-- accept an older vulnerable YAML parser only because its lock metadata is easier
-  to obtain;
-- hand-edit a guessed lockfile and claim reproducibility without CI proof.
-
-The current execution environment could not resolve GitHub/npm over its local
-network, so no unverifiable dependency/lockfile change was committed. This is an
-operational tooling constraint, not authorization to weaken the supply-chain gate.
-
-## Current implementation gate
-
-The next engineering work remains inside **M4-001**:
-
-```text
-Implement the policy document loader against Spec 0017 and the portable fixtures.
-```
-
-Expected implementation shape:
-
-- package: `packages/policy-engine`;
-- explicit loader request/result/error types;
-- JSON parser path that preserves duplicate-key detection rather than relying on
-  ordinary `JSON.parse` last-write-wins behavior;
-- maintained YAML parser path pinned through the frozen lockfile;
-- AST/value checks that reject alias/tag/merge/non-string-key/non-JSON constructs
-  before exposing a result;
-- explicit finite source/depth/entry limits;
-- deterministic portable reason-code mapping;
-- unit/conformance tests consuming the portable fixture sources;
-- no M4-002 schema validation inside the loader.
-
-Do not advance to `M4-002` until M4-001 implementation is exact-head green and
-its acceptance evidence is recorded.
+M4-002 must remain limited to schema validation. It must not opportunistically
+implement M4-003 normalization, M4-004 ordering, M4-005 effects, M4-006 default
+policy evaluation, lease/approval routing, Harness integration, or Workspace
+Transaction semantics.
 
 ## Boundaries that remain enforced
 
 - Protocol/spec precedes implementation.
-- Existing M1 Capability semantics are authoritative where already defined.
+- Existing M1 Capability semantics remain authoritative until changed through the
+  repository's normative process.
 - DeepSeek Harness is an Adapter and cannot define Capability Broker semantics.
 - Unknown formats and unsafe parser constructs fail explicitly.
+- Successful document loading is not policy validity and is not authorization.
 - Do not weaken TypeScript strictness, schemas, compatibility baseline,
   validators, conformance tests, frozen installs, architecture/security gates or
-  security claims for CI.
-- Do not enter M4-002+ merely to simplify M4-001 implementation.
-- M6 Workspace Transaction remains unauthorized.
+  supply-chain checks for CI.
+- M4-003+ and M6 remain unauthorized.
 
 ## Resume instruction
 
@@ -226,7 +181,9 @@ On the next work session:
 1. read `docs/handoff/README.md` and this file;
 2. fetch PR #3 live head and exact-head workflow results;
 3. live GitHub evidence overrides this snapshot;
-4. if the current head fails, inspect that exact failing job/step/diagnostic;
-5. otherwise continue only with M4-001 implementation;
-6. preserve frozen-lockfile reproducibility when introducing the YAML parser;
-7. do not start M4-002+ or M6 early.
+4. if governance closure is not yet dual-green, finish that verification first;
+5. if it is dual-green, begin only M4-002 with a protocol-first reconciliation of
+   the `defaultEffect` schema/prose boundary;
+6. inspect exact current-head diagnostics on any failure; never infer from stale
+   logs;
+7. do not start M4-003+ or M6 early.
