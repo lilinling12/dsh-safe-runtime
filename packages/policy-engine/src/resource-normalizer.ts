@@ -1,6 +1,6 @@
-import type { ResourceScheme } from "@dsh-safe/protocol";
 import {
   RESOURCE_STRING_CODE_POINT_LIMIT,
+  type CanonicalResourceScheme,
   type ExactResourceNormalizationResult,
   type ResourceNormalizationFailure,
   type ResourceNormalizationFailureReason,
@@ -14,7 +14,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function isResourceScheme(value: unknown): value is ResourceScheme {
+function isResourceScheme(value: unknown): value is CanonicalResourceScheme {
   return (
     value === "workspace" ||
     value === "hostfs" ||
