@@ -229,7 +229,7 @@ Acceptance evidence
 
 目标：先验证语义，再开始复杂 Runtime。
 
-状态：**ACCEPTED**。权威验收记录见 `docs/acceptance/m3-acceptance-audit.md`；验收以 portable specs/schemas/fixtures、独立可打包 TCK、外部非 workspace consumer 和 exact-head CI/compatibility evidence 为依据，不以 Harness 作为协议权威。
+状态：**ACCEPTED**。权威验收记录见 `docs/acceptance/m3-acceptance-audit.md`；验收以 portable specs/schemas/fixtures、独立可打包 TCK、外部非 workspace consumer 和 exact-head CI/compatibility evidence为依据，不以 Harness 作为协议权威。
 
 ## M3.1 Test Harness
 
@@ -268,7 +268,7 @@ Acceptance evidence
 
 ## M4.1 Policy Engine
 
-- [ ] `M4-001 P0` YAML/JSON loader。
+- [x] `M4-001 P0` YAML/JSON loader。 **ACCEPTED：Spec 0017 + portable fixtures + bounded duplicate-aware JSON/YAML loader；accepted implementation head `9443d907...`，CI #248 / Harness #192 PASS；验收记录 `docs/acceptance/m4-001-acceptance-audit.md`。**
 - [ ] `M4-002 P0` schema validation。
 - [ ] `M4-003 P0` canonical resource normalization。
 - [ ] `M4-004 P0` deterministic rule ordering。
