@@ -6,12 +6,17 @@ import {
   normalizeCapabilityResource,
   normalizePolicyResourceSelector,
 } from "./resource-normalizer.js";
+import type {
+  ExactResourceNormalizationResult,
+  ResourceSelectorNormalizationResult,
+} from "./resource-normalization-types.js";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
 const root = resolve(here, "../../..");
 const fixturePath = resolve(root, "fixtures/resource-normalization/cases.json");
 
 type FixtureOperation = "EXACT_RESOURCE" | "POLICY_SELECTOR";
+type NormalizationResult = ExactResourceNormalizationResult | ResourceSelectorNormalizationResult;
 
 interface FixtureCase {
   readonly id: string;
@@ -39,8 +44,8 @@ function materialize(value: unknown): unknown {
       !isRecord(descriptor) ||
       typeof descriptor["value"] !== "string" ||
       Array.from(descriptor["value"]).length !== 1 ||
-      !Number.isInteger(descriptor["count"]) ||
       typeof descriptor["count"] !== "number" ||
+      !Number.isInteger(descriptor["count"]) ||
       descriptor["count"] <= 0
     ) {
       throw new Error("Invalid $repeatCodePoint fixture descriptor.");
@@ -106,6 +111,21 @@ function parseCases(): readonly FixtureCase[] {
   });
 }
 
+/**
+ * Portable fixtures use PASS/ERROR so they are not coupled to the TypeScript
+ * discriminant spelling. This adapter is test-only and keeps the production API
+ * faithful to Spec 0019's ok:true/false result contract.
+ */
+function toPortableExpectation(result: NormalizationResult): unknown {
+  if (!result.ok) {
+    return { status: "ERROR", reason: result.reason, field: result.field };
+  }
+  if ("resource" in result) {
+    return { status: "PASS", resource: result.resource };
+  }
+  return { status: "PASS", selector: result.selector };
+}
+
 const cases = parseCases();
 
 describe("M4-003 portable resource normalization", () => {
@@ -119,12 +139,12 @@ describe("M4-003 portable resource normalization", () => {
         fixture.operation === "EXACT_RESOURCE"
           ? normalizeCapabilityResource(fixture.input)
           : normalizePolicyResourceSelector(fixture.input);
-      expect(result).toEqual(fixture.expected);
+      expect(toPortableExpectation(result)).toEqual(fixture.expected);
 
-      if (result.ok && fixture.operation === "EXACT_RESOURCE") {
+      if (result.ok && fixture.operation === "EXACT_RESOURCE" && "resource" in result) {
         expect(normalizeCapabilityResource(result.resource)).toEqual(result);
       }
-      if (result.ok && fixture.operation === "POLICY_SELECTOR") {
+      if (result.ok && fixture.operation === "POLICY_SELECTOR" && "selector" in result) {
         const serialized = `${result.selector.scheme}://${result.selector.locatorPattern}`;
         expect(normalizePolicyResourceSelector(serialized)).toEqual(result);
       }
