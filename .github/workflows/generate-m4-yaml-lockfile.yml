@@ -6,7 +6,7 @@ on:
       - automation/m4-yaml-lockfile
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   generate:
@@ -35,10 +35,14 @@ jobs:
       - name: Show scoped lockfile diff
         run: git diff -- packages/policy-engine/package.json pnpm-lock.yaml
 
-      - name: Upload generated lockfile
-        uses: actions/upload-artifact@v4
-        with:
-          name: m4-yaml-pnpm-lock
-          path: pnpm-lock.yaml
-          if-no-files-found: error
-          retention-days: 1
+      - name: Persist generated lockfile when changed
+        run: |
+          if git diff --quiet -- pnpm-lock.yaml; then
+            echo "pnpm-lock.yaml already matches manifests"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- pnpm-lock.yaml
+          git commit -m "build(policy): generate yaml lockfile"
+          git push origin HEAD:automation/m4-yaml-lockfile
