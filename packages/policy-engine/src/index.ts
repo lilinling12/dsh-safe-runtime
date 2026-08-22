@@ -1,11 +1,11 @@
 /**
  * @dsh-safe/policy-engine public boundary.
  *
- * M4-001 document loading and M4-002 schema validation are acceptance-audited.
- * M4-003 resource normalization is in progress. Matching, ordering and policy
+ * M4-001 document loading, M4-002 schema validation and M4-003 resource
+ * normalization are acceptance-audited. Matching, ordering and policy
  * evaluation remain intentionally absent until their later governance gates.
  */
-export const PACKAGE_STAGE = "M4-003-RESOURCE-NORMALIZATION-IN-PROGRESS" as const;
+export const PACKAGE_STAGE = "M4-003-RESOURCE-NORMALIZATION-CONFORMANCE" as const;
 
 export {
   loadPolicyDocument,
