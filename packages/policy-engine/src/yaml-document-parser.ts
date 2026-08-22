@@ -172,15 +172,18 @@ function countCstCollectionEntries(
   type: "block-map" | "block-seq" | "flow-collection",
   items: readonly unknown[],
 ): number {
-  if (type !== "flow-collection") {
+  if (type !== "block-map") {
+    // Both block-seq and flow-collection expose one CST item per semantic
+    // container member. Flow punctuation lives in item start/end tokens.
     return items.length;
   }
 
-  // Flow collections expose commas as CST items alongside actual sequence
-  // values or map-pair records. Separators are syntax, not container entries.
+  // Block maps may contain comment-only structural items with no key/value.
+  // Those are parser bookkeeping, not mapping entries, and must not consume the
+  // caller's semantic container-entry budget.
   let entries = 0;
   for (const item of items) {
-    if (!isRecord(item) || item["type"] !== "comma") {
+    if (isRecord(item) && Object.prototype.hasOwnProperty.call(item, "key")) {
       entries += 1;
     }
   }
