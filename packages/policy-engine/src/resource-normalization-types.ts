@@ -1,7 +1,21 @@
-import type { ResourceScheme } from "@dsh-safe/protocol";
-
 /** Portable M4-003 bound, aligned with the v0.1 structured resource schema. */
 export const RESOURCE_STRING_CODE_POINT_LIMIT = 4096 as const;
+
+/**
+ * TypeScript projection of the standard resource schemes owned by Spec 0019 and
+ * the v0.1 schema. Keeping this projection local avoids making policy-engine
+ * normalization depend on another package's build output; packages/protocol is
+ * a language projection, not the semantic authority for these literals.
+ */
+export type CanonicalResourceScheme =
+  | "workspace"
+  | "hostfs"
+  | "process"
+  | "network"
+  | "secret"
+  | "session"
+  | "config"
+  | "external";
 
 export type ResourceNormalizationFailureReason =
   | "RESOURCE_INPUT_INVALID"
@@ -24,7 +38,7 @@ export type ResourceNormalizationField =
  * `providerIdentity` remains opaque and has no path/containment semantics here.
  */
 export interface CanonicalResource {
-  readonly scheme: ResourceScheme;
+  readonly scheme: CanonicalResourceScheme;
   readonly locator: string;
   readonly providerIdentity?: string;
 }
@@ -34,7 +48,7 @@ export interface CanonicalResource {
  * intentionally absent until their later normative gate.
  */
 export interface CanonicalResourceSelector {
-  readonly scheme: ResourceScheme;
+  readonly scheme: CanonicalResourceScheme;
   readonly locatorPattern: string;
 }
 
