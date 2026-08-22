@@ -114,6 +114,43 @@ describe("M4-001 policy document loader", () => {
     });
   });
 
+  test("rejects deeply nested block collections before YAML composition", () => {
+    const nesting = 256;
+    const source = `${Array.from({ length: nesting }, (_, index) => `${"  ".repeat(index)}-`).join("\n")}\n${"  ".repeat(nesting)}value\n`;
+    const result = loadPolicyDocument({
+      format: "YAML",
+      source,
+      limits: {
+        maxSourceBytes: 131_072,
+        maxDepth: 64,
+        maxContainerEntries: 1024,
+      },
+    });
+
+    expect(result).toMatchObject({
+      ok: false,
+      reason: "POLICY_DOCUMENT_LIMIT_EXCEEDED",
+    });
+  });
+
+  test("rejects oversized flow collection fan-out before YAML composition", () => {
+    const source = `[${Array.from({ length: 512 }, () => "0").join(",")}]`;
+    const result = loadPolicyDocument({
+      format: "YAML",
+      source,
+      limits: {
+        maxSourceBytes: 4096,
+        maxDepth: 8,
+        maxContainerEntries: 64,
+      },
+    });
+
+    expect(result).toMatchObject({
+      ok: false,
+      reason: "POLICY_DOCUMENT_LIMIT_EXCEEDED",
+    });
+  });
+
   test("preserves __proto__ as ordinary YAML data without prototype mutation", () => {
     const result = loadPolicyDocument({
       format: "YAML",
