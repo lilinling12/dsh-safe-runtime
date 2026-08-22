@@ -229,7 +229,7 @@ Acceptance evidence
 
 目标：先验证语义，再开始复杂 Runtime。
 
-状态：**ACCEPTED**。权威验收记录见 `docs/acceptance/m3-acceptance-audit.md`；验收以 portable specs/schemas/fixtures、独立可打包 TCK、外部非 workspace consumer 和 exact-head CI/compatibility evidence为依据，不以 Harness 作为协议权威。
+状态：**ACCEPTED**。权威验收记录见 `docs/acceptance/m3-acceptance-audit.md`；验收以 portable specs/schemas/fixtures、独立可打包 TCK、外部非 workspace consumer 和 exact-head CI/compatibility evidence 为依据，不以 Harness 作为协议权威。
 
 ## M3.1 Test Harness
 
