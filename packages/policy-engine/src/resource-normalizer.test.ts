@@ -13,7 +13,10 @@ import type {
 
 const here = fileURLToPath(new URL(".", import.meta.url));
 const root = resolve(here, "../../..");
-const fixturePath = resolve(root, "fixtures/resource-normalization/cases.json");
+const fixturePaths = [
+  resolve(root, "fixtures/resource-normalization/cases.json"),
+  resolve(root, "fixtures/resource-normalization/unicode-boundary-cases.json"),
+] as const;
 
 type FixtureOperation = "EXACT_RESOURCE" | "POLICY_SELECTOR";
 type NormalizationResult = ExactResourceNormalizationResult | ResourceSelectorNormalizationResult;
@@ -75,40 +78,46 @@ function materialize(value: unknown): unknown {
 }
 
 function parseCases(): readonly FixtureCase[] {
-  const parsed = JSON.parse(readFileSync(fixturePath, "utf8")) as unknown;
-  if (!isRecord(parsed) || !Array.isArray(parsed["cases"])) {
-    throw new Error("resource-normalization/cases.json must contain a cases array.");
+  const seen = new Set<string>();
+  const cases: FixtureCase[] = [];
+
+  for (const fixturePath of fixturePaths) {
+    const parsed = JSON.parse(readFileSync(fixturePath, "utf8")) as unknown;
+    if (!isRecord(parsed) || !Array.isArray(parsed["cases"])) {
+      throw new Error(`${fixturePath} must contain a cases array.`);
+    }
+
+    for (const value of parsed["cases"]) {
+      if (
+        !isRecord(value) ||
+        typeof value["id"] !== "string" ||
+        (value["operation"] !== "EXACT_RESOURCE" && value["operation"] !== "POLICY_SELECTOR")
+      ) {
+        throw new Error("Every resource-normalization case requires id and operation.");
+      }
+      if (seen.has(value["id"])) {
+        throw new Error(`Duplicate resource-normalization case id: ${value["id"]}`);
+      }
+      seen.add(value["id"]);
+
+      const hasInput = Object.hasOwn(value, "input");
+      const hasInputTemplate = Object.hasOwn(value, "inputTemplate");
+      const hasExpected = Object.hasOwn(value, "expect");
+      const hasExpectedTemplate = Object.hasOwn(value, "expectTemplate");
+      if (hasInput === hasInputTemplate || hasExpected === hasExpectedTemplate) {
+        throw new Error(`Case ${value["id"]} must choose one input and one expectation form.`);
+      }
+
+      cases.push({
+        id: value["id"],
+        operation: value["operation"],
+        input: materialize(hasInput ? value["input"] : value["inputTemplate"]),
+        expected: materialize(hasExpected ? value["expect"] : value["expectTemplate"]),
+      });
+    }
   }
 
-  const seen = new Set<string>();
-  return parsed["cases"].map((value): FixtureCase => {
-    if (
-      !isRecord(value) ||
-      typeof value["id"] !== "string" ||
-      (value["operation"] !== "EXACT_RESOURCE" && value["operation"] !== "POLICY_SELECTOR")
-    ) {
-      throw new Error("Every resource-normalization case requires id and operation.");
-    }
-    if (seen.has(value["id"])) {
-      throw new Error(`Duplicate resource-normalization case id: ${value["id"]}`);
-    }
-    seen.add(value["id"]);
-
-    const hasInput = Object.hasOwn(value, "input");
-    const hasInputTemplate = Object.hasOwn(value, "inputTemplate");
-    const hasExpected = Object.hasOwn(value, "expect");
-    const hasExpectedTemplate = Object.hasOwn(value, "expectTemplate");
-    if (hasInput === hasInputTemplate || hasExpected === hasExpectedTemplate) {
-      throw new Error(`Case ${value["id"]} must choose one input and one expectation form.`);
-    }
-
-    return {
-      id: value["id"],
-      operation: value["operation"],
-      input: materialize(hasInput ? value["input"] : value["inputTemplate"]),
-      expected: materialize(hasExpected ? value["expect"] : value["expectTemplate"]),
-    };
-  });
+  return cases;
 }
 
 /**
@@ -130,7 +139,7 @@ const cases = parseCases();
 
 describe("M4-003 portable resource normalization", () => {
   test("fixture corpus has the expected breadth", () => {
-    expect(cases).toHaveLength(32);
+    expect(cases).toHaveLength(35);
   });
 
   for (const fixture of cases) {
