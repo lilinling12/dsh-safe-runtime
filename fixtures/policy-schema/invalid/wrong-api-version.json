@@ -1,0 +1,6 @@
+{
+  "apiVersion": "safe-runtime.dev/v9",
+  "kind": "CapabilityPolicy",
+  "metadata": { "name": "wrong-api" },
+  "spec": { "defaultEffect": "deny", "rules": [] }
+}

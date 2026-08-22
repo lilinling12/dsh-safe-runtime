@@ -1,0 +1,16 @@
+{
+  "apiVersion": "safe-runtime.dev/v1alpha1",
+  "kind": "CapabilityPolicy",
+  "metadata": { "name": "unknown-effect" },
+  "spec": {
+    "defaultEffect": "deny",
+    "rules": [
+      {
+        "id": "read",
+        "effect": "audit",
+        "capabilities": ["fs.read"],
+        "resources": ["workspace://**"]
+      }
+    ]
+  }
+}
