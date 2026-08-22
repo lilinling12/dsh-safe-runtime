@@ -35,6 +35,7 @@ describe("M4-001 policy document loader", () => {
     ["invalid/yaml-duplicate-key.yaml", "POLICY_DOCUMENT_DUPLICATE_KEY"],
     ["invalid/yaml-multiple-documents.yaml", "POLICY_DOCUMENT_MULTIPLE_DOCUMENTS"],
     ["invalid/yaml-alias.yaml", "POLICY_DOCUMENT_YAML_ALIAS_FORBIDDEN"],
+    ["invalid/yaml-anchor.yaml", "POLICY_DOCUMENT_YAML_ALIAS_FORBIDDEN"],
     ["invalid/yaml-custom-tag.yaml", "POLICY_DOCUMENT_YAML_TAG_FORBIDDEN"],
     ["invalid/yaml-merge-key.yaml", "POLICY_DOCUMENT_YAML_MERGE_FORBIDDEN"],
     ["invalid/yaml-non-string-key.yaml", "POLICY_DOCUMENT_NON_STRING_KEY"],
@@ -92,6 +93,47 @@ describe("M4-001 policy document loader", () => {
         reason: "POLICY_DOCUMENT_LIMIT_EXCEEDED",
       });
     }
+  });
+
+  test("rejects deeply nested flow collections before YAML composition", () => {
+    const nesting = 512;
+    const source = `${"[".repeat(nesting)}0${"]".repeat(nesting)}`;
+    const result = loadPolicyDocument({
+      format: "YAML",
+      source,
+      limits: {
+        maxSourceBytes: 4096,
+        maxDepth: 64,
+        maxContainerEntries: 4096,
+      },
+    });
+
+    expect(result).toMatchObject({
+      ok: false,
+      reason: "POLICY_DOCUMENT_LIMIT_EXCEEDED",
+    });
+  });
+
+  test("preserves __proto__ as ordinary YAML data without prototype mutation", () => {
+    const result = loadPolicyDocument({
+      format: "YAML",
+      source: "__proto__:\n  polluted: true\n",
+    });
+
+    expect(result.ok).toBe(true);
+    if (
+      !result.ok ||
+      typeof result.value !== "object" ||
+      result.value === null ||
+      Array.isArray(result.value)
+    ) {
+      throw new Error("Expected a YAML mapping result.");
+    }
+
+    expect(Object.getPrototypeOf(result.value)).toBe(Object.prototype);
+    expect(Object.prototype.hasOwnProperty.call(result.value, "__proto__")).toBe(true);
+    expect(result.value["__proto__"]).toEqual({ polluted: true });
+    expect(({} as { polluted?: boolean }).polluted).toBeUndefined();
   });
 
   test("returns detached values across repeated loads", () => {
