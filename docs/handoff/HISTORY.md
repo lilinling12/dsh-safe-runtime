@@ -623,3 +623,58 @@ M4-001 is accepted at its implementation boundary. Governance records are being
 updated on PR #3 and their final exact head must itself be dual-green before
 M4-002 starts. M4-002 must begin protocol-first by reconciling the existing
 `defaultEffect` schema/prose boundary; M4-003+ and M6 remain unauthorized.
+
+## 2026-08-23 — Accept M4-002 CapabilityPolicy schema validation
+
+M4-002 closed at implementation head
+`7b87c812fafab860d5ee95bebdfc706ec6e2ba06` after protocol-first reconciliation
+of the CapabilityPolicy schema-validation boundary in Spec 0018.
+
+The accepted boundary preserves the existing v0.1 schema rather than
+weakening it: `spec.defaultEffect` remains required and constrained to
+`deny`. Core §8.3's missing-value => deny rule remains a later evaluator
+fail-closed invariant; M4-002 does not synthesize a missing field or treat
+a schema-invalid document as valid.
+
+The TypeScript reference implementation uses strict Draft 2020-12
+`Ajv2020`, trusted repository-controlled schema IDs and local `$ref`
+registration. Validation enables no type coercion, default insertion or
+additional-property removal and performs no runtime network schema fetch.
+Successful validation returns a detached recursively frozen JSON-compatible
+snapshot; invalid documents expose deterministic portable
+`instancePath`/`keyword`/`schemaPath` issues, while trusted schema
+initialization failures remain distinct and fail closed.
+
+Portable `fixtures/policy-schema/` coverage includes the required valid
+minimal/lease policies and negative defaultEffect, identity, metadata,
+additional-property, required-rule-field, effect, uniqueness and lease
+cases. Regression tests additionally cover input non-mutation, recursive
+immutability, prototype safety, deterministic issue ordering and broken
+trusted-schema configuration.
+
+Dependency hygiene was tightened before acceptance: `@dsh-safe/policy-engine`
+now exact-pins `ajv@8.20.0` and no longer declares unused `ajv-formats` at
+runtime. The current CapabilityPolicy root reaches only
+`defs.schema.json#/$defs/leaseRequest`, which has no `format` assertion; a
+future normative root that reaches formatted definitions must add explicit
+strict format semantics and new conformance evidence.
+
+Exact-head evidence at `7b87c812...`:
+
+- normal CI #260 / run `32603117802`: PASS;
+- frozen install and 124-entry supply-chain policy: PASS;
+- architecture/schema/schema-baseline/strict TypeScript: PASS;
+- 27 test files / 294 tests: PASS;
+- M4-002 validator tests: 6 PASS;
+- M4-001 loader regressions: 18 PASS;
+- JSON parser regressions: 9 PASS;
+- oxlint: 0 warnings / 0 errors;
+- Shared TCK packed artifact/external consumer boundary: PASS;
+- exact Harness rc5 source-conformance #204 / run `32603117850`: PASS;
+- Harness steps 6–11 all PASS.
+
+`docs/acceptance/m4-002-acceptance-audit.md` records **M4-002 ACCEPTED AT
+IMPLEMENTATION BOUNDARY**. Governance records must now reach their own
+final exact-head dual-green state before M4-003 begins. M4-003 is the next
+protocol-first gate only after that evidence; M4-004+ and M6 remain
+unauthorized.
