@@ -1,0 +1,5 @@
+{
+  "apiVersion": "safe-runtime.dev/v1alpha1",
+  "kind": "CapabilityPolicy",
+  "kind": "CapabilityPolicy"
+}
