@@ -17,11 +17,12 @@
 - M3 acceptance: **ACCEPTED**
 - M4-001 acceptance: **ACCEPTED AT IMPLEMENTATION BOUNDARY**
 - M4-002 acceptance: **ACCEPTED AT IMPLEMENTATION BOUNDARY**
-- M4-002 acceptance record: `docs/acceptance/m4-002-acceptance-audit.md`
-- Accepted M4-002 implementation head: `7b87c812fafab860d5ee95bebdfc706ec6e2ba06`
-- M4-002 normal CI: **PASS — CI #260 / run `32603117802`**
-- M4-002 Harness rc5 source-conformance: **PASS — #204 / run `32603117850`**
-- Next gate after final governance verification: **M4-003 P0 — canonical resource normalization**
+- M4-003 acceptance: **ACCEPTED AT IMPLEMENTATION BOUNDARY**
+- M4-003 acceptance record: `docs/acceptance/m4-003-acceptance-audit.md`
+- Accepted M4-003 implementation head: `edd91190eb4489e7b73a8cc7fde05140939cb36d`
+- M4-003 normal CI: **PASS — CI #275 / run `32604956296`**
+- M4-003 Harness rc5 source-conformance: **PASS — #219 / run `32604956288`**
+- Next gate after final governance verification: **M4-004 P0 — deterministic rule ordering**
 
 Live GitHub state always overrides this file. PR #3 remains intentionally stacked
 on the final accepted M3 governance head so M4 work cannot mutate the accepted M3
@@ -37,68 +38,62 @@ commit: 47f943859bef60e4160492346772ded9b24f765a
 distribution: distribution-blocked
 ```
 
-M4 policy syntax and semantics must not be inferred from Harness APIs or runtime
-behavior.
+M4 policy semantics must not be inferred from Harness APIs or runtime behavior.
 
-## M4-002 acceptance boundary
+## M4-003 acceptance boundary
 
 Normative authority:
 
 ```text
-specs/0018-m4-capability-policy-schema-validation.md
-schemas/v1alpha1/capability-policy.schema.json
+specs/0019-m4-canonical-resource-normalization.md
+specs/0001-safe-runtime-core.md
+specs/0002-state-machines-and-precedence.md
+schemas/v1alpha1/defs.schema.json#/$defs/resource
 ```
 
 Acceptance record:
 
 ```text
-docs/acceptance/m4-002-acceptance-audit.md
+docs/acceptance/m4-003-acceptance-audit.md
 ```
 
-The accepted M4-002 boundary consumes only the JSON-compatible value produced by
-M4-001 and validates it against the trusted repository-controlled CapabilityPolicy
-Draft 2020-12 schema graph. Successful validation returns a detached recursively
-frozen JSON-compatible snapshot. Failure returns deterministic portable schema
-issues or a distinct trusted-schema configuration failure.
+M4-003 defines a structural, rejecting resource-normalization boundary. It
+canonicalizes the portable structure without inventing host/provider semantics.
 
 Accepted properties include:
 
-1. Draft 2020-12 validation through strict `Ajv2020`;
-2. exact trusted `$schema` / `$id` identities for the CapabilityPolicy and
-   definitions schemas;
-3. local repository-controlled `$ref` registration without runtime network schema
-   fetches;
-4. no type coercion, default insertion or additional-property removal;
-5. missing `spec.defaultEffect` remains schema-invalid and is not synthesized;
-6. existing `defaultEffect: deny` schema semantics remain unchanged;
-7. successful output is detached from the mutable input and recursively frozen;
-8. `__proto__` remains ordinary own data inside schema-open fields without
-   prototype pollution;
-9. invalid results use `POLICY_SCHEMA_INVALID` with normalized
-   `instancePath` / `keyword` / `schemaPath`;
-10. required/additional-property issue paths point to the affected property and
-    use RFC 6901 escaping;
-11. issue ordering is deterministic by instance path, keyword and schema path;
-12. schema initialization/resolution failures are distinct
-    `POLICY_SCHEMA_CONFIGURATION_ERROR` failures;
-13. no M4-003 normalization, M4-004 ordering or M4-005/006 evaluation semantics
-    are implemented.
+1. exact standard lowercase resource schemes only;
+2. exact-resource `scheme` / `locator` / optional opaque `providerIdentity`;
+3. policy selector parsing at the first literal `://` only;
+4. locator/pattern/provider token content preserved without trim, Unicode
+   normalization, case-folding, URL decoding, path resolution or realpath;
+5. 4096 **Unicode code-point** bound, directly tested with BMP and astral input;
+6. C0 controls and `U+007F` fail closed;
+7. provider identity remains opaque and is never parsed into a path/URI or used by
+   string prefix as a containment proof;
+8. inherited prototype fields never become resource authorization input;
+9. own `providerIdentity: undefined` is invalid rather than silently treated as
+   absent;
+10. unexpected exact-resource own fields fail closed;
+11. returned TypeScript values are detached/frozen and normalization is
+    idempotent;
+12. wildcard matching, specificity, deterministic rule ordering, effects and
+    default-deny evaluation remain absent.
 
-`@dsh-safe/policy-engine` exact-pins `ajv@8.20.0`. `ajv-formats` is not a
-policy-engine runtime dependency because the current CapabilityPolicy root only
-reaches `defs.schema.json#/$defs/leaseRequest`, which has no `format` assertion.
-If a future normative root reaches a formatted definition, that change requires
-explicit strict format semantics and new conformance evidence.
+The production normalizer contains no Harness, filesystem/path, URL/DNS,
+executable lookup or secret-dereference dependency. Provider-backed filesystem
+identity/containment remains an Adapter/runtime responsibility through the
+accepted provider seam.
 
-## M4-002 exact-head evidence
+## M4-003 exact-head evidence
 
 Accepted implementation head:
 
 ```text
-7b87c812fafab860d5ee95bebdfc706ec6e2ba06
+edd91190eb4489e7b73a8cc7fde05140939cb36d
 ```
 
-Normal CI #260 / run `32603117802`:
+Normal CI #275 / run `32604956296`:
 
 - `pnpm install --frozen-lockfile`: PASS;
 - supply-chain lockfile policy: PASS (124 entries);
@@ -106,14 +101,16 @@ Normal CI #260 / run `32603117802`:
 - schema shape: PASS (16 schemas);
 - schema compatibility baseline: PASS;
 - strict workspace TypeScript: PASS;
-- repository tests: PASS (27 files / 294 tests);
-- M4-002 validator tests: PASS (6 tests);
+- repository tests: PASS (29 files / 334 tests);
+- M4-003 portable normalizer suite: PASS (38 tests);
+- M4-003 runtime object-boundary suite: PASS (2 tests);
+- M4-002 validator regressions: PASS (6 tests);
 - M4-001 loader regressions: PASS (18 tests);
 - JSON parser regressions: PASS (9 tests);
 - oxlint: PASS (0 warnings / 0 errors);
 - packed Shared TCK + external non-workspace consumer: PASS (44 registered assets).
 
-Harness rc5 source-conformance #204 / run `32603117850`:
+Harness rc5 source-conformance #219 / run `32604956288`:
 
 - exact pinned Harness public type build: PASS;
 - reproducible safe-runtime install: PASS;
@@ -124,60 +121,62 @@ Harness rc5 source-conformance #204 / run `32603117850`:
 
 No schema, validator, fixture expectation, TypeScript strictness, frozen lockfile,
 supply-chain policy, architecture boundary, compatibility gate or security
-claim was weakened for acceptance.
+invariant was weakened for acceptance.
 
 ## Governance closure rule
 
-M4-002's implementation boundary is accepted, but the governance edits that
-record that acceptance must themselves be verified before entering M4-003.
+M4-003's implementation boundary is accepted, but the governance edits recording
+that acceptance must themselves pass normal CI and exact Harness rc5
+source-conformance before M4-004 begins.
 
 Therefore:
 
 ```text
 M4-001 implementation: ACCEPTED
 M4-002 implementation: ACCEPTED
-M4-003 implementation: NOT STARTED
-M4-003 authorization: PENDING FINAL GOVERNANCE-HEAD DUAL-GREEN
-M4-004+: NOT AUTHORIZED
+M4-003 implementation: ACCEPTED
+M4-004 implementation: NOT STARTED
+M4-004 authorization: PENDING FINAL GOVERNANCE-HEAD DUAL-GREEN
+M4-005+: NOT AUTHORIZED
 M6: NOT AUTHORIZED
 ```
 
-Do not start M4-003 production code until the final governance head containing
-the M4-002 acceptance audit, package stage, roadmap, this handoff, append-only
-history and PR description is green in both normal CI and exact Harness rc5
-source-conformance.
+Do not start M4-004 production code until the final governance head containing
+the M4-003 acceptance audit, package stage, roadmap, this handoff, append-only
+history and PR description is dual-green.
 
-## Next gate — M4-003 canonical resource normalization
+## Next gate — M4-004 deterministic rule ordering
 
-Once the final governance head is dual-green, the next and only authorized gate
-is:
+After final governance dual-green, the next and only authorized gate is:
 
 ```text
-M4-003 P0 — canonical resource normalization
+M4-004 P0 — deterministic rule ordering
 ```
 
-M4-003 must start protocol-first. Re-read existing M1 resource semantics and any
-relevant RFC/ADR/spec/schema before defining normalization. Do not infer canonical
-identity from Harness APIs, incidental TypeScript strings, host-specific path
-behavior, or roadmap shorthand.
+Before defining or implementing M4-004, re-read the existing deterministic
+precedence specification, CapabilityPolicy schema and relevant M1 semantics.
+Do not infer precedence from JavaScript array/object behavior, Harness behavior,
+incidental implementation ordering, or roadmap shorthand.
 
-M4-003 must remain limited to canonical resource normalization. It must not
-opportunistically implement M4-004 deterministic rule ordering, M4-005 effects,
-M4-006 default-deny evaluation, lease/approval routing, plugin registration, or
-Workspace Transaction behavior.
+M4-004 must remain limited to deterministic rule ordering. M4-005 deny/ask/allow
+effect behavior, M4-006 default-deny evaluation, lease/approval routing, plugin
+registration and Workspace Transaction behavior remain later gates.
 
 ## Boundaries that remain enforced
 
 - Protocol/spec precedes implementation.
-- Existing M1 Capability semantics remain authoritative until changed through the
-  repository's normative process.
+- `specs/` is semantic authority; TypeScript packages are projections.
 - DeepSeek Harness is an Adapter and cannot define Capability Broker semantics.
 - Successful M4-001 loading is not policy validity or authorization.
-- Successful M4-002 validation is not normalization, evaluation or authorization.
+- Successful M4-002 validation is not policy evaluation or authorization.
+- Successful M4-003 normalization is not a match, precedence decision or
+  authorization.
+- Filesystem containment is provider-owned; string-prefix tests are not
+  containment proofs.
 - Do not weaken TypeScript strictness, schemas, compatibility baseline,
   validators, conformance tests, frozen installs, architecture/security gates or
   supply-chain checks for CI.
-- M4-004+ and M6 remain unauthorized.
+- M4-005+ and M6 remain unauthorized.
 
 ## Resume instruction
 
@@ -186,10 +185,9 @@ On the next work session:
 1. read `docs/handoff/README.md` and this file;
 2. fetch PR #3 live head and exact-head workflow results;
 3. live GitHub evidence overrides this snapshot;
-4. if the M4-002 governance closure head is not yet dual-green, finish that
-   verification first;
-5. only after final governance dual-green, begin M4-003 protocol-first by reading
-   the relevant existing resource semantics before changing code;
+4. if M4-003 governance closure is not dual-green, finish it first;
+5. only after final governance dual-green, begin M4-004 protocol-first by
+   re-reading the existing precedence semantics before changing code;
 6. inspect exact current-head diagnostics on any failure; never infer from stale
    logs;
-7. do not start M4-004+ or M6 early.
+7. do not start M4-005+ or M6 early.
