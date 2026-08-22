@@ -4,14 +4,12 @@ import {
   isScalar,
   isSeq,
   parseAllDocuments,
-  type Node,
 } from "yaml";
 import {
   DEFAULT_POLICY_DOCUMENT_LOADER_LIMITS,
   loaderFailure,
   type PolicyDocumentJsonValue,
   type PolicyDocumentLoaderLimits,
-  type PolicyDocumentLoadFailureReason,
   type PolicyDocumentLoadResult,
 } from "./policy-document-types.js";
 
@@ -23,6 +21,7 @@ interface ConversionState {
 class YamlConversionFailure extends Error {
   public constructor(
     public readonly reason:
+      | "POLICY_DOCUMENT_DUPLICATE_KEY"
       | "POLICY_DOCUMENT_YAML_ALIAS_FORBIDDEN"
       | "POLICY_DOCUMENT_YAML_TAG_FORBIDDEN"
       | "POLICY_DOCUMENT_YAML_MERGE_FORBIDDEN"
@@ -131,54 +130,46 @@ function classifyParserErrors(
 }
 
 function convertYamlNode(
-  node: Node | null,
+  input: unknown,
   depth: number,
   state: ConversionState,
 ): PolicyDocumentJsonValue {
-  if (node === null) {
+  if (input === null) {
     return null;
   }
-  if (isAlias(node)) {
+
+  if (isAlias(input)) {
     throw new YamlConversionFailure(
       "POLICY_DOCUMENT_YAML_ALIAS_FORBIDDEN",
       "YAML aliases are forbidden by the M4-001 portable loader profile.",
     );
   }
-  if (node.anchor !== undefined) {
-    throw new YamlConversionFailure(
-      "POLICY_DOCUMENT_YAML_ALIAS_FORBIDDEN",
-      "YAML anchors are forbidden by the M4-001 portable loader profile.",
-    );
-  }
-  if (node.tag !== undefined) {
-    throw new YamlConversionFailure(
-      "POLICY_DOCUMENT_YAML_TAG_FORBIDDEN",
-      `Explicit YAML tag ${node.tag} is forbidden by the M4-001 portable loader profile.`,
-    );
+
+  if (isScalar(input)) {
+    assertSafeNodeMetadata(input.anchor, input.tag);
+    return convertScalar(input.value);
   }
 
-  if (isScalar(node)) {
-    return convertScalar(node.value);
-  }
-
-  if (isSeq(node)) {
+  if (isSeq(input)) {
+    assertSafeNodeMetadata(input.anchor, input.tag);
     const nextDepth = depth + 1;
     assertDepth(nextDepth, state.limits);
     const values: PolicyDocumentJsonValue[] = [];
-    for (const item of node.items) {
+    for (const item of input.items) {
       incrementEntries(state);
       values.push(convertYamlNode(item, nextDepth, state));
     }
     return values;
   }
 
-  if (isMap(node)) {
+  if (isMap(input)) {
+    assertSafeNodeMetadata(input.anchor, input.tag);
     const nextDepth = depth + 1;
     assertDepth(nextDepth, state.limits);
     const keys = new Set<string>();
     const entries: Array<readonly [string, PolicyDocumentJsonValue]> = [];
 
-    for (const pair of node.items) {
+    for (const pair of input.items) {
       const keyNode = pair.key;
       if (!isScalar(keyNode)) {
         throw new YamlConversionFailure(
@@ -186,18 +177,7 @@ function convertYamlNode(
           "YAML mapping keys must be scalar strings.",
         );
       }
-      if (keyNode.anchor !== undefined) {
-        throw new YamlConversionFailure(
-          "POLICY_DOCUMENT_YAML_ALIAS_FORBIDDEN",
-          "YAML anchors are forbidden on mapping keys.",
-        );
-      }
-      if (keyNode.tag !== undefined) {
-        throw new YamlConversionFailure(
-          "POLICY_DOCUMENT_YAML_TAG_FORBIDDEN",
-          `Explicit YAML tag ${keyNode.tag} is forbidden on mapping keys.`,
-        );
-      }
+      assertSafeNodeMetadata(keyNode.anchor, keyNode.tag);
       if (typeof keyNode.value !== "string") {
         throw new YamlConversionFailure(
           "POLICY_DOCUMENT_NON_STRING_KEY",
@@ -232,6 +212,24 @@ function convertYamlNode(
     "POLICY_DOCUMENT_NON_JSON_VALUE",
     "YAML node type is outside the JSON-compatible loader profile.",
   );
+}
+
+function assertSafeNodeMetadata(
+  anchor: string | undefined,
+  tag: string | undefined,
+): void {
+  if (anchor !== undefined) {
+    throw new YamlConversionFailure(
+      "POLICY_DOCUMENT_YAML_ALIAS_FORBIDDEN",
+      "YAML anchors are forbidden by the M4-001 portable loader profile.",
+    );
+  }
+  if (tag !== undefined) {
+    throw new YamlConversionFailure(
+      "POLICY_DOCUMENT_YAML_TAG_FORBIDDEN",
+      `Explicit YAML tag ${tag} is forbidden by the M4-001 portable loader profile.`,
+    );
+  }
 }
 
 function convertScalar(value: unknown): PolicyDocumentJsonValue {
