@@ -678,3 +678,55 @@ IMPLEMENTATION BOUNDARY**. Governance records must now reach their own
 final exact-head dual-green state before M4-003 begins. M4-003 is the next
 protocol-first gate only after that evidence; M4-004+ and M6 remain
 unauthorized.
+
+## 2026-08-23 — Accept M4-003 canonical resource normalization
+
+M4-003 closed at implementation head
+`edd91190eb4489e7b73a8cc7fde05140939cb36d` after protocol-first recovery of
+the M1 resource model, precedence stage, schema surface, architecture
+constraints and accepted provider seam.
+
+Spec 0019 defines canonicalization as a structural, rejecting boundary,
+not an operating-system path resolver. Exact resources retain
+`scheme`/`locator`/optional opaque `providerIdentity`; policy selector
+strings are parsed only at the first `://`. Accepted strings are preserved
+exactly: no trim, Unicode normalization, case folding, URL decoding,
+slash rewriting, dot-segment resolution, realpath, DNS, executable lookup
+or secret dereference is performed by policy-engine.
+
+The 4096 bound is defined in Unicode code points and is implemented with a
+bounded `for...of` traversal. Portable hardening proves both BMP and astral
+boundaries, including `😀 x 4096` PASS, `😀 x 4097` LIMIT, and `U+007F`
+rejection. C0 controls fail closed.
+
+Provider identity remains opaque. The normalizer never parses or
+synthesizes provider tokens and never treats string-prefix relationships as
+provider containment. Provider-backed filesystem identity/containment stays
+behind the accepted Adapter/runtime provider seam.
+
+Acceptance review also hardened runtime values that bypass JSON Schema:
+inherited prototype fields cannot become authorization input, required
+resource fields are read only as own properties, and an own
+`providerIdentity: undefined` fails rather than being silently treated as
+absent. Unexpected own fields remain fail-closed.
+
+Language-independent fixtures contain 35 portable resource-normalization
+cases. TypeScript additionally exercises two runtime-only prototype/own-
+property cases. Exact implementation-head evidence at `edd91190...`:
+
+- normal CI #275 / run `32604956296`: PASS;
+- frozen install and 124-entry supply-chain policy: PASS;
+- architecture boundaries / 16-schema shape / schema baseline: PASS;
+- strict workspace TypeScript: PASS;
+- 29 test files / 334 tests: PASS;
+- M4-003 portable normalizer suite: 38 PASS;
+- M4-003 runtime object-boundary suite: 2 PASS;
+- oxlint: 0 warnings / 0 errors;
+- Shared TCK packed artifact + external consumer: 44 assets PASS;
+- exact Harness rc5 source-conformance #219 / run `32604956288`: PASS;
+- Harness steps 6–11 all PASS.
+
+`docs/acceptance/m4-003-acceptance-audit.md` records **M4-003 ACCEPTED AT
+IMPLEMENTATION BOUNDARY**. The governance head recording this acceptance
+must itself reach exact-head CI/Harness dual-green before M4-004 starts.
+M4-005+ and M6 remain unauthorized.
