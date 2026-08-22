@@ -44,6 +44,7 @@ export {
 export {
   RESOURCE_STRING_CODE_POINT_LIMIT,
   type CanonicalResource,
+  type CanonicalResourceScheme,
   type CanonicalResourceSelector,
   type ExactResourceNormalizationResult,
   type ExactResourceNormalizationSuccess,
