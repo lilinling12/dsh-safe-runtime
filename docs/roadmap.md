@@ -271,7 +271,7 @@ Acceptance evidence
 - [x] `M4-001 P0` YAML/JSON loader。 **ACCEPTED：Spec 0017 + portable fixtures + bounded duplicate-aware JSON/YAML loader；accepted implementation head `9443d907...`，CI #248 / Harness #192 PASS；验收记录 `docs/acceptance/m4-001-acceptance-audit.md`。**
 - [x] `M4-002 P0` schema validation。 **ACCEPTED：Spec 0018 + portable fixtures + strict Draft 2020-12 validator；accepted implementation head `7b87c812...`，CI #260 / Harness #204 PASS；验收记录 `docs/acceptance/m4-002-acceptance-audit.md`。**
 - [x] `M4-003 P0` canonical resource normalization。 **ACCEPTED：Spec 0019 + 35 portable cases + runtime fail-closed hardening；accepted implementation head `edd91190...`，CI #275 / Harness #219 PASS；验收记录 `docs/acceptance/m4-003-acceptance-audit.md`。**
-- [ ] `M4-004 P0` deterministic rule ordering。
+- [x] `M4-004 P0` deterministic rule ordering。 **ACCEPTED：Spec 0020 + 37 portable pattern/ordering cases + Unicode/code-point deterministic precedence bands；accepted implementation head `69934dd6...`，CI #291 / Harness #235 PASS；验收记录 `docs/acceptance/m4-004-acceptance-audit.md`。**
 - [ ] `M4-005 P0` deny/ask/allow。
 - [ ] `M4-006 P0` default deny。
 - [ ] `M4-007 P0` explain API。
