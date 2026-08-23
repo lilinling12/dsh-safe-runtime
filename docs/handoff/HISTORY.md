@@ -730,3 +730,50 @@ property cases. Exact implementation-head evidence at `edd91190...`:
 IMPLEMENTATION BOUNDARY**. The governance head recording this acceptance
 must itself reach exact-head CI/Harness dual-green before M4-004 starts.
 M4-005+ and M6 remain unauthorized.
+
+## 2026-08-23 — Accept M4-004 deterministic rule ordering
+
+M4-004 closed at implementation head
+`69934dd62903b325b50e9f7b8df9849021e522b7` after protocol-first recovery of
+Core §8.3, the deterministic precedence profile, M4-003's deferred wildcard
+boundary and the current CapabilityPolicy priority schema.
+
+Spec 0020 defines the portable v0.1 lexical pattern profile before
+implementation: `/` is only a lexical hierarchy separator; `*` is a
+single-segment wildcard; `**` matches zero or more complete segments and is
+valid only as an entire segment. Matching is whole-locator anchored,
+preserves empty segments and Unicode code points, and assigns no shell-glob,
+regex or escape semantics to other punctuation.
+
+Resource specificity is the deterministic tuple
+`(literalCodePoints DESC, globstarCount ASC, starCount ASC)`. A rule with
+multiple matching selectors uses its most-specific match. Optional priority
+is comparison-time only, with absent priority equal to zero; specificity
+always dominates priority. Equal structural keys remain one precedence band,
+and Unicode code-point rule-id ordering inside a band is presentation only,
+never a hidden authorization tie-breaker.
+
+The reference implementation uses a custom iterative lexical matcher and
+does not depend on a glob/regex/shell/path library. Provider identity remains
+opaque and cannot change lexical match or specificity. Effect-looking runtime
+fields do not affect M4-004 ordering, preserving the M4-005 boundary.
+
+Portable fixtures contain 37 cases (22 pattern + 15 ordering). Exact
+implementation-head evidence at `69934dd6...`:
+
+- normal CI #291 / run `32607126915`: PASS;
+- frozen install and 124-entry supply-chain policy: PASS;
+- architecture boundaries / 16-schema shape / schema baseline: PASS;
+- strict workspace TypeScript: PASS;
+- 31 test files / 377 tests: PASS;
+- M4-004 rule-ordering suite: 19 PASS;
+- M4-004 resource-pattern suite: 24 PASS;
+- oxlint: 0 warnings / 0 errors;
+- Shared TCK packed artifact + external consumer: 44 assets PASS;
+- exact Harness rc5 source-conformance #235 / run `32607126899`: PASS;
+- Harness steps 6–11 all PASS.
+
+`docs/acceptance/m4-004-acceptance-audit.md` records **M4-004 ACCEPTED AT
+IMPLEMENTATION BOUNDARY**. The governance head recording this acceptance
+must itself reach exact-head CI/Harness dual-green before M4-005 starts.
+M4-006+ and M6 remain unauthorized.
