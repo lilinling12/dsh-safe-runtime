@@ -20,6 +20,13 @@ interface PreparedCandidate {
   readonly effectivePriority: number;
 }
 
+interface PreparedCandidatesSuccess {
+  readonly ok: true;
+  readonly candidates: readonly PreparedCandidate[];
+}
+
+type PreparedCandidatesResult = PreparedCandidatesSuccess | RuleOrderingFailure;
+
 interface MatchedCandidate {
   readonly id: string;
   readonly specificity: ResourceSpecificity;
@@ -35,7 +42,11 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isValidRuleId(value: unknown): value is string {
-  return typeof value === "string" && value.length > 0 && Array.from(value).length <= RULE_ID_CODE_POINT_LIMIT;
+  return (
+    typeof value === "string" &&
+    value.length > 0 &&
+    Array.from(value).length <= RULE_ID_CODE_POINT_LIMIT
+  );
 }
 
 /**
@@ -65,7 +76,7 @@ export function compareUnicodeCodePointStrings(left: string, right: string): num
   return leftCodePoints.length - rightCodePoints.length;
 }
 
-function prepareCandidates(input: unknown): readonly PreparedCandidate[] | RuleOrderingFailure {
+function prepareCandidates(input: unknown): PreparedCandidatesResult {
   if (!Array.isArray(input)) {
     return failure("RULE_ORDERING_INPUT_INVALID");
   }
@@ -124,7 +135,7 @@ function prepareCandidates(input: unknown): readonly PreparedCandidate[] | RuleO
   }
 
   prepared.sort((left, right) => compareUnicodeCodePointStrings(left.id, right.id));
-  return Object.freeze(prepared);
+  return Object.freeze({ ok: true, candidates: Object.freeze(prepared) });
 }
 
 function sameSpecificity(left: ResourceSpecificity, right: ResourceSpecificity): boolean {
@@ -160,12 +171,12 @@ export function orderRuleCandidatesForResource(
   }
 
   const prepared = prepareCandidates(candidateInput);
-  if ("ok" in prepared && prepared.ok === false) {
+  if (!prepared.ok) {
     return prepared;
   }
 
   const matched: MatchedCandidate[] = [];
-  for (const candidate of prepared) {
+  for (const candidate of prepared.candidates) {
     let bestSpecificity: ResourceSpecificity | undefined;
 
     for (const selector of candidate.resources) {
