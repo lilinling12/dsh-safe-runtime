@@ -1,0 +1,139 @@
+{
+  "profile": "M4-004",
+  "kind": "ResourcePatternCases",
+  "description": "Language-independent lexical resource-pattern conformance cases for Spec 0020.",
+  "cases": [
+    {
+      "id": "exact-full-match",
+      "selector": "workspace://src/file.ts",
+      "resource": { "scheme": "workspace", "locator": "src/file.ts" },
+      "expect": { "status": "MATCH", "specificity": { "literalCodePoints": 11, "globstarCount": 0, "starCount": 0 } }
+    },
+    {
+      "id": "exact-prefix-is-not-match",
+      "selector": "workspace://src/file.ts",
+      "resource": { "scheme": "workspace", "locator": "x/src/file.ts" },
+      "expect": { "status": "NO_MATCH" }
+    },
+    {
+      "id": "exact-suffix-is-not-match",
+      "selector": "workspace://src/file.ts",
+      "resource": { "scheme": "workspace", "locator": "src/file.ts.bak" },
+      "expect": { "status": "NO_MATCH" }
+    },
+    {
+      "id": "scheme-mismatch",
+      "selector": "workspace://src/file.ts",
+      "resource": { "scheme": "hostfs", "locator": "src/file.ts" },
+      "expect": { "status": "NO_MATCH" }
+    },
+    {
+      "id": "star-zero-code-points",
+      "selector": "workspace://src/a*.ts",
+      "resource": { "scheme": "workspace", "locator": "src/a.ts" },
+      "expect": { "status": "MATCH", "specificity": { "literalCodePoints": 8, "globstarCount": 0, "starCount": 1 } }
+    },
+    {
+      "id": "star-multiple-code-points",
+      "selector": "workspace://src/a*.ts",
+      "resource": { "scheme": "workspace", "locator": "src/abcdef.ts" },
+      "expect": { "status": "MATCH", "specificity": { "literalCodePoints": 8, "globstarCount": 0, "starCount": 1 } }
+    },
+    {
+      "id": "star-does-not-cross-separator",
+      "selector": "workspace://src/*.ts",
+      "resource": { "scheme": "workspace", "locator": "src/lib/a.ts" },
+      "expect": { "status": "NO_MATCH" }
+    },
+    {
+      "id": "globstar-zero-segments",
+      "selector": "workspace://src/**/test/*.ts",
+      "resource": { "scheme": "workspace", "locator": "src/test/a.ts" },
+      "expect": { "status": "MATCH", "specificity": { "literalCodePoints": 13, "globstarCount": 1, "starCount": 1 } }
+    },
+    {
+      "id": "globstar-one-segment",
+      "selector": "workspace://src/**/test/*.ts",
+      "resource": { "scheme": "workspace", "locator": "src/unit/test/a.ts" },
+      "expect": { "status": "MATCH", "specificity": { "literalCodePoints": 13, "globstarCount": 1, "starCount": 1 } }
+    },
+    {
+      "id": "globstar-many-segments",
+      "selector": "workspace://src/**/test/*.ts",
+      "resource": { "scheme": "workspace", "locator": "src/a/b/c/test/a.ts" },
+      "expect": { "status": "MATCH", "specificity": { "literalCodePoints": 13, "globstarCount": 1, "starCount": 1 } }
+    },
+    {
+      "id": "globstar-whole-pattern-matches-any-segment-depth",
+      "selector": "workspace://**",
+      "resource": { "scheme": "workspace", "locator": "a/b/c" },
+      "expect": { "status": "MATCH", "specificity": { "literalCodePoints": 0, "globstarCount": 1, "starCount": 0 } }
+    },
+    {
+      "id": "empty-url-segment-is-significant",
+      "selector": "network://https://example.invalid/*",
+      "resource": { "scheme": "network", "locator": "https://example.invalid/api" },
+      "expect": { "status": "MATCH", "specificity": { "literalCodePoints": 24, "globstarCount": 0, "starCount": 1 } }
+    },
+    {
+      "id": "url-empty-segment-not-collapsed",
+      "selector": "network://https://example.invalid/*",
+      "resource": { "scheme": "network", "locator": "https:/example.invalid/api" },
+      "expect": { "status": "NO_MATCH" }
+    },
+    {
+      "id": "question-mark-is-literal",
+      "selector": "external://job?1",
+      "resource": { "scheme": "external", "locator": "job?1" },
+      "expect": { "status": "MATCH", "specificity": { "literalCodePoints": 5, "globstarCount": 0, "starCount": 0 } }
+    },
+    {
+      "id": "question-mark-is-not-wildcard",
+      "selector": "external://job?1",
+      "resource": { "scheme": "external", "locator": "jobA1" },
+      "expect": { "status": "NO_MATCH" }
+    },
+    {
+      "id": "brackets-and-braces-are-literal",
+      "selector": "external://[a]{b}",
+      "resource": { "scheme": "external", "locator": "[a]{b}" },
+      "expect": { "status": "MATCH", "specificity": { "literalCodePoints": 6, "globstarCount": 0, "starCount": 0 } }
+    },
+    {
+      "id": "backslash-is-literal",
+      "selector": "hostfs://dir\\file",
+      "resource": { "scheme": "hostfs", "locator": "dir\\file" },
+      "expect": { "status": "MATCH", "specificity": { "literalCodePoints": 8, "globstarCount": 0, "starCount": 0 } }
+    },
+    {
+      "id": "invalid-embedded-double-star",
+      "selector": "workspace://a**b",
+      "resource": { "scheme": "workspace", "locator": "axxb" },
+      "expect": { "status": "ERROR", "reason": "RESOURCE_PATTERN_SYNTAX_INVALID" }
+    },
+    {
+      "id": "invalid-prefixed-globstar-segment",
+      "selector": "workspace://foo/**bar",
+      "resource": { "scheme": "workspace", "locator": "foo/bar" },
+      "expect": { "status": "ERROR", "reason": "RESOURCE_PATTERN_SYNTAX_INVALID" }
+    },
+    {
+      "id": "invalid-triple-star",
+      "selector": "workspace://***",
+      "resource": { "scheme": "workspace", "locator": "anything" },
+      "expect": { "status": "ERROR", "reason": "RESOURCE_PATTERN_SYNTAX_INVALID" }
+    },
+    {
+      "id": "astral-literal-counts-one-code-point",
+      "selector": "workspace://😀/*.txt",
+      "resource": { "scheme": "workspace", "locator": "😀/a.txt" },
+      "expect": { "status": "MATCH", "specificity": { "literalCodePoints": 6, "globstarCount": 0, "starCount": 1 } }
+    },
+    {
+      "id": "astral-star-match-operates-on-code-points",
+      "selector": "workspace://a*b",
+      "resource": { "scheme": "workspace", "locator": "a😀b" },
+      "expect": { "status": "MATCH", "specificity": { "literalCodePoints": 2, "globstarCount": 0, "starCount": 1 } }
+    }
+  ]
+}
