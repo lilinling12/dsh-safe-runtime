@@ -22,6 +22,13 @@ interface CompiledResourcePattern {
   readonly specificity: ResourceSpecificity;
 }
 
+interface CompilePatternSuccess {
+  readonly ok: true;
+  readonly pattern: CompiledResourcePattern;
+}
+
+type CompilePatternResult = CompilePatternSuccess | RuleOrderingFailure;
+
 function failure(reason: RuleOrderingFailure["reason"]): RuleOrderingFailure {
   return Object.freeze({ ok: false, reason });
 }
@@ -39,9 +46,7 @@ function frozenSpecificity(
  * this is deliberately not delegated to a host glob/regex library whose escape,
  * separator or Unicode rules could become accidental protocol semantics.
  */
-function compilePattern(
-  selector: CanonicalResourceSelector,
-): CompiledResourcePattern | RuleOrderingFailure {
+function compilePattern(selector: CanonicalResourceSelector): CompilePatternResult {
   const rawSegments = selector.locatorPattern.split("/");
   const compiled: CompiledPatternSegment[] = [];
   let literalCodePoints = Math.max(0, rawSegments.length - 1);
@@ -72,9 +77,12 @@ function compilePattern(
   }
 
   return Object.freeze({
-    selector,
-    segments: Object.freeze(compiled),
-    specificity: frozenSpecificity(literalCodePoints, globstarCount, starCount),
+    ok: true,
+    pattern: Object.freeze({
+      selector,
+      segments: Object.freeze(compiled),
+      specificity: frozenSpecificity(literalCodePoints, globstarCount, starCount),
+    }),
   });
 }
 
@@ -130,7 +138,10 @@ function matchesSegment(pattern: readonly string[], value: string): boolean {
  * Match complete lexical segments with iterative globstar fallback. Empty
  * segments are retained by String.split("/") and are therefore significant.
  */
-function matchesCompiledPattern(pattern: CompiledResourcePattern, resource: CanonicalResource): boolean {
+function matchesCompiledPattern(
+  pattern: CompiledResourcePattern,
+  resource: CanonicalResource,
+): boolean {
   if (pattern.selector.scheme !== resource.scheme) {
     return false;
   }
@@ -201,14 +212,14 @@ export function matchPolicyResourceSelector(
   }
 
   const compiled = compilePattern(selectorResult.selector);
-  if ("ok" in compiled && compiled.ok === false) {
+  if (!compiled.ok) {
     return compiled;
   }
 
   return Object.freeze({
     ok: true,
-    matched: matchesCompiledPattern(compiled, resourceResult.resource),
-    specificity: compiled.specificity,
+    matched: matchesCompiledPattern(compiled.pattern, resourceResult.resource),
+    specificity: compiled.pattern.specificity,
   });
 }
 
