@@ -1,0 +1,102 @@
+name: M4-004 governance sync
+
+on:
+  push:
+    branches:
+      - automation/m4-004-governance-sync
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Update roadmap and append history
+        shell: python
+        run: |
+          from pathlib import Path
+
+          roadmap = Path('docs/roadmap.md')
+          text = roadmap.read_text(encoding='utf-8')
+          old = '- [ ] `M4-004 P0` deterministic rule ordering。'
+          new = '- [x] `M4-004 P0` deterministic rule ordering。 **ACCEPTED：Spec 0020 + 37 portable pattern/ordering cases + Unicode/code-point deterministic precedence bands；accepted implementation head `69934dd6...`，CI #291 / Harness #235 PASS；验收记录 `docs/acceptance/m4-004-acceptance-audit.md`。**'
+          if text.count(old) != 1:
+              raise SystemExit(f'expected exactly one M4-004 roadmap row, found {text.count(old)}')
+          updated = text.replace(old, new)
+          if updated.count('- [ ] `M4-005 P0` deny/ask/allow。') != 1:
+              raise SystemExit('M4-005 must remain unchecked')
+          roadmap.write_text(updated, encoding='utf-8')
+
+          history = Path('docs/handoff/HISTORY.md')
+          before = history.read_text(encoding='utf-8')
+          if '## 2026-08-23 — Accept M4-004 deterministic rule ordering' in before:
+              raise SystemExit('M4-004 history entry already exists')
+          entry = '''
+
+## 2026-08-23 — Accept M4-004 deterministic rule ordering
+
+M4-004 closed at implementation head
+`69934dd62903b325b50e9f7b8df9849021e522b7` after protocol-first recovery of
+Core §8.3, the deterministic precedence profile, M4-003's deferred wildcard
+boundary and the current CapabilityPolicy priority schema.
+
+Spec 0020 defines the portable v0.1 lexical pattern profile before
+implementation: `/` is only a lexical hierarchy separator; `*` is a
+single-segment wildcard; `**` matches zero or more complete segments and is
+valid only as an entire segment. Matching is whole-locator anchored, preserves
+empty segments and Unicode code points, and assigns no shell-glob, regex or
+escape semantics to other punctuation.
+
+Resource specificity is the deterministic tuple
+`(literalCodePoints DESC, globstarCount ASC, starCount ASC)`. A rule with
+multiple matching selectors uses its most-specific match. Optional priority is
+comparison-time only, with absent priority equal to zero; specificity always
+dominates priority. Equal structural keys remain one precedence band, and
+Unicode code-point rule-id ordering inside a band is presentation only, never
+a hidden authorization tie-breaker.
+
+The reference implementation uses a custom iterative lexical matcher and does
+not depend on a glob/regex/shell/path library. Provider identity remains opaque
+and cannot change lexical match or specificity. Effect-looking runtime fields
+do not affect M4-004 ordering, preserving the M4-005 boundary.
+
+Portable fixtures contain 37 cases (22 pattern + 15 ordering). Exact
+implementation-head evidence at `69934dd6...`:
+
+- normal CI #291 / run `32607126915`: PASS;
+- frozen install and 124-entry supply-chain policy: PASS;
+- architecture boundaries / 16-schema shape / schema baseline: PASS;
+- strict workspace TypeScript: PASS;
+- 31 test files / 377 tests: PASS;
+- M4-004 rule-ordering suite: 19 PASS;
+- M4-004 resource-pattern suite: 24 PASS;
+- oxlint: 0 warnings / 0 errors;
+- Shared TCK packed artifact + external consumer: 44 assets PASS;
+- exact Harness rc5 source-conformance #235 / run `32607126899`: PASS;
+- Harness steps 6–11 all PASS.
+
+`docs/acceptance/m4-004-acceptance-audit.md` records **M4-004 ACCEPTED AT
+IMPLEMENTATION BOUNDARY**. The governance head recording this acceptance must
+itself reach exact-head CI/Harness dual-green before M4-005 starts. M4-006+ and
+M6 remain unauthorized.
+'''
+          history.write_text(before + entry, encoding='utf-8')
+      - name: Verify governance-only patch
+        run: |
+          git diff --check
+          test "$(git diff --name-only | sort | tr '\n' ' ')" = "docs/handoff/HISTORY.md docs/roadmap.md "
+          test "$(git diff --numstat -- docs/roadmap.md | awk '{print $1":"$2}')" = "1:1"
+          test "$(git diff --numstat -- docs/handoff/HISTORY.md | awk '{print $2}')" = "0"
+          grep -F -- '- [ ] `M4-005 P0` deny/ask/allow。' docs/roadmap.md
+      - name: Commit generated governance records
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add docs/roadmap.md docs/handoff/HISTORY.md
+          git commit -m "docs(governance): record M4-004 acceptance"
+          git push
