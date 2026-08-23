@@ -27,6 +27,20 @@ interface PreparedEffectSuccess {
 
 type PreparedEffectResult = PreparedEffectSuccess | EffectResolutionFailure;
 
+interface PreparedBandsSuccess {
+  readonly ok: true;
+  readonly bands: readonly RulePrecedenceBand[];
+}
+
+type PreparedBandsResult = PreparedBandsSuccess | EffectResolutionFailure;
+
+interface PreparedBindingsSuccess {
+  readonly ok: true;
+  readonly effects: ReadonlyMap<string, PolicyRuleEffect>;
+}
+
+type PreparedBindingsResult = PreparedBindingsSuccess | EffectResolutionFailure;
+
 function failure(reason: EffectResolutionFailureReason): EffectResolutionFailure {
   return Object.freeze({ ok: false, reason });
 }
@@ -88,7 +102,7 @@ function compareBandKey(left: RulePrecedenceBand, right: RulePrecedenceBand): nu
   return right.effectivePriority - left.effectivePriority;
 }
 
-function prepareBands(input: unknown): readonly RulePrecedenceBand[] | EffectResolutionFailure {
+function prepareBands(input: unknown): PreparedBandsResult {
   if (!Array.isArray(input)) {
     return failure("EFFECT_RESOLUTION_INPUT_INVALID");
   }
@@ -151,13 +165,13 @@ function prepareBands(input: unknown): readonly RulePrecedenceBand[] | EffectRes
     prepared.push(band);
   }
 
-  return Object.freeze(prepared);
+  return Object.freeze({ ok: true, bands: Object.freeze(prepared) });
 }
 
 function prepareEffects(
   input: unknown,
   bandRuleIds: ReadonlySet<string>,
-): ReadonlyMap<string, PolicyRuleEffect> | EffectResolutionFailure {
+): PreparedBindingsResult {
   if (!Array.isArray(input)) {
     return failure("EFFECT_RESOLUTION_INPUT_INVALID");
   }
@@ -191,30 +205,33 @@ function prepareEffects(
     }
   }
 
-  return effects;
+  return Object.freeze({ ok: true, effects });
 }
 
 function prepareInput(bandsInput: unknown, effectsInput: unknown): PreparedEffectResult {
-  const bands = prepareBands(bandsInput);
-  if (!Array.isArray(bands)) {
-    return bands;
+  const preparedBands = prepareBands(bandsInput);
+  if (!preparedBands.ok) {
+    return preparedBands;
   }
 
   const bandRuleIds = new Set<string>();
-  for (const band of bands) {
+  for (const band of preparedBands.bands) {
     for (const ruleId of band.ruleIds) {
       bandRuleIds.add(ruleId);
     }
   }
 
-  const effects = prepareEffects(effectsInput, bandRuleIds);
-  if (!(effects instanceof Map)) {
-    return effects;
+  const preparedEffects = prepareEffects(effectsInput, bandRuleIds);
+  if (!preparedEffects.ok) {
+    return preparedEffects;
   }
 
   return Object.freeze({
     ok: true,
-    input: Object.freeze({ bands, effects }),
+    input: Object.freeze({
+      bands: preparedBands.bands,
+      effects: preparedEffects.effects,
+    }),
   });
 }
 
