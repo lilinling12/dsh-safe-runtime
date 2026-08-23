@@ -2,10 +2,11 @@
  * @dsh-safe/policy-engine public boundary.
  *
  * M4-001 document loading, M4-002 schema validation and M4-003 resource
- * normalization are acceptance-audited. Matching, ordering and policy
- * evaluation remain intentionally absent until their later governance gates.
+ * normalization are acceptance-audited. M4-004 deterministic rule ordering is
+ * in progress; effect selection and policy evaluation remain intentionally
+ * absent until their later governance gates.
  */
-export const PACKAGE_STAGE = "M4-003-RESOURCE-NORMALIZATION-CONFORMANCE" as const;
+export const PACKAGE_STAGE = "M4-004-DETERMINISTIC-RULE-ORDERING-IN-PROGRESS" as const;
 
 export {
   loadPolicyDocument,
@@ -54,3 +55,22 @@ export {
   type ResourceSelectorNormalizationResult,
   type ResourceSelectorNormalizationSuccess,
 } from "./resource-normalization-types.js";
+export {
+  compareResourceSpecificity,
+  matchPolicyResourceSelector,
+} from "./resource-pattern.js";
+export {
+  compareUnicodeCodePointStrings,
+  orderRuleCandidatesForResource,
+} from "./rule-ordering.js";
+export {
+  type ResourcePatternMatchResult,
+  type ResourcePatternMatchSuccess,
+  type ResourceSpecificity,
+  type RuleOrderingCandidate,
+  type RuleOrderingFailure,
+  type RuleOrderingFailureReason,
+  type RuleOrderingResult,
+  type RuleOrderingSuccess,
+  type RulePrecedenceBand,
+} from "./rule-ordering-types.js";
