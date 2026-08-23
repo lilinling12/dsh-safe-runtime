@@ -308,7 +308,7 @@ Examples for the same matching resource:
 src/file.ts        > src/*.ts          # more literal code points
 src/*              > src/**            # same literal prefix; * is narrower than **
 src/*/*            > src/**            # additional literal separator structure
-src/**             == **/*.pem         # may tie for some resources depending on literal counts
+ab*                == a*b              # equal tuple when both match the same resource
 ```
 
 The tuple, not these comments, is normative.
