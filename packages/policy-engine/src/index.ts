@@ -1,12 +1,12 @@
 /**
  * @dsh-safe/policy-engine public boundary.
  *
- * M4-001 document loading, M4-002 schema validation and M4-003 resource
- * normalization are acceptance-audited. M4-004 deterministic rule ordering is
- * in progress; effect selection and policy evaluation remain intentionally
- * absent until their later governance gates.
+ * M4-001 document loading, M4-002 schema validation, M4-003 resource
+ * normalization and M4-004 deterministic rule ordering are acceptance-audited.
+ * Effect selection and policy evaluation remain intentionally absent until their
+ * later governance gates.
  */
-export const PACKAGE_STAGE = "M4-004-DETERMINISTIC-RULE-ORDERING-IN-PROGRESS" as const;
+export const PACKAGE_STAGE = "M4-004-DETERMINISTIC-RULE-ORDERING-CONFORMANCE" as const;
 
 export {
   loadPolicyDocument,
