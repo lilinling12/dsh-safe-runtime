@@ -3,10 +3,10 @@
  *
  * M4-001 document loading, M4-002 schema validation, M4-003 resource
  * normalization and M4-004 deterministic rule ordering are acceptance-audited.
- * Effect selection and policy evaluation remain intentionally absent until their
- * later governance gates.
+ * M4-005 effect resolution is in progress; default-effect handling and full PDP
+ * evaluation remain intentionally absent until their later governance gates.
  */
-export const PACKAGE_STAGE = "M4-004-DETERMINISTIC-RULE-ORDERING-CONFORMANCE" as const;
+export const PACKAGE_STAGE = "M4-005-EFFECT-RESOLUTION-IN-PROGRESS" as const;
 
 export {
   loadPolicyDocument,
@@ -74,3 +74,14 @@ export {
   type RuleOrderingSuccess,
   type RulePrecedenceBand,
 } from "./rule-ordering-types.js";
+export { resolveApplicableRuleEffects } from "./effect-resolution.js";
+export {
+  type ApplicableRuleEffect,
+  type EffectResolutionFailure,
+  type EffectResolutionFailureReason,
+  type EffectResolutionResult,
+  type EffectResolutionSuccess,
+  type NoApplicableRulesResult,
+  type PolicyRuleEffect,
+  type ResolvedEffectResult,
+} from "./effect-resolution-types.js";
