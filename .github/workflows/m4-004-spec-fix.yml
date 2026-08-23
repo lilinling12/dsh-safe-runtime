@@ -1,0 +1,43 @@
+name: M4-004 spec correction
+
+on:
+  push:
+    branches:
+      - automation/m4-004-spec-fix
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Apply exact normative example correction
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path('specs/0020-m4-deterministic-rule-ordering.md')
+          text = path.read_text(encoding='utf-8')
+          old = 'src/**             == **/*.pem         # may tie for some resources depending on literal counts'
+          new = 'ab*                == a*b              # equal tuple when both match the same resource'
+          count = text.count(old)
+          if count != 1:
+              raise SystemExit(f'expected exactly one old example, found {count}')
+          path.write_text(text.replace(old, new), encoding='utf-8')
+      - name: Verify only intended spec line changed
+        run: |
+          git diff --check
+          test "$(git diff --numstat -- specs/0020-m4-deterministic-rule-ordering.md | awk '{print $1":"$2}')" = "1:1"
+          test "$(git diff --name-only | wc -l)" -eq 1
+      - name: Commit generated correction
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add specs/0020-m4-deterministic-rule-ordering.md
+          git commit -m "docs(policy): correct M4-004 specificity example"
+          git push
