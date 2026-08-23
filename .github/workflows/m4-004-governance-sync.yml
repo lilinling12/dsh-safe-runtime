@@ -1,5 +1,6 @@
 name: M4-004 governance sync
 
+# Temporary branch-only generator. This workflow never enters the product PR.
 on:
   push:
     branches:
