@@ -2,64 +2,169 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://safe-runtime.dev/schema/v1alpha1/defs.schema.json",
   "$defs": {
-    "nonEmptyString": { "type": "string", "minLength": 1 },
-    "ref": { "type": "string", "minLength": 1, "maxLength": 512 },
-    "timestamp": { "type": "string", "format": "date-time" },
-    "digest": { "type": "string", "pattern": "^(sha256|sha512):[A-Fa-f0-9]+$" },
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "ref": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^(sha256|sha512):[A-Fa-f0-9]+$"
+    },
     "guaranteeLevel": {
       "type": "string",
-      "enum": ["advisory", "tool-enforced", "provider-enforced", "process-isolated"]
+      "enum": [
+        "advisory",
+        "tool-enforced",
+        "provider-enforced",
+        "process-isolated"
+      ]
     },
     "subjectKind": {
       "type": "string",
-      "enum": ["agent", "subagent", "tool", "plugin", "system", "verifier", "human", "service"]
+      "enum": [
+        "agent",
+        "subagent",
+        "tool",
+        "plugin",
+        "system",
+        "verifier",
+        "human",
+        "service"
+      ]
     },
     "subject": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["kind", "id"],
+      "required": [
+        "kind",
+        "id"
+      ],
       "properties": {
-        "kind": { "$ref": "#/$defs/subjectKind" },
-        "id": { "$ref": "#/$defs/ref" },
-        "parent": { "type": ["string", "null"], "minLength": 1 },
-        "sessionRef": { "$ref": "#/$defs/ref" }
+        "kind": {
+          "$ref": "#/$defs/subjectKind"
+        },
+        "id": {
+          "$ref": "#/$defs/ref"
+        },
+        "parent": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "sessionRef": {
+          "$ref": "#/$defs/ref"
+        }
       },
       "allOf": [
         {
-          "if": { "properties": { "kind": { "const": "subagent" } }, "required": ["kind"] },
-          "then": { "required": ["parent"] }
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "subagent"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "parent": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "minLength": 1
+              }
+            },
+            "required": [
+              "parent"
+            ]
+          }
         }
       ]
     },
     "resource": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["scheme", "locator"],
+      "required": [
+        "scheme",
+        "locator"
+      ],
       "properties": {
         "scheme": {
           "type": "string",
-          "enum": ["workspace", "hostfs", "process", "network", "secret", "session", "config", "external"]
+          "enum": [
+            "workspace",
+            "hostfs",
+            "process",
+            "network",
+            "secret",
+            "session",
+            "config",
+            "external"
+          ]
         },
-        "locator": { "type": "string", "minLength": 1, "maxLength": 4096 },
-        "providerIdentity": { "type": "string", "minLength": 1, "maxLength": 4096 }
+        "locator": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "providerIdentity": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        }
       }
     },
     "leaseRequest": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "ttlMs": { "type": "integer", "minimum": 1, "maximum": 86400000 },
-        "maxUses": { "type": "integer", "minimum": 1, "maximum": 100000 }
+        "ttlMs": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 86400000
+        },
+        "maxUses": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100000
+        }
       },
       "minProperties": 1
     },
     "authorization": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["kind", "ref"],
+      "required": [
+        "kind",
+        "ref"
+      ],
       "properties": {
-        "kind": { "type": "string", "enum": ["policy", "approval", "lease", "system"] },
-        "ref": { "$ref": "#/$defs/ref" }
+        "kind": {
+          "type": "string",
+          "enum": [
+            "policy",
+            "approval",
+            "lease",
+            "system"
+          ]
+        },
+        "ref": {
+          "$ref": "#/$defs/ref"
+        }
       }
     }
   }

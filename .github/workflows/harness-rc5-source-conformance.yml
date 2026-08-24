@@ -1,0 +1,92 @@
+name: Harness rc5 source conformance
+
+on:
+  pull_request:
+    paths:
+      - "packages/adapter-dsh/**"
+      - ".github/workflows/harness-rc5-source-conformance.yml"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-conformance:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout safe runtime
+        uses: actions/checkout@v4
+
+      - name: Checkout exact DeepSeek Harness source baseline
+        uses: actions/checkout@v4
+        with:
+          repository: deepseek-ai/deepseek-harness
+          ref: 47f943859bef60e4160492346772ded9b24f765a
+          path: .tmp/deepseek-harness
+          fetch-depth: 1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.19.0
+
+      - name: Enable pinned pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.7.0 --activate
+          test "$(pnpm --version)" = "11.7.0"
+
+      - name: Build pinned Harness public type surface
+        working-directory: .tmp/deepseek-harness
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm run build:lib:host
+
+      - name: Install safe-runtime dependencies reproducibly
+        run: pnpm install --frozen-lockfile
+
+      - name: Project exact pinned Harness workspace packages
+        run: |
+          node packages/adapter-dsh/scripts/project-pinned-harness-workspace.mjs \
+            --source-root .tmp/deepseek-harness \
+            --consumer-root . \
+            --consumer-root .tmp/deepseek-harness \
+            --manifest .tmp/harness-workspace-projection.json
+          cat .tmp/harness-workspace-projection.json
+
+      - name: Verify workspace projection is idempotent
+        run: |
+          node packages/adapter-dsh/scripts/project-pinned-harness-workspace.mjs \
+            --source-root .tmp/deepseek-harness \
+            --consumer-root . \
+            --consumer-root .tmp/deepseek-harness
+
+      - name: Typecheck real rc5 binding against pinned source
+        run: pnpm exec tsc -p packages/adapter-dsh/tsconfig.harness-rc5.json --noEmit
+
+      - name: Execute real rc5 runtime conformance
+        shell: bash
+        run: |
+          set -o pipefail
+          log_file="${RUNNER_TEMP}/harness-rc5-runtime-conformance.log"
+
+          set +e
+          pnpm exec vitest run --config packages/adapter-dsh/vitest.harness-rc5.config.ts 2>&1 | tee "${log_file}"
+          test_exit=${PIPESTATUS[0]}
+          set -e
+
+          if [ "${test_exit}" -ne 0 ]; then
+            {
+              echo "## Harness rc5 runtime conformance failure"
+              echo
+              echo '```text'
+              tail -n 160 "${log_file}"
+              echo '```'
+            } >> "${GITHUB_STEP_SUMMARY}"
+
+            diagnostic="$(tail -n 80 "${log_file}" | sed ':a;N;$!ba;s/%/%25/g;s/\r/%0D/g;s/\n/%0A/g')"
+            echo "::error title=Harness rc5 runtime conformance failed::${diagnostic}"
+          fi
+
+          exit "${test_exit}"
