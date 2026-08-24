@@ -3,10 +3,10 @@
  *
  * M4-001 document loading, M4-002 schema validation, M4-003 resource
  * normalization, M4-004 deterministic rule ordering and M4-005 deterministic
- * effect resolution are acceptance-audited. Default-effect handling and full PDP
- * evaluation remain intentionally absent until their later governance gates.
+ * effect resolution are acceptance-audited. M4-006 defensive default-deny
+ * finalization is in progress; full PDP evaluation remains intentionally absent.
  */
-export const PACKAGE_STAGE = "M4-005-EFFECT-RESOLUTION-CONFORMANCE" as const;
+export const PACKAGE_STAGE = "M4-006-DEFAULT-DENY-IN-PROGRESS" as const;
 
 export {
   loadPolicyDocument,
@@ -85,3 +85,10 @@ export {
   type PolicyRuleEffect,
   type ResolvedEffectResult,
 } from "./effect-resolution-types.js";
+export { finalizeDefaultDeny } from "./default-deny.js";
+export {
+  type DefaultDenyFailClosed,
+  type DefaultDenyFailureReason,
+  type DefaultDenyFinalized,
+  type DefaultDenyResult,
+} from "./default-deny-types.js";
