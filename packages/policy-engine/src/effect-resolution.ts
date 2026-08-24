@@ -58,12 +58,28 @@ function hasOnlyOwnStringKeys(
   );
 }
 
+/**
+ * Runtime callers can bypass the JSON Schema boundary, so validate the rule ID
+ * without materializing every code point first. The loop fails as soon as the
+ * portable 128-code-point limit is exceeded, avoiding input-sized allocation for
+ * an adversarially large string while preserving Unicode code-point semantics.
+ */
 function isValidRuleId(value: unknown): value is string {
-  return (
-    typeof value === "string" &&
-    value.length > 0 &&
-    Array.from(value).length <= RULE_ID_CODE_POINT_LIMIT
-  );
+  if (typeof value !== "string" || value.length === 0) {
+    return false;
+  }
+
+  let codePointCount = 0;
+  for (const codePoint of value) {
+    // Reading the iteration value is intentional: for...of advances by Unicode
+    // code point rather than UTF-16 code unit, including astral characters.
+    void codePoint;
+    codePointCount += 1;
+    if (codePointCount > RULE_ID_CODE_POINT_LIMIT) {
+      return false;
+    }
+  }
+  return codePointCount > 0;
 }
 
 function isNonNegativeSafeInteger(value: unknown): value is number {
