@@ -13,8 +13,7 @@ const fixturePath = resolve(root, "fixtures/default-deny/cases.json");
 interface DefaultDenyFixture {
   readonly id: string;
   readonly effectResolution: unknown;
-  readonly hasDefaultEffect: boolean;
-  readonly defaultEffect?: unknown;
+  readonly policySpec: unknown;
   readonly expected: unknown;
 }
 
@@ -34,21 +33,20 @@ function parseFixtures(): readonly DefaultDenyFixture[] {
       !isRecord(item) ||
       typeof item["id"] !== "string" ||
       !Object.hasOwn(item, "effectResolution") ||
+      !Object.hasOwn(item, "policySpec") ||
       !Object.hasOwn(item, "expect")
     ) {
-      throw new Error("Every default-deny fixture requires id/effectResolution/expect");
+      throw new Error("Every default-deny fixture requires id/effectResolution/policySpec/expect");
     }
     if (seen.has(item["id"])) {
       throw new Error(`Duplicate default-deny fixture id: ${item["id"]}`);
     }
     seen.add(item["id"]);
 
-    const hasDefaultEffect = Object.hasOwn(item, "defaultEffect");
     return {
       id: item["id"],
       effectResolution: item["effectResolution"],
-      hasDefaultEffect,
-      ...(hasDefaultEffect ? { defaultEffect: item["defaultEffect"] } : {}),
+      policySpec: item["policySpec"],
       expected: item["expect"],
     };
   });
@@ -81,10 +79,10 @@ describe("M4-006 portable defensive default deny", () => {
 
   for (const fixture of fixtures) {
     test(fixture.id, () => {
-      const effectResolution = toReferenceEffectResolution(fixture.effectResolution);
-      const result = fixture.hasDefaultEffect
-        ? finalizeDefaultDeny(effectResolution, fixture.defaultEffect)
-        : finalizeDefaultDeny(effectResolution);
+      const result = finalizeDefaultDeny(
+        toReferenceEffectResolution(fixture.effectResolution),
+        fixture.policySpec,
+      );
       expect(toPortable(result)).toEqual(fixture.expected);
     });
   }
@@ -101,7 +99,7 @@ describe("M4-006 portable defensive default deny", () => {
       [{ ruleId: "allow-rule", effect: "allow" }],
     );
 
-    expect(finalizeDefaultDeny(resolved, "deny")).toEqual({
+    expect(finalizeDefaultDeny(resolved, { defaultEffect: "deny" })).toEqual({
       ok: true,
       status: "FINALIZED",
       effect: "allow",
@@ -110,16 +108,66 @@ describe("M4-006 portable defensive default deny", () => {
 
   test("directly composes with native M4-005 no-applicable output", () => {
     const noApplicable = resolveApplicableRuleEffects([], []);
-    expect(finalizeDefaultDeny(noApplicable, "deny")).toEqual({
+    expect(finalizeDefaultDeny(noApplicable, { defaultEffect: "deny" })).toEqual({
       ok: true,
       status: "FINALIZED",
       effect: "deny",
     });
   });
 
+  test("M4-006 inspects only the default-effect invariant on a real policy spec", () => {
+    const policySpec = {
+      defaultEffect: "deny",
+      rules: [],
+      delegation: { mode: "attenuating", inheritByDefault: false },
+    };
+    const noApplicable = resolveApplicableRuleEffects([], []);
+
+    expect(finalizeDefaultDeny(noApplicable, policySpec)).toEqual({
+      ok: true,
+      status: "FINALIZED",
+      effect: "deny",
+    });
+  });
+
+  test("prototype-only defaultEffect cannot disguise a missing field", () => {
+    const policySpec = Object.create({ defaultEffect: "deny" }) as object;
+    const resolvedAllow = resolveApplicableRuleEffects(
+      [
+        {
+          specificity: { literalCodePoints: 1, globstarCount: 0, starCount: 0 },
+          effectivePriority: 0,
+          ruleIds: ["allow-rule"],
+        },
+      ],
+      [{ ruleId: "allow-rule", effect: "allow" }],
+    );
+
+    expect(finalizeDefaultDeny(resolvedAllow, policySpec)).toEqual({
+      ok: false,
+      status: "FAIL_CLOSED",
+      effect: "deny",
+      reason: "DEFAULT_EFFECT_CONFIG_INVALID",
+    });
+  });
+
+  test("own undefined defaultEffect fails closed", () => {
+    expect(
+      finalizeDefaultDeny(
+        resolveApplicableRuleEffects([], []),
+        { defaultEffect: undefined },
+      ),
+    ).toEqual({
+      ok: false,
+      status: "FAIL_CLOSED",
+      effect: "deny",
+      reason: "DEFAULT_EFFECT_CONFIG_INVALID",
+    });
+  });
+
   test("M4-005 failures remain invalid upstream state", () => {
     const failure = resolveApplicableRuleEffects("invalid", []);
-    expect(finalizeDefaultDeny(failure, "deny")).toEqual({
+    expect(finalizeDefaultDeny(failure, { defaultEffect: "deny" })).toEqual({
       ok: false,
       status: "FAIL_CLOSED",
       effect: "deny",
@@ -128,7 +176,7 @@ describe("M4-006 portable defensive default deny", () => {
   });
 
   test("invalid default configuration dominates malformed upstream input", () => {
-    expect(finalizeDefaultDeny("invalid", "allow")).toEqual({
+    expect(finalizeDefaultDeny("invalid", {})).toEqual({
       ok: false,
       status: "FAIL_CLOSED",
       effect: "deny",
@@ -136,9 +184,9 @@ describe("M4-006 portable defensive default deny", () => {
     });
   });
 
-  test("required status must be an own property", () => {
+  test("required M4-005 status must be an own property", () => {
     const inherited = Object.create({ ok: true, status: "RESOLVED", effect: "allow" }) as object;
-    expect(finalizeDefaultDeny(inherited, "deny")).toEqual({
+    expect(finalizeDefaultDeny(inherited, { defaultEffect: "deny" })).toEqual({
       ok: false,
       status: "FAIL_CLOSED",
       effect: "deny",
@@ -151,7 +199,7 @@ describe("M4-006 portable defensive default deny", () => {
     inherited["ok"] = true;
     inherited["status"] = "RESOLVED";
 
-    expect(finalizeDefaultDeny(inherited, "deny")).toEqual({
+    expect(finalizeDefaultDeny(inherited, { defaultEffect: "deny" })).toEqual({
       ok: false,
       status: "FAIL_CLOSED",
       effect: "deny",
@@ -159,7 +207,7 @@ describe("M4-006 portable defensive default deny", () => {
     });
   });
 
-  test("unexpected symbol fields fail closed", () => {
+  test("unexpected symbol fields on M4-005 projection fail closed", () => {
     const symbol = Symbol("hidden");
     const input: Record<PropertyKey, unknown> = {
       ok: true,
@@ -168,7 +216,7 @@ describe("M4-006 portable defensive default deny", () => {
       [symbol]: "shadow-policy-data",
     };
 
-    expect(finalizeDefaultDeny(input, "deny")).toEqual({
+    expect(finalizeDefaultDeny(input, { defaultEffect: "deny" })).toEqual({
       ok: false,
       status: "FAIL_CLOSED",
       effect: "deny",
@@ -176,13 +224,16 @@ describe("M4-006 portable defensive default deny", () => {
     });
   });
 
-  test("caller input is not mutated and results are frozen", () => {
-    const input = { ok: true, status: "RESOLVED", effect: "ask" };
-    const before = structuredClone(input);
-    const success = finalizeDefaultDeny(input, "deny");
-    const failure = finalizeDefaultDeny(input, "allow");
+  test("caller inputs are not mutated and results are frozen", () => {
+    const effectInput = { ok: true, status: "RESOLVED", effect: "ask" };
+    const policySpec = { defaultEffect: "deny", rules: [] };
+    const beforeEffectInput = structuredClone(effectInput);
+    const beforePolicySpec = structuredClone(policySpec);
+    const success = finalizeDefaultDeny(effectInput, policySpec);
+    const failure = finalizeDefaultDeny(effectInput, {});
 
-    expect(input).toEqual(before);
+    expect(effectInput).toEqual(beforeEffectInput);
+    expect(policySpec).toEqual(beforePolicySpec);
     expect(Object.isFrozen(success)).toBe(true);
     expect(Object.isFrozen(failure)).toBe(true);
   });
