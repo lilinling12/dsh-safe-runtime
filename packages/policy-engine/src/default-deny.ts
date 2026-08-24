@@ -8,6 +8,17 @@ import type {
 const RESOLVED_KEYS = new Set(["ok", "status", "effect"]);
 const NO_APPLICABLE_KEYS = new Set(["ok", "status"]);
 
+interface OwnDataProperty {
+  readonly ok: true;
+  readonly value: unknown;
+}
+
+interface MissingOrAccessorProperty {
+  readonly ok: false;
+}
+
+type OwnDataPropertyRead = OwnDataProperty | MissingOrAccessorProperty;
+
 function failClosed(reason: DefaultDenyFailureReason): DefaultDenyFailClosed {
   return Object.freeze({
     ok: false,
@@ -22,16 +33,48 @@ function finalized(effect: PolicyRuleEffect): DefaultDenyResult {
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  try {
+    return !Array.isArray(value);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Authorization inputs must be ordinary own data properties. Reading through
+ * `obj[key]` after only an own-property test can still execute an accessor
+ * getter. Descriptor reads preserve fail-closed behavior without invoking such
+ * code; proxy/descriptor failures are treated as invalid input.
+ */
+function readOwnDataProperty(
+  value: Readonly<Record<string, unknown>>,
+  key: string,
+): OwnDataPropertyRead {
+  try {
+    const descriptor = Object.getOwnPropertyDescriptor(value, key);
+    if (descriptor === undefined || !("value" in descriptor)) {
+      return { ok: false };
+    }
+    return { ok: true, value: descriptor.value };
+  } catch {
+    return { ok: false };
+  }
 }
 
 function hasOnlyOwnStringKeys(
   value: Readonly<Record<string, unknown>>,
   allowed: ReadonlySet<string>,
 ): boolean {
-  return Reflect.ownKeys(value).every(
-    (key) => typeof key === "string" && allowed.has(key),
-  );
+  try {
+    return Reflect.ownKeys(value).every(
+      (key) => typeof key === "string" && allowed.has(key),
+    );
+  } catch {
+    return false;
+  }
 }
 
 function isPolicyRuleEffect(value: unknown): value is PolicyRuleEffect {
@@ -42,14 +85,14 @@ function isPolicyRuleEffect(value: unknown): value is PolicyRuleEffect {
  * Validate only the Core default-effect invariant, not the full CapabilityPolicy
  * schema. Receiving the policy-spec object rather than a pre-extracted scalar is
  * security-significant: own-property presence must survive this boundary so an
- * inherited prototype value cannot disguise a missing `defaultEffect` field.
+ * inherited or accessor-backed value cannot disguise a missing JSON data field.
  */
 function hasValidDefaultEffect(policySpecInput: unknown): boolean {
-  return (
-    isRecord(policySpecInput) &&
-    Object.hasOwn(policySpecInput, "defaultEffect") &&
-    policySpecInput["defaultEffect"] === "deny"
-  );
+  if (!isRecord(policySpecInput)) {
+    return false;
+  }
+  const defaultEffect = readOwnDataProperty(policySpecInput, "defaultEffect");
+  return defaultEffect.ok && defaultEffect.value === "deny";
 }
 
 /**
@@ -71,34 +114,28 @@ export function finalizeDefaultDeny(
     return failClosed("DEFAULT_DENY_INPUT_INVALID");
   }
 
-  const status = Object.hasOwn(effectResolutionInput, "status")
-    ? effectResolutionInput["status"]
-    : undefined;
-  const ok = Object.hasOwn(effectResolutionInput, "ok")
-    ? effectResolutionInput["ok"]
-    : undefined;
+  const status = readOwnDataProperty(effectResolutionInput, "status");
+  const ok = readOwnDataProperty(effectResolutionInput, "ok");
 
   // Consume the native TypeScript M4-005 success projection directly. `ok` is
   // language-projection metadata, not an additional portable policy semantic.
-  if (ok !== true) {
+  if (!ok.ok || ok.value !== true || !status.ok) {
     return failClosed("DEFAULT_DENY_INPUT_INVALID");
   }
 
-  if (status === "RESOLVED") {
+  if (status.value === "RESOLVED") {
     if (!hasOnlyOwnStringKeys(effectResolutionInput, RESOLVED_KEYS)) {
       return failClosed("DEFAULT_DENY_INPUT_INVALID");
     }
 
-    const effect = Object.hasOwn(effectResolutionInput, "effect")
-      ? effectResolutionInput["effect"]
-      : undefined;
-    if (!isPolicyRuleEffect(effect)) {
+    const effect = readOwnDataProperty(effectResolutionInput, "effect");
+    if (!effect.ok || !isPolicyRuleEffect(effect.value)) {
       return failClosed("DEFAULT_DENY_INPUT_INVALID");
     }
-    return finalized(effect);
+    return finalized(effect.value);
   }
 
-  if (status === "NO_APPLICABLE_RULES") {
+  if (status.value === "NO_APPLICABLE_RULES") {
     if (!hasOnlyOwnStringKeys(effectResolutionInput, NO_APPLICABLE_KEYS)) {
       return failClosed("DEFAULT_DENY_INPUT_INVALID");
     }
