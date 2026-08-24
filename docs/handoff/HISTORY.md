@@ -884,3 +884,73 @@ receipt, guarantee, classifier, plugin or M6 implementation changed.
 IMPLEMENTATION BOUNDARY**. The governance head recording this acceptance
 must itself reach exact-head CI/Harness dual-green before M4-007 starts.
 M4-008+, M4-020+ and M6 remain unauthorized by this gate.
+
+## 2026-08-24 — Accept M4-007 deterministic policy effect explanation
+
+Before M4-007 implementation began, the already accepted M2 and M3
+milestone PRs were merged into `main` with merge commits
+`52233e19c15504d5c5f77522bb4bf58a2d23c56f` and
+`57430273e065be8d38807d67b175fa154c801d43`. This preserved the accepted
+exact commit ancestry. PR #3 was retargeted directly to `main` without
+rebasing, squashing or force-rewriting the M4 history.
+
+M4-007 closed at implementation head
+`1c8bc9ef50a6c680a930814821267e76d79357ac` after recovering the existing
+CapabilityDecision explanation surface, M4-004 presentation-only rule-ID
+ordering, M4-005's fully-applicable effect-resolution boundary and
+M4-006's defensive default-deny distinction.
+
+Spec 0023 deliberately defines a narrow effect-explanation primitive,
+not a full PDP or CapabilityDecision constructor. It consumes only
+fully-applicable M4-004 bands, exact M4-005 effect bindings and the
+presence-preserving policy spec required by M4-006, then reuses
+`resolveApplicableRuleEffects()` and `finalizeDefaultDeny()` rather than
+defining a second precedence/default-deny algorithm.
+
+Explanation bases are `EXPLICIT_DENY`, `HIGHEST_BAND_ASK`,
+`HIGHEST_BAND_ALLOW`, `DEFAULT_DENY` and `FAIL_CLOSED`.
+`contributingRuleIds` is explicitly not
+`CapabilityDecision.matchedRuleRefs`: explicit deny reports every
+fully-applicable deny contributor, ask/allow report only the
+effect-contributing highest-band rules, and default/fail-closed deny
+report no synthetic rule IDs. Unicode code-point rule-ID order is
+presentation only and never authorization precedence.
+
+The TypeScript boundary materializes JavaScript bands/effects through
+own data-property descriptors before M4-005. Accessor-backed band,
+specificity, effect-binding and rule-ID element fields are rejected
+without invoking getters; sparse/named/symbol arrays and revoked
+bands/effects proxies fail explicitly. Policy-spec accessors/revoked
+proxies remain M4-006-owned and preserve its configuration-invalid
+fail-closed behavior. Success/failure outputs and detached contributor
+lists are frozen, and caller inputs are not mutated.
+
+The first implementation head `ab01ff52...` was already dual-green, but
+acceptance review deliberately added five more security regressions
+before accepting the final head. Portable fixtures contain 18 cases;
+the final M4-007 runtime suite contains 33 tests.
+
+Exact accepted implementation-head evidence:
+
+- normal CI #329 / run `32716573950`: PASS;
+- frozen install and 124-entry supply-chain policy: PASS;
+- architecture boundaries / 16-schema shape / schema baseline: PASS;
+- strict workspace TypeScript: PASS;
+- 34 test files / 477 tests: PASS;
+- M4-007 explanation suite: 33 PASS;
+- oxlint: 0 warnings / 0 errors on 110 files;
+- Shared TCK packed artifact + external consumer: 44 assets PASS;
+- exact Harness rc5 source-conformance #271 / run `32716573857`: PASS;
+- Harness steps 6–11 all PASS.
+
+Scope is limited to Spec 0023, one portable fixture corpus, the
+policy-effect explanation TypeScript projection/tests/public export,
+acceptance record and handoff/governance state. No dependency,
+lockfile, schema, protocol CapabilityDecision, Adapter, full-PDP,
+approval, lease, receipt/provenance, guarantee, classifier, plugin or
+M6 implementation changed.
+
+`docs/acceptance/m4-007-acceptance-audit.md` records **M4-007 ACCEPTED
+AT IMPLEMENTATION BOUNDARY**. The governance head recording this
+acceptance must itself reach exact-head CI/Harness dual-green before
+M4-008 begins. M4-020+ and M6 remain unauthorized by this gate.

@@ -274,7 +274,7 @@ Acceptance evidence
 - [x] `M4-004 P0` deterministic rule ordering。 **ACCEPTED：Spec 0020 + 37 portable pattern/ordering cases + Unicode/code-point deterministic precedence bands；accepted implementation head `69934dd6...`，CI #291 / Harness #235 PASS；验收记录 `docs/acceptance/m4-004-acceptance-audit.md`。**
 - [x] `M4-005 P0` deny/ask/allow。 **ACCEPTED：Spec 0021 + 23 portable cases + runtime fail-closed hardening；accepted implementation head `81e09435...`，CI #304 / Harness #248 PASS；验收记录 `docs/acceptance/m4-005-acceptance-audit.md`。**
 - [x] `M4-006 P0` default deny。 **ACCEPTED：Spec 0022 + 20 portable cases + own-data-property/accessor fail-closed hardening；accepted implementation head `de614120...`，CI #320 / Harness #264 PASS；验收记录 `docs/acceptance/m4-006-acceptance-audit.md`。**
-- [ ] `M4-007 P0` explain API。
+- [x] `M4-007 P0` explain API。 **ACCEPTED：Spec 0023 + 18 portable cases + own-data materialization/getter-proxy fail-closed hardening；accepted implementation head `1c8bc9ef...`，CI #329 / Harness #271 PASS；验收记录 `docs/acceptance/m4-007-acceptance-audit.md`。**
 - [ ] `M4-008 P1` policy diagnostics。
 - [ ] `M4-009 P1` policy hot reload with atomic swap。
 
