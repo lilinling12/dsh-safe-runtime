@@ -150,6 +150,42 @@ describe("M4-005 portable effect resolution", () => {
     ).toEqual({ ok: false, reason: "EFFECT_RESOLUTION_INPUT_INVALID" });
   });
 
+  test("required band fields must be own properties", () => {
+    const inheritedBand = Object.create({
+      specificity: { literalCodePoints: 1, globstarCount: 0, starCount: 0 },
+      effectivePriority: 0,
+      ruleIds: ["rule"],
+    }) as object;
+
+    expect(
+      resolveApplicableRuleEffects(
+        [inheritedBand],
+        [{ ruleId: "rule", effect: "allow" }],
+      ),
+    ).toEqual({ ok: false, reason: "EFFECT_RESOLUTION_INPUT_INVALID" });
+  });
+
+  test("required specificity fields must be own properties", () => {
+    const inheritedSpecificity = Object.create({
+      literalCodePoints: 1,
+      globstarCount: 0,
+      starCount: 0,
+    }) as object;
+
+    expect(
+      resolveApplicableRuleEffects(
+        [
+          {
+            specificity: inheritedSpecificity,
+            effectivePriority: 0,
+            ruleIds: ["rule"],
+          },
+        ],
+        [{ ruleId: "rule", effect: "allow" }],
+      ),
+    ).toEqual({ ok: false, reason: "EFFECT_RESOLUTION_INPUT_INVALID" });
+  });
+
   test("unexpected band fields fail closed", () => {
     expect(
       resolveApplicableRuleEffects(
@@ -162,6 +198,37 @@ describe("M4-005 portable effect resolution", () => {
           },
         ],
         [{ ruleId: "rule", effect: "allow" }],
+      ),
+    ).toEqual({ ok: false, reason: "EFFECT_RESOLUTION_INPUT_INVALID" });
+  });
+
+  test("unexpected effect-binding fields fail closed", () => {
+    expect(
+      resolveApplicableRuleEffects(
+        [
+          {
+            specificity: { literalCodePoints: 1, globstarCount: 0, starCount: 0 },
+            effectivePriority: 0,
+            ruleIds: ["rule"],
+          },
+        ],
+        [{ ruleId: "rule", effect: "allow", approved: true }],
+      ),
+    ).toEqual({ ok: false, reason: "EFFECT_RESOLUTION_INPUT_INVALID" });
+  });
+
+  test("rule-id validation is bounded and counts astral Unicode code points", () => {
+    const tooLongRuleId = "😀".repeat(129);
+    expect(
+      resolveApplicableRuleEffects(
+        [
+          {
+            specificity: { literalCodePoints: 1, globstarCount: 0, starCount: 0 },
+            effectivePriority: 0,
+            ruleIds: [tooLongRuleId],
+          },
+        ],
+        [{ ruleId: tooLongRuleId, effect: "allow" }],
       ),
     ).toEqual({ ok: false, reason: "EFFECT_RESOLUTION_INPUT_INVALID" });
   });
