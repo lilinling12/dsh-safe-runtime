@@ -298,6 +298,129 @@ describe("M4-007 portable policy effect explanation", () => {
     expect(calls).toBe(0);
   });
 
+  test("nested specificity accessors are rejected without invoking getters", () => {
+    let calls = 0;
+    const specificity = {
+      get literalCodePoints(): number {
+        calls += 1;
+        return 1;
+      },
+      globstarCount: 0,
+      starCount: 0,
+    };
+
+    expect(
+      explainPolicyEffect(
+        [{ specificity, effectivePriority: 0, ruleIds: ["rule"] }],
+        [{ ruleId: "rule", effect: "allow" }],
+        { defaultEffect: "deny" },
+      ),
+    ).toEqual({
+      ok: false,
+      status: "EXPLAIN_FAILED",
+      reasonCode: "POLICY_EXPLAIN_INPUT_INVALID",
+    });
+    expect(calls).toBe(0);
+  });
+
+  test("effect-binding accessors are rejected without invoking getters", () => {
+    let calls = 0;
+    const effectBinding = {
+      ruleId: "rule",
+      get effect(): string {
+        calls += 1;
+        return "allow";
+      },
+    };
+
+    expect(
+      explainPolicyEffect(
+        [
+          {
+            specificity: { literalCodePoints: 1, globstarCount: 0, starCount: 0 },
+            effectivePriority: 0,
+            ruleIds: ["rule"],
+          },
+        ],
+        [effectBinding],
+        { defaultEffect: "deny" },
+      ),
+    ).toEqual({
+      ok: false,
+      status: "EXPLAIN_FAILED",
+      reasonCode: "POLICY_EXPLAIN_INPUT_INVALID",
+    });
+    expect(calls).toBe(0);
+  });
+
+  test("rule-id array accessors are rejected without invoking getters", () => {
+    let calls = 0;
+    const ruleIds: unknown[] = [];
+    ruleIds.length = 1;
+    Object.defineProperty(ruleIds, "0", {
+      get(): string {
+        calls += 1;
+        return "rule";
+      },
+      enumerable: true,
+      configurable: true,
+    });
+
+    expect(
+      explainPolicyEffect(
+        [
+          {
+            specificity: { literalCodePoints: 1, globstarCount: 0, starCount: 0 },
+            effectivePriority: 0,
+            ruleIds,
+          },
+        ],
+        [{ ruleId: "rule", effect: "allow" }],
+        { defaultEffect: "deny" },
+      ),
+    ).toEqual({
+      ok: false,
+      status: "EXPLAIN_FAILED",
+      reasonCode: "POLICY_EXPLAIN_INPUT_INVALID",
+    });
+    expect(calls).toBe(0);
+  });
+
+  test("revoked policy specs preserve M4-006 fail-closed behavior", () => {
+    const revocable = Proxy.revocable({}, {});
+    revocable.revoke();
+
+    expect(explainPolicyEffect([], [], revocable.proxy)).toEqual({
+      ok: true,
+      status: "EXPLAINED",
+      effect: "deny",
+      basis: "FAIL_CLOSED",
+      reasonCode: "DEFAULT_EFFECT_CONFIG_INVALID",
+      contributingRuleIds: [],
+    });
+  });
+
+  test("explanation failures are frozen", () => {
+    const result = explainPolicyEffect(
+      [
+        {
+          specificity: { literalCodePoints: 1, globstarCount: 0, starCount: 0 },
+          effectivePriority: 0,
+          ruleIds: ["rule"],
+        },
+      ],
+      [{ ruleId: "rule", effect: "invalid" }],
+      { defaultEffect: "deny" },
+    );
+
+    expect(result).toEqual({
+      ok: false,
+      status: "EXPLAIN_FAILED",
+      reasonCode: "EFFECT_RESOLUTION_EFFECT_INVALID",
+    });
+    expect(Object.isFrozen(result)).toBe(true);
+  });
+
   test("caller data is not mutated and explanation output is detached and frozen", () => {
     const bands = [
       {
