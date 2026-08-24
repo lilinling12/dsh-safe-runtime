@@ -1,4 +1,4 @@
-name: M4-006 governance blob generation
+name: M4-007 governance blob generation
 
 on:
   push:
@@ -18,7 +18,7 @@ jobs:
           ref: automation/m4-003-governance-sync
           fetch-depth: 1
 
-      - name: Apply exact M4-006 governance edits
+      - name: Apply exact M4-007 governance edits
         shell: bash
         run: |
           set -euo pipefail
@@ -27,81 +27,95 @@ jobs:
 
           roadmap_path = Path("docs/roadmap.md")
           roadmap = roadmap_path.read_text(encoding="utf-8")
-          old = "- [ ] `M4-006 P0` default deny。"
-          new = "- [x] `M4-006 P0` default deny。 **ACCEPTED：Spec 0022 + 20 portable cases + own-data-property/accessor fail-closed hardening；accepted implementation head `de614120...`，CI #320 / Harness #264 PASS；验收记录 `docs/acceptance/m4-006-acceptance-audit.md`。**"
+          old = "- [ ] `M4-007 P0` explain API。"
+          new = "- [x] `M4-007 P0` explain API。 **ACCEPTED：Spec 0023 + 18 portable cases + own-data materialization/getter-proxy fail-closed hardening；accepted implementation head `1c8bc9ef...`，CI #329 / Harness #271 PASS；验收记录 `docs/acceptance/m4-007-acceptance-audit.md`。**"
           if roadmap.count(old) != 1:
-              raise SystemExit(f"expected exactly one M4-006 roadmap target, found {roadmap.count(old)}")
+              raise SystemExit(f"expected exactly one M4-007 roadmap target, found {roadmap.count(old)}")
           if new in roadmap:
-              raise SystemExit("roadmap already contains accepted M4-006 line")
+              raise SystemExit("roadmap already contains accepted M4-007 line")
           updated = roadmap.replace(old, new, 1)
-          if updated.count("- [ ] `M4-007 P0` explain API。") != 1:
-              raise SystemExit("M4-007 must remain unchecked")
+          if updated.count("- [ ] `M4-008 P1` policy diagnostics。") != 1:
+              raise SystemExit("M4-008 must remain unchecked")
           roadmap_path.write_text(updated, encoding="utf-8")
 
           history_path = Path("docs/handoff/HISTORY.md")
           history = history_path.read_text(encoding="utf-8")
-          marker = "## 2026-08-24 — Accept M4-006 defensive default deny"
+          marker = "## 2026-08-24 — Accept M4-007 deterministic policy effect explanation"
           if marker in history:
-              raise SystemExit("M4-006 history marker already exists; refusing duplicate append")
+              raise SystemExit("M4-007 history marker already exists; refusing duplicate append")
           if not history.endswith("\n"):
               raise SystemExit("HISTORY.md must end with newline before append")
 
           entry = r'''
-          ## 2026-08-24 — Accept M4-006 defensive default deny
+          ## 2026-08-24 — Accept M4-007 deterministic policy effect explanation
 
-          M4-006 closed at implementation head
-          `de614120fdbf5c210c3b4f823d215a9ea89916b5` after reconciling Core default-
-          deny semantics, deterministic precedence, M4-002's strict
-          `defaultEffect: deny` schema boundary and M4-005's explicit
-          `NO_APPLICABLE_RULES` result.
+          Before M4-007 implementation began, the already accepted M2 and M3
+          milestone PRs were merged into `main` with merge commits
+          `52233e19c15504d5c5f77522bb4bf58a2d23c56f` and
+          `57430273e065be8d38807d67b175fa154c801d43`. This preserved the accepted
+          exact commit ancestry. PR #3 was retargeted directly to `main` without
+          rebasing, squashing or force-rewriting the M4 history.
 
-          Spec 0022 keeps document validity and evaluator fail-closed behavior
-          separate. M4-002 still requires an explicit `defaultEffect` whose only
-          valid value is `deny`; M4-006 never inserts a default or accepts
-          `allow`/`ask` as schema-conforming configuration. If an internal runtime
-          path bypasses M4-002, missing or invalid default configuration returns a
-          distinct configuration-invalid result carrying mandatory fail-closed deny.
+          M4-007 closed at implementation head
+          `1c8bc9ef50a6c680a930814821267e76d79357ac` after recovering the existing
+          CapabilityDecision explanation surface, M4-004 presentation-only rule-ID
+          ordering, M4-005's fully-applicable effect-resolution boundary and
+          M4-006's defensive default-deny distinction.
 
-          Normal M4-006 behavior preserves a valid resolved M4-005 deny/ask/allow
-          effect and converts only `NO_APPLICABLE_RULES` to the configured deny.
-          Malformed M4-005 state remains a distinct input-invalid fail-closed deny.
-          M4-006 produces no CapabilityDecision, receipt, approval, lease, guarantee
-          or Adapter-enforcement claim.
+          Spec 0023 deliberately defines a narrow effect-explanation primitive,
+          not a full PDP or CapabilityDecision constructor. It consumes only
+          fully-applicable M4-004 bands, exact M4-005 effect bindings and the
+          presence-preserving policy spec required by M4-006, then reuses
+          `resolveApplicableRuleEffects()` and `finalizeDefaultDeny()` rather than
+          defining a second precedence/default-deny algorithm.
 
-          Acceptance review found and fixed two security-sensitive JavaScript
-          runtime boundaries even after intermediate heads were green. First, a
-          scalar default-effect argument erased whether the policy field was actually
-          present, so the final API consumes a presence-preserving policy-spec object
-          and rejects prototype-only `defaultEffect`. Second, an own-property check
-          followed by ordinary property access could execute accessors. The accepted
-          implementation reads authorization-relevant fields through own data-
-          property descriptors; accessor-backed `defaultEffect`, `status`, `effect`
-          and success discriminants are rejected without invoking getters, and
-          descriptor/proxy inspection failures fail closed.
+          Explanation bases are `EXPLICIT_DENY`, `HIGHEST_BAND_ASK`,
+          `HIGHEST_BAND_ALLOW`, `DEFAULT_DENY` and `FAIL_CLOSED`.
+          `contributingRuleIds` is explicitly not
+          `CapabilityDecision.matchedRuleRefs`: explicit deny reports every
+          fully-applicable deny contributor, ask/allow report only the
+          effect-contributing highest-band rules, and default/fail-closed deny
+          report no synthetic rule IDs. Unicode code-point rule-ID order is
+          presentation only and never authorization precedence.
 
-          Portable fixtures contain 20 cases; TypeScript runtime hardening raises the
-          M4-006 suite to 35 tests. Exact implementation-head evidence:
+          The TypeScript boundary materializes JavaScript bands/effects through
+          own data-property descriptors before M4-005. Accessor-backed band,
+          specificity, effect-binding and rule-ID element fields are rejected
+          without invoking getters; sparse/named/symbol arrays and revoked
+          bands/effects proxies fail explicitly. Policy-spec accessors/revoked
+          proxies remain M4-006-owned and preserve its configuration-invalid
+          fail-closed behavior. Success/failure outputs and detached contributor
+          lists are frozen, and caller inputs are not mutated.
 
-          - normal CI #320 / run `32685942246`: PASS;
+          The first implementation head `ab01ff52...` was already dual-green, but
+          acceptance review deliberately added five more security regressions
+          before accepting the final head. Portable fixtures contain 18 cases;
+          the final M4-007 runtime suite contains 33 tests.
+
+          Exact accepted implementation-head evidence:
+
+          - normal CI #329 / run `32716573950`: PASS;
           - frozen install and 124-entry supply-chain policy: PASS;
           - architecture boundaries / 16-schema shape / schema baseline: PASS;
           - strict workspace TypeScript: PASS;
-          - 33 test files / 444 tests: PASS;
-          - M4-006 default-deny suite: 35 PASS;
-          - oxlint: 0 warnings / 0 errors on 107 files;
+          - 34 test files / 477 tests: PASS;
+          - M4-007 explanation suite: 33 PASS;
+          - oxlint: 0 warnings / 0 errors on 110 files;
           - Shared TCK packed artifact + external consumer: 44 assets PASS;
-          - exact Harness rc5 source-conformance #264 / run `32685942253`: PASS;
+          - exact Harness rc5 source-conformance #271 / run `32716573857`: PASS;
           - Harness steps 6–11 all PASS.
 
-          Scope from final M4-005 governance is limited to Spec 0022, one portable
-          fixture corpus and the default-deny TypeScript projection/tests/public
-          export. No schema, lockfile, Adapter, full-PDP, approval, lease, decision,
-          receipt, guarantee, classifier, plugin or M6 implementation changed.
+          Scope is limited to Spec 0023, one portable fixture corpus, the
+          policy-effect explanation TypeScript projection/tests/public export,
+          acceptance record and handoff/governance state. No dependency,
+          lockfile, schema, protocol CapabilityDecision, Adapter, full-PDP,
+          approval, lease, receipt/provenance, guarantee, classifier, plugin or
+          M6 implementation changed.
 
-          `docs/acceptance/m4-006-acceptance-audit.md` records **M4-006 ACCEPTED AT
-          IMPLEMENTATION BOUNDARY**. The governance head recording this acceptance
-          must itself reach exact-head CI/Harness dual-green before M4-007 starts.
-          M4-008+, M4-020+ and M6 remain unauthorized by this gate.
+          `docs/acceptance/m4-007-acceptance-audit.md` records **M4-007 ACCEPTED
+          AT IMPLEMENTATION BOUNDARY**. The governance head recording this
+          acceptance must itself reach exact-head CI/Harness dual-green before
+          M4-008 begins. M4-020+ and M6 remain unauthorized by this gate.
           '''.lstrip().replace("          ", "")
 
           history_path.write_text(history + "\n" + entry, encoding="utf-8")
@@ -129,7 +143,7 @@ jobs:
             echo "HISTORY.md append must not delete or modify existing lines" >&2
             exit 1
           fi
-          grep -F -- '- [ ] `M4-007 P0` explain API。' docs/roadmap.md
+          grep -F -- '- [ ] `M4-008 P1` policy diagnostics。' docs/roadmap.md
 
       - name: Commit generated governance blobs
         shell: bash
@@ -138,5 +152,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add docs/roadmap.md docs/handoff/HISTORY.md
-          git commit -m "docs(governance): record M4-006 acceptance"
+          git commit -m "docs(governance): record M4-007 acceptance"
           git push origin HEAD:automation/m4-003-governance-sync
