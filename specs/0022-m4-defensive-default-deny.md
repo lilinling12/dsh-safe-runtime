@@ -56,7 +56,8 @@ M4-002 document-conformance boundary.
 M4-006 consumes exactly two logical inputs:
 
 1. a **successful M4-005 effect-resolution result**;
-2. the policy's `defaultEffect` value as observed by the caller.
+2. the policy `spec` object (or a presence-preserving projection of that object)
+   from which `defaultEffect` can be checked as an explicitly present field.
 
 Portable M4-005 success values are:
 
@@ -71,10 +72,36 @@ NoApplicableRules {
 }
 ```
 
-M4-006 MUST NOT accept a raw CapabilityPolicy and claim full policy evaluation.
-The caller owns extraction of `defaultEffect` from its already validated policy
-snapshot. Passing `undefined` represents the defensive case where an internal or
-unvalidated path has lost or omitted the field.
+For JavaScript/TypeScript, M4-005's native success projection also carries
+`ok: true`. M4-006 SHOULD consume that native projection directly instead of
+requiring a caller to strip the language-level discriminant. `ok` is projection
+metadata, not a new portable policy semantic.
+
+### 2.1 Default-effect field presence is security-relevant
+
+The second input MUST preserve whether `defaultEffect` is actually present on the
+policy-spec object. A caller MUST NOT reduce that input to a scalar value before
+this boundary, because doing so can erase the distinction between:
+
+```text
+own defaultEffect: "deny"
+```
+
+and, in prototype-bearing runtimes:
+
+```text
+missing own defaultEffect + inherited/prototype defaultEffect: "deny"
+```
+
+The latter is still a missing configuration field and MUST fail closed.
+
+For JavaScript/TypeScript, M4-006 MUST use an own-property check such as
+`Object.hasOwn(policySpec, "defaultEffect")`; ordinary prototype-chain property
+lookup is not an authorization boundary.
+
+M4-006 does **not** revalidate all other CapabilityPolicy `spec` fields. M4-002
+remains the authoritative full schema-conformance gate. The policy-spec input is
+used here only to preserve and verify the Core default-effect invariant.
 
 M4-005 failures are not successful effect-resolution input. A caller SHOULD
 propagate them rather than invoking M4-006. If a runtime caller nevertheless
@@ -82,8 +109,8 @@ passes a malformed/failure-shaped value, M4-006 MUST fail closed.
 
 ## 3. Normal validated-policy path
 
-For a policy that has successfully passed M4-002, the only legal default-effect
-input is:
+For a policy that has successfully passed M4-002, `spec.defaultEffect` MUST be an
+own field whose only legal value is:
 
 ```text
 deny
@@ -95,7 +122,7 @@ forbids both.
 
 ### 3.1 Existing resolved rule effect
 
-Given a valid `defaultEffect: deny` and a successful M4-005 resolved effect:
+Given an own `defaultEffect: deny` and a successful M4-005 resolved effect:
 
 ```text
 RESOLVED deny  -> deny
@@ -111,7 +138,7 @@ Given:
 
 ```text
 M4-005 status: NO_APPLICABLE_RULES
-defaultEffect: deny
+policy spec:   own defaultEffect == deny
 ```
 
 M4-006 resolves:
@@ -129,18 +156,21 @@ processing. M4-006 nevertheless MUST defend its runtime boundary because interna
 callers, language bindings, stale caches, corrupted projections, or future PDP
 composition bugs may bypass the validated snapshot invariant.
 
-The following are configuration-invalid at M4-006:
+The following default-effect states are configuration-invalid at M4-006:
 
 ```text
-missing / undefined
-null
-allow
-ask
-unknown string
-non-string value
+policy spec is not an object
+missing own defaultEffect
+inherited/prototype-only defaultEffect
+own defaultEffect == undefined
+own defaultEffect == null
+own defaultEffect == allow
+own defaultEffect == ask
+own defaultEffect == unknown string
+own defaultEffect == non-string value
 ```
 
-For all such values, M4-006 MUST return a **fail-closed configuration-invalid
+For all such states, M4-006 MUST return a **fail-closed configuration-invalid
 result whose effective effect is deny**.
 
 Portable meaning:
@@ -153,26 +183,34 @@ CONFIG_INVALID {
 ```
 
 This rule applies even when the supplied M4-005 value says `RESOLVED allow` or
-`RESOLVED ask`. An invalid/unvalidated policy configuration MUST NOT become an
-allow merely because another fragment of the same invalid policy produced an
-explicit effect.
+`RESOLVED ask`. A missing/invalid default-effect configuration MUST NOT become an
+allow merely because another processing fragment produced an explicit effect.
 
 This is defense in depth. It does not mean a schema-invalid document has become a
-valid policy; it means bypassing M4-002 cannot create permission.
+valid policy; it means bypassing the M4-002 default-effect assertion cannot create
+permission.
 
 ## 5. Malformed M4-005 input
 
 M4-006 MUST validate the narrow M4-005 success projection at runtime rather than
 trust TypeScript/static types as an authorization boundary.
 
-Required accepted shapes are exactly:
+Portable accepted shapes are exactly:
 
 ```text
 { status: "RESOLVED", effect: "deny" | "ask" | "allow" }
 { status: "NO_APPLICABLE_RULES" }
 ```
 
-No additional own fields are permitted in the portable M4-006 input projection.
+A language-specific success discriminant already defined by M4-005 MAY also be
+present. In the TypeScript reference projection the exact accepted shapes are:
+
+```text
+{ ok: true, status: "RESOLVED", effect: "deny" | "ask" | "allow" }
+{ ok: true, status: "NO_APPLICABLE_RULES" }
+```
+
+No other own fields are permitted in the M4-006 M4-005-input projection.
 Required fields MUST be own properties. Inherited prototype values MUST NOT
 become authorization input.
 
@@ -196,8 +234,8 @@ Examples include:
 - unexpected own string or symbol fields.
 
 M4-006 MUST NOT convert malformed upstream state into a normal successful deny,
-because later diagnostics/PDP composition must still be able to distinguish an
-invalid processing path from a conforming default-effect decision.
+because later diagnostics/PDP composition must still distinguish an invalid
+processing path from a conforming default-effect decision.
 
 ## 6. Output model
 
@@ -255,21 +293,21 @@ M4-007 explain and later PDP/decision/provenance gates own richer explanation.
 
 A conforming implementation performs these checks in order:
 
-1. validate `defaultEffect` runtime value;
-2. if it is not exactly `deny`, return `DEFAULT_EFFECT_CONFIG_INVALID` with
-   fail-closed effect deny;
+1. validate that the policy-spec input is an object and has an **own**
+   `defaultEffect` field whose value is exactly `deny`;
+2. otherwise return `DEFAULT_EFFECT_CONFIG_INVALID` with fail-closed effect deny;
 3. validate the M4-005 success projection;
 4. if malformed, return `DEFAULT_DENY_INPUT_INVALID` with fail-closed effect deny;
 5. if status is `RESOLVED`, preserve its effect exactly;
 6. if status is `NO_APPLICABLE_RULES`, finalize effect deny.
 
-Validating the default effect first is intentional. An invalid policy
-configuration cannot be allowed to escape fail-closed behavior merely because a
-malformed or partial evaluator path also happened to produce `allow`.
+Validating default-effect presence/value first is intentional. An unvalidated
+configuration cannot escape fail-closed behavior merely because a malformed or
+partial evaluator path also happened to produce `allow`.
 
 ## 8. Mutation and immutability
 
-M4-006 MUST NOT mutate its input object.
+M4-006 MUST NOT mutate either input object.
 
 For JavaScript/TypeScript implementations, every returned success or failure
 result MUST be frozen. The output contains only scalar fields, so shallow freezing
@@ -285,7 +323,7 @@ M4-006 MUST NOT:
 - change the CapabilityPolicy schema;
 - insert `defaultEffect` into a policy document;
 - accept `defaultEffect: allow` or `ask` as schema-conforming;
-- load or validate a raw policy document;
+- perform full M4-002 schema validation again;
 - discover whether rules match;
 - resolve subject/capability/constraint semantics;
 - classify unknown capabilities;
@@ -306,19 +344,21 @@ Language-independent M4-006 fixtures MUST cover at least:
 
 ### Valid path
 
-- resolved allow + `defaultEffect: deny` -> allow;
-- resolved ask + `defaultEffect: deny` -> ask;
-- resolved deny + `defaultEffect: deny` -> deny;
-- no applicable rules + `defaultEffect: deny` -> deny.
+- resolved allow + policy spec with own `defaultEffect: deny` -> allow;
+- resolved ask + own `defaultEffect: deny` -> ask;
+- resolved deny + own `defaultEffect: deny` -> deny;
+- no applicable rules + own `defaultEffect: deny` -> deny.
 
 ### Defensive configuration path
 
-- missing default effect -> fail-closed deny + config invalid;
+- missing default-effect field -> fail-closed deny + config invalid;
 - `allow` default -> fail-closed deny + config invalid;
 - `ask` default -> fail-closed deny + config invalid;
 - unknown string -> fail-closed deny + config invalid;
 - null/non-string -> fail-closed deny + config invalid;
-- resolved allow combined with invalid default still fails closed deny.
+- resolved allow combined with invalid default still fails closed deny;
+- prototype/inherited-only default effect fails closed in prototype-bearing runtime
+  hardening.
 
 ### Runtime input validation
 
@@ -328,10 +368,10 @@ Language-independent M4-006 fixtures MUST cover at least:
 - missing effect for RESOLVED;
 - invalid/case-changed resolved effect;
 - extra effect on NO_APPLICABLE_RULES;
-- extra own field on either shape;
+- extra own field on either M4-005 shape;
 - own symbol field in JavaScript runtime hardening;
 - M4-005 failure-shaped input rejected rather than treated as success;
-- caller input remains unmodified;
+- caller inputs remain unmodified;
 - outputs are frozen in the TypeScript projection.
 
 ## 11. M4-006 acceptance boundary
@@ -341,20 +381,22 @@ following:
 
 1. this normative profile is present;
 2. portable default-deny fixtures are present;
-3. valid M4-002 configuration accepts only exactly `defaultEffect: deny`;
-4. `NO_APPLICABLE_RULES` finalizes to deny;
-5. valid resolved M4-005 effects are preserved;
-6. missing/unknown/invalid default-effect runtime values return configuration
+3. valid M4-002 configuration accepts only an own `defaultEffect: deny`;
+4. missing/inherited default-effect presence cannot be erased before the M4-006
+   runtime check;
+5. `NO_APPLICABLE_RULES` finalizes to deny;
+6. valid resolved M4-005 effects are preserved;
+7. missing/unknown/invalid default-effect runtime states return configuration
    invalid while carrying mandatory fail-closed deny;
-7. malformed M4-005 success projections fail closed with a distinct input-invalid
+8. malformed M4-005 success projections fail closed with a distinct input-invalid
    reason;
-8. inherited/extra runtime fields cannot become authorization input;
-9. input is not mutated and outputs are frozen;
-10. no schema/default insertion/PDP/approval/lease/decision/receipt/guarantee or
-    enforcement semantics are implemented early;
-11. strict TypeScript, schemas, architecture boundaries, frozen lockfile,
+9. inherited/extra M4-005 runtime fields cannot become authorization input;
+10. inputs are not mutated and outputs are frozen;
+11. no schema weakening/default insertion/PDP/approval/lease/decision/receipt/
+    guarantee or enforcement semantics are implemented early;
+12. strict TypeScript, schemas, architecture boundaries, frozen lockfile,
     supply-chain checks, tests, lint and Shared TCK packaging remain green;
-12. exact Harness rc5 source-conformance remains green as compatibility evidence
+13. exact Harness rc5 source-conformance remains green as compatibility evidence
     only.
 
 After implementation acceptance, its governance records must themselves reach
