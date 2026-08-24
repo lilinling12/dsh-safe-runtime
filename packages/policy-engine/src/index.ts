@@ -2,11 +2,12 @@
  * @dsh-safe/policy-engine public boundary.
  *
  * M4-001 document loading, M4-002 schema validation, M4-003 resource
- * normalization, M4-004 deterministic rule ordering and M4-005 deterministic
- * effect resolution are acceptance-audited. M4-006 defensive default-deny
- * finalization is in progress; full PDP evaluation remains intentionally absent.
+ * normalization, M4-004 deterministic rule ordering, M4-005 deterministic
+ * effect resolution and M4-006 defensive default-deny finalization are
+ * acceptance-audited. Explain/provenance and full PDP evaluation remain later
+ * governance gates.
  */
-export const PACKAGE_STAGE = "M4-006-DEFAULT-DENY-IN-PROGRESS" as const;
+export const PACKAGE_STAGE = "M4-006-DEFAULT-DENY-CONFORMANCE" as const;
 
 export {
   loadPolicyDocument,
