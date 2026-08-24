@@ -828,3 +828,59 @@ Exact implementation-head evidence at `81e09435...`:
 IMPLEMENTATION BOUNDARY**. The governance head recording this acceptance
 must itself reach exact-head CI/Harness dual-green before M4-006 starts.
 M4-007+, M4-020+ and M6 remain unauthorized by this gate.
+
+## 2026-08-24 — Accept M4-006 defensive default deny
+
+M4-006 closed at implementation head
+`de614120fdbf5c210c3b4f823d215a9ea89916b5` after reconciling Core default-
+deny semantics, deterministic precedence, M4-002's strict
+`defaultEffect: deny` schema boundary and M4-005's explicit
+`NO_APPLICABLE_RULES` result.
+
+Spec 0022 keeps document validity and evaluator fail-closed behavior
+separate. M4-002 still requires an explicit `defaultEffect` whose only
+valid value is `deny`; M4-006 never inserts a default or accepts
+`allow`/`ask` as schema-conforming configuration. If an internal runtime
+path bypasses M4-002, missing or invalid default configuration returns a
+distinct configuration-invalid result carrying mandatory fail-closed deny.
+
+Normal M4-006 behavior preserves a valid resolved M4-005 deny/ask/allow
+effect and converts only `NO_APPLICABLE_RULES` to the configured deny.
+Malformed M4-005 state remains a distinct input-invalid fail-closed deny.
+M4-006 produces no CapabilityDecision, receipt, approval, lease, guarantee
+or Adapter-enforcement claim.
+
+Acceptance review found and fixed two security-sensitive JavaScript
+runtime boundaries even after intermediate heads were green. First, a
+scalar default-effect argument erased whether the policy field was actually
+present, so the final API consumes a presence-preserving policy-spec object
+and rejects prototype-only `defaultEffect`. Second, an own-property check
+followed by ordinary property access could execute accessors. The accepted
+implementation reads authorization-relevant fields through own data-
+property descriptors; accessor-backed `defaultEffect`, `status`, `effect`
+and success discriminants are rejected without invoking getters, and
+descriptor/proxy inspection failures fail closed.
+
+Portable fixtures contain 20 cases; TypeScript runtime hardening raises the
+M4-006 suite to 35 tests. Exact implementation-head evidence:
+
+- normal CI #320 / run `32685942246`: PASS;
+- frozen install and 124-entry supply-chain policy: PASS;
+- architecture boundaries / 16-schema shape / schema baseline: PASS;
+- strict workspace TypeScript: PASS;
+- 33 test files / 444 tests: PASS;
+- M4-006 default-deny suite: 35 PASS;
+- oxlint: 0 warnings / 0 errors on 107 files;
+- Shared TCK packed artifact + external consumer: 44 assets PASS;
+- exact Harness rc5 source-conformance #264 / run `32685942253`: PASS;
+- Harness steps 6–11 all PASS.
+
+Scope from final M4-005 governance is limited to Spec 0022, one portable
+fixture corpus and the default-deny TypeScript projection/tests/public
+export. No schema, lockfile, Adapter, full-PDP, approval, lease, decision,
+receipt, guarantee, classifier, plugin or M6 implementation changed.
+
+`docs/acceptance/m4-006-acceptance-audit.md` records **M4-006 ACCEPTED AT
+IMPLEMENTATION BOUNDARY**. The governance head recording this acceptance
+must itself reach exact-head CI/Harness dual-green before M4-007 starts.
+M4-008+, M4-020+ and M6 remain unauthorized by this gate.
