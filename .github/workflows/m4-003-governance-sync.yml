@@ -1,4 +1,4 @@
-name: M4-004 governance blob generation
+name: M4-005 governance blob generation
 
 on:
   push:
@@ -18,7 +18,7 @@ jobs:
           ref: automation/m4-003-governance-sync
           fetch-depth: 1
 
-      - name: Apply exact M4-004 governance edits
+      - name: Apply exact M4-005 governance edits
         shell: bash
         run: |
           set -euo pipefail
@@ -27,72 +27,76 @@ jobs:
 
           roadmap_path = Path("docs/roadmap.md")
           roadmap = roadmap_path.read_text(encoding="utf-8")
-          old = "- [ ] `M4-004 P0` deterministic rule ordering。"
-          new = "- [x] `M4-004 P0` deterministic rule ordering。 **ACCEPTED：Spec 0020 + 37 portable pattern/ordering cases + Unicode/code-point deterministic precedence bands；accepted implementation head `69934dd6...`，CI #291 / Harness #235 PASS；验收记录 `docs/acceptance/m4-004-acceptance-audit.md`。**"
+          old = "- [ ] `M4-005 P0` deny/ask/allow。"
+          new = "- [x] `M4-005 P0` deny/ask/allow。 **ACCEPTED：Spec 0021 + 23 portable cases + runtime fail-closed hardening；accepted implementation head `81e09435...`，CI #304 / Harness #248 PASS；验收记录 `docs/acceptance/m4-005-acceptance-audit.md`。**"
           if roadmap.count(old) != 1:
-              raise SystemExit(f"expected exactly one M4-004 roadmap target, found {roadmap.count(old)}")
+              raise SystemExit(f"expected exactly one M4-005 roadmap target, found {roadmap.count(old)}")
           if new in roadmap:
-              raise SystemExit("roadmap already contains accepted M4-004 line")
+              raise SystemExit("roadmap already contains accepted M4-005 line")
           updated = roadmap.replace(old, new, 1)
-          if updated.count("- [ ] `M4-005 P0` deny/ask/allow。") != 1:
-              raise SystemExit("M4-005 must remain unchecked")
+          if updated.count("- [ ] `M4-006 P0` default deny。") != 1:
+              raise SystemExit("M4-006 must remain unchecked")
           roadmap_path.write_text(updated, encoding="utf-8")
 
           history_path = Path("docs/handoff/HISTORY.md")
           history = history_path.read_text(encoding="utf-8")
-          marker = "## 2026-08-23 — Accept M4-004 deterministic rule ordering"
+          marker = "## 2026-08-24 — Accept M4-005 deterministic effect resolution"
           if marker in history:
-              raise SystemExit("M4-004 history marker already exists; refusing duplicate append")
+              raise SystemExit("M4-005 history marker already exists; refusing duplicate append")
           if not history.endswith("\n"):
               raise SystemExit("HISTORY.md must end with newline before append")
 
           entry = r'''
-          ## 2026-08-23 — Accept M4-004 deterministic rule ordering
+          ## 2026-08-24 — Accept M4-005 deterministic effect resolution
 
-          M4-004 closed at implementation head
-          `69934dd62903b325b50e9f7b8df9849021e522b7` after protocol-first recovery of
-          Core §8.3, the deterministic precedence profile, M4-003's deferred wildcard
-          boundary and the current CapabilityPolicy priority schema.
+          M4-005 closed at implementation head
+          `81e09435f1c038205977e740f8ac11c4d1bab796` after protocol-first recovery of
+          Core §8.2–§8.3, the deterministic precedence profile, the accepted M4-004
+          structural-band contract and the roadmap separation from M4-006/M4-021.
 
-          Spec 0020 defines the portable v0.1 lexical pattern profile before
-          implementation: `/` is only a lexical hierarchy separator; `*` is a
-          single-segment wildcard; `**` matches zero or more complete segments and is
-          valid only as an entire segment. Matching is whole-locator anchored,
-          preserves empty segments and Unicode code points, and assigns no shell-glob,
-          regex or escape semantics to other punctuation.
+          Spec 0021 deliberately defines a narrow effect-resolution primitive rather
+          than a full PDP. Input consists only of rules whose full applicability has
+          already been proven upstream, represented by canonical M4-004 structural
+          bands plus an exact one-to-one effect binding set.
 
-          Resource specificity is the deterministic tuple
-          `(literalCodePoints DESC, globstarCount ASC, starCount ASC)`. A rule with
-          multiple matching selectors uses its most-specific match. Optional priority
-          is comparison-time only, with absent priority equal to zero; specificity
-          always dominates priority. Equal structural keys remain one precedence band,
-          and Unicode code-point rule-id ordering inside a band is presentation only,
-          never a hidden authorization tie-breaker.
+          Accepted semantics are: any fully applicable explicit deny in any band wins
+          globally; otherwise only the highest structural band participates and
+          `ask > allow` inside that band. Empty applicable input remains
+          `NO_APPLICABLE_RULES`; M4-005 does not convert it to deny and therefore does
+          not implement M4-006 early.
 
-          The reference implementation uses a custom iterative lexical matcher and
-          does not depend on a glob/regex/shell/path library. Provider identity remains
-          opaque and cannot change lexical match or specificity. Effect-looking runtime
-          fields do not affect M4-004 ordering, preserving the M4-005 boundary.
+          Runtime inputs fail closed when bands are malformed or noncanonical, equal
+          structural keys are split, rule IDs are duplicated/noncanonical, effect
+          bindings are missing/extra/duplicated, effects are unknown, specificity is
+          unsafe or priority is out of range. Required fields must be own properties
+          and unexpected own fields are rejected.
 
-          Portable fixtures contain 37 cases (22 pattern + 15 ordering). Exact
-          implementation-head evidence at `69934dd6...`:
+          Acceptance review additionally replaced input-sized `Array.from()` rule-ID
+          validation with an early-exit Unicode-code-point `for...of` traversal bounded
+          at 128 code points. Runtime tests cover inherited band/specificity/effect
+          fields, unexpected fields and a 129-astral-code-point rule ID.
 
-          - normal CI #291 / run `32607126915`: PASS;
+          M4-005 creates no CapabilityDecision, approval result, lease, guarantee,
+          receipt or enforcement claim. Subject resolution and full policy evaluation
+          remain M4-020/M4-021 responsibilities.
+
+          Exact implementation-head evidence at `81e09435...`:
+
+          - normal CI #304 / run `32684842763`: PASS;
           - frozen install and 124-entry supply-chain policy: PASS;
           - architecture boundaries / 16-schema shape / schema baseline: PASS;
           - strict workspace TypeScript: PASS;
-          - 31 test files / 377 tests: PASS;
-          - M4-004 rule-ordering suite: 19 PASS;
-          - M4-004 resource-pattern suite: 24 PASS;
-          - oxlint: 0 warnings / 0 errors;
+          - 32 test files / 409 tests: PASS;
+          - M4-005 effect-resolution suite: 32 PASS;
+          - oxlint: 0 warnings / 0 errors on 104 files;
           - Shared TCK packed artifact + external consumer: 44 assets PASS;
-          - exact Harness rc5 source-conformance #235 / run `32607126899`: PASS;
+          - exact Harness rc5 source-conformance #248 / run `32684842738`: PASS;
           - Harness steps 6–11 all PASS.
 
-          `docs/acceptance/m4-004-acceptance-audit.md` records **M4-004 ACCEPTED AT
+          `docs/acceptance/m4-005-acceptance-audit.md` records **M4-005 ACCEPTED AT
           IMPLEMENTATION BOUNDARY**. The governance head recording this acceptance
-          must itself reach exact-head CI/Harness dual-green before M4-005 starts.
-          M4-006+ and M6 remain unauthorized.
+          must itself reach exact-head CI/Harness dual-green before M4-006 starts.
+          M4-007+, M4-020+ and M6 remain unauthorized by this gate.
           '''.lstrip().replace("          ", "")
 
           history_path.write_text(history + "\n" + entry, encoding="utf-8")
@@ -120,7 +124,7 @@ jobs:
             echo "HISTORY.md append must not delete or modify existing lines" >&2
             exit 1
           fi
-          grep -F -- '- [ ] `M4-005 P0` deny/ask/allow。' docs/roadmap.md
+          grep -F -- '- [ ] `M4-006 P0` default deny。' docs/roadmap.md
 
       - name: Commit generated governance blobs
         shell: bash
@@ -129,5 +133,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add docs/roadmap.md docs/handoff/HISTORY.md
-          git commit -m "docs(governance): record M4-004 acceptance"
+          git commit -m "docs(governance): record M4-005 acceptance"
           git push origin HEAD:automation/m4-003-governance-sync
