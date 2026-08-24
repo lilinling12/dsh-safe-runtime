@@ -272,7 +272,7 @@ Acceptance evidence
 - [x] `M4-002 P0` schema validation。 **ACCEPTED：Spec 0018 + portable fixtures + strict Draft 2020-12 validator；accepted implementation head `7b87c812...`，CI #260 / Harness #204 PASS；验收记录 `docs/acceptance/m4-002-acceptance-audit.md`。**
 - [x] `M4-003 P0` canonical resource normalization。 **ACCEPTED：Spec 0019 + 35 portable cases + runtime fail-closed hardening；accepted implementation head `edd91190...`，CI #275 / Harness #219 PASS；验收记录 `docs/acceptance/m4-003-acceptance-audit.md`。**
 - [x] `M4-004 P0` deterministic rule ordering。 **ACCEPTED：Spec 0020 + 37 portable pattern/ordering cases + Unicode/code-point deterministic precedence bands；accepted implementation head `69934dd6...`，CI #291 / Harness #235 PASS；验收记录 `docs/acceptance/m4-004-acceptance-audit.md`。**
-- [ ] `M4-005 P0` deny/ask/allow。
+- [x] `M4-005 P0` deny/ask/allow。 **ACCEPTED：Spec 0021 + 23 portable cases + runtime fail-closed hardening；accepted implementation head `81e09435...`，CI #304 / Harness #248 PASS；验收记录 `docs/acceptance/m4-005-acceptance-audit.md`。**
 - [ ] `M4-006 P0` default deny。
 - [ ] `M4-007 P0` explain API。
 - [ ] `M4-008 P1` policy diagnostics。

@@ -777,3 +777,54 @@ implementation-head evidence at `69934dd6...`:
 IMPLEMENTATION BOUNDARY**. The governance head recording this acceptance
 must itself reach exact-head CI/Harness dual-green before M4-005 starts.
 M4-006+ and M6 remain unauthorized.
+
+## 2026-08-24 — Accept M4-005 deterministic effect resolution
+
+M4-005 closed at implementation head
+`81e09435f1c038205977e740f8ac11c4d1bab796` after protocol-first recovery of
+Core §8.2–§8.3, the deterministic precedence profile, the accepted M4-004
+structural-band contract and the roadmap separation from M4-006/M4-021.
+
+Spec 0021 deliberately defines a narrow effect-resolution primitive rather
+than a full PDP. Input consists only of rules whose full applicability has
+already been proven upstream, represented by canonical M4-004 structural
+bands plus an exact one-to-one effect binding set.
+
+Accepted semantics are: any fully applicable explicit deny in any band wins
+globally; otherwise only the highest structural band participates and
+`ask > allow` inside that band. Empty applicable input remains
+`NO_APPLICABLE_RULES`; M4-005 does not convert it to deny and therefore does
+not implement M4-006 early.
+
+Runtime inputs fail closed when bands are malformed or noncanonical, equal
+structural keys are split, rule IDs are duplicated/noncanonical, effect
+bindings are missing/extra/duplicated, effects are unknown, specificity is
+unsafe or priority is out of range. Required fields must be own properties
+and unexpected own fields are rejected.
+
+Acceptance review additionally replaced input-sized `Array.from()` rule-ID
+validation with an early-exit Unicode-code-point `for...of` traversal bounded
+at 128 code points. Runtime tests cover inherited band/specificity/effect
+fields, unexpected fields and a 129-astral-code-point rule ID.
+
+M4-005 creates no CapabilityDecision, approval result, lease, guarantee,
+receipt or enforcement claim. Subject resolution and full policy evaluation
+remain M4-020/M4-021 responsibilities.
+
+Exact implementation-head evidence at `81e09435...`:
+
+- normal CI #304 / run `32684842763`: PASS;
+- frozen install and 124-entry supply-chain policy: PASS;
+- architecture boundaries / 16-schema shape / schema baseline: PASS;
+- strict workspace TypeScript: PASS;
+- 32 test files / 409 tests: PASS;
+- M4-005 effect-resolution suite: 32 PASS;
+- oxlint: 0 warnings / 0 errors on 104 files;
+- Shared TCK packed artifact + external consumer: 44 assets PASS;
+- exact Harness rc5 source-conformance #248 / run `32684842738`: PASS;
+- Harness steps 6–11 all PASS.
+
+`docs/acceptance/m4-005-acceptance-audit.md` records **M4-005 ACCEPTED AT
+IMPLEMENTATION BOUNDARY**. The governance head recording this acceptance
+must itself reach exact-head CI/Harness dual-green before M4-006 starts.
+M4-007+, M4-020+ and M6 remain unauthorized by this gate.
