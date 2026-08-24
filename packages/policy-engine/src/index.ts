@@ -4,10 +4,11 @@
  * M4-001 document loading, M4-002 schema validation, M4-003 resource
  * normalization, M4-004 deterministic rule ordering, M4-005 deterministic
  * effect resolution and M4-006 defensive default-deny finalization are
- * acceptance-audited. Explain/provenance and full PDP evaluation remain later
- * governance gates.
+ * acceptance-audited. M4-007 deterministic policy-effect explanation is the
+ * active implementation gate; full PDP evaluation and durable provenance remain
+ * later governance gates.
  */
-export const PACKAGE_STAGE = "M4-006-DEFAULT-DENY-CONFORMANCE" as const;
+export const PACKAGE_STAGE = "M4-007-EXPLAIN-IN-PROGRESS" as const;
 
 export {
   loadPolicyDocument,
@@ -93,3 +94,12 @@ export {
   type DefaultDenyFinalized,
   type DefaultDenyResult,
 } from "./default-deny-types.js";
+export { explainPolicyEffect } from "./policy-effect-explanation.js";
+export {
+  type PolicyEffectExplainFailureReason,
+  type PolicyEffectExplanation,
+  type PolicyEffectExplanationBasis,
+  type PolicyEffectExplanationFailure,
+  type PolicyEffectExplanationReasonCode,
+  type PolicyEffectExplanationResult,
+} from "./policy-effect-explanation-types.js";
