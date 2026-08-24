@@ -165,6 +165,28 @@ describe("M4-006 portable defensive default deny", () => {
     });
   });
 
+  test("accessor-backed defaultEffect is rejected without invoking the getter", () => {
+    let getterCalls = 0;
+    const policySpec: Record<string, unknown> = {};
+    Object.defineProperty(policySpec, "defaultEffect", {
+      enumerable: true,
+      get() {
+        getterCalls += 1;
+        return "deny";
+      },
+    });
+
+    expect(
+      finalizeDefaultDeny(resolveApplicableRuleEffects([], []), policySpec),
+    ).toEqual({
+      ok: false,
+      status: "FAIL_CLOSED",
+      effect: "deny",
+      reason: "DEFAULT_EFFECT_CONFIG_INVALID",
+    });
+    expect(getterCalls).toBe(0);
+  });
+
   test("M4-005 failures remain invalid upstream state", () => {
     const failure = resolveApplicableRuleEffects("invalid", []);
     expect(finalizeDefaultDeny(failure, { defaultEffect: "deny" })).toEqual({
@@ -205,6 +227,53 @@ describe("M4-006 portable defensive default deny", () => {
       effect: "deny",
       reason: "DEFAULT_DENY_INPUT_INVALID",
     });
+  });
+
+  test("accessor-backed resolved effect is rejected without invoking the getter", () => {
+    let getterCalls = 0;
+    const effectResolution: Record<string, unknown> = {
+      ok: true,
+      status: "RESOLVED",
+    };
+    Object.defineProperty(effectResolution, "effect", {
+      enumerable: true,
+      get() {
+        getterCalls += 1;
+        return "allow";
+      },
+    });
+
+    expect(
+      finalizeDefaultDeny(effectResolution, { defaultEffect: "deny" }),
+    ).toEqual({
+      ok: false,
+      status: "FAIL_CLOSED",
+      effect: "deny",
+      reason: "DEFAULT_DENY_INPUT_INVALID",
+    });
+    expect(getterCalls).toBe(0);
+  });
+
+  test("accessor-backed status is rejected without invoking the getter", () => {
+    let getterCalls = 0;
+    const effectResolution: Record<string, unknown> = { ok: true, effect: "allow" };
+    Object.defineProperty(effectResolution, "status", {
+      enumerable: true,
+      get() {
+        getterCalls += 1;
+        return "RESOLVED";
+      },
+    });
+
+    expect(
+      finalizeDefaultDeny(effectResolution, { defaultEffect: "deny" }),
+    ).toEqual({
+      ok: false,
+      status: "FAIL_CLOSED",
+      effect: "deny",
+      reason: "DEFAULT_DENY_INPUT_INVALID",
+    });
+    expect(getterCalls).toBe(0);
   });
 
   test("unexpected symbol fields on M4-005 projection fail closed", () => {
