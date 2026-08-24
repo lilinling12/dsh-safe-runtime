@@ -1,14 +1,12 @@
 /**
  * @dsh-safe/policy-engine public boundary.
  *
- * M4-001 document loading, M4-002 schema validation, M4-003 resource
- * normalization, M4-004 deterministic rule ordering, M4-005 deterministic
- * effect resolution and M4-006 defensive default-deny finalization are
- * acceptance-audited. M4-007 deterministic policy-effect explanation is the
- * active implementation gate; full PDP evaluation and durable provenance remain
- * later governance gates.
+ * M4-001 through M4-007 are acceptance-audited at their implementation
+ * boundaries. M4-007 final governance closure is still required before any
+ * later policy-engine gate begins; full PDP evaluation and durable provenance
+ * remain later governance gates.
  */
-export const PACKAGE_STAGE = "M4-007-EXPLAIN-IN-PROGRESS" as const;
+export const PACKAGE_STAGE = "M4-007-EXPLAIN-CONFORMANCE" as const;
 
 export {
   loadPolicyDocument,

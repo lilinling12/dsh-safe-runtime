@@ -15,15 +15,15 @@
 - Base: `main@57430273e065be8d38807d67b175fa154c801d43`
 - M2: **ACCEPTED / MERGED** — PR #1 merge commit `52233e19c15504d5c5f77522bb4bf58a2d23c56f`
 - M3: **ACCEPTED / MERGED** — PR #2 merge commit `57430273e065be8d38807d67b175fa154c801d43`
-- M4-001 through M4-006 implementation boundaries: **ACCEPTED**
-- M4-006 final governance head: `1e9b5f10c816c4fc7717a130bc1ee6231ab39a6d`
-- M4-006 final governance CI: **PASS — CI #324 / run `32687409510`**
-- M4-006 final governance Harness: **PASS — #268 / run `32687409515`**
-- M4-006 governance: **CLOSED**
-- Current gate: **M4-007 P0 — explain API**
-- M4-007 authorization: **AUTHORIZED**
-- M4-007 implementation: **NOT STARTED**
-- M4-008+, M4-020+ and M6: **NOT AUTHORIZED by the current gate**
+- M4-001 through M4-007 implementation boundaries: **ACCEPTED**
+- M4-007 acceptance record: `docs/acceptance/m4-007-acceptance-audit.md`
+- Accepted M4-007 implementation head: `1c8bc9ef50a6c680a930814821267e76d79357ac`
+- M4-007 normal CI: **PASS — CI #329 / run `32716573950`**
+- M4-007 Harness rc5 source-conformance: **PASS — #271 / run `32716573857`**
+- M4-007 governance closure: **PENDING FINAL GOVERNANCE-HEAD DUAL-GREEN**
+- M4-008 implementation: **NOT STARTED**
+- M4-008 authorization: **PENDING FINAL M4-007 GOVERNANCE-HEAD DUAL-GREEN**
+- M4-020+ and M6: **NOT AUTHORIZED by the current gate**
 
 Live GitHub state overrides this file.
 
@@ -37,63 +37,25 @@ commit: 47f943859bef60e4160492346772ded9b24f765a
 distribution: distribution-blocked
 ```
 
-M4 policy syntax, matching, decision and explanation semantics MUST NOT be inferred
-from Harness APIs or runtime behavior.
+M4 explanation/matching/decision semantics are not inferred from Harness.
 
-## Repository topology after accepted-milestone merge cleanup
+## Repository topology
 
-The previously stacked accepted milestone PRs are now merged into `main` without
-rewriting their accepted commits:
+Accepted M2 and M3 milestone PRs are merged into `main` using merge commits so
+accepted exact SHAs remain reachable in main ancestry.
 
-```text
-main
-  └─ merge M2 PR #1: 52233e19...
-       └─ accepted M2 head: 6a9c641...
-  └─ merge M3 PR #2: 57430273...
-       └─ final accepted M3 governance head: 65870612...
-```
+PR #3 is directly based on `main` and remains Draft while M4 is in progress. M4
+history was not rebased, squashed, or force-rewritten during the base cleanup.
 
-PR #3 was retargeted from `feat/m3-shared-tck-foundation` to `main` and remains
-Draft. Its M4 commit ancestry was not rebased, squashed, or force-rewritten.
+## M4-007 authority
 
-## M4-006 closure
-
-Accepted implementation head:
+Accepted normative profile:
 
 ```text
-de614120fdbf5c210c3b4f823d215a9ea89916b5
+specs/0023-m4-policy-effect-explanation.md
 ```
 
-Implementation evidence:
-
-- CI #320 / run `32685942246`: PASS;
-- Harness #264 / run `32685942253`: PASS;
-- 33 test files / 444 tests: PASS;
-- M4-006 default-deny suite: 35 PASS;
-- strict TypeScript: PASS;
-- frozen install and 124-entry supply-chain policy: PASS;
-- architecture / 16-schema shape / schema baseline: PASS;
-- oxlint: 0 warnings / 0 errors;
-- Shared TCK external consumer: 44 assets PASS.
-
-Final governance head:
-
-```text
-1e9b5f10c816c4fc7717a130bc1ee6231ab39a6d
-```
-
-Final governance evidence:
-
-```text
-CI #324 / 32687409510: SUCCESS
-Harness #268 / 32687409515: SUCCESS
-```
-
-Therefore M4-007 is formally authorized.
-
-## M4-007 recovered normative boundary
-
-Authority to reconcile before implementation:
+Reconciled authority:
 
 ```text
 specs/0001-safe-runtime-core.md
@@ -105,47 +67,27 @@ specs/0021-m4-effect-resolution.md
 specs/0022-m4-defensive-default-deny.md
 ```
 
-Recovered facts:
-
-1. `CapabilityDecision` already exists and optionally carries `policyRef`,
-   `matchedRuleRefs`, `reasonCode`, and `reason`.
-2. M4-005 intentionally does not publish decisive rule IDs and explicitly defers
-   explanation representation to M4-007/M4-024.
-3. M4-006 distinguishes a conforming default deny from defensive fail-closed deny;
-   its failure-side `effect: deny` is not proof of an explicit policy deny.
-4. M4-004 rule-ID order inside equal bands is deterministic presentation only,
-   never authorization precedence.
-5. Full applicability, subject resolution and full policy evaluation remain
-   M4-020/M4-021 responsibilities.
-6. Stable decision identity, persisted rule/policy refs, receipt/provenance and
-   guarantee assignment remain later gates.
-
-## M4-007 protocol-first candidate
-
-Normative candidate:
-
-```text
-specs/0023-m4-policy-effect-explanation.md
-```
-
-Portable candidate corpus:
+Portable corpus:
 
 ```text
 fixtures/policy-explanation/cases.json
 ```
 
-The candidate is intentionally narrow:
+## Accepted M4-007 semantic boundary
+
+M4-007 explains only the effect facts owned by M4-005/M4-006 over an
+already-proven fully-applicable rule set.
+
+Composition:
 
 ```text
-fully-applicable M4-004 bands
-+ exact M4-005 effect bindings
-+ presence-preserving policy spec
-  -> reuse M4-005
-  -> reuse M4-006
-  -> structured deterministic explanation
+safe JavaScript data materialization
+  -> M4-005 resolveApplicableRuleEffects()
+  -> M4-006 finalizeDefaultDeny()
+  -> deterministic explanation projection
 ```
 
-Normal explanation bases are:
+Accepted explanation bases:
 
 ```text
 EXPLICIT_DENY
@@ -155,59 +97,151 @@ DEFAULT_DENY
 FAIL_CLOSED
 ```
 
-The output uses `contributingRuleIds`, not protocol `matchedRuleRefs`.
+Accepted contributor semantics:
 
-Rules:
+1. explicit deny -> every fully-applicable deny contributor across all bands;
+2. ask -> only ask contributors in the highest structural band;
+3. allow -> all rules in the highest structural band;
+4. default deny -> no contributing rules;
+5. defensive M4-006 fail closed -> no contributing rules.
 
-- explicit deny explains all fully-applicable deny contributors;
-- ask explains only ask contributors in the highest structural band;
-- allow explains all rules in the highest structural band;
-- default deny has no contributing rule IDs;
-- M4-006 fail-closed deny has no contributing rule IDs and retains its exact reason
-  code;
-- M4-005 invalid input produces explanation failure rather than a fabricated deny
-  explanation;
-- rule-ID presentation is Unicode code-point lexicographic only;
-- no free-form reason text, resource locator, constraint, secret, request argument,
-  policy source text, `policyRef`, decision ID, timestamp or guarantee level enters
-  this primitive.
+`contributingRuleIds` is deliberately not `CapabilityDecision.matchedRuleRefs`.
 
-For JavaScript/TypeScript, M4-007 must additionally materialize its narrow input
-through own data-property descriptors before invoking M4-005 so accessor-backed
-fields/array elements cannot execute getters during explanation.
+It does not claim a complete match set, stable cross-policy rule references, or
+durable decision provenance.
 
-## Current acceptance gate
+Rule-ID list ordering is deterministic Unicode code-point presentation only and
+never becomes authorization precedence.
 
-The current candidate changes are specification + portable fixtures + refreshed
-handoff only.
+M4-005 invalid input returns `EXPLAIN_FAILED`; it is not converted into a
+fabricated deny explanation.
 
-Before production TypeScript implementation:
+## Runtime hardening
 
-1. the candidate spec/fixture head must pass normal CI;
-2. exact Harness rc5 source-conformance on the same head must remain green;
-3. failures must be diagnosed from that exact head;
-4. no schema, validator, TCK, strict TypeScript, frozen lockfile, supply-chain,
-   architecture or fail-closed rule may be weakened.
+Before M4-005 sees JavaScript input, M4-007 materializes the narrow bands/effects
+projection using own data-property descriptors.
 
-After that dual-green prerequisite, the next implementation step is limited to the
-M4-007 explanation primitive and its runtime hardening/tests.
+The accepted runtime suite proves:
+
+- accessor-backed band fields do not execute getters;
+- accessor-backed top-level array elements do not execute getters;
+- accessor-backed nested specificity fields do not execute getters;
+- accessor-backed effect bindings do not execute getters;
+- accessor-backed rule-ID array elements do not execute getters;
+- sparse arrays fail at the language boundary;
+- named/symbol array properties fail at the language boundary;
+- revoked proxies in bands/effects fail explicitly;
+- inherited required effect fields cannot become authorization input;
+- policy-spec accessors/revoked proxies preserve M4-006 fail-closed behavior;
+- caller inputs are not mutated;
+- success/failure objects are frozen;
+- contributor arrays are detached and frozen;
+- no policyRef/matchedRuleRefs/decisionId/guaranteeLevel/free-form reason is invented.
+
+The first implementation head `ab01ff52...` was already dual-green, but acceptance
+review added five explicit hardening regressions before accepting `1c8bc9ef...`.
+
+## Exact accepted implementation evidence
+
+Accepted head:
+
+```text
+1c8bc9ef50a6c680a930814821267e76d79357ac
+```
+
+Normal CI #329 / run `32716573950`:
+
+- frozen install: PASS;
+- supply-chain policy: PASS (124 entries);
+- architecture boundaries: PASS;
+- schema shape: PASS (16 schemas);
+- schema compatibility baseline: PASS;
+- strict TypeScript: PASS;
+- 34 test files / 477 tests: PASS;
+- M4-007 explanation suite: 33 PASS;
+- M4-006 default-deny suite: 35 PASS;
+- M4-005 effect-resolution suite: 32 PASS;
+- M4-004 rule-ordering suite: 19 PASS;
+- M4-004 resource-pattern suite: 24 PASS;
+- M4-003 normalization regressions: 38 + 2 PASS;
+- M4-002 validator regressions: 6 PASS;
+- M4-001 loader regressions: 18 PASS;
+- oxlint: 0 warnings / 0 errors on 110 files;
+- Shared TCK packed artifact + external consumer: 44 assets PASS.
+
+Harness #271 / run `32716573857`:
+
+- pinned Harness public type build: PASS;
+- reproducible safe-runtime install: PASS;
+- exact workspace projection: PASS;
+- projection idempotence: PASS;
+- exact rc5 binding typecheck: PASS;
+- real rc5 runtime conformance: PASS.
+
+No quality or security gate was weakened.
+
+## Scope audit
+
+Relative to final M4-006 governance head `1e9b5f10...`, M4-007 changes only:
+
+```text
+specs/0023-m4-policy-effect-explanation.md
+fixtures/policy-explanation/cases.json
+packages/policy-engine/src/policy-effect-explanation-types.ts
+packages/policy-engine/src/policy-effect-explanation.ts
+packages/policy-engine/src/policy-effect-explanation.test.ts
+packages/policy-engine/src/index.ts
+docs/handoff/CURRENT.md
+```
+
+Acceptance governance adds only the acceptance record and state synchronization.
+
+There are no dependency, lockfile, schema, protocol CapabilityDecision, Adapter,
+Harness workflow, subject resolution, full PDP, approval, lease, receipt,
+provenance, guarantee, classifier, plugin, or M6 implementation changes.
+
+## Governance closure rule
+
+M4-007 is accepted at its implementation boundary, but the governance head that
+records acceptance must itself pass:
+
+```text
+normal CI
++ exact Harness rc5 source-conformance
+```
+
+Until that happens:
+
+```text
+M4-007 implementation: ACCEPTED
+M4-007 governance closure: PENDING
+M4-008 implementation: NOT STARTED
+M4-008 authorization: PENDING FINAL M4-007 GOVERNANCE-HEAD DUAL-GREEN
+M4-020+: NOT AUTHORIZED
+M6: NOT AUTHORIZED
+```
+
+Do not begin M4-008 production work before the final M4-007 governance head is
+dual-green.
 
 ## Boundaries that remain enforced
 
 - Protocol/spec precedes implementation.
-- Specs/schemas/TCK are semantic authority.
+- Specs/schemas/TCK remain semantic authority.
 - Harness is compatibility evidence only.
-- M4-003 normalization is not provider containment.
-- M4-004 structural ordering is not full rule applicability.
-- M4-005 effect resolution assumes full applicability.
+- M4-004 ordering is not full applicability.
+- M4-005 assumes full applicability.
 - M4-006 finalization is not a persisted CapabilityDecision.
-- M4-007 explanation is not full PDP evaluation or durable provenance.
-- `contributingRuleIds` MUST NOT be mechanically promoted to
-  `CapabilityDecision.matchedRuleRefs`.
-- Approval, lease, decision receipt/provenance and guarantee assignment remain later
-  gates.
-- M4-008+, M4-020+ and M6 remain unauthorized until their gates are explicitly
-  opened.
+- M4-007 explanation is not a full PDP or durable provenance.
+- `contributingRuleIds` must not be mechanically promoted to `matchedRuleRefs`.
+- Subject resolution/full policy evaluation remain M4-020/M4-021.
+- Approval remains M4-023.
+- Decision receipt/provenance remains M4-024.
+- Guarantee assignment remains M4-025.
+- M4-008 and all later gates remain blocked until explicitly authorized.
+- Never weaken schemas, validators, TCK, strict TypeScript, frozen installs,
+  supply-chain policy, architecture boundaries, compatibility evidence, or
+  fail-closed behavior for CI.
 
 ## Resume instruction
 
@@ -215,10 +249,8 @@ On the next session:
 
 1. read `docs/handoff/README.md` and this file;
 2. fetch PR #3 live base/head and exact-head workflows;
-3. live GitHub facts override this snapshot;
-4. if the M4-007 spec/fixture candidate is not exact-head dual-green, finish that
-   gate first;
-5. only after that candidate is dual-green, implement the M4-007 TypeScript
-   projection;
-6. on failure inspect the exact current-head job/log before editing;
-7. do not start M4-008+, M4-020+ or M6 early.
+3. live GitHub state overrides this snapshot;
+4. finish M4-007 final governance closure if it is not exact-head dual-green;
+5. only after closure may M4-008 begin protocol-first;
+6. inspect exact current-head diagnostics before fixing any failure;
+7. do not start M4-020+ or M6 early.
