@@ -1,0 +1,60 @@
+{
+  "apiVersion": "safe-runtime.dev/tck-fixture/v1alpha1",
+  "id": "TCK_FULL_TOOL_001",
+  "profile": "FULL",
+  "description": "Fake tool runtime distinguishes request intent, body entry, and final RESULT or ERROR outcomes.",
+  "determinism": {
+    "seed": 11,
+    "clock": {
+      "startUnixMs": 1787040000000,
+      "tickMs": 10
+    }
+  },
+  "stimulus": {
+    "operation": "tool.sequence",
+    "script": [
+      { "kind": "RESULT", "result": { "content": "ok", "value": 1 } },
+      { "kind": "ERROR", "errorCode": "SCRIPTED_TOOL_FAILURE" }
+    ],
+    "requests": [
+      { "callRef": "call-1", "toolName": "demo.echo", "arguments": { "value": 1 } },
+      { "callRef": "call-2", "toolName": "demo.fail", "arguments": { "value": 2 } }
+    ]
+  },
+  "expect": {
+    "outcomes": [
+      { "kind": "RESULT", "result": { "content": "ok", "value": 1 } },
+      { "kind": "ERROR", "errorCode": "SCRIPTED_TOOL_FAILURE" }
+    ],
+    "trace": [
+      {
+        "sequence": 1,
+        "callOrdinal": 1,
+        "phase": "REQUESTED",
+        "request": { "callRef": "call-1", "toolName": "demo.echo", "arguments": { "value": 1 } }
+      },
+      { "sequence": 2, "callOrdinal": 1, "phase": "BODY_ENTERED", "callRef": "call-1" },
+      {
+        "sequence": 3,
+        "callOrdinal": 1,
+        "phase": "OUTCOME",
+        "callRef": "call-1",
+        "outcome": { "kind": "RESULT", "result": { "content": "ok", "value": 1 } }
+      },
+      {
+        "sequence": 4,
+        "callOrdinal": 2,
+        "phase": "REQUESTED",
+        "request": { "callRef": "call-2", "toolName": "demo.fail", "arguments": { "value": 2 } }
+      },
+      { "sequence": 5, "callOrdinal": 2, "phase": "BODY_ENTERED", "callRef": "call-2" },
+      {
+        "sequence": 6,
+        "callOrdinal": 2,
+        "phase": "OUTCOME",
+        "callRef": "call-2",
+        "outcome": { "kind": "ERROR", "errorCode": "SCRIPTED_TOOL_FAILURE" }
+      }
+    ]
+  }
+}

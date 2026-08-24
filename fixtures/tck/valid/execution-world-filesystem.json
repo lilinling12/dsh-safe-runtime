@@ -1,0 +1,106 @@
+{
+  "apiVersion": "safe-runtime.dev/tck-fixture/v1alpha1",
+  "id": "TCK_FULL_EXECUTION_WORLD_FILESYSTEM_001",
+  "profile": "FULL",
+  "description": "Explicit fake filesystem facts are deterministic and never derive containment or host path semantics.",
+  "determinism": {
+    "seed": 19,
+    "clock": {
+      "startUnixMs": 1776502800000,
+      "tickMs": 10
+    }
+  },
+  "stimulus": {
+    "operation": "execution-world.filesystem",
+    "world": {
+      "worldRef": "world-alpha",
+      "filesystem": {
+        "targets": [
+          {
+            "targetRef": "workspace",
+            "displayPath": "/workspace",
+            "processPath": "opaque:/workspace",
+            "info": {
+              "version": "dir-v1",
+              "type": "directory"
+            }
+          },
+          {
+            "targetRef": "readme",
+            "displayPath": "/workspace/README.md",
+            "processPath": "opaque:/workspace/README.md",
+            "info": {
+              "version": "file-v3",
+              "type": "file",
+              "size": 5
+            },
+            "text": "hello"
+          }
+        ],
+        "resolutions": [
+          {
+            "request": {
+              "path": "README.md",
+              "cwd": "/workspace"
+            },
+            "targetRef": "readme"
+          }
+        ],
+        "containments": [
+          {
+            "parentRef": "workspace",
+            "childRef": "readme",
+            "result": true
+          }
+        ]
+      },
+      "subprocess": {
+        "executables": [],
+        "script": []
+      }
+    },
+    "operations": [
+      {
+        "kind": "resolve",
+        "request": {
+          "path": "README.md",
+          "cwd": "/workspace"
+        }
+      },
+      {
+        "kind": "stat",
+        "targetRef": "readme"
+      },
+      {
+        "kind": "contains",
+        "parentRef": "workspace",
+        "childRef": "readme"
+      },
+      {
+        "kind": "readText",
+        "targetRef": "readme"
+      },
+      {
+        "kind": "processPath",
+        "targetRef": "readme"
+      }
+    ]
+  },
+  "expect": {
+    "worldRef": "world-alpha",
+    "results": [
+      {
+        "targetRef": "readme",
+        "displayPath": "/workspace/README.md"
+      },
+      {
+        "version": "file-v3",
+        "type": "file",
+        "size": 5
+      },
+      true,
+      "hello",
+      "opaque:/workspace/README.md"
+    ]
+  }
+}

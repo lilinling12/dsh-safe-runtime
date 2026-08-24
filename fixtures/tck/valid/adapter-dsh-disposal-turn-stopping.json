@@ -1,0 +1,33 @@
+{
+  "apiVersion": "safe-runtime.dev/tck-fixture/v1alpha1",
+  "id": "TCK-ADAPTER-DSH-DISPOSAL-TURN-STOPPING-001",
+  "profile": "ADAPTER_DSH",
+  "description": "A disposed isolated turn-stopping registration no longer invokes its handler while the external runtime remains live.",
+  "determinism": {
+    "seed": 16004,
+    "clock": {
+      "startUnixMs": 1787218203000,
+      "tickMs": 1
+    }
+  },
+  "stimulus": {
+    "operation": "disposal",
+    "request": {
+      "sessionRef": "session:disposal-turn-stopping",
+      "resourceRef": "turn-stopping:1"
+    },
+    "sourceFact": {
+      "kind": "TURN_STOPPING_REGISTRATION",
+      "effectBeforeDispose": "HANDLER_INVOKED",
+      "disposeCompleted": true,
+      "probeAfterDispose": "TURN_STOPPING"
+    }
+  },
+  "expect": {
+    "kind": "DISPOSAL_COMPLETED",
+    "resourceKind": "TURN_STOPPING_REGISTRATION",
+    "effectBeforeDispose": "OBSERVED",
+    "effectAfterDispose": "ABSENT",
+    "externalRuntime": "REMAINS_LIVE"
+  }
+}

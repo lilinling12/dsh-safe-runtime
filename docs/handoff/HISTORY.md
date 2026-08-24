@@ -219,3 +219,363 @@ than changing behavior.
 
 PR #1 remains Draft during the final exact-head verification. Draft state is not
 a substitute for acceptance and acceptance is not automatic permission to merge.
+
+## 2026-08-18T17:22:00+08:00 — Enter M3 Shared TCK Foundation
+
+Final M2 head `6a9c64155ec6c376908e64d70f2b50d5b8de1285` was rechecked before crossing the
+milestone boundary:
+
+- normal CI #71: PASS;
+- exact Harness rc5 source-conformance #53: PASS.
+
+To preserve the accepted M2 evidence line, M3 work was moved to a separate
+stacked branch and Draft PR:
+
+- branch: `feat/m3-shared-tck-foundation`;
+- PR #2: `feat(testkit): establish M3 shared TCK foundation`;
+- base: `feat/m2-harness-adapter@6a9c64155ec6c376908e64d70f2b50d5b8de1285`.
+
+The first M3 foundation work follows repository governance order rather than
+letting a TypeScript runner define the contract:
+
+1. `specs/0004-shared-tck-foundation.md` defines a language-independent fixture
+   envelope and runner lifecycle;
+2. `schemas/v1alpha1/tck-fixture.schema.json` publishes the Draft 2020-12 shape;
+3. positive and fail-closed negative fixtures cover valid determinism, missing
+   clock tick, and unknown top-level fields;
+4. schema index, compatibility baseline and fixture manifest register the new
+   contract;
+5. `@dsh-safe/testkit` projects the contract into TypeScript and validates it as
+   one implementation only.
+
+The contract requires explicit seed and logical clock inputs, forbids host time
+from deciding fixture outcomes, keeps profile input/output as opaque JSON at the
+envelope layer, and distinguishes `PASS`, `FAIL`, `UNSUPPORTED`, and `ERROR`.
+`UNSUPPORTED`/`ERROR` cannot be coerced to `PASS`.
+
+CI evidence:
+
+- foundation head `bcee18375c63c736559b9540c942aaea09e936c4`: normal CI #72 PASS;
+- review-clean head `9610b2bc7935ab60e050b7f4998862c82699d17a`: normal CI #73 PASS.
+
+The second head restores the existing pretty fixture-manifest formatting so the
+PR diff contains only four deletions instead of unrelated formatting churn.
+
+M3-004 fake approval, M3-005 fake tool runtime, M3-006 fake fs/subprocess,
+M3-007 fault injection, Adapter DSH shared TCK cases, M4, and M6 remain
+unimplemented. `docs/roadmap.md` still needs planning-only reconciliation; it
+must not invent normalized `step.ended` or retroactively claim that M3's
+language-neutral Event Order TCK was completed inside M2.
+
+## 2026-08-18T18:10:00+08:00 — Close M3-004 fake approval
+
+Roadmap synchronization was first completed on head
+`79bd048599ac6f64975912b23f1e12f9719ef956` without changing normative
+semantics. Normal CI #78 passed frozen install and `pnpm check:all`, so the
+recorded prerequisite for fake-runtime work was satisfied.
+
+M3-004 then closed on implementation head
+`cc59a5db1045346792d823e56557d78438dd37c1` in protocol-/fixture-first order:
+
+- `specs/0005-m3-fake-approval-test-service.md` defines a language-independent
+  deterministic approval fake and explicitly excludes production authorization,
+  Harness binding, cancellation mechanics, persistence, and later fake-runtime
+  behavior;
+- the portable decision set is `ALLOWED_ONCE`, `REJECTED`, `CANCELLED`, and
+  `UNAVAILABLE`, preserving the existing fail-closed approval boundary;
+- `fixtures/tck/valid/approval-sequence.json` proves FIFO decision consumption;
+- `fixtures/tck/valid/approval-script-exhausted.json` proves exhaustion is the
+  explicit `FAKE_APPROVAL_SCRIPT_EXHAUSTED` infrastructure error rather than an
+  implicit `UNAVAILABLE` or success;
+- both fixtures are registered in `fixtures/manifest.json`;
+- `packages/testkit/src/fake-approval.ts` is a runtime-independent TypeScript
+  projection only and imports no Harness concrete types;
+- conformance covers FIFO order, exact decision preservation, invalid scripted
+  decisions, defensive observation copies, and explicit exhaustion.
+
+Exact-head evidence for `cc59a5db...`:
+
+- normal CI #79 / job `95673419492`: PASS;
+- pinned pnpm enable: PASS;
+- `pnpm install --frozen-lockfile`: PASS;
+- `pnpm check:all`: PASS.
+
+No schema, validator, TypeScript strictness, conformance test, frozen lockfile,
+or security guarantee was weakened. M4 and M6 remain unauthorized.
+
+The next allowed gate is **M3-005 P0 — fake tool runtime**. It must again begin
+with a language-independent profile contract and portable fixtures, must retain
+the intent-vs-observed-outcome distinction, and must not pull M3-006
+filesystem/subprocess or M3-007 fault injection semantics forward.
+
+## 2026-08-19T09:18:00+08:00 — Close M3-005 deterministic fake tool runtime
+
+M3-005 closed on implementation head
+`d5cc341594e79e7203d2203052db27f37984dfa7` in protocol-/fixture-first order.
+
+- `specs/0006-m3-fake-tool-runtime-test-service.md` defines the portable fake
+  before its TypeScript projection and explicitly excludes production dispatch,
+  capability policy, filesystem/subprocess behavior, network access, Harness
+  binding, and fault injection;
+- the portable scripted outcome vocabulary is exactly `RESULT`, `ERROR`, and
+  `DENIED`;
+- a request is intent only and is separately observable from body entry and the
+  final outcome;
+- `RESULT` and deliberate scripted `ERROR` enter the fake body, while `DENIED`
+  produces no `BODY_ENTERED` trace entry;
+- the portable trace phases `REQUESTED`, `BODY_ENTERED`, and `OUTCOME` are TCK
+  test evidence only, not additions to the safe-runtime normalized event
+  vocabulary;
+- `tool-runtime-sequence.json`, `tool-runtime-denied.json`, and
+  `tool-runtime-script-exhausted.json` are ordinary JSON fixtures registered in
+  the shared fixture manifest;
+- script exhaustion is the explicit infrastructure error
+  `FAKE_TOOL_SCRIPT_EXHAUSTED` and does not invent request/body/outcome evidence;
+- malformed scripts and requests fail closed before execution evidence can be
+  produced;
+- the TypeScript projection imports no concrete Harness or adapter types and
+  executes no real filesystem, shell, subprocess, network, or environment
+  operation.
+
+Exact-head evidence for `d5cc3415...`:
+
+- normal CI #81 / job `95923943524`: PASS;
+- pinned pnpm 11.7.0 enable: PASS;
+- `pnpm install --frozen-lockfile`: PASS;
+- supply-chain lockfile policy: PASS (123 entries);
+- architecture boundaries: PASS;
+- schema shape: PASS (16 schemas);
+- schema compatibility baseline: PASS;
+- TypeScript typecheck: PASS;
+- fake tool runtime conformance: 6 tests PASS;
+- repository tests: 9 files / 73 tests PASS;
+- oxlint: 0 warnings / 0 errors.
+
+No schema, validator, TypeScript strictness, fixture contract, frozen lockfile,
+architecture boundary, or security guarantee was weakened. M4 and M6 remain
+unauthorized.
+
+The next and only newly authorized gate is **M3-006 P0 — fake
+filesystem/subprocess**. It must start with a language-independent contract,
+retain the accepted same-world/non-isolation provider facts, execute no real
+host effects, and must not pull M6 Workspace Transaction or M3-007 fault
+injection semantics forward.
+
+## 2026-08-19T09:41:00+08:00 — Close M3-006 deterministic fake execution world
+
+M3-006 closed on verified implementation head
+`de5d4e0cc7099cfa35d91211f81b87f2784ca5df` after protocol-/fixture-first
+implementation and a stricter lint-clean follow-up.
+
+- `specs/0007-m3-fake-filesystem-subprocess-test-service.md` defines the
+  language-independent fake execution-world contract before TypeScript code;
+- filesystem resolution, stat, containment, text reads, and process-path values
+  are explicit scripted facts rather than derived host/path behavior;
+- executable resolution and subprocess spawn are inert JSON operations backed by
+  exact mappings and a deterministic FIFO script;
+- duplicate or ambiguous facts fail during configuration rather than acquiring
+  hidden precedence;
+- unknown containment is explicit and is never derived from path-looking
+  strings;
+- unexpected spawn requests and script exhaustion fail before cursor advancement
+  or observation mutation;
+- `execution-world-non-mediation.json` preserves the accepted security boundary:
+  filesystem and subprocess may share `worldRef`, but a scripted subprocess does
+  not implicitly mutate the fake filesystem and no process/kernel isolation is
+  claimed;
+- the TypeScript projection imports no Harness concrete type and invokes no real
+  filesystem, path-normalization, process, shell, network, environment, clock,
+  or randomness facility;
+- implementation comments document these non-guarantees and fail-closed reasons
+  rather than restating syntax.
+
+Portable fixtures added and registered:
+
+- `execution-world-filesystem.json`;
+- `execution-world-subprocess.json`;
+- `execution-world-non-mediation.json`;
+- `execution-world-subprocess-exhausted.json`.
+
+The first implementation head `78f04e2ea1dee5e62d02a6ee8e840c948ecd70cf`
+passed CI #85 and all 81 tests, but oxlint reported one unused-type warning. The
+warning was treated as a quality defect rather than accepted because the gate
+requires a clean implementation. Follow-up head `de5d4e0c...` removed only that
+unused declaration.
+
+Final exact-head evidence for `de5d4e0c...`:
+
+- normal CI #86 / job `95928288279`: PASS;
+- pinned pnpm 11.7.0 enable: PASS;
+- `pnpm install --frozen-lockfile`: PASS;
+- supply-chain lockfile policy: PASS (123 entries);
+- architecture boundaries: PASS;
+- schema shape: PASS (16 schemas);
+- schema compatibility baseline: PASS;
+- TypeScript typecheck: PASS;
+- fake execution-world conformance: 8 tests PASS;
+- repository tests: 10 files / 81 tests PASS;
+- oxlint: **0 warnings / 0 errors**.
+
+No schema, validator, TypeScript strictness, fixture contract, frozen lockfile,
+architecture boundary, or security guarantee was weakened. M3-006 does not
+implement path containment, rollback, transactionality, shell behavior, process
+isolation, capability policy, or fault injection.
+
+The next and only newly authorized gate is **M3-007 P0 — fault injection
+interface**. It must again start from a language-independent deterministic
+contract and portable fixtures, must keep injected faults distinct from ordinary
+outcomes, and must not pull M4/M6 or Adapter DSH lifecycle semantics forward.
+
+## 2026-08-19T10:02:00+08:00 — Close M3-007 deterministic fault injection interface
+
+M3-007 closed on verified implementation head
+`494e08de5b1304ef039c5a5462f083b7e76b8a29`.
+
+- `specs/0008-m3-deterministic-fault-injection-test-service.md` defines the
+  portable test-control contract before TypeScript implementation;
+- portable directives are exactly `NO_FAULT` and `INJECT_FAULT`;
+- an injected fault is an inert descriptor only and is not automatically thrown,
+  crashed, delayed, signaled, retried, rolled back, or translated into an
+  ordinary tool/runtime outcome;
+- injection points are explicitly declared opaque identifiers, and probes are
+  exact inert JSON matched against a deterministic FIFO script;
+- unknown points, unexpected probes, malformed probes, and script exhaustion fail
+  explicitly without cursor advancement or fabricated observations;
+- direct API calls reject cyclic, sparse, exotic, non-finite, and otherwise
+  non-portable JSON values;
+- observations and directives are defensive immutable snapshots;
+- existing M3-005 tool and M3-006 execution-world fakes remain unchanged and do
+  not acquire hidden fault behavior;
+- three portable fixtures cover directive distinction, unexpected-probe
+  non-consumption, and explicit exhaustion;
+- eight conformance tests cover the portable and fail-closed boundaries.
+
+The initial implementation commit
+`0687e868c62dd373c2be2d6869c3bf4757e8bb7b` was followed by
+`494e08de...` only to restore the established pretty formatting of
+`fixtures/manifest.json`; the semantic case list was unchanged.
+
+Final exact-head evidence for `494e08de...`:
+
+- normal CI #91 / job `95931880009`: PASS;
+- pinned pnpm 11.7.0 enable: PASS;
+- `pnpm install --frozen-lockfile`: PASS;
+- supply-chain lockfile policy: PASS (123 entries);
+- architecture boundaries: PASS;
+- schema shape: PASS (16 schemas);
+- schema compatibility baseline: PASS;
+- TypeScript typecheck: PASS;
+- fault-injection conformance: 8 tests PASS;
+- repository tests: 11 files / 89 tests PASS;
+- oxlint: **0 warnings / 0 errors**.
+
+No validator, schema, compatibility baseline, TypeScript strictness, frozen
+install, architecture boundary, TCK expectation, or security guarantee was
+weakened.
+
+M3.1 Test Harness foundation work is now complete through M3-007. The next and
+only newly authorized gate is **M3-010 P0 — Adapter DSH turn lifecycle Shared
+TCK**. It must begin by reconciling the existing normalized event spec, accepted
+M2 adapter mapping, and exact rc5 lifecycle evidence; Harness lifecycle names
+remain compatibility evidence rather than portable protocol authority.
+
+## 2026-08-19T10:18:00+08:00 — Close M3-010 Adapter DSH turn lifecycle Shared TCK
+
+M3-010 closed on verified implementation head
+`728f44e73ac61dba1b40d570f2458bd456d79bbc` with both normal CI and exact
+pinned Harness rc5 source-conformance green.
+
+- `specs/0009-m3-adapter-dsh-turn-lifecycle-tck.md` defines the portable
+  `ADAPTER_DSH` turn-lifecycle profile before TypeScript projection;
+- five portable fixtures cover completed, cancelled, blocked, failed, and
+  unsupported terminal-reason behavior;
+- normalized lifecycle evidence remains `turn.started`, `step.started`, and
+  `turn.ended`; real Harness `step/end` is source evidence but explicitly maps to
+  `NO_EVENT`, so no `step.ended` is invented;
+- unknown terminal reasons fail closed with
+  `UNSUPPORTED_HARNESS_TURN_END_REASON` at the exact source ordinal;
+- source order/sequence is explicit evidence and timestamps never repair or infer
+  missing lifecycle facts;
+- generic testkit rejects malformed lifecycle grammar and direct-call non-portable
+  JSON state, including cyclic values, sparse arrays, and named/symbol array
+  properties;
+- Adapter DSH conformance reuses existing normalization rather than redefining
+  production semantics;
+- exact rc5 runtime conformance writes real `Session.append()` lifecycle events
+  and proves the upstream seam without fabricating normalized evidence.
+
+Quality review caught a sparse-array validation gap and added regressions. A
+subsequent functionally green head still had one oxlint `no-array-constructor`
+warning in test setup; that warning was treated as a defect and removed before
+acceptance.
+
+Final exact-head evidence for `728f44e...`:
+
+- normal CI #99 / job `95936172958`: PASS;
+- exact Harness rc5 source-conformance #58 / job `95936172462`: PASS;
+- frozen install and supply-chain lockfile policy: PASS (123 entries);
+- architecture boundaries: PASS;
+- schema shape / compatibility baseline: PASS (16 schemas);
+- TypeScript typecheck: PASS;
+- portable M3-010 profile tests: 18 PASS;
+- portable JSON boundary regressions: 2 PASS;
+- Adapter DSH lifecycle TCK: 6 PASS;
+- repository tests: 14 files / 115 tests PASS;
+- oxlint: **0 warnings / 0 errors**.
+
+No schema, validator, compatibility baseline, TypeScript strictness, frozen
+install, architecture rule, adapter mapping, TCK expectation, or security
+guarantee was weakened.
+
+The next and only newly authorized gate is **M3-011 P0 — Adapter DSH tool
+ordering Shared TCK**. It must stay focused on explicit ordering evidence and
+must not pull M3-012 denied-body semantics or M3-013 final-result-authority
+semantics forward.
+
+## 2026-08-21 — Accept M3 Shared TCK Foundation
+
+The live PR state had advanced beyond the stale handoff snapshot: all numbered
+M3 gates through M3-017 were implemented, and the M3 acceptance audit had
+correctly identified two remaining P0 Definition-of-Done blockers rather than
+accepting the milestone from green Adapter CI alone:
+
+- **M3-A1 — Publishable Shared TCK artifact**;
+- **M3-A2 — External dummy consumer conformance**.
+
+The remediation was completed without weakening protocol, schema, validator,
+TCK, TypeScript strictness, frozen-lockfile, architecture, compatibility or
+security guarantees. The package check was wired into normal `pnpm check:all`,
+then hardened from predicted pack output to inspection of the actual generated
+`.tgz` artifact.
+
+The final accepted M3 remediation implementation head is
+`e6522a18760268b56b09f9ac5d9c822671c41666`.
+
+Direct evidence:
+
+- normal CI #218 / run `32482908193`: PASS;
+- frozen repository install: PASS;
+- architecture/schema/compatibility gates: PASS;
+- strict TypeScript: PASS;
+- 24 test files / 261 tests: PASS;
+- oxlint: 0 warnings / 0 errors;
+- actual protocol/testkit tarball construction and inspection: PASS;
+- generated package includes all 44 registered TCK assets and required schema;
+- an external consumer created outside the repository installs the same-run
+  `protocol.tgz` and `testkit.tgz` with npm 10.9.3 in offline/ignore-scripts
+  mode;
+- the consumer resolves `@dsh-safe/testkit` from installed `node_modules`, not a
+  repository/workspace source path;
+- the external dummy implementation proves required PASS, deliberate FAIL, and
+  thrown-implementation ERROR behavior through public testkit exports;
+- exact Harness rc5 source-conformance #177 / run `32482908210`: PASS, including
+  pinned source build, projection/idempotence, exact binding typecheck and real
+  rc5 runtime conformance.
+
+DeepSeek Harness remains Adapter compatibility evidence only; it did not define
+or modify Shared TCK semantics.
+
+`docs/acceptance/m3-acceptance-audit.md` now records **M3 ACCEPTED**. M4 is
+therefore authorized only as the next protocol-first milestone, beginning at
+`M4-001 P0 — YAML/JSON loader`. M4-002+ and M6 Workspace Transaction remain
+unauthorized until their respective gates are reached.

@@ -5,6 +5,7 @@ export * from "./feature-matrix.js";
 export * from "./normalize.js";
 export * from "./ports.js";
 export * from "./provider-ports.js";
+export * from "./replay-reconciliation.js";
 export * from "./runtime-events.js";
 export * from "./sidecar.js";
 

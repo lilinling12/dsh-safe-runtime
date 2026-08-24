@@ -1,4 +1,6 @@
 import { Context, type Fiber, type Inject } from "@deepseek-ai/cordis";
+import { Inbox, type Agent } from "@deepseek-ai/dsh-agent";
+import type { Session } from "@deepseek-ai/dsh-session";
 
 /**
  * A consumer created through Cordis's explicit service-injection API.
@@ -41,6 +43,38 @@ export interface HarnessTestScope {
   injectWithFiber(dependencies: Inject): Promise<HarnessInjectedConsumer>;
 
   dispose(): Promise<void>;
+}
+
+/**
+ * Build the smallest complete public Agent handle required by source-conformance
+ * tests that execute an agent-scoped tool without loading the concrete agent
+ * loop. Session and Inbox are real pinned-Harness objects; driver methods are
+ * inert because these tests exercise public ToolRuntime seams directly.
+ */
+export function createAgentFixture(ctx: Context, session: Session): Agent {
+  const inbox = new Inbox(session, {
+    inserted() {},
+    discarded() {},
+    claimed() {},
+  });
+
+  return {
+    id: session.id,
+    options: {},
+    session,
+    inbox,
+    status: "idle",
+    ctx,
+    cancel() {},
+    async whenIdle(): Promise<void> {},
+    async runMaintenance<T>(task: (signal: AbortSignal) => Promise<T>): Promise<T> {
+      return task(new AbortController().signal);
+    },
+    send() {},
+    followup() {},
+    steer() {},
+    inject() {},
+  };
 }
 
 /**

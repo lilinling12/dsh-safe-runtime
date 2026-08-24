@@ -1,0 +1,35 @@
+{
+  "apiVersion": "safe-runtime.dev/tck-fixture/v1alpha1",
+  "id": "TCK-ADAPTER-DSH-DISPOSAL-OBSERVATION-001",
+  "profile": "ADAPTER_DSH",
+  "description": "Observation disposal cuts off future delivery, drains already accepted work, is idempotent, and leaves the external runtime live.",
+  "determinism": {
+    "seed": 16001,
+    "clock": {
+      "startUnixMs": 1787218200000,
+      "tickMs": 1
+    }
+  },
+  "stimulus": {
+    "operation": "disposal",
+    "request": {
+      "sessionRef": "session:disposal-observation",
+      "resourceRef": "observation:1"
+    },
+    "sourceFact": {
+      "kind": "OBSERVATION_SUBSCRIPTION",
+      "acceptedBeforeDispose": ["before-1"],
+      "disposeCompleted": true,
+      "probedAfterDispose": ["after-1"],
+      "repeatDispose": true
+    }
+  },
+  "expect": {
+    "kind": "DISPOSAL_COMPLETED",
+    "resourceKind": "OBSERVATION_SUBSCRIPTION",
+    "acceptedBeforeDisposeSettled": ["before-1"],
+    "effectsAfterDispose": [],
+    "repeatDispose": "IDEMPOTENT",
+    "externalRuntime": "REMAINS_LIVE"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "apiVersion": "safe-runtime.dev/tck-fixture/v1alpha1",
+  "id": "TCK_AUTH_APPROVAL_001",
+  "profile": "AUTH",
+  "description": "Fake approval consumes deterministic decisions in FIFO order and preserves each outcome exactly.",
+  "determinism": {
+    "seed": 7,
+    "clock": {
+      "startUnixMs": 1787040000000,
+      "tickMs": 10
+    }
+  },
+  "stimulus": {
+    "operation": "approval.sequence",
+    "script": ["REJECTED", "ALLOWED_ONCE", "UNAVAILABLE"],
+    "requests": [
+      { "requestRef": "approval-1", "actionRef": "action-1", "reason": "first decision" },
+      { "requestRef": "approval-2", "actionRef": "action-2" },
+      { "requestRef": "approval-3", "actionRef": "action-3" }
+    ]
+  },
+  "expect": {
+    "decisions": ["REJECTED", "ALLOWED_ONCE", "UNAVAILABLE"],
+    "observations": [
+      {
+        "ordinal": 1,
+        "request": { "requestRef": "approval-1", "actionRef": "action-1", "reason": "first decision" },
+        "decision": "REJECTED"
+      },
+      {
+        "ordinal": 2,
+        "request": { "requestRef": "approval-2", "actionRef": "action-2" },
+        "decision": "ALLOWED_ONCE"
+      },
+      {
+        "ordinal": 3,
+        "request": { "requestRef": "approval-3", "actionRef": "action-3" },
+        "decision": "UNAVAILABLE"
+      }
+    ]
+  }
+}

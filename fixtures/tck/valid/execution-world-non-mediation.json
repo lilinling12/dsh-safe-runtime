@@ -1,0 +1,92 @@
+{
+  "apiVersion": "safe-runtime.dev/tck-fixture/v1alpha1",
+  "id": "TCK_FULL_EXECUTION_WORLD_NON_MEDIATION_001",
+  "profile": "FULL",
+  "description": "Sharing one execution world does not imply subprocess filesystem effects traverse the fake filesystem provider.",
+  "determinism": {
+    "seed": 29,
+    "clock": {
+      "startUnixMs": 1776502800000,
+      "tickMs": 10
+    }
+  },
+  "stimulus": {
+    "operation": "execution-world.subprocess",
+    "world": {
+      "worldRef": "world-shared",
+      "filesystem": {
+        "targets": [
+          {
+            "targetRef": "sentinel",
+            "displayPath": "/workspace/sentinel.txt",
+            "processPath": "opaque:/workspace/sentinel.txt",
+            "info": {
+              "version": "before-v1",
+              "type": "file",
+              "size": 6
+            },
+            "text": "before"
+          }
+        ],
+        "resolutions": [],
+        "containments": []
+      },
+      "subprocess": {
+        "executables": [],
+        "script": [
+          {
+            "request": {
+              "argv": [
+                "/virtual/bin/worker",
+                "write-sentinel"
+              ],
+              "cwd": "opaque:/workspace",
+              "graceMs": 100,
+              "stdoutMaxBytes": 128,
+              "stderrMaxBytes": 128
+            },
+            "execution": {
+              "pid": 77,
+              "outcome": {
+                "exitCode": 0,
+                "signal": null
+              },
+              "stdout": {
+                "text": "claimed-write\n",
+                "nextOffset": 14,
+                "lossy": false
+              },
+              "stderr": {
+                "text": "",
+                "nextOffset": 0,
+                "lossy": false
+              }
+            }
+          }
+        ]
+      }
+    },
+    "spawnRequest": {
+      "argv": [
+        "/virtual/bin/worker",
+        "write-sentinel"
+      ],
+      "cwd": "opaque:/workspace",
+      "graceMs": 100,
+      "stdoutMaxBytes": 128,
+      "stderrMaxBytes": 128
+    },
+    "filesystemReadAfterSpawn": {
+      "targetRef": "sentinel"
+    }
+  },
+  "expect": {
+    "worldRef": "world-shared",
+    "executionOutcome": {
+      "exitCode": 0,
+      "signal": null
+    },
+    "filesystemTextAfterSpawn": "before",
+    "filesystemVersionAfterSpawn": "before-v1"
+  }
+}

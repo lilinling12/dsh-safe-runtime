@@ -1,0 +1,48 @@
+{
+  "apiVersion": "safe-runtime.dev/tck-fixture/v1alpha1",
+  "id": "TCK-ADAPTER-DSH-REPLAY-CONFLICT-002",
+  "profile": "ADAPTER_DSH",
+  "description": "A live durable tail that skips the next required sequence fails closed rather than inferring the missing fact from timing.",
+  "determinism": {
+    "seed": 17006,
+    "clock": {
+      "startUnixMs": 1787304600000,
+      "tickMs": 1
+    }
+  },
+  "stimulus": {
+    "operation": "replay-reconciliation",
+    "request": {
+      "sessionRef": "session:replay-gap"
+    },
+    "source": {
+      "snapshot": {
+        "facts": [
+          {
+            "sessionRef": "session:replay-gap",
+            "durableSequence": 0,
+            "durableEventRef": "session:replay-gap/seq:0",
+            "eventDigest": "digest:event:gap:0"
+          }
+        ]
+      },
+      "live": {
+        "facts": [
+          {
+            "sessionRef": "session:replay-gap",
+            "durableSequence": 2,
+            "durableEventRef": "session:replay-gap/seq:2",
+            "eventDigest": "digest:event:gap:2"
+          }
+        ]
+      },
+      "sidecar": []
+    }
+  },
+  "expect": {
+    "kind": "REPLAY_CONFLICT",
+    "sessionRef": "session:replay-gap",
+    "code": "DURABLE_SEQUENCE_GAP",
+    "durableSequence": 1
+  }
+}

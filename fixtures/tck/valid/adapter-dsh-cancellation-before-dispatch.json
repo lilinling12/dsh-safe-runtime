@@ -1,0 +1,50 @@
+{
+  "apiVersion": "safe-runtime.dev/tck-fixture/v1alpha1",
+  "id": "TCK-ADAPTER-DSH-CANCELLATION-TOOL-001",
+  "profile": "ADAPTER_DSH",
+  "description": "An authoritative final tool result with ABORTED_BEFORE_DISPATCH maps to cancelled without inferring body entry.",
+  "determinism": {
+    "seed": 15002,
+    "clock": {
+      "startUnixMs": 1787214601000,
+      "tickMs": 1
+    }
+  },
+  "stimulus": {
+    "operation": "cancellation",
+    "request": {
+      "sessionRef": "session:cancellation-before-dispatch",
+      "callRef": "cancel-before-dispatch-1",
+      "toolName": "mutate"
+    },
+    "sourceFact": {
+      "kind": "FINAL_TOOL_RESULT",
+      "source": "tools/result",
+      "observedAt": "2026-08-20T00:30:01.000Z",
+      "execution": {
+        "callId": "cancel-before-dispatch-1",
+        "name": "mutate",
+        "arguments": {
+          "value": 1
+        }
+      },
+      "result": {
+        "isError": true,
+        "error": {
+          "info": {
+            "code": "ABORTED_BEFORE_DISPATCH"
+          }
+        }
+      },
+      "resultDigest": "fixture:cancel-before-dispatch-result"
+    }
+  },
+  "expect": {
+    "kind": "TOOL_CANCELLATION",
+    "callRef": "cancel-before-dispatch-1",
+    "toolName": "mutate",
+    "outcome": "cancelled",
+    "resultDigest": "fixture:cancel-before-dispatch-result",
+    "errorCode": "ABORTED_BEFORE_DISPATCH"
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "apiVersion": "safe-runtime.dev/tck-fixture/v1alpha1",
+  "id": "TCK-ADAPTER-DSH-REPLAY-OVERLAP-001",
+  "profile": "ADAPTER_DSH",
+  "description": "Exact snapshot/live overlap is emitted once and the contiguous live tail extends the durable prefix.",
+  "determinism": {
+    "seed": 17002,
+    "clock": {
+      "startUnixMs": 1787304600000,
+      "tickMs": 1
+    }
+  },
+  "stimulus": {
+    "operation": "replay-reconciliation",
+    "request": {
+      "sessionRef": "session:replay-overlap"
+    },
+    "source": {
+      "snapshot": {
+        "facts": [
+          {
+            "sessionRef": "session:replay-overlap",
+            "durableSequence": 0,
+            "durableEventRef": "session:replay-overlap/seq:0",
+            "eventDigest": "digest:event:overlap:0"
+          },
+          {
+            "sessionRef": "session:replay-overlap",
+            "durableSequence": 1,
+            "durableEventRef": "session:replay-overlap/seq:1",
+            "eventDigest": "digest:event:overlap:1"
+          }
+        ]
+      },
+      "live": {
+        "facts": [
+          {
+            "sessionRef": "session:replay-overlap",
+            "durableSequence": 1,
+            "durableEventRef": "session:replay-overlap/seq:1",
+            "eventDigest": "digest:event:overlap:1"
+          },
+          {
+            "sessionRef": "session:replay-overlap",
+            "durableSequence": 2,
+            "durableEventRef": "session:replay-overlap/seq:2",
+            "eventDigest": "digest:event:overlap:2"
+          }
+        ]
+      },
+      "sidecar": []
+    }
+  },
+  "expect": {
+    "kind": "REPLAY_RECONCILED",
+    "sessionRef": "session:replay-overlap",
+    "nextDurableSequence": 3,
+    "durableFacts": [
+      {
+        "sessionRef": "session:replay-overlap",
+        "durableSequence": 0,
+        "durableEventRef": "session:replay-overlap/seq:0",
+        "eventDigest": "digest:event:overlap:0"
+      },
+      {
+        "sessionRef": "session:replay-overlap",
+        "durableSequence": 1,
+        "durableEventRef": "session:replay-overlap/seq:1",
+        "eventDigest": "digest:event:overlap:1"
+      },
+      {
+        "sessionRef": "session:replay-overlap",
+        "durableSequence": 2,
+        "durableEventRef": "session:replay-overlap/seq:2",
+        "eventDigest": "digest:event:overlap:2"
+      }
+    ],
+    "evidence": []
+  }
+}

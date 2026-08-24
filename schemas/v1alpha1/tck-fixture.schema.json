@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://safe-runtime.dev/schema/v1alpha1/tck-fixture.schema.json",
+  "title": "Shared TCK Fixture",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "apiVersion",
+    "id",
+    "profile",
+    "description",
+    "determinism",
+    "stimulus",
+    "expect"
+  ],
+  "properties": {
+    "apiVersion": {
+      "const": "safe-runtime.dev/tck-fixture/v1alpha1"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_-]{2,127}$"
+    },
+    "profile": {
+      "enum": [
+        "AUTH",
+        "TX",
+        "VERIFY",
+        "EVIDENCE",
+        "ADAPTER_DSH",
+        "FULL"
+      ]
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024
+    },
+    "determinism": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "seed",
+        "clock"
+      ],
+      "properties": {
+        "seed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        "clock": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "startUnixMs",
+            "tickMs"
+          ],
+          "properties": {
+            "startUnixMs": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "tickMs": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            }
+          }
+        }
+      }
+    },
+    "stimulus": {
+      "$ref": "#/$defs/jsonValue"
+    },
+    "expect": {
+      "$ref": "#/$defs/jsonValue"
+    }
+  },
+  "$defs": {
+    "jsonValue": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/jsonValue"
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/jsonValue"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,9 +1,24 @@
 {
   "name": "@dsh-safe/testkit",
   "version": "0.1.0-alpha.0",
-  "private": true,
   "type": "module",
   "license": "MIT",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "assets"
+  ],
+  "scripts": {
+    "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
+    "build": "pnpm run clean && tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "prepack": "pnpm run build && node ../../scripts/prepare-testkit-package-assets.mjs"
+  },
   "dependencies": {
     "@dsh-safe/protocol": "workspace:*"
   }

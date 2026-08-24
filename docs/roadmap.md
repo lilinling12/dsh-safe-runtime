@@ -173,10 +173,12 @@ Acceptance evidence
 
 目标：让后续核心不直接依赖 Harness RC。
 
+状态：**ACCEPTED — P0 COMPLETE**。权威验收记录见 `docs/acceptance/m2-acceptance-audit.md`；P1 延后项保持未勾选，不因里程碑验收而伪装为已实现。
+
 ## M2.1 Current Harness Recon
 
-- [ ] `M2-001 P0` 固定首个 tested Harness commit / package range。
-- [ ] `M2-002 P0` 记录：
+- [x] `M2-001 P0` 固定首个 tested Harness commit / package range。
+- [x] `M2-002 P0` 记录：
   - turn flow；
   - tool pipeline；
   - approval semantics；
@@ -185,41 +187,41 @@ Acceptance evidence
   - sandbox enforcement；
   - subagent/workflow seams。
 
-- [ ] `M2-003 P0` 建立 Feature Matrix。
+- [x] `M2-003 P0` 建立 Feature Matrix。
 
 ## M2.2 Runtime Event Mapping
 
-- [ ] `M2-010 P0` `turn/start → turn.started`。
-- [ ] `M2-011 P0` `step/start/end` mapping。
-- [ ] `M2-012 P0` `tool/call → tool.requested`。
-- [ ] `M2-013 P0` `tools/result → tool.completed`。
-- [ ] `M2-014 P0` approval mapping。
-- [ ] `M2-015 P0` `agent/request-error` mapping。
-- [ ] `M2-016 P0` `agent/turn-stopping → completion.requested`。
-- [ ] `M2-017 P1` subagent lineage mapping。
+- [x] `M2-010 P0` `turn/start → turn.started`。
+- [x] `M2-011 P0` `step/start → step.started`。**Spec 0003 的 M2 minimum vocabulary 不定义 `step.ended`，不得凭规划文字额外发明。**
+- [x] `M2-012 P0` `tool/call → tool.requested`。
+- [x] `M2-013 P0` `tools/result → tool.completed`。
+- [x] `M2-014 P0` approval mapping。
+- [x] `M2-015 P0` `agent/request-error` mapping。
+- [x] `M2-016 P0` `agent/turn-stopping → completion.requested`。
+- [ ] `M2-017 P1` subagent lineage mapping。 **DEFERRED：M2 仅完成 exact-source reconnaissance，不把 Harness lineage 直接提升为 portable protocol 语义。**
 
 ## M2.3 Adapter Ports
 
-- [ ] `M2-020 P0` Tool policy registration port。
-- [ ] `M2-021 P0` Approval port。
-- [ ] `M2-022 P0` Completion steering port。
-- [ ] `M2-023 P0` FS port。
-- [ ] `M2-024 P0` Subprocess port。
-- [ ] `M2-025 P1` Sandbox metadata port。
+- [x] `M2-020 P0` Tool policy registration port。
+- [x] `M2-021 P0` Approval port。
+- [x] `M2-022 P0` Completion steering port。
+- [x] `M2-023 P0` FS port。
+- [x] `M2-024 P0` Subprocess port。
+- [ ] `M2-025 P1` Sandbox metadata port。 **DEFERRED/PARTIAL：provider facts 已记录，但不推导更强 sandbox guarantee。**
 
 ## M2.4 Sidecar
 
-- [ ] `M2-030 P0` 不依赖 custom durable SessionEvent。
-- [ ] `M2-031 P0` 建 Sidecar correlation。
-- [ ] `M2-032 P0` Session event ref/digest。
-- [ ] `M2-033 P1` Replay reconciliation。
+- [x] `M2-030 P0` 不依赖 custom durable SessionEvent。
+- [x] `M2-031 P0` 建 Sidecar correlation。
+- [x] `M2-032 P0` Session event ref/digest。
+- [ ] `M2-033 P1` Replay reconciliation。 **DEFERRED。**
 
 ### M2 DoD
 
-- [ ] 当前 Harness + 前一个支持版本 adapter tests green。
-- [ ] Feature 缺失可明确 fail。
-- [ ] Core 不 import Harness concrete event。
-- [ ] Event order TCK green。
+- [x] 首个 accepted Harness baseline (`0.1.0-rc.5`) exact-source adapter gate green。**当前不存在更早的 accepted baseline；一旦后续接受新 baseline，current + previous supported baseline 必须同时保持 green。**
+- [x] Feature 缺失可明确 fail。
+- [x] Core 不 import Harness concrete event。
+- [x] M2 adapter/source-conformance ordering evidence green。**language-neutral Event Order TCK 属于 M3，不回填伪造成 M2 deliverable。**
 
 ---
 
@@ -227,32 +229,36 @@ Acceptance evidence
 
 目标：先验证语义，再开始复杂 Runtime。
 
+状态：**ACCEPTED**。权威验收记录见 `docs/acceptance/m3-acceptance-audit.md`；验收以 portable specs/schemas/fixtures、独立可打包 TCK、外部非 workspace consumer 和 exact-head CI/compatibility evidence 为依据，不以 Harness 作为协议权威。
+
 ## M3.1 Test Harness
 
-- [ ] `M3-001 P0` language-independent fixture format。
-- [ ] `M3-002 P0` test runner contract。
-- [ ] `M3-003 P0` deterministic seed/time。
-- [ ] `M3-004 P0` fake approval。
-- [ ] `M3-005 P0` fake tool runtime。
-- [ ] `M3-006 P0` fake fs/subprocess。
-- [ ] `M3-007 P0` fault injection interface。
+- [x] `M3-001 P0` language-independent fixture format。
+- [x] `M3-002 P0` test runner contract。
+- [x] `M3-003 P0` deterministic seed/time。
+- [x] `M3-004 P0` fake approval。 **DONE：Spec 0005 + portable fixtures + deterministic TypeScript projection；head `cc59a5db...` CI #79 PASS。**
+- [x] `M3-005 P0` fake tool runtime。 **DONE：Spec 0006 + portable RESULT/ERROR/DENIED fixtures + deterministic TypeScript projection；head `d5cc3415...` CI #81 PASS。**
+- [x] `M3-006 P0` fake fs/subprocess。 **DONE：Spec 0007 + portable explicit-fact fixtures + deterministic fake execution world；head `de5d4e0c...` CI #86 PASS（81 tests，oxlint 0/0）。**
+- [x] `M3-007 P0` fault injection interface。 **DONE：Spec 0008 + portable deterministic probe/directive fixtures + TypeScript projection；head `494e08de...` CI #91 PASS（89 tests，oxlint 0/0）。**
 
 ## M3.2 Adapter TCK
 
-- [ ] `M3-010 P0` turn lifecycle。
-- [ ] `M3-011 P0` tool ordering。
-- [ ] `M3-012 P0` denied call never enters body。
-- [ ] `M3-013 P0` final result mapping。
-- [ ] `M3-014 P0` approval unavailable。
-- [ ] `M3-015 P0` cancellation。
-- [ ] `M3-016 P0` disposal。
-- [ ] `M3-017 P1` replay reconciliation。
+- [x] `M3-010 P0` turn lifecycle。 **DONE：Spec 0009 + 5 portable ADAPTER_DSH fixtures + generic evaluator + adapter projection + exact rc5 runtime conformance；head `728f44e...` CI #99 PASS / source-conformance #58 PASS（115 tests，oxlint 0/0）。**
+- [x] `M3-011 P0` tool ordering。
+- [x] `M3-012 P0` denied call never enters body。
+- [x] `M3-013 P0` final result mapping。
+- [x] `M3-014 P0` approval unavailable。
+- [x] `M3-015 P0` cancellation。
+- [x] `M3-016 P0` disposal。
+- [x] `M3-017 P1` replay reconciliation。
 
 ### M3 DoD
 
-- [ ] TCK 可单独发布。
-- [ ] Reference Runtime 之外的 dummy implementation 能运行。
-- [ ] Fixture 不包含 TypeScript-only 语义。
+- [x] TCK 可单独发布。
+- [x] Reference Runtime 之外的 dummy implementation 能运行。
+- [x] Fixture 不包含 TypeScript-only 语义。
+
+最终验收 remediation implementation head：`e6522a18760268b56b09f9ac5d9c822671c41666`；normal CI #218 与 exact Harness rc5 source-conformance #177 均 PASS。下一个且唯一新授权的工程 Gate 是 `M4-001 P0`，仍须 protocol/spec-first。
 
 ---
 

@@ -1,0 +1,61 @@
+{
+  "apiVersion": "safe-runtime.dev/tck-fixture/v1alpha1",
+  "id": "TCK-ADAPTER-DSH-REPLAY-CLEAN-001",
+  "profile": "ADAPTER_DSH",
+  "description": "A complete durable snapshot with no live overlap reconciles unchanged and advances the next durable sequence.",
+  "determinism": {
+    "seed": 17001,
+    "clock": {
+      "startUnixMs": 1787304600000,
+      "tickMs": 1
+    }
+  },
+  "stimulus": {
+    "operation": "replay-reconciliation",
+    "request": {
+      "sessionRef": "session:replay-clean"
+    },
+    "source": {
+      "snapshot": {
+        "facts": [
+          {
+            "sessionRef": "session:replay-clean",
+            "durableSequence": 0,
+            "durableEventRef": "session:replay-clean/seq:0",
+            "eventDigest": "digest:event:clean:0"
+          },
+          {
+            "sessionRef": "session:replay-clean",
+            "durableSequence": 1,
+            "durableEventRef": "session:replay-clean/seq:1",
+            "eventDigest": "digest:event:clean:1"
+          }
+        ]
+      },
+      "live": {
+        "facts": []
+      },
+      "sidecar": []
+    }
+  },
+  "expect": {
+    "kind": "REPLAY_RECONCILED",
+    "sessionRef": "session:replay-clean",
+    "nextDurableSequence": 2,
+    "durableFacts": [
+      {
+        "sessionRef": "session:replay-clean",
+        "durableSequence": 0,
+        "durableEventRef": "session:replay-clean/seq:0",
+        "eventDigest": "digest:event:clean:0"
+      },
+      {
+        "sessionRef": "session:replay-clean",
+        "durableSequence": 1,
+        "durableEventRef": "session:replay-clean/seq:1",
+        "eventDigest": "digest:event:clean:1"
+      }
+    ],
+    "evidence": []
+  }
+}

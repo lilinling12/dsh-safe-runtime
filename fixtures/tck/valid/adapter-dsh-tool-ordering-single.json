@@ -1,0 +1,50 @@
+{
+  "apiVersion": "safe-runtime.dev/tck-fixture/v1alpha1",
+  "id": "TCK_ADAPTER_DSH_TOOL_ORDERING_SINGLE_001",
+  "profile": "ADAPTER_DSH",
+  "description": "Projects one durable tool request before its live final completion without treating request intent as execution success.",
+  "determinism": {
+    "seed": 31101,
+    "clock": {
+      "startUnixMs": 1770001000000,
+      "tickMs": 10
+    }
+  },
+  "stimulus": {
+    "operation": "tool-ordering",
+    "sessionRef": "session:tck-tool-single",
+    "sourceObservations": [
+      {
+        "source": "session/event",
+        "type": "tool/call",
+        "seq": 20,
+        "time": 1770001000000,
+        "data": {
+          "turn": 4,
+          "step": 1,
+          "callId": "call-a",
+          "name": "read",
+          "arguments": "{\"path\":\"a.txt\"}"
+        }
+      },
+      {
+        "source": "tools/result",
+        "observedAt": "2026-08-19T02:16:41.000Z",
+        "execution": {
+          "callId": "call-a",
+          "name": "read",
+          "arguments": { "path": "a.txt" }
+        },
+        "result": { "isError": false },
+        "resultDigest": "sha256:fixture-result-a"
+      }
+    ]
+  },
+  "expect": {
+    "kind": "EVENTS",
+    "events": [
+      { "type": "tool.requested", "callRef": "call-a", "toolName": "read" },
+      { "type": "tool.completed", "callRef": "call-a", "toolName": "read" }
+    ]
+  }
+}

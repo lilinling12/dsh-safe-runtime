@@ -16,6 +16,7 @@
     "check-result.schema.json",
     "acceptance-verdict.schema.json",
     "evidence-episode.schema.json",
-    "evidence-retention-profile.schema.json"
+    "evidence-retention-profile.schema.json",
+    "tck-fixture.schema.json"
   ]
 }

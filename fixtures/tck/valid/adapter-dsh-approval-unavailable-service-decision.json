@@ -1,0 +1,32 @@
+{
+  "apiVersion": "safe-runtime.dev/tck-fixture/v1alpha1",
+  "id": "TCK-ADAPTER-DSH-APPROVAL-UNAVAILABLE-002",
+  "profile": "ADAPTER_DSH",
+  "description": "An Adapter DSH approval service that explicitly resolves unavailable fails closed and preserves durable asked/decided evidence.",
+  "determinism": {
+    "seed": 13015,
+    "clock": {
+      "startUnixMs": 1787212800000,
+      "tickMs": 1
+    }
+  },
+  "stimulus": {
+    "operation": "approval-unavailable",
+    "request": {
+      "sessionRef": "session:approval-unavailable",
+      "callRef": "call-service",
+      "toolName": "write",
+      "reason": "requires approval"
+    },
+    "sourceFact": {
+      "kind": "SERVICE_DECISION",
+      "decision": "UNAVAILABLE",
+      "audit": "DURABLE_PAIR"
+    }
+  },
+  "expect": {
+    "kind": "APPROVAL_UNAVAILABLE",
+    "decision": "UNAVAILABLE",
+    "audit": "DURABLE_PAIR"
+  }
+}

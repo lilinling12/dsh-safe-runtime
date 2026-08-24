@@ -37,6 +37,26 @@ async function setupLiveAgent(harness: HarnessTestScope, sessionId: string) {
   };
 }
 
+async function setupLiveAgentWithoutApproval(harness: HarnessTestScope, sessionId: string) {
+  await harness.ctx.plugin(SessionStore);
+  await harness.ctx.plugin(AgentRegistry);
+  const ctx = await harness.inject(["sessions", "agents"]);
+
+  const session = ctx.sessions.create(SessionId(sessionId));
+  session.append("turn/start", { turn: 1 });
+  const agent = {
+    id: session.id,
+    session,
+  } as unknown as Agent;
+  ctx.agents.register(agent);
+
+  return {
+    ctx,
+    session,
+    adapter: createDshRc5Adapter(ctx, { digest }),
+  };
+}
+
 describe("DeepSeek Harness rc5 approval binding", () => {
   let harness: HarnessTestScope;
 
@@ -72,16 +92,41 @@ describe("DeepSeek Harness rc5 approval binding", () => {
     expect(decided.data.outcome).toBe("allowed-once");
   });
 
-  it("maps the no-answer path to UNAVAILABLE and retains the durable pair", async () => {
+  it("maps a genuinely absent approval service to UNAVAILABLE without fabricating audit", async () => {
+    const { ctx, session, adapter } = await setupLiveAgentWithoutApproval(
+      harness,
+      "approval-service-absent",
+    );
+
+    expect(ctx.get("approval")).toBeUndefined();
+    await expect(adapter.requestApproval({
+      sessionRef: "approval-service-absent",
+      callRef: "call-absent",
+      toolName: "write",
+    })).resolves.toBe("UNAVAILABLE");
+
+    expect(session.events.filter((event) => event.type.startsWith("approval/"))).toEqual([]);
+  });
+
+  it("maps the real no-answer path to UNAVAILABLE with one correlated durable pair", async () => {
     const { session, adapter } = await setupLiveAgent(harness, "approval-unavailable");
 
     await expect(adapter.requestApproval({
       sessionRef: "approval-unavailable",
+      callRef: "call-unavailable",
       toolName: "write",
     })).resolves.toBe("UNAVAILABLE");
 
     const audit = session.events.filter((event) => event.type.startsWith("approval/"));
+    expect(audit).toHaveLength(2);
     expect(audit.map((event) => event.type)).toEqual(["approval/asked", "approval/decided"]);
+    const [asked, decided] = audit;
+    if (asked?.type !== "approval/asked" || decided?.type !== "approval/decided") {
+      throw new Error("unavailable approval did not persist the required audit pair");
+    }
+    expect(asked.data.callId).toBe(CallId("call-unavailable"));
+    expect(decided.data.id).toBe(asked.data.id);
+    expect(decided.data.outcome).toBe("unavailable");
   });
 
   it("emits normalized approval evidence using the Harness-generated approval id", async () => {

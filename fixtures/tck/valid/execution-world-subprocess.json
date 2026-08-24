@@ -1,0 +1,156 @@
+{
+  "apiVersion": "safe-runtime.dev/tck-fixture/v1alpha1",
+  "id": "TCK_FULL_EXECUTION_WORLD_SUBPROCESS_001",
+  "profile": "FULL",
+  "description": "Subprocess requests are matched as inert JSON against a deterministic FIFO script with no shell or host process execution.",
+  "determinism": {
+    "seed": 23,
+    "clock": {
+      "startUnixMs": 1776502800000,
+      "tickMs": 10
+    }
+  },
+  "stimulus": {
+    "operation": "execution-world.subprocess",
+    "world": {
+      "worldRef": "world-alpha",
+      "filesystem": {
+        "targets": [
+          {
+            "targetRef": "workspace",
+            "displayPath": "/workspace",
+            "processPath": "opaque:/workspace",
+            "info": {
+              "version": "dir-v1",
+              "type": "directory"
+            }
+          }
+        ],
+        "resolutions": [],
+        "containments": []
+      },
+      "subprocess": {
+        "executables": [
+          {
+            "request": {
+              "command": "node",
+              "env": {
+                "PATH": "/virtual/bin"
+              }
+            },
+            "resolvedPath": "/virtual/bin/node"
+          }
+        ],
+        "script": [
+          {
+            "request": {
+              "argv": [
+                "/virtual/bin/node",
+                "script.js"
+              ],
+              "cwd": "opaque:/workspace",
+              "graceMs": 1000,
+              "stdoutMaxBytes": 4096,
+              "stderrMaxBytes": 4096,
+              "env": {
+                "MODE": "test"
+              }
+            },
+            "execution": {
+              "pid": 4242,
+              "outcome": {
+                "exitCode": 0,
+                "signal": null
+              },
+              "stdout": {
+                "text": "ok\n",
+                "nextOffset": 3,
+                "lossy": false
+              },
+              "stderr": {
+                "text": "",
+                "nextOffset": 0,
+                "lossy": false
+              }
+            }
+          }
+        ]
+      }
+    },
+    "executableRequest": {
+      "command": "node",
+      "env": {
+        "PATH": "/virtual/bin"
+      }
+    },
+    "spawnRequest": {
+      "argv": [
+        "/virtual/bin/node",
+        "script.js"
+      ],
+      "cwd": "opaque:/workspace",
+      "graceMs": 1000,
+      "stdoutMaxBytes": 4096,
+      "stderrMaxBytes": 4096,
+      "env": {
+        "MODE": "test"
+      }
+    }
+  },
+  "expect": {
+    "worldRef": "world-alpha",
+    "resolvedPath": "/virtual/bin/node",
+    "execution": {
+      "pid": 4242,
+      "outcome": {
+        "exitCode": 0,
+        "signal": null
+      },
+      "stdout": {
+        "text": "ok\n",
+        "nextOffset": 3,
+        "lossy": false
+      },
+      "stderr": {
+        "text": "",
+        "nextOffset": 0,
+        "lossy": false
+      }
+    },
+    "observations": [
+      {
+        "ordinal": 1,
+        "request": {
+          "argv": [
+            "/virtual/bin/node",
+            "script.js"
+          ],
+          "cwd": "opaque:/workspace",
+          "graceMs": 1000,
+          "stdoutMaxBytes": 4096,
+          "stderrMaxBytes": 4096,
+          "env": {
+            "MODE": "test"
+          }
+        },
+        "execution": {
+          "pid": 4242,
+          "outcome": {
+            "exitCode": 0,
+            "signal": null
+          },
+          "stdout": {
+            "text": "ok\n",
+            "nextOffset": 3,
+            "lossy": false
+          },
+          "stderr": {
+            "text": "",
+            "nextOffset": 0,
+            "lossy": false
+          }
+        }
+      }
+    ]
+  }
+}

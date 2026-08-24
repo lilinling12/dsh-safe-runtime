@@ -1,119 +1,70 @@
 # M2 Status — DeepSeek Harness Adapter Baseline
 
-Status: IN PROGRESS — ACCEPTANCE AUDIT  
+Status: **ACCEPTED**  
 Branch: `feat/m2-harness-adapter`  
+Accepted head: `6a9c64155ec6c376908e64d70f2b50d5b8de1285`  
 Source contract baseline: DeepSeek Harness `0.1.0-rc.5` at `47f943859bef60e4160492346772ded9b24f765a`
 
-## Verified implementation state
+## Acceptance record
 
-The M2 branch has established and CI-verified:
+The authoritative M2 acceptance review is:
 
-- exact source-contract pin for the first Harness compatibility baseline;
-- machine-readable adapter feature matrix;
-- runtime-independent normalized events and adapter ports;
-- fail-closed feature detection and unsupported-feature error vocabulary;
-- process-local versus durable correlation rules;
-- exact/correlated tool outcome classification without substring security inference;
-- real rc5 Cordis binding through public services rather than the concrete agent loop;
-- real ToolRuntime policy, approval, turn-stopping, lifecycle/disposal conformance;
-- authoritative live `tools/result` final-outcome conformance;
-- reproducible frozen installs and deterministic projection of the exact pinned
-  upstream workspace packages;
-- exact-source TypeScript conformance against the upstream-built public type surface;
-- source-backed filesystem/subprocess/sandbox provider probe and compile contract.
+`docs/acceptance/m2-acceptance-audit.md`
 
-## Current validation evidence
+M2 was accepted only after all identified P0 blockers were closed with direct evidence:
 
-At implementation/documentation head
-`39eaaada8186ad7555456d76aeed647d1a3d7e5f`:
+- completion steering enforces the caller-defined budget and fails before Harness steering when exhausted;
+- the adapter exposes a runtime-independent sidecar evidence/correlation boundary without persisting process-local execution tokens;
+- filesystem and subprocess ports are operational while preserving opaque provider identity and refusing to overclaim isolation;
+- exact pinned-source reconnaissance records public subagent/workflow seams and explicit non-guarantees without implementing deferred portable lineage semantics.
+
+Roadmap `M2-017`, `M2-025`, and `M2-033` remain P1 work and were not silently promoted into M2 P0 acceptance requirements.
+
+## Final validation evidence
+
+Accepted documentation/handoff head `6a9c64155ec6c376908e64d70f2b50d5b8de1285` is dual-green:
 
 | Gate | Result | Evidence |
 | --- | --- | --- |
-| Normal repository CI | **PASS** | run `32022994277` (#41) |
-| Exact Harness build | **PASS** | source-conformance run `32022994262` (#23), job `95366391189`, step 6 |
-| Frozen safe-runtime install | **PASS** | step 7 |
-| Exact workspace projection | **PASS** | step 8 |
-| Projection idempotence | **PASS** | step 9 |
-| Exact-source adapter/provider TypeScript contract | **PASS** | step 10 |
-| Real rc5 runtime conformance | **PASS** | step 11 |
+| Normal repository CI | **PASS** | run #71 |
+| Frozen safe-runtime install | **PASS** | normal CI |
+| `pnpm check:all` | **PASS** | normal CI |
+| Exact Harness source conformance | **PASS** | run #53 |
+| Pinned upstream build | **PASS** | source-conformance |
+| Frozen safe-runtime install in source gate | **PASS** | source-conformance |
+| Exact workspace projection | **PASS** | source-conformance |
+| Projection idempotence | **PASS** | source-conformance |
+| Exact-source TypeScript/provider contract | **PASS** | source-conformance |
+| Real rc5 runtime conformance | **PASS** | source-conformance |
 
-The provider contract added in M2 is therefore checked against the exact pinned
-upstream source rather than against a guessed or newer npm package family.
+The exact rc5 source, not a newer npm artifact family, remains the semantic compatibility baseline.
+
+## Compatibility and security conclusions
+
+M2 establishes an adapter boundary, not protocol authority for DeepSeek Harness. In particular:
+
+- `tool/call` is intent; live `tools/result` is the authoritative final outcome;
+- unknown required adapter semantics fail closed;
+- `ctx.tools.restrict()` is visibility composition, not authorization;
+- filesystem/provider mediation is not process isolation;
+- local subprocess file effects do not automatically traverse `ctx.fs`;
+- workflow worker threads are not a security boundary;
+- Harness subagent/workflow run ids, sequence values, provider names, phases and session metadata are compatibility evidence, not portable safe-runtime identifiers;
+- `M2-017 P1` subagent lineage normalization remains deferred.
 
 ## Distribution reality
 
-The source baseline remains distinct from npm distribution support. The exact
-rc5 source declares the relevant package family as `0.1.0-rc.5`, while the npm
-registry does not provide a complete matching rc5 package family (notably the
-required session package).
+The source contract and npm distribution claims remain separate:
 
-Safe-runtime therefore keeps:
+```text
+source baseline:       0.1.0-rc.5 @ 47f943859bef60e4160492346772ded9b24f765a
+npm distribution:      distribution-blocked
+```
 
-- **source contract baseline** — exact upstream commit `47f943...`;
-- **npm distribution baseline** — `distribution-blocked` until separately proven.
+M2 MUST NOT mix rc5 source semantics with a newer npm package family merely to make dependency resolution pass.
 
-M2 MUST NOT mix rc5 source semantics with newer npm artifacts merely to satisfy
-package resolution.
+## Milestone boundary
 
-## Provider probe result
+M2 acceptance authorizes M3 Shared TCK Foundation. It does **not** imply that the M3 language-neutral Event Order TCK was completed inside M2.
 
-Detailed evidence is recorded in:
-
-`docs/compatibility/deepseek-harness-0.1.0-rc.5-provider-probe.md`
-
-The key security conclusions are:
-
-- `FsTargetKey` and `FsVersion` are provider-owned opaque tokens;
-- `processPath()` is an explicit bridge from filesystem target identity into
-  process/OS path space;
-- `fs-local` `cwd` is a resolution base, **not** a containment boundary;
-- local target identity is realpath-derived and symlink aliases converge;
-- `fs-sandbox` confines mutation calls only; reads pass through;
-- `fs-sandbox` is a trusted-code policy fence with residual TOCTOU, not a
-  kernel/process isolation boundary;
-- `subprocess-local` uses OS paths directly and does not route a child's file
-  access through `ctx.fs`;
-- managed subprocess lifetime is not filesystem/network confinement;
-- sandbox mode vocabulary covers file effects only;
-- sandbox `full | partial` is provider-reported completeness for that declared
-  scope, and an operator-configured runner may report `full` without the built-in
-  functional probe;
-- no provider fact in this probe proves universal network confinement or the
-  safe-runtime `process-isolated` guarantee level.
-
-These facts prevent a future workspace transaction implementation from assuming
-that intercepting `ctx.fs` also intercepts shell/subprocess writes.
-
-## Current gate
-
-**M2 Acceptance Audit** is now the active gate.
-
-M2 remains `IN PROGRESS` and PR #1 remains Draft until the audit reconciles:
-
-1. normative `specs/0003-deepseek-harness-adapter-contract.md` acceptance criteria;
-2. the older, broader M2 roadmap tracking items;
-3. `docs/tck-security-acceptance.md` adapter/security expectations;
-4. actual source-conformance and normal CI evidence;
-5. explicit supported/deferred items, without silently marking unimplemented P1
-   work or future shared-TCK work complete.
-
-The audit must report real blockers instead of weakening or reinterpreting a
-requirement to make M2 appear complete.
-
-## Acceptance boundary
-
-M2 must not be marked Ready merely because current CI is green. The acceptance
-audit still needs to answer, at minimum:
-
-- whether every normative Spec 0003 criterion has direct evidence;
-- whether unsupported-feature behavior has adequate negative test evidence;
-- whether roadmap FS/subprocess ports mean the current compatibility/guarantee
-  ports or require a stronger operational abstraction;
-- how the roadmap's `previous supported version` condition applies when rc5 is
-  the first accepted baseline;
-- how the roadmap's event-order TCK condition relates to M3's explicitly
-  language-neutral shared TCK milestone;
-- whether any remaining P0 item is truly required to close M2.
-
-Until those questions are resolved by evidence and repository governance, M2 is
-not Ready.
+PR #1 remaining Draft is a review/merge decision separate from the semantic M2 acceptance decision. M3 work is maintained on a separate stacked branch so later TCK changes do not mutate the accepted M2 evidence line.

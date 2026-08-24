@@ -1,0 +1,50 @@
+{
+  "apiVersion": "safe-runtime.dev/tck-fixture/v1alpha1",
+  "id": "TCK-ADAPTER-DSH-CANCELLATION-TOOL-002",
+  "profile": "ADAPTER_DSH",
+  "description": "An authoritative final tool result with ABORTED maps to cancelled after the runtime has already entered the tool body.",
+  "determinism": {
+    "seed": 15003,
+    "clock": {
+      "startUnixMs": 1787214602000,
+      "tickMs": 1
+    }
+  },
+  "stimulus": {
+    "operation": "cancellation",
+    "request": {
+      "sessionRef": "session:cancellation-after-entry",
+      "callRef": "cancel-after-entry-1",
+      "toolName": "mutate"
+    },
+    "sourceFact": {
+      "kind": "FINAL_TOOL_RESULT",
+      "source": "tools/result",
+      "observedAt": "2026-08-20T00:30:02.000Z",
+      "execution": {
+        "callId": "cancel-after-entry-1",
+        "name": "mutate",
+        "arguments": {
+          "value": 2
+        }
+      },
+      "result": {
+        "isError": true,
+        "error": {
+          "info": {
+            "code": "ABORTED"
+          }
+        }
+      },
+      "resultDigest": "fixture:cancel-after-entry-result"
+    }
+  },
+  "expect": {
+    "kind": "TOOL_CANCELLATION",
+    "callRef": "cancel-after-entry-1",
+    "toolName": "mutate",
+    "outcome": "cancelled",
+    "resultDigest": "fixture:cancel-after-entry-result",
+    "errorCode": "ABORTED"
+  }
+}

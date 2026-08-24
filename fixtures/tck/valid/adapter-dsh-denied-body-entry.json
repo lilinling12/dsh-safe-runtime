@@ -1,0 +1,33 @@
+{
+  "apiVersion": "safe-runtime.dev/tck-fixture/v1alpha1",
+  "id": "TCK-ADAPTER-DSH-DENIED-BODY-ENTRY-001",
+  "profile": "ADAPTER_DSH",
+  "description": "An explicitly denied Adapter DSH tool call must not enter the registered tool body.",
+  "determinism": {
+    "seed": 12012,
+    "clock": {
+      "startUnixMs": 1787126400000,
+      "tickMs": 1
+    }
+  },
+  "stimulus": {
+    "operation": "denied-body-entry",
+    "call": {
+      "callRef": "deny-1",
+      "toolName": "mutate",
+      "arguments": {
+        "value": 1
+      }
+    },
+    "policy": {
+      "decision": "DENY"
+    }
+  },
+  "expect": {
+    "kind": "DENIAL_BODY_ENTRY",
+    "callRef": "deny-1",
+    "toolName": "mutate",
+    "decision": "DENIED",
+    "bodyEntered": false
+  }
+}

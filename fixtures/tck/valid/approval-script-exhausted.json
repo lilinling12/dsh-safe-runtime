@@ -1,0 +1,32 @@
+{
+  "apiVersion": "safe-runtime.dev/tck-fixture/v1alpha1",
+  "id": "TCK_AUTH_APPROVAL_002",
+  "profile": "AUTH",
+  "description": "Fake approval reports script exhaustion as an infrastructure error rather than silently mapping it to UNAVAILABLE.",
+  "determinism": {
+    "seed": 7,
+    "clock": {
+      "startUnixMs": 1787040000000,
+      "tickMs": 10
+    }
+  },
+  "stimulus": {
+    "operation": "approval.sequence",
+    "script": ["REJECTED"],
+    "requests": [
+      { "requestRef": "approval-1", "actionRef": "action-1" },
+      { "requestRef": "approval-2", "actionRef": "action-2" }
+    ]
+  },
+  "expect": {
+    "decisionsBeforeError": ["REJECTED"],
+    "errorCode": "FAKE_APPROVAL_SCRIPT_EXHAUSTED",
+    "observationsBeforeError": [
+      {
+        "ordinal": 1,
+        "request": { "requestRef": "approval-1", "actionRef": "action-1" },
+        "decision": "REJECTED"
+      }
+    ]
+  }
+}

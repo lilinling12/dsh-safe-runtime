@@ -1,0 +1,76 @@
+{
+  "apiVersion": "safe-runtime.dev/tck-fixture/v1alpha1",
+  "id": "TCK_ADAPTER_DSH_TOOL_ORDERING_BARRIER_001",
+  "profile": "ADAPTER_DSH",
+  "description": "Preserves sequential barrier ordering when the first tool completes before the second request is observed.",
+  "determinism": {
+    "seed": 31103,
+    "clock": {
+      "startUnixMs": 1770003000000,
+      "tickMs": 10
+    }
+  },
+  "stimulus": {
+    "operation": "tool-ordering",
+    "sessionRef": "session:tck-tool-barrier",
+    "sourceObservations": [
+      {
+        "source": "session/event",
+        "type": "tool/call",
+        "seq": 40,
+        "time": 1770003000000,
+        "data": {
+          "turn": 6,
+          "step": 0,
+          "callId": "call-a",
+          "name": "inspect",
+          "arguments": "{}"
+        }
+      },
+      {
+        "source": "tools/result",
+        "observedAt": "2026-08-19T02:50:01.000Z",
+        "execution": {
+          "callId": "call-a",
+          "name": "inspect",
+          "arguments": {}
+        },
+        "result": { "isError": false },
+        "resultDigest": "sha256:fixture-barrier-a"
+      },
+      {
+        "source": "session/event",
+        "type": "tool/call",
+        "seq": 41,
+        "time": 1770003000020,
+        "data": {
+          "turn": 6,
+          "step": 0,
+          "callId": "call-b",
+          "name": "apply",
+          "arguments": "{\"value\":1}"
+        }
+      },
+      {
+        "source": "tools/result",
+        "observedAt": "2026-08-19T02:50:03.000Z",
+        "execution": {
+          "callId": "call-b",
+          "name": "apply",
+          "arguments": { "value": 1 }
+        },
+        "result": { "isError": false },
+        "resultDigest": "sha256:fixture-barrier-b"
+      }
+    ]
+  },
+  "expect": {
+    "kind": "EVENTS",
+    "events": [
+      { "type": "tool.requested", "callRef": "call-a", "toolName": "inspect" },
+      { "type": "tool.completed", "callRef": "call-a", "toolName": "inspect" },
+      { "type": "tool.requested", "callRef": "call-b", "toolName": "apply" },
+      { "type": "tool.completed", "callRef": "call-b", "toolName": "apply" }
+    ]
+  }
+}

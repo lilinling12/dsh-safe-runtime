@@ -1,0 +1,33 @@
+{
+  "apiVersion": "safe-runtime.dev/tck-fixture/v1alpha1",
+  "id": "TCK-ADAPTER-DSH-DISPOSAL-GUARD-001",
+  "profile": "ADAPTER_DSH",
+  "description": "A disposed isolated monotonic guard no longer contributes its prior denial while the external runtime remains live.",
+  "determinism": {
+    "seed": 16003,
+    "clock": {
+      "startUnixMs": 1787218202000,
+      "tickMs": 1
+    }
+  },
+  "stimulus": {
+    "operation": "disposal",
+    "request": {
+      "sessionRef": "session:disposal-guard",
+      "resourceRef": "monotonic-guard:1"
+    },
+    "sourceFact": {
+      "kind": "MONOTONIC_TOOL_GUARD_REGISTRATION",
+      "effectBeforeDispose": "DENY",
+      "disposeCompleted": true,
+      "probeAfterDispose": "EXECUTE"
+    }
+  },
+  "expect": {
+    "kind": "DISPOSAL_COMPLETED",
+    "resourceKind": "MONOTONIC_TOOL_GUARD_REGISTRATION",
+    "effectBeforeDispose": "OBSERVED",
+    "effectAfterDispose": "ABSENT",
+    "externalRuntime": "REMAINS_LIVE"
+  }
+}

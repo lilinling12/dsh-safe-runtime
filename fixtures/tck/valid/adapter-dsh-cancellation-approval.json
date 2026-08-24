@@ -1,0 +1,32 @@
+{
+  "apiVersion": "safe-runtime.dev/tck-fixture/v1alpha1",
+  "id": "TCK-ADAPTER-DSH-CANCELLATION-APPROVAL-001",
+  "profile": "ADAPTER_DSH",
+  "description": "An explicit cancelled approval decision remains fail closed and preserves one durable approval audit pair.",
+  "determinism": {
+    "seed": 15001,
+    "clock": {
+      "startUnixMs": 1787214600000,
+      "tickMs": 1
+    }
+  },
+  "stimulus": {
+    "operation": "cancellation",
+    "request": {
+      "sessionRef": "session:cancellation-approval",
+      "callRef": "cancel-approval-1",
+      "toolName": "write",
+      "reason": "requires approval"
+    },
+    "sourceFact": {
+      "kind": "APPROVAL_DECISION",
+      "decision": "CANCELLED",
+      "audit": "DURABLE_PAIR"
+    }
+  },
+  "expect": {
+    "kind": "APPROVAL_CANCELLATION",
+    "decision": "CANCELLED",
+    "audit": "DURABLE_PAIR"
+  }
+}

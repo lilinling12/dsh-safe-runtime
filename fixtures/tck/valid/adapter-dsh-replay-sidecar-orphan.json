@@ -1,0 +1,49 @@
+{
+  "apiVersion": "safe-runtime.dev/tck-fixture/v1alpha1",
+  "id": "TCK-ADAPTER-DSH-REPLAY-CONFLICT-003",
+  "profile": "ADAPTER_DSH",
+  "description": "Sidecar evidence whose durable anchor is absent from the reconciled session prefix fails closed as an orphan.",
+  "determinism": {
+    "seed": 17007,
+    "clock": {
+      "startUnixMs": 1787304600000,
+      "tickMs": 1
+    }
+  },
+  "stimulus": {
+    "operation": "replay-reconciliation",
+    "request": {
+      "sessionRef": "session:replay-orphan"
+    },
+    "source": {
+      "snapshot": {
+        "facts": [
+          {
+            "sessionRef": "session:replay-orphan",
+            "durableSequence": 0,
+            "durableEventRef": "session:replay-orphan/seq:0",
+            "eventDigest": "digest:event:orphan:0"
+          }
+        ]
+      },
+      "live": {
+        "facts": []
+      },
+      "sidecar": [
+        {
+          "durableEventRef": "session:replay-orphan/seq:1",
+          "durableSequence": 1,
+          "sessionRef": "session:replay-orphan",
+          "evidenceRef": "evidence:replay-orphan:1",
+          "evidenceDigest": "digest:evidence:orphan:1"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "kind": "REPLAY_CONFLICT",
+    "sessionRef": "session:replay-orphan",
+    "code": "SIDECAR_ORPHAN",
+    "durableSequence": 1
+  }
+}

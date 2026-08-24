@@ -1,0 +1,33 @@
+{
+  "apiVersion": "safe-runtime.dev/tck-fixture/v1alpha1",
+  "id": "TCK-ADAPTER-DSH-DISPOSAL-POLICY-001",
+  "profile": "ADAPTER_DSH",
+  "description": "A disposed isolated tool-policy registration no longer contributes its prior denial while the external runtime remains live.",
+  "determinism": {
+    "seed": 16002,
+    "clock": {
+      "startUnixMs": 1787218201000,
+      "tickMs": 1
+    }
+  },
+  "stimulus": {
+    "operation": "disposal",
+    "request": {
+      "sessionRef": "session:disposal-policy",
+      "resourceRef": "tool-policy:1"
+    },
+    "sourceFact": {
+      "kind": "TOOL_POLICY_REGISTRATION",
+      "effectBeforeDispose": "DENY",
+      "disposeCompleted": true,
+      "probeAfterDispose": "EXECUTE"
+    }
+  },
+  "expect": {
+    "kind": "DISPOSAL_COMPLETED",
+    "resourceKind": "TOOL_POLICY_REGISTRATION",
+    "effectBeforeDispose": "OBSERVED",
+    "effectAfterDispose": "ABSENT",
+    "externalRuntime": "REMAINS_LIVE"
+  }
+}

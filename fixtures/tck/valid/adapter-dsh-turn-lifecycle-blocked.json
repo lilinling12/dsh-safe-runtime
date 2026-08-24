@@ -1,0 +1,42 @@
+{
+  "apiVersion": "safe-runtime.dev/tck-fixture/v1alpha1",
+  "id": "TCK_ADAPTER_DSH_TURN_LIFECYCLE_BLOCKED_001",
+  "profile": "ADAPTER_DSH",
+  "description": "Maps a blocked Harness turn end without inventing additional lifecycle evidence.",
+  "determinism": {
+    "seed": 31003,
+    "clock": {
+      "startUnixMs": 1770000002000,
+      "tickMs": 10
+    }
+  },
+  "stimulus": {
+    "operation": "turn-lifecycle",
+    "sessionRef": "session:tck-blocked",
+    "sourceEvents": [
+      {
+        "type": "turn/start",
+        "seq": 30,
+        "time": 1770000002000,
+        "data": { "turn": 5 }
+      },
+      {
+        "type": "turn/end",
+        "seq": 31,
+        "time": 1770000002010,
+        "data": { "turn": 5, "reason": { "kind": "blocked" } }
+      }
+    ]
+  },
+  "expect": {
+    "kind": "EVENTS",
+    "events": [
+      { "type": "turn.started", "turnRef": "session:tck-blocked/turn:5" },
+      {
+        "type": "turn.ended",
+        "turnRef": "session:tck-blocked/turn:5",
+        "status": "blocked"
+      }
+    ]
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "apiVersion": "safe-runtime.dev/tck-fixture/v1alpha1",
+  "id": "TCK_FULL_FAULT_INJECTION_SEQUENCE_001",
+  "profile": "FULL",
+  "description": "Fault selection is an explicit deterministic script that keeps NO_FAULT distinct from an injected fault descriptor.",
+  "determinism": {
+    "seed": 37,
+    "clock": {
+      "startUnixMs": 1776502800000,
+      "tickMs": 10
+    }
+  },
+  "stimulus": {
+    "operation": "fault-injection.sequence",
+    "config": {
+      "points": ["tool.before-body"],
+      "script": [
+        {
+          "probe": {
+            "pointRef": "tool.before-body",
+            "context": { "callRef": "call-1" }
+          },
+          "directive": { "kind": "NO_FAULT" }
+        },
+        {
+          "probe": {
+            "pointRef": "tool.before-body",
+            "context": { "callRef": "call-2" }
+          },
+          "directive": {
+            "kind": "INJECT_FAULT",
+            "fault": {
+              "faultRef": "fault-1",
+              "faultCode": "TEST_BODY_FAILURE",
+              "detail": { "source": "fixture" }
+            }
+          }
+        }
+      ]
+    },
+    "probes": [
+      {
+        "pointRef": "tool.before-body",
+        "context": { "callRef": "call-1" }
+      },
+      {
+        "pointRef": "tool.before-body",
+        "context": { "callRef": "call-2" }
+      }
+    ]
+  },
+  "expect": {
+    "directives": [
+      { "kind": "NO_FAULT" },
+      {
+        "kind": "INJECT_FAULT",
+        "fault": {
+          "faultRef": "fault-1",
+          "faultCode": "TEST_BODY_FAILURE",
+          "detail": { "source": "fixture" }
+        }
+      }
+    ],
+    "observationCount": 2,
+    "remaining": 0
+  }
+}

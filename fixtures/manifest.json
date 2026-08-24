@@ -168,6 +168,270 @@
       "path": "retention/invalid/secrets-enabled.json",
       "schema": "evidence-retention-profile.schema.json",
       "expected": "invalid"
+    },
+    {
+      "id": "TCK-FOUNDATION-001",
+      "path": "tck/valid/foundation-auth.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-FOUNDATION-002",
+      "path": "tck/invalid/missing-clock-tick.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "invalid"
+    },
+    {
+      "id": "TCK-FOUNDATION-003",
+      "path": "tck/invalid/unknown-top-level-field.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "invalid"
+    },
+    {
+      "id": "TCK-AUTH-APPROVAL-001",
+      "path": "tck/valid/approval-sequence.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-AUTH-APPROVAL-002",
+      "path": "tck/valid/approval-script-exhausted.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-FULL-TOOL-001",
+      "path": "tck/valid/tool-runtime-sequence.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-FULL-TOOL-002",
+      "path": "tck/valid/tool-runtime-denied.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-FULL-TOOL-003",
+      "path": "tck/valid/tool-runtime-script-exhausted.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-FULL-EXECUTION-WORLD-001",
+      "path": "tck/valid/execution-world-filesystem.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-FULL-EXECUTION-WORLD-002",
+      "path": "tck/valid/execution-world-subprocess.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-FULL-EXECUTION-WORLD-003",
+      "path": "tck/valid/execution-world-non-mediation.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-FULL-EXECUTION-WORLD-004",
+      "path": "tck/valid/execution-world-subprocess-exhausted.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-FULL-FAULT-001",
+      "path": "tck/valid/fault-injection-sequence.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-FULL-FAULT-002",
+      "path": "tck/valid/fault-injection-unexpected-probe.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-FULL-FAULT-003",
+      "path": "tck/valid/fault-injection-script-exhausted.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-TURN-LIFECYCLE-001",
+      "path": "tck/valid/adapter-dsh-turn-lifecycle-completed.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-TURN-LIFECYCLE-002",
+      "path": "tck/valid/adapter-dsh-turn-lifecycle-cancelled.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-TURN-LIFECYCLE-003",
+      "path": "tck/valid/adapter-dsh-turn-lifecycle-blocked.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-TURN-LIFECYCLE-004",
+      "path": "tck/valid/adapter-dsh-turn-lifecycle-failed.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-TURN-LIFECYCLE-005",
+      "path": "tck/valid/adapter-dsh-turn-lifecycle-unsupported-reason.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-TOOL-ORDERING-001",
+      "path": "tck/valid/adapter-dsh-tool-ordering-single.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-TOOL-ORDERING-002",
+      "path": "tck/valid/adapter-dsh-tool-ordering-parallel-model-order.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-TOOL-ORDERING-003",
+      "path": "tck/valid/adapter-dsh-tool-ordering-barrier.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-DENIED-BODY-ENTRY-001",
+      "path": "tck/valid/adapter-dsh-denied-body-entry.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-FINAL-RESULT-001",
+      "path": "tck/valid/adapter-dsh-final-result-success.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-FINAL-RESULT-002",
+      "path": "tck/valid/adapter-dsh-final-result-error.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-FINAL-RESULT-003",
+      "path": "tck/valid/adapter-dsh-final-result-error-code.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-APPROVAL-UNAVAILABLE-001",
+      "path": "tck/valid/adapter-dsh-approval-unavailable-service-absent.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-APPROVAL-UNAVAILABLE-002",
+      "path": "tck/valid/adapter-dsh-approval-unavailable-service-decision.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-CANCELLATION-APPROVAL-001",
+      "path": "tck/valid/adapter-dsh-cancellation-approval.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-CANCELLATION-TOOL-001",
+      "path": "tck/valid/adapter-dsh-cancellation-before-dispatch.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-CANCELLATION-TOOL-002",
+      "path": "tck/valid/adapter-dsh-cancellation-after-entry.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-DISPOSAL-OBSERVATION-001",
+      "path": "tck/valid/adapter-dsh-disposal-observation.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-DISPOSAL-POLICY-001",
+      "path": "tck/valid/adapter-dsh-disposal-tool-policy.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-DISPOSAL-GUARD-001",
+      "path": "tck/valid/adapter-dsh-disposal-monotonic-guard.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-DISPOSAL-TURN-STOPPING-001",
+      "path": "tck/valid/adapter-dsh-disposal-turn-stopping.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-REPLAY-CLEAN-001",
+      "path": "tck/valid/adapter-dsh-replay-clean-snapshot.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-REPLAY-OVERLAP-001",
+      "path": "tck/valid/adapter-dsh-replay-overlap-tail.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-REPLAY-SIDECAR-001",
+      "path": "tck/valid/adapter-dsh-replay-sidecar-anchor.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-REPLAY-SIDECAR-002",
+      "path": "tck/valid/adapter-dsh-replay-sidecar-idempotent.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-REPLAY-CONFLICT-001",
+      "path": "tck/valid/adapter-dsh-replay-durable-conflict.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-REPLAY-CONFLICT-002",
+      "path": "tck/valid/adapter-dsh-replay-sequence-gap.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-REPLAY-CONFLICT-003",
+      "path": "tck/valid/adapter-dsh-replay-sidecar-orphan.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
+    },
+    {
+      "id": "TCK-ADAPTER-DSH-REPLAY-CONFLICT-004",
+      "path": "tck/valid/adapter-dsh-replay-evidence-conflict.json",
+      "schema": "tck-fixture.schema.json",
+      "expected": "valid"
     }
   ]
 }

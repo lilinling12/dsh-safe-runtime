@@ -15,7 +15,8 @@
     "lint": "oxlint .",
     "check:boundaries": "node scripts/verify-boundaries.mjs",
     "check:schemas": "node scripts/check-schema-shape.mjs",
-    "check:all": "pnpm check:boundaries && pnpm check:schemas && pnpm check:schema-baseline && pnpm typecheck && pnpm test && pnpm lint",
+    "check:testkit-package": "node scripts/check-testkit-package.mjs",
+    "check:all": "pnpm check:boundaries && pnpm check:schemas && pnpm check:schema-baseline && pnpm typecheck && pnpm test && pnpm lint && pnpm check:testkit-package",
     "check:schema-baseline": "node scripts/check-schema-baseline.mjs"
   },
   "devDependencies": {
