@@ -1,125 +1,126 @@
 {
   "profile": "M4-006",
   "kind": "DefaultDenyCases",
-  "description": "Language-independent default-deny finalization over successful M4-005 effect-resolution facts.",
+  "description": "Language-independent default-deny finalization over successful M4-005 effect-resolution facts while preserving defaultEffect field presence.",
   "cases": [
     {
       "id": "resolved-allow-is-preserved",
       "effectResolution": { "status": "RESOLVED", "effect": "allow" },
-      "defaultEffect": "deny",
+      "policySpec": { "defaultEffect": "deny" },
       "expect": { "status": "FINALIZED", "effect": "allow" }
     },
     {
       "id": "resolved-ask-is-preserved",
       "effectResolution": { "status": "RESOLVED", "effect": "ask" },
-      "defaultEffect": "deny",
+      "policySpec": { "defaultEffect": "deny" },
       "expect": { "status": "FINALIZED", "effect": "ask" }
     },
     {
       "id": "resolved-deny-is-preserved",
       "effectResolution": { "status": "RESOLVED", "effect": "deny" },
-      "defaultEffect": "deny",
+      "policySpec": { "defaultEffect": "deny" },
       "expect": { "status": "FINALIZED", "effect": "deny" }
     },
     {
       "id": "no-applicable-rules-defaults-deny",
       "effectResolution": { "status": "NO_APPLICABLE_RULES" },
-      "defaultEffect": "deny",
+      "policySpec": { "defaultEffect": "deny" },
       "expect": { "status": "FINALIZED", "effect": "deny" }
     },
     {
       "id": "missing-default-effect-fails-closed",
       "effectResolution": { "status": "NO_APPLICABLE_RULES" },
+      "policySpec": {},
+      "expect": { "status": "FAIL_CLOSED", "effect": "deny", "reason": "DEFAULT_EFFECT_CONFIG_INVALID" }
+    },
+    {
+      "id": "non-object-policy-spec-fails-closed",
+      "effectResolution": { "status": "NO_APPLICABLE_RULES" },
+      "policySpec": "deny",
       "expect": { "status": "FAIL_CLOSED", "effect": "deny", "reason": "DEFAULT_EFFECT_CONFIG_INVALID" }
     },
     {
       "id": "allow-default-is-config-invalid",
       "effectResolution": { "status": "NO_APPLICABLE_RULES" },
-      "defaultEffect": "allow",
+      "policySpec": { "defaultEffect": "allow" },
       "expect": { "status": "FAIL_CLOSED", "effect": "deny", "reason": "DEFAULT_EFFECT_CONFIG_INVALID" }
     },
     {
       "id": "ask-default-is-config-invalid",
       "effectResolution": { "status": "NO_APPLICABLE_RULES" },
-      "defaultEffect": "ask",
+      "policySpec": { "defaultEffect": "ask" },
       "expect": { "status": "FAIL_CLOSED", "effect": "deny", "reason": "DEFAULT_EFFECT_CONFIG_INVALID" }
     },
     {
       "id": "unknown-default-is-config-invalid",
       "effectResolution": { "status": "NO_APPLICABLE_RULES" },
-      "defaultEffect": "audit",
+      "policySpec": { "defaultEffect": "audit" },
       "expect": { "status": "FAIL_CLOSED", "effect": "deny", "reason": "DEFAULT_EFFECT_CONFIG_INVALID" }
     },
     {
       "id": "null-default-is-config-invalid",
       "effectResolution": { "status": "NO_APPLICABLE_RULES" },
-      "defaultEffect": null,
+      "policySpec": { "defaultEffect": null },
       "expect": { "status": "FAIL_CLOSED", "effect": "deny", "reason": "DEFAULT_EFFECT_CONFIG_INVALID" }
     },
     {
       "id": "numeric-default-is-config-invalid",
       "effectResolution": { "status": "NO_APPLICABLE_RULES" },
-      "defaultEffect": 0,
+      "policySpec": { "defaultEffect": 0 },
       "expect": { "status": "FAIL_CLOSED", "effect": "deny", "reason": "DEFAULT_EFFECT_CONFIG_INVALID" }
     },
     {
       "id": "invalid-default-overrides-resolved-allow-defensively",
       "effectResolution": { "status": "RESOLVED", "effect": "allow" },
-      "defaultEffect": "allow",
+      "policySpec": { "defaultEffect": "allow" },
       "expect": { "status": "FAIL_CLOSED", "effect": "deny", "reason": "DEFAULT_EFFECT_CONFIG_INVALID" }
     },
     {
       "id": "invalid-default-overrides-resolved-ask-defensively",
       "effectResolution": { "status": "RESOLVED", "effect": "ask" },
-      "defaultEffect": "ask",
+      "policySpec": { "defaultEffect": "ask" },
       "expect": { "status": "FAIL_CLOSED", "effect": "deny", "reason": "DEFAULT_EFFECT_CONFIG_INVALID" }
     },
     {
       "id": "non-object-effect-resolution-fails-closed",
       "effectResolution": "allow",
-      "defaultEffect": "deny",
+      "policySpec": { "defaultEffect": "deny" },
       "expect": { "status": "FAIL_CLOSED", "effect": "deny", "reason": "DEFAULT_DENY_INPUT_INVALID" }
     },
     {
       "id": "unknown-status-fails-closed",
       "effectResolution": { "status": "UNKNOWN" },
-      "defaultEffect": "deny",
+      "policySpec": { "defaultEffect": "deny" },
       "expect": { "status": "FAIL_CLOSED", "effect": "deny", "reason": "DEFAULT_DENY_INPUT_INVALID" }
     },
     {
       "id": "resolved-without-effect-fails-closed",
       "effectResolution": { "status": "RESOLVED" },
-      "defaultEffect": "deny",
+      "policySpec": { "defaultEffect": "deny" },
       "expect": { "status": "FAIL_CLOSED", "effect": "deny", "reason": "DEFAULT_DENY_INPUT_INVALID" }
     },
     {
       "id": "resolved-with-uppercase-effect-fails-closed",
       "effectResolution": { "status": "RESOLVED", "effect": "ALLOW" },
-      "defaultEffect": "deny",
+      "policySpec": { "defaultEffect": "deny" },
       "expect": { "status": "FAIL_CLOSED", "effect": "deny", "reason": "DEFAULT_DENY_INPUT_INVALID" }
     },
     {
       "id": "no-applicable-with-effect-fails-closed",
       "effectResolution": { "status": "NO_APPLICABLE_RULES", "effect": "deny" },
-      "defaultEffect": "deny",
+      "policySpec": { "defaultEffect": "deny" },
       "expect": { "status": "FAIL_CLOSED", "effect": "deny", "reason": "DEFAULT_DENY_INPUT_INVALID" }
     },
     {
       "id": "resolved-with-extra-field-fails-closed",
       "effectResolution": { "status": "RESOLVED", "effect": "allow", "ruleId": "rule" },
-      "defaultEffect": "deny",
+      "policySpec": { "defaultEffect": "deny" },
       "expect": { "status": "FAIL_CLOSED", "effect": "deny", "reason": "DEFAULT_DENY_INPUT_INVALID" }
     },
     {
-      "id": "no-applicable-with-extra-field-fails-closed",
-      "effectResolution": { "status": "NO_APPLICABLE_RULES", "reason": "none" },
-      "defaultEffect": "deny",
-      "expect": { "status": "FAIL_CLOSED", "effect": "deny", "reason": "DEFAULT_DENY_INPUT_INVALID" }
-    },
-    {
-      "id": "m4-005-failure-shape-is-not-success",
+      "id": "m4-005-failure-like-shape-is-not-success",
       "effectResolution": { "status": "ERROR", "reason": "EFFECT_RESOLUTION_INPUT_INVALID" },
-      "defaultEffect": "deny",
+      "policySpec": { "defaultEffect": "deny" },
       "expect": { "status": "FAIL_CLOSED", "effect": "deny", "reason": "DEFAULT_DENY_INPUT_INVALID" }
     }
   ]
