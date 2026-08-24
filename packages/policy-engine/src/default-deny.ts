@@ -39,17 +39,31 @@ function isPolicyRuleEffect(value: unknown): value is PolicyRuleEffect {
 }
 
 /**
+ * Validate only the Core default-effect invariant, not the full CapabilityPolicy
+ * schema. Receiving the policy-spec object rather than a pre-extracted scalar is
+ * security-significant: own-property presence must survive this boundary so an
+ * inherited prototype value cannot disguise a missing `defaultEffect` field.
+ */
+function hasValidDefaultEffect(policySpecInput: unknown): boolean {
+  return (
+    isRecord(policySpecInput) &&
+    Object.hasOwn(policySpecInput, "defaultEffect") &&
+    policySpecInput["defaultEffect"] === "deny"
+  );
+}
+
+/**
  * Finalize only the v0.1 default-deny fragment after a successful M4-005 result.
  *
- * The default effect is validated first on purpose. A runtime path that bypasses
- * M4-002 must never turn a schema-invalid policy into permission merely because
- * another fragment of that invalid policy happened to resolve `allow` or `ask`.
+ * Default-effect presence/value is validated first on purpose. A runtime path
+ * that bypasses M4-002 must never turn a missing or invalid default configuration
+ * into permission merely because another processing fragment resolved `allow`.
  */
 export function finalizeDefaultDeny(
   effectResolutionInput: unknown,
-  defaultEffectInput?: unknown,
+  policySpecInput: unknown,
 ): DefaultDenyResult {
-  if (defaultEffectInput !== "deny") {
+  if (!hasValidDefaultEffect(policySpecInput)) {
     return failClosed("DEFAULT_EFFECT_CONFIG_INVALID");
   }
 
