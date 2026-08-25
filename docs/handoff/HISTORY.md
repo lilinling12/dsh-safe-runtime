@@ -1016,3 +1016,16 @@ normal CI #336 / run `32814355683` PASS and exact Harness rc5 source-conformance
 IMPLEMENTATION BOUNDARY**. This governance head must itself reach exact-head
 normal CI + Harness rc5 source-conformance dual-green before M4-009 is
 authorized. M4-020+ and M6 remain unauthorized by this gate.
+
+
+## 2026-08-25 — Close M4-008 governance and authorize M4-009
+
+Final M4-008 governance head
+`71046abef4568668ba9e3448b496430b5c48ebb7` reached exact-head dual-green:
+
+- normal CI #337 / run `32814874559`: PASS;
+- exact Harness rc5 source-conformance #279 / run `32814874566`: PASS.
+
+Therefore M4-008 governance is CLOSED and M4-009 P1 policy hot reload with
+atomic swap is formally authorized. M4-009 must begin protocol-first;
+M4-010+, M4-020+ and M6 remain unauthorized by this gate.
