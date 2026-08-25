@@ -1,0 +1,114 @@
+name: M4-008 precise protocol corpus correction
+
+on:
+  push:
+    branches:
+      - automation/m4-008-protocol-corpus-fix-v2
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: automation/m4-008-protocol-corpus-fix-v2
+          fetch-depth: 1
+
+      - name: Apply exact text edits
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path('fixtures/policy-diagnostics/cases.json')
+          text = path.read_text(encoding='utf-8')
+
+          old_lease = '"lease": { "ttlSeconds": 60, "maxUses": 1 }'
+          new_lease = '"lease": { "ttlMs": 60000, "maxUses": 1 }'
+          if text.count(old_lease) != 1:
+              raise SystemExit(f'expected exactly one old lease spelling, found {text.count(old_lease)}')
+          if new_lease in text:
+              raise SystemExit('corrected lease spelling already present')
+          text = text.replace(old_lease, new_lease, 1)
+
+          marker = '''    {
+              "id": "invalid-embedded-globstar",'''.replace('          ', '')
+          if text.count(marker) != 1:
+              raise SystemExit(f'expected exactly one insertion marker, found {text.count(marker)}')
+          if '"id": "control-code-in-locator-pattern"' in text:
+              raise SystemExit('control-code fixture already present')
+
+          case = r'''    {
+      "id": "control-code-in-locator-pattern",
+      "policy": {
+        "apiVersion": "safe-runtime.dev/v1alpha1",
+        "kind": "CapabilityPolicy",
+        "metadata": { "name": "control-pattern" },
+        "spec": {
+          "defaultEffect": "deny",
+          "rules": [
+            { "id": "r", "effect": "allow", "capabilities": ["fs.read"], "resources": ["workspace://src/line\nbreak"] }
+          ]
+        }
+      },
+      "expect": {
+        "status": "DIAGNOSED",
+        "diagnostics": [
+          { "severity": "ERROR", "code": "RESOURCE_LOCATOR_INVALID", "instancePath": "/spec/rules/0/resources/0" }
+        ],
+        "truncated": false
+      }
+    },
+'''
+          text = text.replace(marker, case + marker, 1)
+          path.write_text(text, encoding='utf-8')
+
+          parsed = json.loads(text)
+          cases = parsed.get('cases')
+          if not isinstance(cases, list) or len(cases) != 21:
+              raise SystemExit(f'expected 21 cases, got {len(cases) if isinstance(cases, list) else "non-array"}')
+          ids = [case.get('id') for case in cases if isinstance(case, dict)]
+          if len(ids) != 21 or len(set(ids)) != 21:
+              raise SystemExit('fixture IDs must be unique')
+          control = next(case for case in cases if case['id'] == 'control-code-in-locator-pattern')
+          if control['policy']['spec']['rules'][0]['resources'][0] != 'workspace://src/line\nbreak':
+              raise SystemExit('control-code fixture did not decode to a newline')
+          future = next(case for case in cases if case['id'] == 'future-fields-ignored')
+          if future['policy']['spec']['rules'][0]['lease'] != {'ttlMs': 60000, 'maxUses': 1}:
+              raise SystemExit('future-fields lease correction mismatch')
+          PY
+
+      - name: Verify minimal diff
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          changed="$(git diff --name-only)"
+          if [[ "$changed" != "fixtures/policy-diagnostics/cases.json" ]]; then
+            printf 'unexpected changed files:\n%s\n' "$changed" >&2
+            exit 1
+          fi
+          added="$(git diff --numstat -- fixtures/policy-diagnostics/cases.json | awk '{print $1}')"
+          removed="$(git diff --numstat -- fixtures/policy-diagnostics/cases.json | awk '{print $2}')"
+          if [[ "$added" -gt 30 || "$removed" -gt 2 ]]; then
+            echo "fixture correction produced excessive formatting churn: +$added -$removed" >&2
+            git diff -- fixtures/policy-diagnostics/cases.json >&2
+            exit 1
+          fi
+          git diff -- fixtures/policy-diagnostics/cases.json
+
+      - name: Commit corrected fixture blob
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add fixtures/policy-diagnostics/cases.json
+          git commit -m "test(policy): correct M4-008 portable diagnostics corpus"
+          git push origin HEAD:automation/m4-008-protocol-corpus-fix-v2
