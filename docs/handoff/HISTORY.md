@@ -1029,3 +1029,54 @@ Final M4-008 governance head
 Therefore M4-008 governance is CLOSED and M4-009 P1 policy hot reload with
 atomic swap is formally authorized. M4-009 must begin protocol-first;
 M4-010+, M4-020+ and M6 remain unauthorized by this gate.
+
+## 2026-08-25 — Accept M4-009 atomic CapabilityPolicy hot reload
+
+M4-009 closed at accepted implementation head
+`76dd50e731df617c1fafc1929be306f73458b7d4` after protocol-first definition
+of a synchronous single-isolate policy activation store in Spec 0025.
+
+The reload path preserves existing authority boundaries: M4-001 owns document
+format/loading, M4-002 owns schema validity, M4-003 owns selector normalization,
+and M4-004 owns lexical pattern syntax. M4-008 diagnostics remain advisory and
+cannot silently become activation blockers. No full PDP, tool classifier,
+approval, lease, receipt/provenance, guarantee, watcher, distributed config or
+Adapter-enforcement semantics were pulled into M4-009.
+
+The accepted store publishes exactly one immutable active-record reference. A
+candidate is fully loaded, schema-validated and resource-preflighted before a
+complete frozen next record is constructed; the final reference assignment is
+the single-isolate linearization point. Rejected REQUEST, LOAD, SCHEMA,
+RESOURCE and STATE candidates retain the exact last-known-good record reference
+and epoch. Old ACTIVE handles remain frozen and stable across later swaps.
+
+Runtime hardening rejects accessor/inherited/extra/symbol/revoked request
+shapes without executing `format` or `source` getters. Candidate source text is
+not retained as store state or copied into failure output. Epoch exhaustion
+fails without publication. The reduced-epoch test seam remains package-internal
+and is not exported from the package root.
+
+Exact accepted implementation evidence at `76dd50e7...`:
+
+- normal CI #346 / run `32822338122`: PASS;
+- exact Harness rc5 source-conformance #288 / run `32822338113`: PASS;
+- frozen install / 124-entry supply-chain policy: PASS;
+- architecture / 16-schema shape / schema baseline: PASS;
+- strict workspace TypeScript: PASS;
+- 37 test files / 538 tests: PASS;
+- primary M4-009 suite: 25 PASS;
+- green-after-review hardening: 3 PASS;
+- oxlint: 0 warnings / 0 errors on 117 files;
+- Shared TCK packed artifact + external consumer: 44 assets PASS;
+- Harness steps 6–11: all PASS.
+
+Implementation acceptance was recorded at
+`ae6c53d5f23f9b666f7d1dbc258756d52a6eb0c1`; that acceptance head itself
+reached normal CI #347 / run `32822755197` PASS and exact Harness rc5
+source-conformance #289 / run `32822755212` PASS before this governance
+record was prepared.
+
+`docs/acceptance/m4-009-acceptance-audit.md` records M4-009 accepted at
+implementation boundary. This final governance head must itself reach exact-head
+normal CI + Harness dual-green before any M4-010+ gate is authorized. M4-020+
+and M6 remain unauthorized by this gate.
