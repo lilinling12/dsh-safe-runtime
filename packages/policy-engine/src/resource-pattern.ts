@@ -29,6 +29,10 @@ interface CompilePatternSuccess {
 
 type CompilePatternResult = CompilePatternSuccess | RuleOrderingFailure;
 
+export type CanonicalPolicyResourcePatternValidationResult =
+  | { readonly ok: true }
+  | RuleOrderingFailure;
+
 function failure(reason: RuleOrderingFailure["reason"]): RuleOrderingFailure {
   return Object.freeze({ ok: false, reason });
 }
@@ -84,6 +88,18 @@ function compilePattern(selector: CanonicalResourceSelector): CompilePatternResu
       specificity: frozenSpecificity(literalCodePoints, globstarCount, starCount),
     }),
   });
+}
+
+/**
+ * Reuse the accepted M4-004 compiler for diagnostics without manufacturing a
+ * synthetic resource match. This seam is package-internal (not root-exported):
+ * callers must first cross the M4-003 canonical selector boundary.
+ */
+export function validateCanonicalPolicyResourcePattern(
+  selector: CanonicalResourceSelector,
+): CanonicalPolicyResourcePatternValidationResult {
+  const compiled = compilePattern(selector);
+  return compiled.ok ? Object.freeze({ ok: true }) : compiled;
 }
 
 /** Match one slash-delimited locator segment against the v0.1 `*` operator. */
