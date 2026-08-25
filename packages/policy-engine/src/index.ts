@@ -1,11 +1,12 @@
 /**
  * @dsh-safe/policy-engine public boundary.
  *
- * M4-001 through M4-007 are acceptance-audited and governance-closed. M4-008
- * deterministic policy diagnostics is the active implementation gate; hot
- * reload, full PDP evaluation and durable provenance remain later gates.
+ * M4-001 through M4-008 are acceptance-audited at their implementation
+ * boundaries. M4-008 final governance closure is still required before hot
+ * reload or any later policy-engine gate begins; full PDP evaluation and durable
+ * provenance remain later governance gates.
  */
-export const PACKAGE_STAGE = "M4-008-DIAGNOSTICS-IN-PROGRESS" as const;
+export const PACKAGE_STAGE = "M4-008-DIAGNOSTICS-CONFORMANCE" as const;
 
 export {
   loadPolicyDocument,
