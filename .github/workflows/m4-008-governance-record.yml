@@ -33,70 +33,72 @@ jobs:
           if marker in history_text:
               raise SystemExit('M4-008 history entry already present')
 
-          entry = '''
-
-## 2026-08-25 — Accept M4-008 deterministic CapabilityPolicy diagnostics
-
-M4-008 closed at the implementation boundary on
-`2aa8250f6c98b9853497481c08e584df866863ff` after protocol-first definition of
-a non-authoritative CapabilityPolicy diagnostics layer in Spec 0024.
-
-The accepted diagnostics boundary consumes only an already M4-002-validated
-policy snapshot. It never changes schema validity, resource normalization,
-structural ordering, effect resolution, defensive default deny, or M4-007
-explanation semantics. It also does not implement subject resolution, full PDP
-matching, lease semantics, approval routing, guarantee assignment, decision
-receipts, provenance, provider containment, or M4-009 hot reload.
-
-Portable diagnostics are deterministic and privacy-preserving: stable severity
-and code plus RFC 6901 source paths only. v0.1 reports accepted M4-003 selector
-normalization failures, M4-004 resource-pattern syntax failures, exact duplicate
-rule-ID warnings, redundant deny priority, redundant zero priority on allow/ask,
-and empty rule sets. Output is capped at 256 findings and signals truncation
-without making presentation order authorization precedence.
-
-The implementation reuses the accepted M4-004 pattern compiler through a
-package-internal syntax-validation seam rather than maintaining a second `**`
-parser. Runtime hardening reads only required own data properties, rejects
-accessor-backed/sparse/named/symbol arrays and descriptor/proxy failures, does
-not execute deferred capability/subject/constraint/lease getters, does not
-mutate caller input, and returns frozen detached results.
-
-Protocol review found and corrected two fixture defects before production code
-was accepted: a missing control-code locator case was added and the future-field
-lease example was corrected from nonexistent `ttlSeconds` to schema-defined
-`ttlMs`. A temporary whole-file JSON reformat was rejected rather than accepted
-as governance noise.
-
-The first implementation head `d87ad0bb...` was already dual-green, but
-acceptance review strengthened evidence further. Portable cases are now run
-through the real M4-001 loader and M4-002 schema validator before diagnostics,
-and additional inherited-field and revoked-proxy regressions were added.
-
-Final accepted implementation evidence at `2aa8250f...`:
-
-- normal CI #335 / run `32798605219`: PASS;
-- exact Harness rc5 source-conformance #277 / run `32798605222`: PASS;
-- frozen install / 124-entry supply-chain policy: PASS;
-- architecture boundaries / 16-schema shape / schema baseline: PASS;
-- strict workspace TypeScript: PASS;
-- 35 test files / 510 tests: PASS;
-- M4-008 diagnostics suite: 33 PASS;
-- oxlint: 0 warnings / 0 errors on 113 files;
-- Shared TCK packed artifact + external consumer: 44 assets PASS;
-- Harness compatibility steps 6–11: all PASS.
-
-Implementation acceptance was recorded on
-`202283944ae6736dc324f1251e9546b20af5019d`; that acceptance head also reached
-normal CI #336 / run `32814355683` PASS and exact Harness rc5 source-conformance
-#278 / run `32814355684` PASS before this final governance record was prepared.
-
-`docs/acceptance/m4-008-acceptance-audit.md` records **M4-008 ACCEPTED AT
-IMPLEMENTATION BOUNDARY**. This governance head must itself reach exact-head
-normal CI + Harness rc5 source-conformance dual-green before M4-009 is
-authorized. M4-020+ and M6 remain unauthorized by this gate.
-'''
-          history.write_text(history_text + entry, encoding='utf-8')
+          lines = [
+              '',
+              '',
+              '## 2026-08-25 — Accept M4-008 deterministic CapabilityPolicy diagnostics',
+              '',
+              'M4-008 closed at the implementation boundary on',
+              '`2aa8250f6c98b9853497481c08e584df866863ff` after protocol-first definition of',
+              'a non-authoritative CapabilityPolicy diagnostics layer in Spec 0024.',
+              '',
+              'The accepted diagnostics boundary consumes only an already M4-002-validated',
+              'policy snapshot. It never changes schema validity, resource normalization,',
+              'structural ordering, effect resolution, defensive default deny, or M4-007',
+              'explanation semantics. It also does not implement subject resolution, full PDP',
+              'matching, lease semantics, approval routing, guarantee assignment, decision',
+              'receipts, provenance, provider containment, or M4-009 hot reload.',
+              '',
+              'Portable diagnostics are deterministic and privacy-preserving: stable severity',
+              'and code plus RFC 6901 source paths only. v0.1 reports accepted M4-003 selector',
+              'normalization failures, M4-004 resource-pattern syntax failures, exact duplicate',
+              'rule-ID warnings, redundant deny priority, redundant zero priority on allow/ask,',
+              'and empty rule sets. Output is capped at 256 findings and signals truncation',
+              'without making presentation order authorization precedence.',
+              '',
+              'The implementation reuses the accepted M4-004 pattern compiler through a',
+              'package-internal syntax-validation seam rather than maintaining a second `**`',
+              'parser. Runtime hardening reads only required own data properties, rejects',
+              'accessor-backed/sparse/named/symbol arrays and descriptor/proxy failures, does',
+              'not execute deferred capability/subject/constraint/lease getters, does not',
+              'mutate caller input, and returns frozen detached results.',
+              '',
+              'Protocol review found and corrected two fixture defects before production code',
+              'was accepted: a missing control-code locator case was added and the future-field',
+              'lease example was corrected from nonexistent `ttlSeconds` to schema-defined',
+              '`ttlMs`. A temporary whole-file JSON reformat was rejected rather than accepted',
+              'as governance noise.',
+              '',
+              'The first implementation head `d87ad0bb...` was already dual-green, but',
+              'acceptance review strengthened evidence further. Portable cases are now run',
+              'through the real M4-001 loader and M4-002 schema validator before diagnostics,',
+              'and additional inherited-field and revoked-proxy regressions were added.',
+              '',
+              'Final accepted implementation evidence at `2aa8250f...`:',
+              '',
+              '- normal CI #335 / run `32798605219`: PASS;',
+              '- exact Harness rc5 source-conformance #277 / run `32798605222`: PASS;',
+              '- frozen install / 124-entry supply-chain policy: PASS;',
+              '- architecture boundaries / 16-schema shape / schema baseline: PASS;',
+              '- strict workspace TypeScript: PASS;',
+              '- 35 test files / 510 tests: PASS;',
+              '- M4-008 diagnostics suite: 33 PASS;',
+              '- oxlint: 0 warnings / 0 errors on 113 files;',
+              '- Shared TCK packed artifact + external consumer: 44 assets PASS;',
+              '- Harness compatibility steps 6–11: all PASS.',
+              '',
+              'Implementation acceptance was recorded on',
+              '`202283944ae6736dc324f1251e9546b20af5019d`; that acceptance head also reached',
+              'normal CI #336 / run `32814355683` PASS and exact Harness rc5 source-conformance',
+              '#278 / run `32814355684` PASS before this final governance record was prepared.',
+              '',
+              '`docs/acceptance/m4-008-acceptance-audit.md` records **M4-008 ACCEPTED AT',
+              'IMPLEMENTATION BOUNDARY**. This governance head must itself reach exact-head',
+              'normal CI + Harness rc5 source-conformance dual-green before M4-009 is',
+              'authorized. M4-020+ and M6 remain unauthorized by this gate.',
+              '',
+          ]
+          history.write_text(history_text + '\n'.join(lines), encoding='utf-8')
 
           roadmap_text = roadmap.read_text(encoding='utf-8')
           old = '- [ ] `M4-008 P1` policy diagnostics。'
