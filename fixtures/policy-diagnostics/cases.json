@@ -195,6 +195,27 @@
       }
     },
     {
+      "id": "control-code-in-locator-pattern",
+      "policy": {
+        "apiVersion": "safe-runtime.dev/v1alpha1",
+        "kind": "CapabilityPolicy",
+        "metadata": { "name": "control-pattern" },
+        "spec": {
+          "defaultEffect": "deny",
+          "rules": [
+            { "id": "r", "effect": "allow", "capabilities": ["fs.read"], "resources": ["workspace://src/line\nbreak"] }
+          ]
+        }
+      },
+      "expect": {
+        "status": "DIAGNOSED",
+        "diagnostics": [
+          { "severity": "ERROR", "code": "RESOURCE_LOCATOR_INVALID", "instancePath": "/spec/rules/0/resources/0" }
+        ],
+        "truncated": false
+      }
+    },
+    {
       "id": "invalid-embedded-globstar",
       "policy": {
         "apiVersion": "safe-runtime.dev/v1alpha1",
@@ -415,7 +436,7 @@
               "resources": ["workspace://src/**"],
               "subjects": ["subject:future"],
               "constraints": { "future": true },
-              "lease": { "ttlSeconds": 60, "maxUses": 1 }
+              "lease": { "ttlMs": 60000, "maxUses": 1 }
             }
           ]
         }
