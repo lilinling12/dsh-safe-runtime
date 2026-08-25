@@ -31,6 +31,10 @@ const DEFAULT_STORE_OPTIONS: StoreOptions = Object.freeze({
   maxEpoch: POLICY_RELOAD_MAX_EPOCH,
 });
 
+type ValidatedRecord = {
+  readonly [key: string]: ValidatedPolicyDocument;
+};
+
 /**
  * Create the single-isolate M4-009 activation store. The trusted schema graph is
  * compiled exactly once here; reload() never accepts a caller-provided validator
@@ -74,10 +78,7 @@ function createCapabilityPolicyHotReloadStoreInternal(
     reload(requestInput: unknown): PolicyReloadResult {
       const request = materializeReloadRequest(requestInput);
       if (request === undefined) {
-        return reloadFailure(
-          "REQUEST",
-          "POLICY_RELOAD_REQUEST_INVALID",
-        );
+        return reloadFailure("REQUEST", "POLICY_RELOAD_REQUEST_INVALID");
       }
 
       try {
@@ -178,7 +179,9 @@ function preflightPolicyResources(
 
       const pattern = validateCanonicalPolicyResourcePattern(normalized.selector);
       if (!pattern.ok) {
-        return resourceFailure(pattern.reason, instancePath);
+        return pattern.reason === "RESOURCE_PATTERN_SYNTAX_INVALID"
+          ? resourceFailure(pattern.reason, instancePath)
+          : reloadFailure("STATE", "POLICY_RELOAD_INTERNAL_FAILURE");
       }
     }
   }
@@ -186,10 +189,16 @@ function preflightPolicyResources(
   return undefined;
 }
 
+function isValidatedRecord(
+  value: ValidatedPolicyDocument | undefined,
+): value is ValidatedRecord {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 function requiredRecord(
   value: ValidatedPolicyDocument | undefined,
-): Readonly<Record<string, ValidatedPolicyDocument>> {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+): ValidatedRecord {
+  if (!isValidatedRecord(value)) {
     throw new TypeError("Trusted schema validator returned an unexpected record shape.");
   }
   return value;
