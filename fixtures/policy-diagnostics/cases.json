@@ -5,28 +5,43 @@
       "policy": {
         "apiVersion": "safe-runtime.dev/v1alpha1",
         "kind": "CapabilityPolicy",
-        "metadata": { "name": "clean" },
+        "metadata": {
+          "name": "clean"
+        },
         "spec": {
           "defaultEffect": "deny",
           "rules": [
             {
               "id": "allow-read",
               "effect": "allow",
-              "capabilities": ["fs.read"],
-              "resources": ["workspace://src/**"]
+              "capabilities": [
+                "fs.read"
+              ],
+              "resources": [
+                "workspace://src/**"
+              ]
             }
           ]
         }
       },
-      "expect": { "status": "DIAGNOSED", "diagnostics": [], "truncated": false }
+      "expect": {
+        "status": "DIAGNOSED",
+        "diagnostics": [],
+        "truncated": false
+      }
     },
     {
       "id": "empty-rule-set-info",
       "policy": {
         "apiVersion": "safe-runtime.dev/v1alpha1",
         "kind": "CapabilityPolicy",
-        "metadata": { "name": "empty" },
-        "spec": { "defaultEffect": "deny", "rules": [] }
+        "metadata": {
+          "name": "empty"
+        },
+        "spec": {
+          "defaultEffect": "deny",
+          "rules": []
+        }
       },
       "expect": {
         "status": "DIAGNOSED",
@@ -45,12 +60,32 @@
       "policy": {
         "apiVersion": "safe-runtime.dev/v1alpha1",
         "kind": "CapabilityPolicy",
-        "metadata": { "name": "duplicate" },
+        "metadata": {
+          "name": "duplicate"
+        },
         "spec": {
           "defaultEffect": "deny",
           "rules": [
-            { "id": "same", "effect": "allow", "capabilities": ["fs.read"], "resources": ["workspace://a"] },
-            { "id": "same", "effect": "ask", "capabilities": ["fs.write"], "resources": ["workspace://b"] }
+            {
+              "id": "same",
+              "effect": "allow",
+              "capabilities": [
+                "fs.read"
+              ],
+              "resources": [
+                "workspace://a"
+              ]
+            },
+            {
+              "id": "same",
+              "effect": "ask",
+              "capabilities": [
+                "fs.write"
+              ],
+              "resources": [
+                "workspace://b"
+              ]
+            }
           ]
         }
       },
@@ -61,7 +96,9 @@
             "severity": "WARNING",
             "code": "POLICY_DIAGNOSTIC_DUPLICATE_RULE_ID",
             "instancePath": "/spec/rules/1/id",
-            "relatedPaths": ["/spec/rules/0/id"]
+            "relatedPaths": [
+              "/spec/rules/0/id"
+            ]
           }
         ],
         "truncated": false
@@ -72,12 +109,32 @@
       "policy": {
         "apiVersion": "safe-runtime.dev/v1alpha1",
         "kind": "CapabilityPolicy",
-        "metadata": { "name": "duplicate-unicode" },
+        "metadata": {
+          "name": "duplicate-unicode"
+        },
         "spec": {
           "defaultEffect": "deny",
           "rules": [
-            { "id": "规则😀", "effect": "allow", "capabilities": ["fs.read"], "resources": ["workspace://a"] },
-            { "id": "规则😀", "effect": "allow", "capabilities": ["fs.read"], "resources": ["workspace://b"] }
+            {
+              "id": "规则😀",
+              "effect": "allow",
+              "capabilities": [
+                "fs.read"
+              ],
+              "resources": [
+                "workspace://a"
+              ]
+            },
+            {
+              "id": "规则😀",
+              "effect": "allow",
+              "capabilities": [
+                "fs.read"
+              ],
+              "resources": [
+                "workspace://b"
+              ]
+            }
           ]
         }
       },
@@ -88,7 +145,9 @@
             "severity": "WARNING",
             "code": "POLICY_DIAGNOSTIC_DUPLICATE_RULE_ID",
             "instancePath": "/spec/rules/1/id",
-            "relatedPaths": ["/spec/rules/0/id"]
+            "relatedPaths": [
+              "/spec/rules/0/id"
+            ]
           }
         ],
         "truncated": false
@@ -99,34 +158,73 @@
       "policy": {
         "apiVersion": "safe-runtime.dev/v1alpha1",
         "kind": "CapabilityPolicy",
-        "metadata": { "name": "case-sensitive" },
+        "metadata": {
+          "name": "case-sensitive"
+        },
         "spec": {
           "defaultEffect": "deny",
           "rules": [
-            { "id": "Rule", "effect": "allow", "capabilities": ["fs.read"], "resources": ["workspace://a"] },
-            { "id": "rule", "effect": "allow", "capabilities": ["fs.read"], "resources": ["workspace://b"] }
+            {
+              "id": "Rule",
+              "effect": "allow",
+              "capabilities": [
+                "fs.read"
+              ],
+              "resources": [
+                "workspace://a"
+              ]
+            },
+            {
+              "id": "rule",
+              "effect": "allow",
+              "capabilities": [
+                "fs.read"
+              ],
+              "resources": [
+                "workspace://b"
+              ]
+            }
           ]
         }
       },
-      "expect": { "status": "DIAGNOSED", "diagnostics": [], "truncated": false }
+      "expect": {
+        "status": "DIAGNOSED",
+        "diagnostics": [],
+        "truncated": false
+      }
     },
     {
       "id": "selector-missing-delimiter",
       "policy": {
         "apiVersion": "safe-runtime.dev/v1alpha1",
         "kind": "CapabilityPolicy",
-        "metadata": { "name": "bad-selector" },
+        "metadata": {
+          "name": "bad-selector"
+        },
         "spec": {
           "defaultEffect": "deny",
           "rules": [
-            { "id": "r", "effect": "allow", "capabilities": ["fs.read"], "resources": ["workspace/src/**"] }
+            {
+              "id": "r",
+              "effect": "allow",
+              "capabilities": [
+                "fs.read"
+              ],
+              "resources": [
+                "workspace/src/**"
+              ]
+            }
           ]
         }
       },
       "expect": {
         "status": "DIAGNOSED",
         "diagnostics": [
-          { "severity": "ERROR", "code": "RESOURCE_SELECTOR_SYNTAX_INVALID", "instancePath": "/spec/rules/0/resources/0" }
+          {
+            "severity": "ERROR",
+            "code": "RESOURCE_SELECTOR_SYNTAX_INVALID",
+            "instancePath": "/spec/rules/0/resources/0"
+          }
         ],
         "truncated": false
       }
@@ -136,18 +234,33 @@
       "policy": {
         "apiVersion": "safe-runtime.dev/v1alpha1",
         "kind": "CapabilityPolicy",
-        "metadata": { "name": "bad-scheme" },
+        "metadata": {
+          "name": "bad-scheme"
+        },
         "spec": {
           "defaultEffect": "deny",
           "rules": [
-            { "id": "r", "effect": "allow", "capabilities": ["fs.read"], "resources": ["file://src/**"] }
+            {
+              "id": "r",
+              "effect": "allow",
+              "capabilities": [
+                "fs.read"
+              ],
+              "resources": [
+                "file://src/**"
+              ]
+            }
           ]
         }
       },
       "expect": {
         "status": "DIAGNOSED",
         "diagnostics": [
-          { "severity": "ERROR", "code": "RESOURCE_SCHEME_UNSUPPORTED", "instancePath": "/spec/rules/0/resources/0" }
+          {
+            "severity": "ERROR",
+            "code": "RESOURCE_SCHEME_UNSUPPORTED",
+            "instancePath": "/spec/rules/0/resources/0"
+          }
         ],
         "truncated": false
       }
@@ -157,18 +270,33 @@
       "policy": {
         "apiVersion": "safe-runtime.dev/v1alpha1",
         "kind": "CapabilityPolicy",
-        "metadata": { "name": "bad-scheme-case" },
+        "metadata": {
+          "name": "bad-scheme-case"
+        },
         "spec": {
           "defaultEffect": "deny",
           "rules": [
-            { "id": "r", "effect": "allow", "capabilities": ["fs.read"], "resources": ["Workspace://src/**"] }
+            {
+              "id": "r",
+              "effect": "allow",
+              "capabilities": [
+                "fs.read"
+              ],
+              "resources": [
+                "Workspace://src/**"
+              ]
+            }
           ]
         }
       },
       "expect": {
         "status": "DIAGNOSED",
         "diagnostics": [
-          { "severity": "ERROR", "code": "RESOURCE_SCHEME_UNSUPPORTED", "instancePath": "/spec/rules/0/resources/0" }
+          {
+            "severity": "ERROR",
+            "code": "RESOURCE_SCHEME_UNSUPPORTED",
+            "instancePath": "/spec/rules/0/resources/0"
+          }
         ],
         "truncated": false
       }
@@ -178,18 +306,69 @@
       "policy": {
         "apiVersion": "safe-runtime.dev/v1alpha1",
         "kind": "CapabilityPolicy",
-        "metadata": { "name": "empty-pattern" },
+        "metadata": {
+          "name": "empty-pattern"
+        },
         "spec": {
           "defaultEffect": "deny",
           "rules": [
-            { "id": "r", "effect": "allow", "capabilities": ["fs.read"], "resources": ["workspace://"] }
+            {
+              "id": "r",
+              "effect": "allow",
+              "capabilities": [
+                "fs.read"
+              ],
+              "resources": [
+                "workspace://"
+              ]
+            }
           ]
         }
       },
       "expect": {
         "status": "DIAGNOSED",
         "diagnostics": [
-          { "severity": "ERROR", "code": "RESOURCE_LOCATOR_INVALID", "instancePath": "/spec/rules/0/resources/0" }
+          {
+            "severity": "ERROR",
+            "code": "RESOURCE_LOCATOR_INVALID",
+            "instancePath": "/spec/rules/0/resources/0"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "id": "control-code-in-locator-pattern",
+      "policy": {
+        "apiVersion": "safe-runtime.dev/v1alpha1",
+        "kind": "CapabilityPolicy",
+        "metadata": {
+          "name": "control-pattern"
+        },
+        "spec": {
+          "defaultEffect": "deny",
+          "rules": [
+            {
+              "id": "r",
+              "effect": "allow",
+              "capabilities": [
+                "fs.read"
+              ],
+              "resources": [
+                "workspace://src/line\nbreak"
+              ]
+            }
+          ]
+        }
+      },
+      "expect": {
+        "status": "DIAGNOSED",
+        "diagnostics": [
+          {
+            "severity": "ERROR",
+            "code": "RESOURCE_LOCATOR_INVALID",
+            "instancePath": "/spec/rules/0/resources/0"
+          }
         ],
         "truncated": false
       }
@@ -199,18 +378,33 @@
       "policy": {
         "apiVersion": "safe-runtime.dev/v1alpha1",
         "kind": "CapabilityPolicy",
-        "metadata": { "name": "embedded-globstar" },
+        "metadata": {
+          "name": "embedded-globstar"
+        },
         "spec": {
           "defaultEffect": "deny",
           "rules": [
-            { "id": "r", "effect": "allow", "capabilities": ["fs.read"], "resources": ["workspace://foo/**bar"] }
+            {
+              "id": "r",
+              "effect": "allow",
+              "capabilities": [
+                "fs.read"
+              ],
+              "resources": [
+                "workspace://foo/**bar"
+              ]
+            }
           ]
         }
       },
       "expect": {
         "status": "DIAGNOSED",
         "diagnostics": [
-          { "severity": "ERROR", "code": "RESOURCE_PATTERN_SYNTAX_INVALID", "instancePath": "/spec/rules/0/resources/0" }
+          {
+            "severity": "ERROR",
+            "code": "RESOURCE_PATTERN_SYNTAX_INVALID",
+            "instancePath": "/spec/rules/0/resources/0"
+          }
         ],
         "truncated": false
       }
@@ -220,18 +414,33 @@
       "policy": {
         "apiVersion": "safe-runtime.dev/v1alpha1",
         "kind": "CapabilityPolicy",
-        "metadata": { "name": "triple-star" },
+        "metadata": {
+          "name": "triple-star"
+        },
         "spec": {
           "defaultEffect": "deny",
           "rules": [
-            { "id": "r", "effect": "allow", "capabilities": ["fs.read"], "resources": ["workspace://***"] }
+            {
+              "id": "r",
+              "effect": "allow",
+              "capabilities": [
+                "fs.read"
+              ],
+              "resources": [
+                "workspace://***"
+              ]
+            }
           ]
         }
       },
       "expect": {
         "status": "DIAGNOSED",
         "diagnostics": [
-          { "severity": "ERROR", "code": "RESOURCE_PATTERN_SYNTAX_INVALID", "instancePath": "/spec/rules/0/resources/0" }
+          {
+            "severity": "ERROR",
+            "code": "RESOURCE_PATTERN_SYNTAX_INVALID",
+            "instancePath": "/spec/rules/0/resources/0"
+          }
         ],
         "truncated": false
       }
@@ -241,33 +450,64 @@
       "policy": {
         "apiVersion": "safe-runtime.dev/v1alpha1",
         "kind": "CapabilityPolicy",
-        "metadata": { "name": "literal-meta" },
+        "metadata": {
+          "name": "literal-meta"
+        },
         "spec": {
           "defaultEffect": "deny",
           "rules": [
-            { "id": "r", "effect": "allow", "capabilities": ["fs.read"], "resources": ["workspace://src/?/[x]/{y}/\\z"] }
+            {
+              "id": "r",
+              "effect": "allow",
+              "capabilities": [
+                "fs.read"
+              ],
+              "resources": [
+                "workspace://src/?/[x]/{y}/\\z"
+              ]
+            }
           ]
         }
       },
-      "expect": { "status": "DIAGNOSED", "diagnostics": [], "truncated": false }
+      "expect": {
+        "status": "DIAGNOSED",
+        "diagnostics": [],
+        "truncated": false
+      }
     },
     {
       "id": "deny-priority-positive",
       "policy": {
         "apiVersion": "safe-runtime.dev/v1alpha1",
         "kind": "CapabilityPolicy",
-        "metadata": { "name": "deny-priority-positive" },
+        "metadata": {
+          "name": "deny-priority-positive"
+        },
         "spec": {
           "defaultEffect": "deny",
           "rules": [
-            { "id": "d", "effect": "deny", "capabilities": ["fs.write"], "resources": ["workspace://**"], "priority": 10 }
+            {
+              "id": "d",
+              "effect": "deny",
+              "capabilities": [
+                "fs.write"
+              ],
+              "resources": [
+                "workspace://**"
+              ],
+              "priority": 10
+            }
           ]
         }
       },
       "expect": {
         "status": "DIAGNOSED",
         "diagnostics": [
-          { "severity": "WARNING", "code": "POLICY_DIAGNOSTIC_REDUNDANT_DENY_PRIORITY", "instancePath": "/spec/rules/0/priority" }
+          {
+            "severity": "WARNING",
+            "code": "POLICY_DIAGNOSTIC_REDUNDANT_DENY_PRIORITY",
+            "instancePath": "/spec/rules/0/priority"
+          }
         ],
         "truncated": false
       }
@@ -277,18 +517,34 @@
       "policy": {
         "apiVersion": "safe-runtime.dev/v1alpha1",
         "kind": "CapabilityPolicy",
-        "metadata": { "name": "deny-priority-zero" },
+        "metadata": {
+          "name": "deny-priority-zero"
+        },
         "spec": {
           "defaultEffect": "deny",
           "rules": [
-            { "id": "d", "effect": "deny", "capabilities": ["fs.write"], "resources": ["workspace://**"], "priority": 0 }
+            {
+              "id": "d",
+              "effect": "deny",
+              "capabilities": [
+                "fs.write"
+              ],
+              "resources": [
+                "workspace://**"
+              ],
+              "priority": 0
+            }
           ]
         }
       },
       "expect": {
         "status": "DIAGNOSED",
         "diagnostics": [
-          { "severity": "WARNING", "code": "POLICY_DIAGNOSTIC_REDUNDANT_DENY_PRIORITY", "instancePath": "/spec/rules/0/priority" }
+          {
+            "severity": "WARNING",
+            "code": "POLICY_DIAGNOSTIC_REDUNDANT_DENY_PRIORITY",
+            "instancePath": "/spec/rules/0/priority"
+          }
         ],
         "truncated": false
       }
@@ -298,18 +554,34 @@
       "policy": {
         "apiVersion": "safe-runtime.dev/v1alpha1",
         "kind": "CapabilityPolicy",
-        "metadata": { "name": "deny-priority-negative" },
+        "metadata": {
+          "name": "deny-priority-negative"
+        },
         "spec": {
           "defaultEffect": "deny",
           "rules": [
-            { "id": "d", "effect": "deny", "capabilities": ["fs.write"], "resources": ["workspace://**"], "priority": -7 }
+            {
+              "id": "d",
+              "effect": "deny",
+              "capabilities": [
+                "fs.write"
+              ],
+              "resources": [
+                "workspace://**"
+              ],
+              "priority": -7
+            }
           ]
         }
       },
       "expect": {
         "status": "DIAGNOSED",
         "diagnostics": [
-          { "severity": "WARNING", "code": "POLICY_DIAGNOSTIC_REDUNDANT_DENY_PRIORITY", "instancePath": "/spec/rules/0/priority" }
+          {
+            "severity": "WARNING",
+            "code": "POLICY_DIAGNOSTIC_REDUNDANT_DENY_PRIORITY",
+            "instancePath": "/spec/rules/0/priority"
+          }
         ],
         "truncated": false
       }
@@ -319,18 +591,34 @@
       "policy": {
         "apiVersion": "safe-runtime.dev/v1alpha1",
         "kind": "CapabilityPolicy",
-        "metadata": { "name": "allow-zero" },
+        "metadata": {
+          "name": "allow-zero"
+        },
         "spec": {
           "defaultEffect": "deny",
           "rules": [
-            { "id": "a", "effect": "allow", "capabilities": ["fs.read"], "resources": ["workspace://**"], "priority": 0 }
+            {
+              "id": "a",
+              "effect": "allow",
+              "capabilities": [
+                "fs.read"
+              ],
+              "resources": [
+                "workspace://**"
+              ],
+              "priority": 0
+            }
           ]
         }
       },
       "expect": {
         "status": "DIAGNOSED",
         "diagnostics": [
-          { "severity": "WARNING", "code": "POLICY_DIAGNOSTIC_REDUNDANT_ZERO_PRIORITY", "instancePath": "/spec/rules/0/priority" }
+          {
+            "severity": "WARNING",
+            "code": "POLICY_DIAGNOSTIC_REDUNDANT_ZERO_PRIORITY",
+            "instancePath": "/spec/rules/0/priority"
+          }
         ],
         "truncated": false
       }
@@ -340,18 +628,34 @@
       "policy": {
         "apiVersion": "safe-runtime.dev/v1alpha1",
         "kind": "CapabilityPolicy",
-        "metadata": { "name": "ask-zero" },
+        "metadata": {
+          "name": "ask-zero"
+        },
         "spec": {
           "defaultEffect": "deny",
           "rules": [
-            { "id": "a", "effect": "ask", "capabilities": ["fs.write"], "resources": ["workspace://**"], "priority": 0 }
+            {
+              "id": "a",
+              "effect": "ask",
+              "capabilities": [
+                "fs.write"
+              ],
+              "resources": [
+                "workspace://**"
+              ],
+              "priority": 0
+            }
           ]
         }
       },
       "expect": {
         "status": "DIAGNOSED",
         "diagnostics": [
-          { "severity": "WARNING", "code": "POLICY_DIAGNOSTIC_REDUNDANT_ZERO_PRIORITY", "instancePath": "/spec/rules/0/priority" }
+          {
+            "severity": "WARNING",
+            "code": "POLICY_DIAGNOSTIC_REDUNDANT_ZERO_PRIORITY",
+            "instancePath": "/spec/rules/0/priority"
+          }
         ],
         "truncated": false
       }
@@ -361,40 +665,116 @@
       "policy": {
         "apiVersion": "safe-runtime.dev/v1alpha1",
         "kind": "CapabilityPolicy",
-        "metadata": { "name": "nonzero" },
+        "metadata": {
+          "name": "nonzero"
+        },
         "spec": {
           "defaultEffect": "deny",
           "rules": [
-            { "id": "allow", "effect": "allow", "capabilities": ["fs.read"], "resources": ["workspace://a"], "priority": 2 },
-            { "id": "ask", "effect": "ask", "capabilities": ["fs.write"], "resources": ["workspace://b"], "priority": -2 }
+            {
+              "id": "allow",
+              "effect": "allow",
+              "capabilities": [
+                "fs.read"
+              ],
+              "resources": [
+                "workspace://a"
+              ],
+              "priority": 2
+            },
+            {
+              "id": "ask",
+              "effect": "ask",
+              "capabilities": [
+                "fs.write"
+              ],
+              "resources": [
+                "workspace://b"
+              ],
+              "priority": -2
+            }
           ]
         }
       },
-      "expect": { "status": "DIAGNOSED", "diagnostics": [], "truncated": false }
+      "expect": {
+        "status": "DIAGNOSED",
+        "diagnostics": [],
+        "truncated": false
+      }
     },
     {
       "id": "deterministic-multi-diagnostic-order",
       "policy": {
         "apiVersion": "safe-runtime.dev/v1alpha1",
         "kind": "CapabilityPolicy",
-        "metadata": { "name": "order" },
+        "metadata": {
+          "name": "order"
+        },
         "spec": {
           "defaultEffect": "deny",
           "rules": [
-            { "id": "dup", "effect": "deny", "capabilities": ["fs.write"], "resources": ["workspace://foo/**bar", "file://x"], "priority": 9 },
-            { "id": "dup", "effect": "allow", "capabilities": ["fs.read"], "resources": ["workspace/src/**"], "priority": 0 }
+            {
+              "id": "dup",
+              "effect": "deny",
+              "capabilities": [
+                "fs.write"
+              ],
+              "resources": [
+                "workspace://foo/**bar",
+                "file://x"
+              ],
+              "priority": 9
+            },
+            {
+              "id": "dup",
+              "effect": "allow",
+              "capabilities": [
+                "fs.read"
+              ],
+              "resources": [
+                "workspace/src/**"
+              ],
+              "priority": 0
+            }
           ]
         }
       },
       "expect": {
         "status": "DIAGNOSED",
         "diagnostics": [
-          { "severity": "ERROR", "code": "RESOURCE_PATTERN_SYNTAX_INVALID", "instancePath": "/spec/rules/0/resources/0" },
-          { "severity": "ERROR", "code": "RESOURCE_SCHEME_UNSUPPORTED", "instancePath": "/spec/rules/0/resources/1" },
-          { "severity": "WARNING", "code": "POLICY_DIAGNOSTIC_REDUNDANT_DENY_PRIORITY", "instancePath": "/spec/rules/0/priority" },
-          { "severity": "WARNING", "code": "POLICY_DIAGNOSTIC_DUPLICATE_RULE_ID", "instancePath": "/spec/rules/1/id", "relatedPaths": ["/spec/rules/0/id"] },
-          { "severity": "ERROR", "code": "RESOURCE_SELECTOR_SYNTAX_INVALID", "instancePath": "/spec/rules/1/resources/0" },
-          { "severity": "WARNING", "code": "POLICY_DIAGNOSTIC_REDUNDANT_ZERO_PRIORITY", "instancePath": "/spec/rules/1/priority" }
+          {
+            "severity": "ERROR",
+            "code": "RESOURCE_PATTERN_SYNTAX_INVALID",
+            "instancePath": "/spec/rules/0/resources/0"
+          },
+          {
+            "severity": "ERROR",
+            "code": "RESOURCE_SCHEME_UNSUPPORTED",
+            "instancePath": "/spec/rules/0/resources/1"
+          },
+          {
+            "severity": "WARNING",
+            "code": "POLICY_DIAGNOSTIC_REDUNDANT_DENY_PRIORITY",
+            "instancePath": "/spec/rules/0/priority"
+          },
+          {
+            "severity": "WARNING",
+            "code": "POLICY_DIAGNOSTIC_DUPLICATE_RULE_ID",
+            "instancePath": "/spec/rules/1/id",
+            "relatedPaths": [
+              "/spec/rules/0/id"
+            ]
+          },
+          {
+            "severity": "ERROR",
+            "code": "RESOURCE_SELECTOR_SYNTAX_INVALID",
+            "instancePath": "/spec/rules/1/resources/0"
+          },
+          {
+            "severity": "WARNING",
+            "code": "POLICY_DIAGNOSTIC_REDUNDANT_ZERO_PRIORITY",
+            "instancePath": "/spec/rules/1/priority"
+          }
         ],
         "truncated": false
       }
@@ -404,23 +784,40 @@
       "policy": {
         "apiVersion": "safe-runtime.dev/v1alpha1",
         "kind": "CapabilityPolicy",
-        "metadata": { "name": "ignored" },
+        "metadata": {
+          "name": "ignored"
+        },
         "spec": {
           "defaultEffect": "deny",
           "rules": [
             {
               "id": "r",
               "effect": "allow",
-              "capabilities": ["fs.read"],
-              "resources": ["workspace://src/**"],
-              "subjects": ["subject:future"],
-              "constraints": { "future": true },
-              "lease": { "ttlSeconds": 60, "maxUses": 1 }
+              "capabilities": [
+                "fs.read"
+              ],
+              "resources": [
+                "workspace://src/**"
+              ],
+              "subjects": [
+                "subject:future"
+              ],
+              "constraints": {
+                "future": true
+              },
+              "lease": {
+                "ttlMs": 60000,
+                "maxUses": 1
+              }
             }
           ]
         }
       },
-      "expect": { "status": "DIAGNOSED", "diagnostics": [], "truncated": false }
+      "expect": {
+        "status": "DIAGNOSED",
+        "diagnostics": [],
+        "truncated": false
+      }
     }
   ]
 }
