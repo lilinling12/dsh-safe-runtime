@@ -37,35 +37,35 @@ jobs:
               raise SystemExit('corrected lease spelling already present')
           text = text.replace(old_lease, new_lease, 1)
 
-          marker = '''    {
-              "id": "invalid-embedded-globstar",'''.replace('          ', '')
+          marker = '    {\n      "id": "invalid-embedded-globstar",'
           if text.count(marker) != 1:
               raise SystemExit(f'expected exactly one insertion marker, found {text.count(marker)}')
           if '"id": "control-code-in-locator-pattern"' in text:
               raise SystemExit('control-code fixture already present')
 
-          case = r'''    {
-      "id": "control-code-in-locator-pattern",
-      "policy": {
-        "apiVersion": "safe-runtime.dev/v1alpha1",
-        "kind": "CapabilityPolicy",
-        "metadata": { "name": "control-pattern" },
-        "spec": {
-          "defaultEffect": "deny",
-          "rules": [
-            { "id": "r", "effect": "allow", "capabilities": ["fs.read"], "resources": ["workspace://src/line\nbreak"] }
-          ]
-        }
-      },
-      "expect": {
-        "status": "DIAGNOSED",
-        "diagnostics": [
-          { "severity": "ERROR", "code": "RESOURCE_LOCATOR_INVALID", "instancePath": "/spec/rules/0/resources/0" }
-        ],
-        "truncated": false
-      }
-    },
-'''
+          case = (
+              '    {\n'
+              '      "id": "control-code-in-locator-pattern",\n'
+              '      "policy": {\n'
+              '        "apiVersion": "safe-runtime.dev/v1alpha1",\n'
+              '        "kind": "CapabilityPolicy",\n'
+              '        "metadata": { "name": "control-pattern" },\n'
+              '        "spec": {\n'
+              '          "defaultEffect": "deny",\n'
+              '          "rules": [\n'
+              '            { "id": "r", "effect": "allow", "capabilities": ["fs.read"], "resources": ["workspace://src/line\\nbreak"] }\n'
+              '          ]\n'
+              '        }\n'
+              '      },\n'
+              '      "expect": {\n'
+              '        "status": "DIAGNOSED",\n'
+              '        "diagnostics": [\n'
+              '          { "severity": "ERROR", "code": "RESOURCE_LOCATOR_INVALID", "instancePath": "/spec/rules/0/resources/0" }\n'
+              '        ],\n'
+              '        "truncated": false\n'
+              '      }\n'
+              '    },\n'
+          )
           text = text.replace(marker, case + marker, 1)
           path.write_text(text, encoding='utf-8')
 
