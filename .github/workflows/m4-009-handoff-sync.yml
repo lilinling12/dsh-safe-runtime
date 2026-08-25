@@ -1,0 +1,72 @@
+name: M4-009 handoff sync generator
+
+on:
+  push:
+    branches:
+      - automation/m4-009-handoff-sync
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: automation/m4-009-handoff-sync
+          fetch-depth: 1
+      - name: Append exact handoff history
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('docs/handoff/HISTORY.md')
+          text = path.read_text(encoding='utf-8')
+          marker = '## 2026-08-25 — Close M4-008 governance and authorize M4-009'
+          if marker in text:
+              raise SystemExit('history entry already present')
+          lines = [
+              '',
+              '',
+              marker,
+              '',
+              'Final M4-008 governance head',
+              '`71046abef4568668ba9e3448b496430b5c48ebb7` reached exact-head dual-green:',
+              '',
+              '- normal CI #337 / run `32814874559`: PASS;',
+              '- exact Harness rc5 source-conformance #279 / run `32814874566`: PASS.',
+              '',
+              'Therefore M4-008 governance is CLOSED and M4-009 P1 policy hot reload with',
+              'atomic swap is formally authorized. M4-009 must begin protocol-first;',
+              'M4-010+, M4-020+ and M6 remain unauthorized by this gate.',
+              '',
+          ]
+          path.write_text(text + '\n'.join(lines), encoding='utf-8')
+          PY
+      - name: Verify append-only history diff
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          changed="$(git diff --name-only)"
+          if [[ "$changed" != "docs/handoff/HISTORY.md" ]]; then
+            printf 'unexpected changed files: %s\n' "$changed" >&2
+            exit 1
+          fi
+          removed="$(git diff --numstat -- docs/handoff/HISTORY.md | awk '{print $2}')"
+          if [[ "$removed" != "0" ]]; then
+            echo 'HISTORY must be append-only' >&2
+            exit 1
+          fi
+      - name: Commit generated history
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/handoff/HISTORY.md
+          git commit -m "docs(handoff): record M4-009 authorization"
+          git push origin HEAD:automation/m4-009-handoff-sync
