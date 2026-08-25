@@ -1,0 +1,73 @@
+name: M4-009 format authority correction
+
+on:
+  push:
+    branches:
+      - automation/m4-009-spec-format-fix
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: automation/m4-009-spec-format-fix
+          fetch-depth: 1
+      - name: Apply exact normative correction
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('specs/0025-m4-capability-policy-hot-reload.md')
+          text = path.read_text(encoding='utf-8')
+          old = '''PolicyReloadRequest {
+            format: "JSON" | "YAML"
+            source: string
+          }
+          '''.replace('          ', '')
+          new = '''PolicyReloadRequest {
+            format: string
+            source: string
+          }
+          '''.replace('          ', '')
+          if text.count(old) != 1:
+              raise SystemExit(f'expected one request block, found {text.count(old)}')
+          text = text.replace(old, new, 1)
+          needle = 'The TypeScript projection MAY accept `unknown` at its public runtime boundary,\n'
+          addition = (
+              'M4-009 does not validate the supported-format vocabulary itself. `format` remains a\n'
+              'string so the accepted M4-001 loader stays the sole authority for whether a format is\n'
+              'supported and can return `POLICY_DOCUMENT_FORMAT_UNSUPPORTED` unchanged.\n\n'
+          )
+          if addition in text:
+              raise SystemExit('authority clarification already present')
+          if text.count(needle) != 1:
+              raise SystemExit('TypeScript projection paragraph marker missing')
+          text = text.replace(needle, addition + needle, 1)
+          path.write_text(text, encoding='utf-8')
+          PY
+      - name: Verify exact edit scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          changed="$(git diff --name-only)"
+          if [[ "$changed" != "specs/0025-m4-capability-policy-hot-reload.md" ]]; then
+            printf 'unexpected files: %s\n' "$changed" >&2
+            exit 1
+          fi
+          git diff --numstat -- specs/0025-m4-capability-policy-hot-reload.md
+      - name: Commit corrected spec
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add specs/0025-m4-capability-policy-hot-reload.md
+          git commit -m "docs(policy): preserve M4-001 format authority"
+          git push origin HEAD:automation/m4-009-spec-format-fix
