@@ -1,0 +1,124 @@
+name: M4-009 governance record generator
+
+on:
+  push:
+    branches:
+      - automation/m4-009-governance-record
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: automation/m4-009-governance-record
+          fetch-depth: 1
+
+      - name: Apply exact governance edits
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -Fq '## 2026-08-25 — Accept M4-009 atomic CapabilityPolicy hot reload' docs/handoff/HISTORY.md; then
+            echo 'M4-009 history entry already present' >&2
+            exit 1
+          fi
+          cat <<'EOF' >> docs/handoff/HISTORY.md
+
+          ## 2026-08-25 — Accept M4-009 atomic CapabilityPolicy hot reload
+
+          M4-009 closed at accepted implementation head
+          `76dd50e731df617c1fafc1929be306f73458b7d4` after protocol-first definition
+          of a synchronous single-isolate policy activation store in Spec 0025.
+
+          The reload path preserves existing authority boundaries: M4-001 owns document
+          format/loading, M4-002 owns schema validity, M4-003 owns selector normalization,
+          and M4-004 owns lexical pattern syntax. M4-008 diagnostics remain advisory and
+          cannot silently become activation blockers. No full PDP, tool classifier,
+          approval, lease, receipt/provenance, guarantee, watcher, distributed config or
+          Adapter-enforcement semantics were pulled into M4-009.
+
+          The accepted store publishes exactly one immutable active-record reference. A
+          candidate is fully loaded, schema-validated and resource-preflighted before a
+          complete frozen next record is constructed; the final reference assignment is
+          the single-isolate linearization point. Rejected REQUEST, LOAD, SCHEMA,
+          RESOURCE and STATE candidates retain the exact last-known-good record reference
+          and epoch. Old ACTIVE handles remain frozen and stable across later swaps.
+
+          Runtime hardening rejects accessor/inherited/extra/symbol/revoked request
+          shapes without executing `format` or `source` getters. Candidate source text is
+          not retained as store state or copied into failure output. Epoch exhaustion
+          fails without publication. The reduced-epoch test seam remains package-internal
+          and is not exported from the package root.
+
+          Exact accepted implementation evidence at `76dd50e7...`:
+
+          - normal CI #346 / run `32822338122`: PASS;
+          - exact Harness rc5 source-conformance #288 / run `32822338113`: PASS;
+          - frozen install / 124-entry supply-chain policy: PASS;
+          - architecture / 16-schema shape / schema baseline: PASS;
+          - strict workspace TypeScript: PASS;
+          - 37 test files / 538 tests: PASS;
+          - primary M4-009 suite: 25 PASS;
+          - green-after-review hardening: 3 PASS;
+          - oxlint: 0 warnings / 0 errors on 117 files;
+          - Shared TCK packed artifact + external consumer: 44 assets PASS;
+          - Harness steps 6–11: all PASS.
+
+          Implementation acceptance was recorded at
+          `ae6c53d5f23f9b666f7d1dbc258756d52a6eb0c1`; that acceptance head itself
+          reached normal CI #347 / run `32822755197` PASS and exact Harness rc5
+          source-conformance #289 / run `32822755212` PASS before this governance
+          record was prepared.
+
+          `docs/acceptance/m4-009-acceptance-audit.md` records M4-009 accepted at
+          implementation boundary. This final governance head must itself reach exact-head
+          normal CI + Harness dual-green before any M4-010+ gate is authorized. M4-020+
+          and M6 remain unauthorized by this gate.
+          EOF
+
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('docs/roadmap.md')
+          text = path.read_text(encoding='utf-8')
+          old = '- [ ] `M4-009 P1` policy hot reload with atomic swap。'
+          new = '- [x] `M4-009 P1` policy hot reload with atomic swap。 **ACCEPTED：Spec 0025 + 16 portable cases + immutable last-known-good atomic publication + hostile-request fail-closed hardening；accepted implementation head `76dd50e7...`，CI #346 / Harness #288 PASS；验收记录 `docs/acceptance/m4-009-acceptance-audit.md`。**'
+          if text.count(old) != 1:
+              raise SystemExit(f'expected exactly one unchecked M4-009 line, found {text.count(old)}')
+          if '- [x] `M4-010 P0`' in text:
+              raise SystemExit('M4-010 must remain unchecked')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          PY
+
+      - name: Verify governance-only diff
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          mapfile -t files < <(git diff --name-only)
+          if [[ ${#files[@]} -ne 2 || "${files[0]}" != "docs/handoff/HISTORY.md" || "${files[1]}" != "docs/roadmap.md" ]]; then
+            printf 'unexpected changed files:\n%s\n' "${files[*]}" >&2
+            exit 1
+          fi
+          history_removed="$(git diff --numstat -- docs/handoff/HISTORY.md | awk '{print $2}')"
+          roadmap_added="$(git diff --numstat -- docs/roadmap.md | awk '{print $1}')"
+          roadmap_removed="$(git diff --numstat -- docs/roadmap.md | awk '{print $2}')"
+          if [[ "$history_removed" != "0" || "$roadmap_added" != "1" || "$roadmap_removed" != "1" ]]; then
+            echo 'governance diff is not append-only HISTORY + one-line roadmap replacement' >&2
+            git diff -- docs/handoff/HISTORY.md docs/roadmap.md >&2
+            exit 1
+          fi
+          git diff -- docs/handoff/HISTORY.md docs/roadmap.md
+
+      - name: Commit generated governance files
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/handoff/HISTORY.md docs/roadmap.md
+          git commit -m "docs(governance): prepare M4-009 closure"
+          git push origin HEAD:automation/m4-009-governance-record
