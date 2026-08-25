@@ -1,12 +1,11 @@
 /**
  * @dsh-safe/policy-engine public boundary.
  *
- * M4-001 through M4-008 are acceptance-audited at their implementation
- * boundaries. M4-008 final governance closure is still required before hot
- * reload or any later policy-engine gate begins; full PDP evaluation and durable
- * provenance remain later governance gates.
+ * M4-001 through M4-008 are acceptance-audited and governance-closed. M4-009
+ * atomic policy hot reload is in implementation conformance; full PDP evaluation,
+ * tool classification, durable provenance and later gates remain unauthorized.
  */
-export const PACKAGE_STAGE = "M4-008-DIAGNOSTICS-CONFORMANCE" as const;
+export const PACKAGE_STAGE = "M4-009-HOT-RELOAD-IN-PROGRESS" as const;
 
 export {
   loadPolicyDocument,
@@ -111,3 +110,18 @@ export {
   type PolicyDiagnosticsResult,
   type PolicyDiagnosticsSuccess,
 } from "./policy-diagnostics-types.js";
+export { createCapabilityPolicyHotReloadStore } from "./policy-hot-reload.js";
+export {
+  POLICY_RELOAD_MAX_EPOCH,
+  type CapabilityPolicyHotReloadStore,
+  type PolicyHotReloadActiveState,
+  type PolicyHotReloadEmptyState,
+  type PolicyHotReloadState,
+  type PolicyReloadFailure,
+  type PolicyReloadFailureReason,
+  type PolicyReloadFailureStage,
+  type PolicyReloadRequest,
+  type PolicyReloadResourceFailureReason,
+  type PolicyReloadResult,
+  type PolicyReloadSuccess,
+} from "./policy-hot-reload-types.js";
