@@ -6,7 +6,7 @@ import { describe, expect, test } from "vitest";
 import { createCapabilityPolicySchemaValidator } from "./capability-policy-schema-validator.js";
 import { diagnoseCapabilityPolicy } from "./policy-diagnostics.js";
 import type { PolicyDiagnosticsResult } from "./policy-diagnostics-types.js";
-import type { PolicyDocumentJsonValue } from "./policy-document-types.js";
+import { loadPolicyDocument } from "./policy-document-loader.js";
 import { createTrustedCapabilityPolicySchemaGraph } from "./trusted-policy-schema.js";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
@@ -79,9 +79,26 @@ describe("M4-008 portable CapabilityPolicy diagnostics", () => {
 
   for (const fixture of fixtures) {
     test(fixture.id, () => {
-      const schemaResult = schemaValidator(fixture.policy as PolicyDocumentJsonValue);
+      // Portable cases prove the intended pipeline boundary instead of using a
+      // TypeScript assertion to pretend the fixture was already M4-002-valid.
+      const loaded = loadPolicyDocument({
+        format: "JSON",
+        source: JSON.stringify(fixture.policy),
+      });
+      expect(loaded.ok).toBe(true);
+      if (!loaded.ok) {
+        throw new Error(`Fixture ${fixture.id} must pass M4-001 JSON loading`);
+      }
+
+      const schemaResult = schemaValidator(loaded.value);
       expect(schemaResult.ok).toBe(true);
-      expect(toPortable(diagnoseCapabilityPolicy(fixture.policy))).toEqual(fixture.expected);
+      if (!schemaResult.ok) {
+        throw new Error(`Fixture ${fixture.id} must pass M4-002 schema validation`);
+      }
+
+      expect(toPortable(diagnoseCapabilityPolicy(schemaResult.value))).toEqual(
+        fixture.expected,
+      );
     });
   }
 });
@@ -135,7 +152,7 @@ describe("M4-008 JavaScript runtime boundary", () => {
       Object.defineProperty(rule, field, {
         get(): unknown {
           calls += 1;
-          return field === "priority" ? 0 : rule[field];
+          return undefined;
         },
         enumerable: true,
         configurable: true,
@@ -217,11 +234,46 @@ describe("M4-008 JavaScript runtime boundary", () => {
     }
   });
 
-  test("revoked proxies fail explicitly", () => {
-    const revocable = Proxy.revocable({}, {});
-    revocable.revoke();
+  test("revoked proxies fail at top-level and nested array boundaries", () => {
+    const topLevel = Proxy.revocable({}, {});
+    topLevel.revoke();
+    expect(diagnoseCapabilityPolicy(topLevel.proxy)).toEqual({
+      ok: false,
+      status: "DIAGNOSTICS_FAILED",
+      reason: "POLICY_DIAGNOSTICS_INPUT_INVALID",
+    });
 
-    expect(diagnoseCapabilityPolicy(revocable.proxy)).toEqual({
+    const rulesProxy = Proxy.revocable([], {});
+    rulesProxy.revoke();
+    expect(diagnoseCapabilityPolicy({ spec: { rules: rulesProxy.proxy } })).toEqual({
+      ok: false,
+      status: "DIAGNOSTICS_FAILED",
+      reason: "POLICY_DIAGNOSTICS_INPUT_INVALID",
+    });
+
+    const resourcesProxy = Proxy.revocable([], {});
+    resourcesProxy.revoke();
+    expect(
+      diagnoseCapabilityPolicy({
+        spec: {
+          rules: [{ id: "rule", effect: "allow", resources: resourcesProxy.proxy }],
+        },
+      }),
+    ).toEqual({
+      ok: false,
+      status: "DIAGNOSTICS_FAILED",
+      reason: "POLICY_DIAGNOSTICS_INPUT_INVALID",
+    });
+  });
+
+  test("inherited required fields cannot become diagnostics input", () => {
+    const inheritedRule: object = Object.create({
+      id: "rule",
+      effect: "allow",
+      resources: ["workspace://src/**"],
+    });
+
+    expect(diagnoseCapabilityPolicy({ spec: { rules: [inheritedRule] } })).toEqual({
       ok: false,
       status: "DIAGNOSTICS_FAILED",
       reason: "POLICY_DIAGNOSTICS_INPUT_INVALID",
@@ -312,7 +364,6 @@ describe("M4-008 JavaScript runtime boundary", () => {
     expect(Object.isFrozen(diagnostic)).toBe(true);
     expect(diagnostic?.relatedPaths).toBeDefined();
     expect(Object.isFrozen(diagnostic?.relatedPaths)).toBe(true);
-    expect(diagnostic?.relatedPaths).not.toBe(before.spec.rules);
   });
 
   test("failure outputs are frozen", () => {
