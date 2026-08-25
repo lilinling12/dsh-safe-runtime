@@ -67,10 +67,14 @@ The portable reload request is:
 
 ```text
 PolicyReloadRequest {
-  format: "JSON" | "YAML"
+  format: string
   source: string
 }
 ```
+
+M4-009 does not validate the supported-format vocabulary itself. `format` remains a
+string so the accepted M4-001 loader stays the sole authority for whether a format is
+supported and can return `POLICY_DOCUMENT_FORMAT_UNSUPPORTED` unchanged.
 
 The TypeScript projection MAY accept `unknown` at its public runtime boundary,
 but it MUST materialize exactly these two own data properties without invoking
