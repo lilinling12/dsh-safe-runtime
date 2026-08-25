@@ -1,0 +1,127 @@
+name: M4-008 protocol corpus correction
+
+on:
+  push:
+    branches:
+      - automation/m4-008-protocol-corpus-fix
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: automation/m4-008-protocol-corpus-fix
+          fetch-depth: 1
+
+      - name: Apply exact fixture corrections
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path('fixtures/policy-diagnostics/cases.json')
+          document = json.loads(path.read_text(encoding='utf-8'))
+          cases = document.get('cases')
+          if not isinstance(cases, list):
+              raise SystemExit('expected cases array')
+
+          by_id = {case.get('id'): case for case in cases if isinstance(case, dict)}
+          if len(by_id) != len(cases):
+              raise SystemExit('fixture IDs must be unique strings')
+
+          future = by_id.get('future-fields-ignored')
+          if future is None:
+              raise SystemExit('future-fields-ignored fixture missing')
+          lease = future['policy']['spec']['rules'][0]['lease']
+          if lease != {'ttlSeconds': 60, 'maxUses': 1}:
+              raise SystemExit(f'unexpected lease fixture before correction: {lease!r}')
+          future['policy']['spec']['rules'][0]['lease'] = {'ttlMs': 60000, 'maxUses': 1}
+
+          if 'control-code-in-locator-pattern' in by_id:
+              raise SystemExit('control-code fixture already present')
+
+          marker_index = next(
+              (i for i, case in enumerate(cases)
+               if isinstance(case, dict) and case.get('id') == 'invalid-embedded-globstar'),
+              None,
+          )
+          if marker_index is None:
+              raise SystemExit('invalid-embedded-globstar marker fixture missing')
+
+          control_case = {
+              'id': 'control-code-in-locator-pattern',
+              'policy': {
+                  'apiVersion': 'safe-runtime.dev/v1alpha1',
+                  'kind': 'CapabilityPolicy',
+                  'metadata': {'name': 'control-pattern'},
+                  'spec': {
+                      'defaultEffect': 'deny',
+                      'rules': [{
+                          'id': 'r',
+                          'effect': 'allow',
+                          'capabilities': ['fs.read'],
+                          'resources': ['workspace://src/line\nbreak'],
+                      }],
+                  },
+              },
+              'expect': {
+                  'status': 'DIAGNOSED',
+                  'diagnostics': [{
+                      'severity': 'ERROR',
+                      'code': 'RESOURCE_LOCATOR_INVALID',
+                      'instancePath': '/spec/rules/0/resources/0',
+                  }],
+                  'truncated': False,
+              },
+          }
+          cases.insert(marker_index, control_case)
+
+          if len(cases) != 21:
+              raise SystemExit(f'expected 21 portable cases after correction, found {len(cases)}')
+
+          path.write_text(
+              json.dumps(document, ensure_ascii=False, indent=2) + '\n',
+              encoding='utf-8',
+          )
+          PY
+
+      - name: Verify exact edit scope and semantics
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          changed="$(git diff --name-only)"
+          if [[ "$changed" != "fixtures/policy-diagnostics/cases.json" ]]; then
+            printf 'unexpected changed files:\n%s\n' "$changed" >&2
+            exit 1
+          fi
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          doc = json.loads(Path('fixtures/policy-diagnostics/cases.json').read_text(encoding='utf-8'))
+          ids = [case['id'] for case in doc['cases']]
+          assert len(ids) == 21
+          assert len(set(ids)) == 21
+          control = next(case for case in doc['cases'] if case['id'] == 'control-code-in-locator-pattern')
+          assert control['policy']['spec']['rules'][0]['resources'][0] == 'workspace://src/line\nbreak'
+          assert control['expect']['diagnostics'][0]['code'] == 'RESOURCE_LOCATOR_INVALID'
+          future = next(case for case in doc['cases'] if case['id'] == 'future-fields-ignored')
+          assert future['policy']['spec']['rules'][0]['lease'] == {'ttlMs': 60000, 'maxUses': 1}
+          PY
+
+      - name: Commit corrected fixture blob
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add fixtures/policy-diagnostics/cases.json
+          git commit -m "test(policy): correct M4-008 portable diagnostics corpus"
+          git push origin HEAD:automation/m4-008-protocol-corpus-fix
