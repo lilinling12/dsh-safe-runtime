@@ -126,11 +126,15 @@ function createCapabilityPolicyHotReloadStoreInternal(
 }
 
 function materializeReloadRequest(input: unknown): PolicyReloadRequest | undefined {
-  if (typeof input !== "object" || input === null || Array.isArray(input)) {
+  if (typeof input !== "object" || input === null) {
     return undefined;
   }
 
   try {
+    if (Array.isArray(input)) {
+      return undefined;
+    }
+
     const keys = Reflect.ownKeys(input);
     if (
       keys.length !== 2 ||
