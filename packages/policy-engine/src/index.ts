@@ -2,10 +2,10 @@
  * @dsh-safe/policy-engine public boundary.
  *
  * M4-001 through M4-008 are acceptance-audited and governance-closed. M4-009
- * atomic policy hot reload is in implementation conformance; full PDP evaluation,
- * tool classification, durable provenance and later gates remain unauthorized.
+ * atomic policy hot reload is accepted at its implementation boundary; later
+ * policy/classifier/PDP/provenance gates remain unauthorized pending governance.
  */
-export const PACKAGE_STAGE = "M4-009-HOT-RELOAD-IN-PROGRESS" as const;
+export const PACKAGE_STAGE = "M4-009-HOT-RELOAD-CONFORMANCE" as const;
 
 export {
   loadPolicyDocument,

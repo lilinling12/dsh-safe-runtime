@@ -13,22 +13,21 @@
 - PR state: `OPEN / DRAFT`
 - Branch: `feat/m4-capability-broker`
 - Base: `main@57430273e065be8d38807d67b175fa154c801d43`
-- M2: **ACCEPTED / MERGED** — PR #1 merge commit `52233e19c15504d5c5f77522bb4bf58a2d23c56f`
-- M3: **ACCEPTED / MERGED** — PR #2 merge commit `57430273e065be8d38807d67b175fa154c801d43`
+- M2 / M3: **ACCEPTED / MERGED**
 - M4-001 through M4-008: **ACCEPTED / GOVERNANCE CLOSED**
-- M4-008 final governance head: `71046abef4568668ba9e3448b496430b5c48ebb7`
-- M4-008 final governance CI: **PASS — CI #337 / run `32814874559`**
-- M4-008 final governance Harness: **PASS — #279 / run `32814874566`**
-- Current gate: **M4-009 P1 — policy hot reload with atomic swap**
-- M4-009 authorization: **AUTHORIZED**
-- M4-009 production implementation: **NOT STARTED**
+- M4-009 implementation boundary: **ACCEPTED**
+- Accepted M4-009 implementation head: `76dd50e731df617c1fafc1929be306f73458b7d4`
+- M4-009 acceptance audit: `docs/acceptance/m4-009-acceptance-audit.md`
+- M4-009 accepted-head CI: **PASS — CI #346 / run `32822338122`**
+- M4-009 accepted-head Harness: **PASS — #288 / run `32822338113`**
+- M4-009 governance closure: **PENDING ACCEPTANCE/GOVERNANCE-HEAD DUAL-GREEN**
 - M4-010+, M4-020+ and M6: **NOT AUTHORIZED by the current gate**
 
 Live GitHub state overrides this file.
 
 ## Accepted compatibility baseline
 
-DeepSeek Harness remains an Adapter compatibility target, never protocol authority:
+DeepSeek Harness remains Adapter compatibility evidence only:
 
 ```text
 version: 0.1.0-rc.5
@@ -36,36 +35,9 @@ commit: 47f943859bef60e4160492346772ded9b24f765a
 distribution: distribution-blocked
 ```
 
-M4 policy/reload/evaluation semantics MUST NOT be inferred from Harness APIs or
-runtime behavior.
+Harness APIs/runtime behavior MUST NOT define M4 policy, reload or future PDP semantics.
 
 ## M4-008 final closure
-
-Accepted implementation head:
-
-```text
-2aa8250f6c98b9853497481c08e584df866863ff
-```
-
-Implementation evidence:
-
-- CI #335 / run `32798605219`: PASS;
-- Harness #277 / run `32798605222`: PASS;
-- 35 test files / 510 tests: PASS;
-- M4-008 diagnostics suite: 33 PASS;
-- strict TypeScript / architecture / 16-schema baseline: PASS;
-- supply-chain policy: PASS (124 entries);
-- oxlint: 0 warnings / 0 errors on 113 files;
-- Shared TCK external consumer: 44 assets PASS.
-
-Implementation acceptance record commit:
-
-```text
-202283944ae6736dc324f1251e9546b20af5019d
-```
-
-- CI #336 / run `32814355683`: PASS;
-- Harness #278 / run `32814355684`: PASS.
 
 Final governance head:
 
@@ -76,81 +48,153 @@ Final governance head:
 - CI #337 / run `32814874559`: PASS;
 - Harness #279 / run `32814874566`: PASS.
 
-Therefore M4-008 governance is **CLOSED** and M4-009 is formally authorized.
+This formally authorized M4-009.
 
-## M4-009 protocol-first candidate boundary
+## M4-009 accepted normative boundary
 
-Draft normative profile:
+Normative profile:
 
 ```text
 specs/0025-m4-capability-policy-hot-reload.md
 ```
 
-Portable candidate corpus:
+Portable corpus:
 
 ```text
 fixtures/policy-hot-reload/cases.json
 ```
 
-M4-009 is an in-memory activation/state-management boundary. It is not a file
-watcher, distributed config system or hidden PDP.
-
-Candidate preparation is intended to be:
+The corrected protocol-first head is:
 
 ```text
-reload request
-  -> M4-001 loader with accepted default budgets
-  -> M4-002 schema validator
-  -> each resource selector in source order
-       -> M4-003 selector normalization
-       -> M4-004 lexical pattern syntax validation
-  -> build complete immutable next active record
-  -> one logical atomic publication
+0c150746125d6ad46157ef00e5515128b155bae3
 ```
 
-M4-008 diagnostics may be used independently for operator feedback but MUST NOT
-become swap authorization authority.
+It passed:
 
-## M4-009 atomicity and last-known-good requirements
+- CI #339;
+- Harness #281.
 
-The store begins `EMPTY` at local epoch 0. A successful activation publishes one
-frozen `ACTIVE { epoch, policy }` record. Epochs increment exactly once per
-successful explicit activation and do not change on rejected reloads.
+The correction preserved M4-001 as the sole supported-format authority by keeping
+reload `format` as a string rather than narrowing it to JSON/YAML before loader
+invocation.
 
-Before publication, every candidate must be fully loaded, schema-validated and
-resource-preflighted. A rejected candidate must preserve the exact previous
-active record and epoch. Failed first activation leaves `EMPTY` unchanged.
+## M4-009 accepted implementation
 
-Readers may observe only a complete old record or a complete new record. They
-must never observe a temporary EMPTY state, a partially prepared candidate, or a
-mixed old/new epoch-policy tuple.
+M4-009 is a synchronous in-memory activation store, not a watcher, distributed
+config system, classifier, PDP, approval/lease engine, receipt/provenance layer,
+or Adapter enforcement mechanism.
 
-An older snapshot handle remains immutable and stable after a later successful
-swap. A future PDP may therefore acquire one snapshot and retain it for one
-complete evaluation; M4-009 itself does not evaluate policy.
-
-M4-009 deliberately does not hard-reject M4-008 warning/info findings such as
-duplicate rule IDs, redundant priorities or an empty rule set. It also does not
-interpret subjects, constraints, delegation, lease, approval, receipt,
-provenance or guarantee semantics beyond currently accepted schema/processing
-boundaries.
-
-## Active gate rule
-
-Production TypeScript MUST NOT begin until the protocol-first candidate head
-containing Spec 0025 + portable fixtures reaches exact-head:
+Candidate preparation is exactly:
 
 ```text
-normal CI
-+ exact Harness rc5 source-conformance
+reload request materialization
+  -> M4-001 loader using accepted default budgets
+  -> M4-002 trusted schema validator compiled once at store creation
+  -> source-order resources
+       -> M4-003 normalizePolicyResourceSelector()
+       -> M4-004 package-internal lexical pattern validation
+  -> construct complete frozen next ACTIVE record and success result
+  -> one active-record reference publication
 ```
 
-Until then:
+M4-008 diagnostics remain operator feedback and are not activation authority.
+Duplicate-rule-ID/redundant-priority/empty-rules diagnostics therefore do not
+silently become reload blockers.
+
+## Atomicity / last-known-good boundary
+
+State is one immutable record reference:
 
 ```text
-M4-008 governance: CLOSED
-M4-009 protocol-first profile: IN PROGRESS
-M4-009 implementation: NOT STARTED
+EMPTY  { status: "EMPTY", epoch: 0 }
+ACTIVE { status: "ACTIVE", epoch, policy }
+```
+
+The publication assignment is the single-isolate linearization point. A reader
+can observe only the complete old or complete new record. Failed reloads do not
+clear or partially replace active state.
+
+The accepted tests prove exact old-record reference preservation for:
+
+- REQUEST rejection;
+- LOAD rejection;
+- SCHEMA rejection;
+- RESOURCE rejection;
+- STATE epoch exhaustion.
+
+Old ACTIVE handles remain immutable and valid after later swaps. Successful
+explicit identical-content reloads increment epoch; there is no implicit policy
+content deduplication.
+
+## Runtime hardening
+
+The reload API accepts `unknown` and reads exactly own data properties `format`
+and `source`. Accessor-backed, inherited, missing, extra, symbol and revoked-proxy
+requests fail closed. Both `format` and `source` getters are proven not to execute.
+
+The accepted M4-002 frozen policy snapshot is stored directly. Source text is not
+stored as state or disclosed in failure output. Schema issue arrays remain frozen
+and detached. The epoch-exhaustion seam is package-internal and not exported from
+`index.ts`.
+
+## Accepted implementation evidence
+
+Final accepted implementation head:
+
+```text
+76dd50e731df617c1fafc1929be306f73458b7d4
+```
+
+Exact-head evidence:
+
+- normal CI #346 / run `32822338122`: PASS;
+- exact Harness rc5 source-conformance #288 / run `32822338113`: PASS;
+- frozen install: PASS;
+- supply-chain policy: PASS (124 entries);
+- architecture boundaries: PASS;
+- schema shape: PASS (16 schemas);
+- schema compatibility baseline: PASS;
+- strict workspace TypeScript: PASS;
+- 37 test files / 538 tests: PASS;
+- M4-009 primary suite: 25 PASS;
+- M4-009 green-after-review hardening: 3 PASS;
+- M4-008 diagnostics: 33 PASS;
+- M4-007 explanation: 33 PASS;
+- M4-006 default deny: 35 PASS;
+- M4-005 effect resolution: 32 PASS;
+- M4-004 rule ordering: 19 PASS;
+- M4-003 normalization regressions: 38 + 2 PASS;
+- M4-002 validator regressions: 6 PASS;
+- M4-001 loader regressions: 18 PASS;
+- oxlint: 0 warnings / 0 errors on 117 files;
+- Shared TCK packed artifact + external consumer: 44 assets PASS;
+- Harness steps 6–11: all PASS.
+
+Intermediate failures were resolved from current-head evidence without weakening
+any Gate: strict TS exposed a broad internal M4-004 failure union and readonly
+record narrowing issue; runtime tests then exposed revoked-proxy `Array.isArray`
+throwing outside the fail-closed boundary. Both were corrected narrowly.
+
+## Current gate
+
+`docs/acceptance/m4-009-acceptance-audit.md` records **M4-009 ACCEPTED AT
+IMPLEMENTATION BOUNDARY**.
+
+Next actions are governance only:
+
+1. verify the acceptance-record/PACKAGE_STAGE/CURRENT head with exact normal CI +
+   Harness rc5 source-conformance;
+2. after dual-green, append M4-009 acceptance/closure to `HISTORY.md` and mark only
+   M4-009 accepted in `docs/roadmap.md`;
+3. verify that final governance head with exact normal CI + Harness;
+4. only then determine the next authorized M4 gate from roadmap/live state.
+
+Until final M4-009 governance dual-green:
+
+```text
+M4-009 implementation: ACCEPTED
+M4-009 governance: PENDING
 M4-010+: NOT AUTHORIZED
 M4-020+: NOT AUTHORIZED
 M6: NOT AUTHORIZED
@@ -161,13 +205,14 @@ M6: NOT AUTHORIZED
 - Protocol/spec precedes implementation.
 - Specs/schemas/TCK remain semantic authority.
 - Harness is compatibility evidence only.
-- M4-001 remains document-loading authority.
+- M4-001 remains document-loading/format authority.
 - M4-002 remains schema-validity authority.
 - M4-003 remains resource-normalization authority.
-- M4-004 remains lexical resource-pattern/structural-ordering authority.
-- M4-005/M4-006/M4-007 remain downstream effect/default/explanation semantics.
-- M4-008 diagnostics remain non-authoritative for activation/authorization.
-- M4-009 must preserve last-known-good state and atomic immutable snapshot reads.
+- M4-004 remains lexical pattern/ordering authority.
+- M4-005/006/007 remain downstream effect/default/explanation authorities.
+- M4-008 diagnostics remain non-authoritative for activation.
+- M4-009 is activation/state management only.
+- Tool classification remains M4-010+.
 - Subject resolution/full policy evaluation remain M4-020/M4-021.
 - Approval remains M4-023.
 - Decision receipt/provenance remains M4-024.
@@ -181,10 +226,9 @@ M6: NOT AUTHORIZED
 On the next session:
 
 1. read `docs/handoff/README.md` and this file;
-2. fetch PR #3 live base/head and exact-head workflows;
+2. fetch PR #3 live head/base and exact-head workflows;
 3. live GitHub state overrides this snapshot;
-4. continue only from the M4-009 protocol-first candidate gate;
-5. do not write production M4-009 implementation until the candidate is CI +
-   Harness dual-green;
-6. inspect exact current-head diagnostics before fixing any failure;
-7. do not start M4-010+, M4-020+ or M6 early.
+4. continue only from M4-009 acceptance/governance;
+5. do not start M4-010+ until final M4-009 governance head is dual-green;
+6. inspect exact current-head failures before editing;
+7. do not start M4-020+ or M6 early.
