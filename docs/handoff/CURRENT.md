@@ -23,8 +23,11 @@
 - M4-010 acceptance audit: `docs/acceptance/m4-010-acceptance-audit.md`
 - M4-010 accepted-head CI: **PASS — CI #351 / run `33036068127`**
 - M4-010 accepted-head Harness: **PASS — #293 / run `33036068108`**
-- M4-010 governance closure: **PENDING ACCEPTANCE-RECORD/GOVERNANCE-HEAD DUAL-GREEN**
-- M4-011+, M4-020+ and M6: **NOT AUTHORIZED by the current gate**
+- M4-010 acceptance-record head: `1222c9f903e1d6be42633f7e63e8a0d54cbaff2c`
+- M4-010 acceptance-record CI: **PASS — CI #352 / run `33036276956`**
+- M4-010 acceptance-record Harness: **PASS — #294 / run `33036276974`**
+- M4-010 final governance closure: **PENDING THIS GOVERNANCE HEAD DUAL-GREEN**
+- M4-011+, M4-020+ and M6: **NOT AUTHORIZED until final M4-010 governance dual-green**
 
 Live GitHub state overrides this file.
 
@@ -185,25 +188,45 @@ protocol workspace dependency before broker no-emit typecheck. The protocol type
 reference was preserved; frozen lockfile, strictness and CI gates were not
 changed.
 
+## Acceptance-record verification
+
+Implementation acceptance was recorded on:
+
+```text
+1222c9f903e1d6be42633f7e63e8a0d54cbaff2c
+```
+
+That head itself reached exact-head dual-green before this governance record was
+prepared:
+
+- normal CI #352 / run `33036276956`: PASS;
+- exact Harness rc5 source-conformance #294 / run `33036276974`: PASS.
+
+This satisfies the prerequisite for final M4-010 governance. It does not, by
+itself, authorize M4-011; the governance head containing the HISTORY/roadmap
+closure must also reach exact-head dual-green.
+
 ## Current gate
 
 `docs/acceptance/m4-010-acceptance-audit.md` records **M4-010 ACCEPTED AT
 IMPLEMENTATION BOUNDARY**.
 
-Next actions are governance only:
+This governance change is intentionally limited to operational/governance state:
 
-1. verify the acceptance-record/PACKAGE_STAGE/CURRENT head with exact normal CI +
-   Harness rc5 source-conformance;
-2. after dual-green, append M4-010 acceptance/closure to `HISTORY.md` and mark only
-   M4-010 accepted in `docs/roadmap.md`;
-3. verify that final governance head with exact normal CI + Harness;
-4. only after final governance dual-green authorize M4-011 from roadmap/live state.
+1. append M4-010 acceptance evidence to `docs/handoff/HISTORY.md`;
+2. mark only M4-010 accepted in `docs/roadmap.md`;
+3. update this handoff snapshot with the verified acceptance-record evidence;
+4. make no production code, schema, TCK, dependency, lockfile or security-boundary
+   change;
+5. require exact-head normal CI + Harness rc5 dual-green on the resulting
+   governance commit before authorizing M4-011.
 
-Until final M4-010 governance dual-green:
+Until this final governance head is dual-green:
 
 ```text
 M4-010 implementation: ACCEPTED
-M4-010 governance: PENDING
+M4-010 acceptance-record head: DUAL-GREEN
+M4-010 governance: PENDING FINAL GOVERNANCE-HEAD DUAL-GREEN
 M4-011+: NOT AUTHORIZED
 M4-020+: NOT AUTHORIZED
 M6: NOT AUTHORIZED
@@ -236,7 +259,7 @@ On the next session:
 1. read `docs/handoff/README.md` and this file;
 2. fetch PR #3 live head/base and exact-head workflows;
 3. live GitHub state overrides this snapshot;
-4. continue only from M4-010 acceptance/governance;
-5. do not start M4-011+ until final M4-010 governance head is dual-green;
-6. inspect exact current-head failures before editing;
-7. do not start M4-020+ or M6 early.
+4. if this final M4-010 governance head is dual-green, treat M4-010 governance as
+   closed and authorize only M4-011 as the next protocol-first Gate;
+5. otherwise inspect the exact current-head failure before editing;
+6. do not start M4-012+, M4-020+ or M6 early.

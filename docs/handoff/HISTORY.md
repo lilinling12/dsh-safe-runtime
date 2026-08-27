@@ -514,8 +514,7 @@ Final exact-head evidence for `728f44e...`:
 - normal CI #99 / job `95936172958`: PASS;
 - exact Harness rc5 source-conformance #58 / job `95936172462`: PASS;
 - frozen install and supply-chain lockfile policy: PASS (123 entries);
-- architecture boundaries: PASS;
-- schema shape / compatibility baseline: PASS (16 schemas);
+- architecture/schema/compatibility gates: PASS (16 schemas);
 - TypeScript typecheck: PASS;
 - portable M3-010 profile tests: 18 PASS;
 - portable JSON boundary regressions: 2 PASS;
@@ -1080,3 +1079,61 @@ record was prepared.
 implementation boundary. This final governance head must itself reach exact-head
 normal CI + Harness dual-green before any M4-010+ gate is authorized. M4-020+
 and M6 remain unauthorized by this gate.
+
+## 2026-08-27 — Accept M4-010 built-in filesystem tool classification
+
+M4-010 is accepted at implementation boundary on
+`4be1fffc452358acf6a1af4dff5d849ea7868ec8` after protocol-first definition in
+Spec 0026 and a 22-case portable fixture corpus.
+
+The accepted classifier remains deliberately narrower than authorization. It
+maps only the exact pinned built-in filesystem tool surface to conservative
+`fs.*` effect envelopes plus unresolved operands. Canonical `fs.*` vocabulary
+remains protocol authority; DeepSeek Harness `0.1.0-rc.5` at
+`47f943859bef60e4160492346772ded9b24f765a` is compatibility evidence only.
+
+Accepted mappings cover `read`, `read_image`, `write`, `edit`, `glob`, `grep`
+and `str_replace_editor`. Provider target identity, canonicalization,
+containment, symlink/junction behavior and execution are explicitly outside this
+Gate. Omitted `glob`/`grep` paths remain unresolved `EXECUTION_ROOT`; no `/`,
+`.`, host cwd or Adapter scope is guessed. `NOT_APPLICABLE` for unknown exact
+tools is not allow/deny and does not pull M4-013 forward.
+
+Runtime hardening is fail closed: inherited/accessor-backed security fields,
+arrays, symbol substitution and proxy descriptor failures cannot manufacture
+authority. Unknown tools do not inspect hostile arguments. Successful results
+are detached and deeply frozen.
+
+The first implementation head
+`80d29a7a3a4a8b714a29b950181c54fe2cb3eb2e` passed Harness #292 but exact
+current-head CI #350 failed strict TypeScript with TS2307 because the new broker
+consumer imported protocol declarations exposed from `dist/` while workspace
+no-emit typecheck did not build that dependency. The correction preserved the
+protocol dependency and strictness: capability-broker now builds protocol types
+before its own no-emit typecheck. Frozen lockfile and security gates were not
+weakened.
+
+Exact accepted implementation evidence at `4be1fffc...`:
+
+- normal CI #351 / run `33036068127`: PASS;
+- exact Harness rc5 source-conformance #293 / run `33036068108`: PASS;
+- frozen install / 124-entry supply-chain policy: PASS;
+- architecture / 16-schema shape / schema baseline: PASS;
+- strict workspace TypeScript: PASS;
+- 38 test files / 572 tests: PASS;
+- M4-010 classifier suite: 34 PASS;
+- oxlint: 0 warnings / 0 errors on 119 files;
+- Shared TCK packed artifact + external non-workspace consumer: 44 assets PASS;
+- Harness steps 6–11: all PASS.
+
+Implementation acceptance was recorded at
+`1222c9f903e1d6be42633f7e63e8a0d54cbaff2c`; that acceptance-record head itself
+reached normal CI #352 / run `33036276956` PASS and exact Harness rc5
+source-conformance #294 / run `33036276974` PASS before this final governance
+record was prepared.
+
+`docs/acceptance/m4-010-acceptance-audit.md` records M4-010 accepted at the
+implementation boundary. This governance head is intentionally limited to
+HISTORY, roadmap and CURRENT state. It must itself reach exact-head normal CI +
+Harness rc5 dual-green before M4-011 is authorized. M4-012+, M4-020+ and M6
+remain unauthorized by this Gate.
