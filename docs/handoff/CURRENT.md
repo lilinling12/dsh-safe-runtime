@@ -6,28 +6,25 @@
 
 ## Snapshot
 
-- Recorded at: `2026-08-27`
+- Recorded at: `2026-08-28`
 - Repository: `lilinling12/dsh-safe-runtime`
 - Phase: `M4 — Capability Broker v0.1`
 - Active pull request: `#3 — feat(policy): begin M4 capability broker`
-- PR state: `OPEN / DRAFT`
+- PR state: `OPEN / DRAFT / mergeable`
 - Branch: `feat/m4-capability-broker`
 - Base: `main@57430273e065be8d38807d67b175fa154c801d43`
 - M2 / M3: **ACCEPTED / MERGED**
-- M4-001 through M4-009: **ACCEPTED / GOVERNANCE CLOSED**
-- M4-009 final governance head: `d0db84efccad8139b42881a32792e4c75aacfde7`
-- M4-009 final governance CI: **PASS — CI #348 / run `32823098144`**
-- M4-009 final governance Harness: **PASS — #290 / run `32823098142`**
-- M4-010 implementation boundary: **ACCEPTED**
-- Accepted M4-010 implementation head: `4be1fffc452358acf6a1af4dff5d849ea7868ec8`
-- M4-010 acceptance audit: `docs/acceptance/m4-010-acceptance-audit.md`
-- M4-010 accepted-head CI: **PASS — CI #351 / run `33036068127`**
-- M4-010 accepted-head Harness: **PASS — #293 / run `33036068108`**
-- M4-010 acceptance-record head: `1222c9f903e1d6be42633f7e63e8a0d54cbaff2c`
-- M4-010 acceptance-record CI: **PASS — CI #352 / run `33036276956`**
-- M4-010 acceptance-record Harness: **PASS — #294 / run `33036276974`**
-- M4-010 final governance closure: **PENDING THIS GOVERNANCE HEAD DUAL-GREEN**
-- M4-011+, M4-020+ and M6: **NOT AUTHORIZED until final M4-010 governance dual-green**
+- M4-001 through M4-010: **ACCEPTED / GOVERNANCE CLOSED**
+- M4-010 final governance head: `994a8ddf1be5d0899c1749bc5b639650135b35a6`
+- M4-010 final governance CI: **PASS — CI #354**
+- M4-010 final governance Harness: **PASS — #296**
+- M4-011 implementation boundary: **ACCEPTED**
+- M4-011 protocol-first head: `204dd802e88645b6cc754a658ef691d6203da1bb`
+- M4-011 implementation head: `c8a5318220622e977e042b1585dcf183efff39e7`
+- M4-011 acceptance audit: `docs/acceptance/m4-011-acceptance-audit.md`
+- M4-011 acceptance-audit commit: `d3aeb2e9625c307c4b7f1d0042dcf6dfe50ab2d8`
+- M4-011 governance closure: **PENDING ACCEPTANCE-RECORD AND FINAL GOVERNANCE DUAL-GREEN**
+- M4-012+, M4-020+ and M6: **NOT AUTHORIZED by the current gate**
 
 Live GitHub state overrides this file.
 
@@ -42,192 +39,191 @@ distribution: distribution-blocked
 ```
 
 Harness APIs/runtime behavior MUST NOT define Core protocol capability semantics,
-provider containment, policy/PDP semantics or later classifier fallback policy.
+provider containment, policy/PDP semantics, classifier fallback policy or plugin
+classifier precedence.
 
-## M4-009 final closure
+## M4-010 final closure
 
-Final governance head:
+M4-010 built-in filesystem classification is governance-closed at corrected
+append-only governance head:
 
 ```text
-d0db84efccad8139b42881a32792e4c75aacfde7
+994a8ddf1be5d0899c1749bc5b639650135b35a6
 ```
 
-- CI #348 / run `32823098144`: PASS;
-- Harness #290 / run `32823098142`: PASS.
+Its exact governance-head CI #354 and Harness #296 passed. That closure formally
+authorized M4-011 and no later classifier gate.
 
-This formally authorized M4-010.
+The accepted M4-010 compatibility import remains available through
+`builtin-filesystem-tool-classifier.ts`; the internal move performed during
+M4-011 did not remove or redefine that public surface.
 
-## M4-010 accepted normative boundary
+## M4-011 accepted normative boundary
 
 Normative profile:
 
 ```text
-specs/0026-m4-builtin-filesystem-tool-classification.md
+specs/0027-m4-builtin-shell-tool-classification.md
 ```
 
 Portable corpus:
 
 ```text
-fixtures/tool-classifier/builtin-fs-cases.json
+fixtures/tool-classifier/builtin-shell-cases.json
 ```
 
 The protocol-first head is:
 
 ```text
-dffcc0ef99b445d70cd680bc15df6b1d076e2562
+204dd802e88645b6cc754a658ef691d6203da1bb
 ```
 
 It passed:
 
-- CI #349 / run `32942835039`;
-- Harness #291 / run `32942835195`.
+- CI #355 / run `33063928757`;
+- Harness #297 / run `33063928753`.
 
-The classifier is deliberately narrower than authorization. It records a
-conservative filesystem effect envelope and an unresolved operand. It does not
-create a `CapabilityResource`, resolve provider targets, evaluate policy or
-execute tools.
+The exact pinned rc5 model-facing shell tools covered by M4-011 are only:
 
-## M4-010 accepted implementation
+```text
+bash
+pwsh
+```
+
+Both classify to exactly one `process.exec` requirement. Protocol capability
+names come from `@dsh-safe/protocol`; pinned Harness source supplies only
+compatibility facts about the model-facing surface and provider lifecycle.
+
+## Accepted M4-011 implementation
 
 Accepted implementation head:
 
 ```text
-4be1fffc452358acf6a1af4dff5d849ea7868ec8
+c8a5318220622e977e042b1585dcf183efff39e7
 ```
 
-Exact built-in rc5 surface covered by this Gate:
+The implementation is intentionally classification-only:
+
+- exact `bash` -> `process.exec` with `BASH` dialect;
+- exact `pwsh` -> `process.exec` with `POWERSHELL` dialect;
+- no `process.resolve` from provider-owned default/executable resolution;
+- no `process.terminal` from terminal-shaped presentation UI;
+- no `process.signal` from timeout/abort/background cleanup mechanics;
+- no shell parsing and no nested filesystem/network/secret capability inference;
+- no provider invocation, executable resolution, policy/PDP, approval, lease or
+  execution.
+
+Command text is accepted only as a non-blank own string data property and is
+preserved exactly. The classifier must not become a shell parser or secondary
+authority for command semantics.
+
+## Workdir and execution mode
+
+Explicit non-blank `workdir` is preserved as unresolved `ARGUMENT_WORKDIR`
+evidence. Omitted workdir is recorded as unresolved `EXECUTION_ROOT` evidence.
+No host cwd, Adapter scope, provider root or path canonicalization is invented.
+
+`run_in_background` is interpreted narrowly:
+
+- omitted or `false` -> `FOREGROUND`;
+- `true` -> `BACKGROUND`;
+- explicit non-boolean -> `SHELL_TOOL_BACKGROUND_INVALID`.
+
+Background intent does not imply terminal or signal authority.
+
+## Fail-closed hostile-input boundary
+
+Recognized tool arguments must be non-null, non-array objects. Security-relevant
+fields are inspected in deterministic order:
+
+1. `command`;
+2. `workdir`;
+3. `run_in_background`.
+
+Only own data-property descriptors are trusted. No getter execution, inherited
+value consumption, key enumeration, spreading, stringification or recursive
+traversal is used.
+
+Stable errors are:
+
+- `SHELL_TOOL_ARGUMENTS_INVALID`;
+- `SHELL_TOOL_COMMAND_INVALID`;
+- `SHELL_TOOL_WORKDIR_INVALID`;
+- `SHELL_TOOL_BACKGROUND_INVALID`;
+- `SHELL_TOOL_INPUT_UNREADABLE`.
+
+Unknown exact names return `NOT_APPLICABLE` without touching hostile arguments.
+That status is not allow/deny and remains separate from M4-013 fallback policy.
+Successful classifications are deeply frozen and detached from later caller
+mutation.
+
+## Maintainable package structure
+
+M4-011 introduced only the minimum package-internal modularization required to
+keep classifier code cohesive and maintainable:
 
 ```text
-read
-read_image
-write
-edit
-glob
-grep
-str_replace_editor
+packages/capability-broker/src/
+├── builtin-filesystem-tool-classifier.ts
+├── index.ts
+└── tool-classifier/
+    ├── hostile-input.ts
+    ├── builtin-filesystem.ts
+    ├── builtin-shell.ts
+    └── builtin-shell.test.ts
 ```
 
-The canonical `fs.*` names come from `@dsh-safe/protocol`; the pinned Harness
-source supplies compatibility facts about model-facing tool behavior only.
+`hostile-input.ts` contains the bounded untrusted-record primitives shared by the
+two built-in classifiers. It is not a registry and does not pull M4-014 plugin
+classification forward. The filesystem compatibility facade remains exported and
+its accepted behavior remains covered by CI.
 
-The accepted mappings are conservative pre-provider-state envelopes. In
-particular:
+## Exact accepted implementation evidence
 
-- `write` requires both possible `fs.create` and `fs.write` effects;
-- `str_replace_editor view` covers stat/read/list because target type is provider
-  state;
-- `str_replace_editor str_replace|insert` records stat/read/write because pinned
-  rc5 implements them through `stat`, `readText` and `writeText`;
-- omitted `glob`/`grep` path becomes unresolved `EXECUTION_ROOT`, never a guessed
-  `/`, `.`, host cwd or Adapter scope.
+At `c8a5318220622e977e042b1585dcf183efff39e7`:
 
-## Provider / resource boundary
-
-M4-010 performs no IO and never invokes a provider. Raw accepted paths are copied
-without path normalization and remain unresolved operands.
-
-Therefore classification does not prove containment, stable provider identity,
-symlink/junction behavior, execution-world identity or resource authorization.
-Those responsibilities remain behind the provider-aware enforcement boundary.
-
-`glob` and `grep` are subprocess-backed in pinned rc5. Their M4-010 result records
-model-facing filesystem discovery/read authority; it does not claim provider FS
-mediation and does not broaden this Gate into M4-011 process/shell classification.
-
-## Fail-closed runtime hardening
-
-The public classifier accepts untrusted `arguments: unknown` and reads only known
-own data properties with bounded descriptor inspection.
-
-Accepted tests prove:
-
-- inherited path/command values cannot manufacture authority;
-- accessors are rejected without getter execution;
-- unrelated accessors and attacker-controlled own-key enumeration are not used;
-- symbol-only substitution is rejected;
-- arrays fail closed;
-- proxy descriptor failures become `FS_TOOL_INPUT_UNREADABLE`;
-- unknown exact tools return `NOT_APPLICABLE` without touching hostile arguments;
-- accepted classifications are deeply frozen and detached from later caller
-  mutation.
-
-`NOT_APPLICABLE` is not allow/deny. Unknown-tool fallback remains M4-013.
-
-## Accepted implementation evidence
-
-At `4be1fffc452358acf6a1af4dff5d849ea7868ec8`:
-
-- normal CI #351 / run `33036068127`: PASS;
-- exact Harness rc5 source-conformance #293 / run `33036068108`: PASS;
+- normal CI #356 / run `33116459841`: PASS;
+- exact Harness rc5 source-conformance #298 / run `33116459834`: PASS;
+- Harness steps 6–11: PASS;
 - frozen install: PASS;
 - supply-chain policy: PASS (124 entries);
 - architecture boundaries: PASS;
 - schema shape: PASS (16 schemas);
 - schema compatibility baseline: PASS;
 - strict workspace TypeScript: PASS;
-- 38 test files / 572 tests: PASS;
-- M4-010 classifier suite: 34 PASS;
-- M4-009 hot reload: 25 + 3 hardening PASS;
-- M4-008 diagnostics: 33 PASS;
-- M4-007 explanation: 33 PASS;
-- M4-006 default deny: 35 PASS;
-- M4-005 effect resolution: 32 PASS;
-- M4-004 rule ordering: 19 PASS;
-- M4-003 normalization: 38 + 2 PASS;
-- M4-002 schema validation: 6 PASS;
-- M4-001 loader: 18 PASS;
-- oxlint: 0 warnings / 0 errors on 119 files;
-- Shared TCK packed artifact + external consumer: 44 assets PASS;
-- Harness steps 6–11: PASS.
+- 39 test files / 610 tests: PASS;
+- M4-011 shell classifier suite: 38 PASS;
+- M4-010 filesystem classifier suite: 34 PASS;
+- oxlint: 0 warnings / 0 errors on 123 files;
+- packed Shared TCK + external non-workspace consumer: 44 assets PASS.
 
-Initial implementation head `80d29a7a3a4a8b714a29b950181c54fe2cb3eb2e`
-passed Harness #292 but CI #350 failed strict TypeScript with TS2307 because the
-new broker consumer imported protocol declarations exposed from `dist/` while
-workspace typecheck itself is no-emit. This was fixed narrowly by building the
-protocol workspace dependency before broker no-emit typecheck. The protocol type
-reference was preserved; frozen lockfile, strictness and CI gates were not
-changed.
+No package dependency, lockfile, schema, TCK, protocol capability vocabulary or
+pinned Harness runtime dependency was changed by the M4-011 implementation.
 
-## Acceptance-record verification
+## Acceptance record gate
 
-Implementation acceptance was recorded on:
-
-```text
-1222c9f903e1d6be42633f7e63e8a0d54cbaff2c
-```
-
-That head itself reached exact-head dual-green before this governance record was
-prepared:
-
-- normal CI #352 / run `33036276956`: PASS;
-- exact Harness rc5 source-conformance #294 / run `33036276974`: PASS.
-
-This satisfies the prerequisite for final M4-010 governance. It does not, by
-itself, authorize M4-011; the governance head containing the HISTORY/roadmap
-closure must also reach exact-head dual-green.
-
-## Current gate
-
-`docs/acceptance/m4-010-acceptance-audit.md` records **M4-010 ACCEPTED AT
+`docs/acceptance/m4-011-acceptance-audit.md` records **M4-011 ACCEPTED AT
 IMPLEMENTATION BOUNDARY**.
 
-This governance change is intentionally limited to operational/governance state:
+The acceptance record is deliberately separate from final governance closure.
+The current acceptance-record head must itself reach exact-head normal CI plus
+Harness rc5 dual-green. Only then may the next governance commit:
 
-1. append M4-010 acceptance evidence to `docs/handoff/HISTORY.md`;
-2. mark only M4-010 accepted in `docs/roadmap.md`;
-3. update this handoff snapshot with the verified acceptance-record evidence;
-4. make no production code, schema, TCK, dependency, lockfile or security-boundary
-   change;
-5. require exact-head normal CI + Harness rc5 dual-green on the resulting
-   governance commit before authorizing M4-011.
+1. append M4-011 evidence to `docs/handoff/HISTORY.md`;
+2. mark only M4-011 accepted in `docs/roadmap.md`;
+3. update this file with the verified acceptance-record exact head;
+4. make no production-code, schema, TCK, dependency, lockfile or security
+   weakening;
+5. require exact-head normal CI + Harness dual-green again before authorizing
+   M4-012.
 
-Until this final governance head is dual-green:
+Until final governance closure:
 
 ```text
-M4-010 implementation: ACCEPTED
-M4-010 acceptance-record head: DUAL-GREEN
-M4-010 governance: PENDING FINAL GOVERNANCE-HEAD DUAL-GREEN
-M4-011+: NOT AUTHORIZED
+M4-011 implementation: ACCEPTED
+M4-011 acceptance record: PENDING EXACT-HEAD DUAL-GREEN
+M4-011 governance: PENDING
+M4-012+: NOT AUTHORIZED
 M4-020+: NOT AUTHORIZED
 M6: NOT AUTHORIZED
 ```
@@ -237,19 +233,18 @@ M6: NOT AUTHORIZED
 - Protocol/spec precedes implementation.
 - Specs/schemas/TCK remain semantic authority.
 - Harness remains Adapter compatibility evidence only.
-- M4-001 through M4-009 remain closed authorities for their accepted concerns.
-- M4-010 is filesystem tool classification only.
-- Bash/PowerShell classification remains M4-011.
+- M4-001 through M4-010 remain governance-closed authorities for their concerns.
+- M4-011 is built-in Bash/PowerShell classification only.
 - Known MCP metadata classification remains M4-012.
 - Unknown-tool fallback/profile policy remains M4-013.
-- Plugin classifier API remains M4-014.
+- Generic/plugin classifier API remains M4-014.
 - Subject resolution/full policy evaluation remain M4-020/M4-021.
 - Approval remains M4-023.
 - Decision receipt/provenance remains M4-024.
 - Guarantee assignment remains M4-025.
 - Provider-aware containment and execution remain separate enforcement concerns.
 - Never weaken schemas, validators, TCK, strict TypeScript, frozen installs,
-  supply-chain policy, architecture boundaries, compatibility evidence, or
+  supply-chain policy, architecture boundaries, compatibility evidence or
   fail-closed behavior for CI.
 
 ## Resume instruction
@@ -257,9 +252,10 @@ M6: NOT AUTHORIZED
 On the next session:
 
 1. read `docs/handoff/README.md` and this file;
-2. fetch PR #3 live head/base and exact-head workflows;
+2. fetch PR #3 live head/base, reviews/threads and exact-head workflows;
 3. live GitHub state overrides this snapshot;
-4. if this final M4-010 governance head is dual-green, treat M4-010 governance as
-   closed and authorize only M4-011 as the next protocol-first Gate;
-5. otherwise inspect the exact current-head failure before editing;
-6. do not start M4-012+, M4-020+ or M6 early.
+4. if the M4-011 acceptance-record exact head is dual-green, prepare only final
+   M4-011 governance closure (HISTORY + roadmap + CURRENT);
+5. if either exact-head workflow fails, inspect that exact job/step/log before
+   editing;
+6. do not start M4-012+, M4-020+ or M6 before final governance-head dual-green.
