@@ -23,8 +23,11 @@
 - M4-011 implementation head: `c8a5318220622e977e042b1585dcf183efff39e7`
 - M4-011 acceptance audit: `docs/acceptance/m4-011-acceptance-audit.md`
 - M4-011 acceptance-audit commit: `d3aeb2e9625c307c4b7f1d0042dcf6dfe50ab2d8`
-- M4-011 governance closure: **PENDING ACCEPTANCE-RECORD AND FINAL GOVERNANCE DUAL-GREEN**
-- M4-012+, M4-020+ and M6: **NOT AUTHORIZED by the current gate**
+- M4-011 acceptance-record head: `2d95d5b6904f24da226cd09e6e70a6a92507e27a`
+- M4-011 acceptance-record CI: **PASS — CI #358 / run `33117086290`**
+- M4-011 acceptance-record Harness: **PASS — #300 / run `33117086251`**
+- M4-011 final governance closure: **PENDING THIS GOVERNANCE HEAD DUAL-GREEN**
+- M4-012+, M4-020+ and M6: **NOT AUTHORIZED until final M4-011 governance dual-green**
 
 Live GitHub state overrides this file.
 
@@ -200,29 +203,45 @@ At `c8a5318220622e977e042b1585dcf183efff39e7`:
 No package dependency, lockfile, schema, TCK, protocol capability vocabulary or
 pinned Harness runtime dependency was changed by the M4-011 implementation.
 
-## Acceptance record gate
+## Acceptance-record verification
+
+Implementation acceptance is recorded by:
+
+- audit commit `d3aeb2e9625c307c4b7f1d0042dcf6dfe50ab2d8`;
+- acceptance-record head `2d95d5b6904f24da226cd09e6e70a6a92507e27a`.
+
+That exact acceptance-record head reached dual-green before this final governance
+candidate was prepared:
+
+- normal CI #358 / run `33117086290`: PASS;
+- exact Harness rc5 source-conformance #300 / run `33117086251`: PASS.
+
+This satisfies the prerequisite for the M4-011 final governance candidate. It
+does not by itself authorize M4-012; the governance head containing HISTORY,
+roadmap and CURRENT closure must also reach exact-head dual-green.
+
+## Current gate
 
 `docs/acceptance/m4-011-acceptance-audit.md` records **M4-011 ACCEPTED AT
 IMPLEMENTATION BOUNDARY**.
 
-The acceptance record is deliberately separate from final governance closure.
-The current acceptance-record head must itself reach exact-head normal CI plus
-Harness rc5 dual-green. Only then may the next governance commit:
+This final governance candidate is intentionally limited to operational and
+governance state:
 
-1. append M4-011 evidence to `docs/handoff/HISTORY.md`;
+1. append M4-011 acceptance evidence to `docs/handoff/HISTORY.md`;
 2. mark only M4-011 accepted in `docs/roadmap.md`;
-3. update this file with the verified acceptance-record exact head;
-4. make no production-code, schema, TCK, dependency, lockfile or security
-   weakening;
-5. require exact-head normal CI + Harness dual-green again before authorizing
-   M4-012.
+3. update this handoff snapshot with verified acceptance-record evidence;
+4. make no production-code, schema, TCK, dependency, lockfile or security-boundary
+   change;
+5. require exact-head normal CI + Harness rc5 dual-green on the resulting
+   governance commit before authorizing M4-012.
 
-Until final governance closure:
+Until this final governance head is dual-green:
 
 ```text
 M4-011 implementation: ACCEPTED
-M4-011 acceptance record: PENDING EXACT-HEAD DUAL-GREEN
-M4-011 governance: PENDING
+M4-011 acceptance-record head: DUAL-GREEN
+M4-011 governance: PENDING FINAL GOVERNANCE-HEAD DUAL-GREEN
 M4-012+: NOT AUTHORIZED
 M4-020+: NOT AUTHORIZED
 M6: NOT AUTHORIZED
@@ -254,8 +273,7 @@ On the next session:
 1. read `docs/handoff/README.md` and this file;
 2. fetch PR #3 live head/base, reviews/threads and exact-head workflows;
 3. live GitHub state overrides this snapshot;
-4. if the M4-011 acceptance-record exact head is dual-green, prepare only final
-   M4-011 governance closure (HISTORY + roadmap + CURRENT);
-5. if either exact-head workflow fails, inspect that exact job/step/log before
-   editing;
-6. do not start M4-012+, M4-020+ or M6 before final governance-head dual-green.
+4. if this final M4-011 governance head is dual-green, treat M4-011 governance as
+   closed and authorize only M4-012 as the next protocol-first Gate;
+5. otherwise inspect the exact current-head failure before editing;
+6. do not start M4-013+, M4-020+ or M6 early.

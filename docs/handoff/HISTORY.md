@@ -1138,3 +1138,59 @@ implementation boundary. This governance head is intentionally limited to
 HISTORY, roadmap and CURRENT state. It must itself reach exact-head normal CI +
 Harness rc5 dual-green before M4-011 is authorized. M4-012+, M4-020+ and M6
 remain unauthorized by this Gate.
+
+## 2026-08-28 — Accept M4-011 built-in shell tool classification
+
+M4-011 is accepted at implementation boundary on
+`c8a5318220622e977e042b1585dcf183efff39e7` after protocol-first definition in
+Spec 0027 and a 22-case portable fixture corpus.
+
+The accepted classifier recognizes only exact `bash` and `pwsh` and maps each
+call to exactly one `process.exec` requirement. It deliberately does not infer
+`process.resolve`, `process.terminal`, `process.signal`, or nested filesystem,
+network or secret authority from shell text. Command text is opaque and
+preserved exactly after a non-blank own-data-property check.
+
+Workdir remains unresolved evidence: explicit non-blank `workdir` is
+`ARGUMENT_WORKDIR`, while omission is `EXECUTION_ROOT`; no host cwd, Adapter
+scope, provider root or path canonicalization is invented. Background intent is
+limited to `run_in_background`: omitted/false is `FOREGROUND`, true is
+`BACKGROUND`, and explicit non-boolean input fails closed.
+
+Runtime hardening uses bounded own-data-property descriptor reads in deterministic
+order (`command`, `workdir`, `run_in_background`). Accessors, inherited
+security-relevant values, arrays and proxy descriptor failures cannot manufacture
+authority. Unknown tools do not inspect hostile arguments, and successful results
+are detached and deeply frozen.
+
+M4-011 also introduced package-internal classifier modularization:
+`tool-classifier/hostile-input.ts`, `builtin-filesystem.ts`, and
+`builtin-shell.ts`, while retaining the original filesystem classifier import as
+a compatibility facade. This is not a registry and does not pull M4-014 forward.
+
+Exact accepted implementation evidence at `c8a53182...`:
+
+- normal CI #356 / run `33116459841`: PASS;
+- exact Harness rc5 source-conformance #298 / run `33116459834`: PASS;
+- frozen install / 124-entry supply-chain policy: PASS;
+- architecture / 16-schema shape / schema baseline: PASS;
+- strict workspace TypeScript: PASS;
+- 39 test files / 610 tests: PASS;
+- M4-011 shell classifier suite: 38 PASS;
+- M4-010 filesystem classifier suite: 34 PASS;
+- oxlint: 0 warnings / 0 errors on 123 files;
+- Shared TCK packed artifact + external non-workspace consumer: 44 assets PASS;
+- Harness steps 6–11: all PASS.
+
+Implementation acceptance was recorded through audit commit
+`d3aeb2e9625c307c4b7f1d0042dcf6dfe50ab2d8` and acceptance-record head
+`2d95d5b6904f24da226cd09e6e70a6a92507e27a`. That exact acceptance-record head
+reached normal CI #358 / run `33117086290` PASS and exact Harness rc5
+source-conformance #300 / run `33117086251` PASS before this final governance
+record was prepared.
+
+`docs/acceptance/m4-011-acceptance-audit.md` records M4-011 accepted at the
+implementation boundary. This governance head is intentionally limited to
+HISTORY, roadmap and CURRENT state. It must itself reach exact-head normal CI +
+Harness rc5 dual-green before M4-012 is authorized. M4-013+, M4-020+ and M6
+remain unauthorized by this Gate.

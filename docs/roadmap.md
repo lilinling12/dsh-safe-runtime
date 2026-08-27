@@ -281,7 +281,7 @@ Acceptance evidence
 ## M4.2 Tool Classifier
 
 - [x] `M4-010 P0` classify built-in FS tools。 **ACCEPTED：Spec 0026 + 22 portable cases + exact rc5 source-backed built-in FS mapping + hostile-runtime fail-closed hardening；accepted implementation head `4be1fffc...`，CI #351 / Harness #293 PASS；验收记录 `docs/acceptance/m4-010-acceptance-audit.md`。**
-- [ ] `M4-011 P0` classify Bash/PowerShell。
+- [x] `M4-011 P0` classify Bash/PowerShell。 **ACCEPTED：Spec 0027 + 22 portable cases + exact rc5 source-backed Bash/PowerShell → process.exec mapping + hostile-runtime fail-closed hardening；accepted implementation head `c8a53182...`，CI #356 / Harness #298 PASS；验收记录 `docs/acceptance/m4-011-acceptance-audit.md`。**
 - [ ] `M4-012 P0` classify known MCP metadata。
 - [ ] `M4-013 P0` unknown tool → fail closed/profile decision。
 - [ ] `M4-014 P1` plugin-supplied classifier API。
