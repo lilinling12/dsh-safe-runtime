@@ -6,7 +6,7 @@
 
 ## Snapshot
 
-- Recorded at: `2026-08-25`
+- Recorded at: `2026-08-27`
 - Repository: `lilinling12/dsh-safe-runtime`
 - Phase: `M4 — Capability Broker v0.1`
 - Active pull request: `#3 — feat(policy): begin M4 capability broker`
@@ -14,14 +14,17 @@
 - Branch: `feat/m4-capability-broker`
 - Base: `main@57430273e065be8d38807d67b175fa154c801d43`
 - M2 / M3: **ACCEPTED / MERGED**
-- M4-001 through M4-008: **ACCEPTED / GOVERNANCE CLOSED**
-- M4-009 implementation boundary: **ACCEPTED**
-- Accepted M4-009 implementation head: `76dd50e731df617c1fafc1929be306f73458b7d4`
-- M4-009 acceptance audit: `docs/acceptance/m4-009-acceptance-audit.md`
-- M4-009 accepted-head CI: **PASS — CI #346 / run `32822338122`**
-- M4-009 accepted-head Harness: **PASS — #288 / run `32822338113`**
-- M4-009 governance closure: **PENDING ACCEPTANCE/GOVERNANCE-HEAD DUAL-GREEN**
-- M4-010+, M4-020+ and M6: **NOT AUTHORIZED by the current gate**
+- M4-001 through M4-009: **ACCEPTED / GOVERNANCE CLOSED**
+- M4-009 final governance head: `d0db84efccad8139b42881a32792e4c75aacfde7`
+- M4-009 final governance CI: **PASS — CI #348 / run `32823098144`**
+- M4-009 final governance Harness: **PASS — #290 / run `32823098142`**
+- M4-010 implementation boundary: **ACCEPTED**
+- Accepted M4-010 implementation head: `4be1fffc452358acf6a1af4dff5d849ea7868ec8`
+- M4-010 acceptance audit: `docs/acceptance/m4-010-acceptance-audit.md`
+- M4-010 accepted-head CI: **PASS — CI #351 / run `33036068127`**
+- M4-010 accepted-head Harness: **PASS — #293 / run `33036068108`**
+- M4-010 governance closure: **PENDING ACCEPTANCE-RECORD/GOVERNANCE-HEAD DUAL-GREEN**
+- M4-011+, M4-020+ and M6: **NOT AUTHORIZED by the current gate**
 
 Live GitHub state overrides this file.
 
@@ -35,167 +38,173 @@ commit: 47f943859bef60e4160492346772ded9b24f765a
 distribution: distribution-blocked
 ```
 
-Harness APIs/runtime behavior MUST NOT define M4 policy, reload or future PDP semantics.
+Harness APIs/runtime behavior MUST NOT define Core protocol capability semantics,
+provider containment, policy/PDP semantics or later classifier fallback policy.
 
-## M4-008 final closure
+## M4-009 final closure
 
 Final governance head:
 
 ```text
-71046abef4568668ba9e3448b496430b5c48ebb7
+d0db84efccad8139b42881a32792e4c75aacfde7
 ```
 
-- CI #337 / run `32814874559`: PASS;
-- Harness #279 / run `32814874566`: PASS.
+- CI #348 / run `32823098144`: PASS;
+- Harness #290 / run `32823098142`: PASS.
 
-This formally authorized M4-009.
+This formally authorized M4-010.
 
-## M4-009 accepted normative boundary
+## M4-010 accepted normative boundary
 
 Normative profile:
 
 ```text
-specs/0025-m4-capability-policy-hot-reload.md
+specs/0026-m4-builtin-filesystem-tool-classification.md
 ```
 
 Portable corpus:
 
 ```text
-fixtures/policy-hot-reload/cases.json
+fixtures/tool-classifier/builtin-fs-cases.json
 ```
 
-The corrected protocol-first head is:
+The protocol-first head is:
 
 ```text
-0c150746125d6ad46157ef00e5515128b155bae3
+dffcc0ef99b445d70cd680bc15df6b1d076e2562
 ```
 
 It passed:
 
-- CI #339;
-- Harness #281.
+- CI #349 / run `32942835039`;
+- Harness #291 / run `32942835195`.
 
-The correction preserved M4-001 as the sole supported-format authority by keeping
-reload `format` as a string rather than narrowing it to JSON/YAML before loader
-invocation.
+The classifier is deliberately narrower than authorization. It records a
+conservative filesystem effect envelope and an unresolved operand. It does not
+create a `CapabilityResource`, resolve provider targets, evaluate policy or
+execute tools.
 
-## M4-009 accepted implementation
+## M4-010 accepted implementation
 
-M4-009 is a synchronous in-memory activation store, not a watcher, distributed
-config system, classifier, PDP, approval/lease engine, receipt/provenance layer,
-or Adapter enforcement mechanism.
-
-Candidate preparation is exactly:
+Accepted implementation head:
 
 ```text
-reload request materialization
-  -> M4-001 loader using accepted default budgets
-  -> M4-002 trusted schema validator compiled once at store creation
-  -> source-order resources
-       -> M4-003 normalizePolicyResourceSelector()
-       -> M4-004 package-internal lexical pattern validation
-  -> construct complete frozen next ACTIVE record and success result
-  -> one active-record reference publication
+4be1fffc452358acf6a1af4dff5d849ea7868ec8
 ```
 
-M4-008 diagnostics remain operator feedback and are not activation authority.
-Duplicate-rule-ID/redundant-priority/empty-rules diagnostics therefore do not
-silently become reload blockers.
-
-## Atomicity / last-known-good boundary
-
-State is one immutable record reference:
+Exact built-in rc5 surface covered by this Gate:
 
 ```text
-EMPTY  { status: "EMPTY", epoch: 0 }
-ACTIVE { status: "ACTIVE", epoch, policy }
+read
+read_image
+write
+edit
+glob
+grep
+str_replace_editor
 ```
 
-The publication assignment is the single-isolate linearization point. A reader
-can observe only the complete old or complete new record. Failed reloads do not
-clear or partially replace active state.
+The canonical `fs.*` names come from `@dsh-safe/protocol`; the pinned Harness
+source supplies compatibility facts about model-facing tool behavior only.
 
-The accepted tests prove exact old-record reference preservation for:
+The accepted mappings are conservative pre-provider-state envelopes. In
+particular:
 
-- REQUEST rejection;
-- LOAD rejection;
-- SCHEMA rejection;
-- RESOURCE rejection;
-- STATE epoch exhaustion.
+- `write` requires both possible `fs.create` and `fs.write` effects;
+- `str_replace_editor view` covers stat/read/list because target type is provider
+  state;
+- `str_replace_editor str_replace|insert` records stat/read/write because pinned
+  rc5 implements them through `stat`, `readText` and `writeText`;
+- omitted `glob`/`grep` path becomes unresolved `EXECUTION_ROOT`, never a guessed
+  `/`, `.`, host cwd or Adapter scope.
 
-Old ACTIVE handles remain immutable and valid after later swaps. Successful
-explicit identical-content reloads increment epoch; there is no implicit policy
-content deduplication.
+## Provider / resource boundary
 
-## Runtime hardening
+M4-010 performs no IO and never invokes a provider. Raw accepted paths are copied
+without path normalization and remain unresolved operands.
 
-The reload API accepts `unknown` and reads exactly own data properties `format`
-and `source`. Accessor-backed, inherited, missing, extra, symbol and revoked-proxy
-requests fail closed. Both `format` and `source` getters are proven not to execute.
+Therefore classification does not prove containment, stable provider identity,
+symlink/junction behavior, execution-world identity or resource authorization.
+Those responsibilities remain behind the provider-aware enforcement boundary.
 
-The accepted M4-002 frozen policy snapshot is stored directly. Source text is not
-stored as state or disclosed in failure output. Schema issue arrays remain frozen
-and detached. The epoch-exhaustion seam is package-internal and not exported from
-`index.ts`.
+`glob` and `grep` are subprocess-backed in pinned rc5. Their M4-010 result records
+model-facing filesystem discovery/read authority; it does not claim provider FS
+mediation and does not broaden this Gate into M4-011 process/shell classification.
+
+## Fail-closed runtime hardening
+
+The public classifier accepts untrusted `arguments: unknown` and reads only known
+own data properties with bounded descriptor inspection.
+
+Accepted tests prove:
+
+- inherited path/command values cannot manufacture authority;
+- accessors are rejected without getter execution;
+- unrelated accessors and attacker-controlled own-key enumeration are not used;
+- symbol-only substitution is rejected;
+- arrays fail closed;
+- proxy descriptor failures become `FS_TOOL_INPUT_UNREADABLE`;
+- unknown exact tools return `NOT_APPLICABLE` without touching hostile arguments;
+- accepted classifications are deeply frozen and detached from later caller
+  mutation.
+
+`NOT_APPLICABLE` is not allow/deny. Unknown-tool fallback remains M4-013.
 
 ## Accepted implementation evidence
 
-Final accepted implementation head:
+At `4be1fffc452358acf6a1af4dff5d849ea7868ec8`:
 
-```text
-76dd50e731df617c1fafc1929be306f73458b7d4
-```
-
-Exact-head evidence:
-
-- normal CI #346 / run `32822338122`: PASS;
-- exact Harness rc5 source-conformance #288 / run `32822338113`: PASS;
+- normal CI #351 / run `33036068127`: PASS;
+- exact Harness rc5 source-conformance #293 / run `33036068108`: PASS;
 - frozen install: PASS;
 - supply-chain policy: PASS (124 entries);
 - architecture boundaries: PASS;
 - schema shape: PASS (16 schemas);
 - schema compatibility baseline: PASS;
 - strict workspace TypeScript: PASS;
-- 37 test files / 538 tests: PASS;
-- M4-009 primary suite: 25 PASS;
-- M4-009 green-after-review hardening: 3 PASS;
+- 38 test files / 572 tests: PASS;
+- M4-010 classifier suite: 34 PASS;
+- M4-009 hot reload: 25 + 3 hardening PASS;
 - M4-008 diagnostics: 33 PASS;
 - M4-007 explanation: 33 PASS;
 - M4-006 default deny: 35 PASS;
 - M4-005 effect resolution: 32 PASS;
 - M4-004 rule ordering: 19 PASS;
-- M4-003 normalization regressions: 38 + 2 PASS;
-- M4-002 validator regressions: 6 PASS;
-- M4-001 loader regressions: 18 PASS;
-- oxlint: 0 warnings / 0 errors on 117 files;
+- M4-003 normalization: 38 + 2 PASS;
+- M4-002 schema validation: 6 PASS;
+- M4-001 loader: 18 PASS;
+- oxlint: 0 warnings / 0 errors on 119 files;
 - Shared TCK packed artifact + external consumer: 44 assets PASS;
-- Harness steps 6–11: all PASS.
+- Harness steps 6–11: PASS.
 
-Intermediate failures were resolved from current-head evidence without weakening
-any Gate: strict TS exposed a broad internal M4-004 failure union and readonly
-record narrowing issue; runtime tests then exposed revoked-proxy `Array.isArray`
-throwing outside the fail-closed boundary. Both were corrected narrowly.
+Initial implementation head `80d29a7a3a4a8b714a29b950181c54fe2cb3eb2e`
+passed Harness #292 but CI #350 failed strict TypeScript with TS2307 because the
+new broker consumer imported protocol declarations exposed from `dist/` while
+workspace typecheck itself is no-emit. This was fixed narrowly by building the
+protocol workspace dependency before broker no-emit typecheck. The protocol type
+reference was preserved; frozen lockfile, strictness and CI gates were not
+changed.
 
 ## Current gate
 
-`docs/acceptance/m4-009-acceptance-audit.md` records **M4-009 ACCEPTED AT
+`docs/acceptance/m4-010-acceptance-audit.md` records **M4-010 ACCEPTED AT
 IMPLEMENTATION BOUNDARY**.
 
 Next actions are governance only:
 
 1. verify the acceptance-record/PACKAGE_STAGE/CURRENT head with exact normal CI +
    Harness rc5 source-conformance;
-2. after dual-green, append M4-009 acceptance/closure to `HISTORY.md` and mark only
-   M4-009 accepted in `docs/roadmap.md`;
+2. after dual-green, append M4-010 acceptance/closure to `HISTORY.md` and mark only
+   M4-010 accepted in `docs/roadmap.md`;
 3. verify that final governance head with exact normal CI + Harness;
-4. only then determine the next authorized M4 gate from roadmap/live state.
+4. only after final governance dual-green authorize M4-011 from roadmap/live state.
 
-Until final M4-009 governance dual-green:
+Until final M4-010 governance dual-green:
 
 ```text
-M4-009 implementation: ACCEPTED
-M4-009 governance: PENDING
-M4-010+: NOT AUTHORIZED
+M4-010 implementation: ACCEPTED
+M4-010 governance: PENDING
+M4-011+: NOT AUTHORIZED
 M4-020+: NOT AUTHORIZED
 M6: NOT AUTHORIZED
 ```
@@ -204,19 +213,18 @@ M6: NOT AUTHORIZED
 
 - Protocol/spec precedes implementation.
 - Specs/schemas/TCK remain semantic authority.
-- Harness is compatibility evidence only.
-- M4-001 remains document-loading/format authority.
-- M4-002 remains schema-validity authority.
-- M4-003 remains resource-normalization authority.
-- M4-004 remains lexical pattern/ordering authority.
-- M4-005/006/007 remain downstream effect/default/explanation authorities.
-- M4-008 diagnostics remain non-authoritative for activation.
-- M4-009 is activation/state management only.
-- Tool classification remains M4-010+.
+- Harness remains Adapter compatibility evidence only.
+- M4-001 through M4-009 remain closed authorities for their accepted concerns.
+- M4-010 is filesystem tool classification only.
+- Bash/PowerShell classification remains M4-011.
+- Known MCP metadata classification remains M4-012.
+- Unknown-tool fallback/profile policy remains M4-013.
+- Plugin classifier API remains M4-014.
 - Subject resolution/full policy evaluation remain M4-020/M4-021.
 - Approval remains M4-023.
 - Decision receipt/provenance remains M4-024.
 - Guarantee assignment remains M4-025.
+- Provider-aware containment and execution remain separate enforcement concerns.
 - Never weaken schemas, validators, TCK, strict TypeScript, frozen installs,
   supply-chain policy, architecture boundaries, compatibility evidence, or
   fail-closed behavior for CI.
@@ -228,7 +236,7 @@ On the next session:
 1. read `docs/handoff/README.md` and this file;
 2. fetch PR #3 live head/base and exact-head workflows;
 3. live GitHub state overrides this snapshot;
-4. continue only from M4-009 acceptance/governance;
-5. do not start M4-010+ until final M4-009 governance head is dual-green;
+4. continue only from M4-010 acceptance/governance;
+5. do not start M4-011+ until final M4-010 governance head is dual-green;
 6. inspect exact current-head failures before editing;
 7. do not start M4-020+ or M6 early.
