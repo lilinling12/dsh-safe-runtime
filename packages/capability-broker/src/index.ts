@@ -1,5 +1,8 @@
 /**
- * @dsh-safe/capability-broker package boundary.
- * Runtime implementation intentionally deferred until protocol/schema/TCK gates are complete.
+ * Capability Broker public package surface.
+ *
+ * Protocol types remain owned by `@dsh-safe/protocol`; this package provides
+ * deterministic classification and later policy-broker orchestration without
+ * depending on concrete Harness adapter types.
  */
-export const PACKAGE_STAGE = "M0-M1-BOUNDARY-ONLY" as const;
+export * from "./builtin-filesystem-tool-classifier.js";
