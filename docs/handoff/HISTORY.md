@@ -514,7 +514,8 @@ Final exact-head evidence for `728f44e...`:
 - normal CI #99 / job `95936172958`: PASS;
 - exact Harness rc5 source-conformance #58 / job `95936172462`: PASS;
 - frozen install and supply-chain lockfile policy: PASS (123 entries);
-- architecture/schema/compatibility gates: PASS (16 schemas);
+- architecture boundaries: PASS;
+- schema shape / compatibility baseline: PASS (16 schemas);
 - TypeScript typecheck: PASS;
 - portable M3-010 profile tests: 18 PASS;
 - portable JSON boundary regressions: 2 PASS;
