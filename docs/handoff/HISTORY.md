@@ -1194,3 +1194,52 @@ implementation boundary. This governance head is intentionally limited to
 HISTORY, roadmap and CURRENT state. It must itself reach exact-head normal CI +
 Harness rc5 dual-green before M4-012 is authorized. M4-013+, M4-020+ and M6
 remain unauthorized by this Gate.
+
+## 2026-08-28 — Accept M4-012 MCP ToolAnnotations advisory metadata classification
+
+M4-012 is accepted at the implementation boundary on
+`debfce009c4d082aed6cd62646943e36242396e1` after protocol-first definition in
+Spec 0028 and a 19-case portable corpus under MCP `2025-11-25`.
+
+The classifier normalizes only the four standard boolean ToolAnnotations hints
+as immutable evidence fixed to `authority: ADVISORY_ONLY` and
+`trust: UNVERIFIED_SERVER`. It cannot create capabilities, authorize execution,
+establish trust, skip PDP/approval/lease/resource resolution, parse MCP public
+names, or invent the missing rc5 annotations-retention seam. `title` and unknown
+fields are ignored without enumeration; explicit/default provenance and
+read-only applicability are preserved.
+
+Acceptance review found and fixed a real hostile-runtime gap after the initial
+implementation was already green: `Array.isArray()` throws on revoked Proxies.
+The shared hostile-input primitive now distinguishes record/invalid/unreadable,
+so revoked metadata/annotations fail closed with
+`MCP_TOOL_METADATA_UNREADABLE` rather than escaping a host exception. Tests also
+cover `annotations: undefined`, all four known-hint `undefined`/accessor cases,
+outer/title getters, `ownKeys` traps, descriptor failures at every normative
+inspection position, deterministic order, detachment and recursive immutability.
+
+Exact accepted implementation evidence at `debfce00...`:
+
+- normal CI #366 / run `33136379895`: PASS;
+- exact Harness rc5 source-conformance #308 / run `33136379910`: PASS;
+- frozen install / supply-chain policy 124 entries: PASS;
+- architecture / 16-schema shape / schema baseline / strict TypeScript: PASS;
+- 40 test files / 654 tests: PASS;
+- M4-012 suite: 44 PASS;
+- M4-011 shell: 38 PASS;
+- M4-010 filesystem: 34 PASS;
+- oxlint 125 files: 0 warnings / 0 errors;
+- packed Shared TCK + external non-workspace consumer: 44 assets PASS;
+- Harness steps 6–11: PASS.
+
+Acceptance audit commit is
+`10f385990b2c3aff0d3bef902cafe404c47dba61`. Acceptance-record head is
+`18360fb464d66b7e1c427e23a4f6750144f1d2c3`, which reached normal CI #368 /
+run `33149738632` PASS and exact Harness rc5 source-conformance #310 /
+run `33149738626` PASS before this final governance record was prepared.
+
+`docs/acceptance/m4-012-acceptance-audit.md` records M4-012 accepted at the
+implementation boundary. This governance head is intentionally limited to
+HISTORY, roadmap and CURRENT state. It must itself reach exact-head normal CI +
+Harness rc5 dual-green before M4-013 is authorized. M4-014+, M4-020+ and M6
+remain unauthorized by this Gate.

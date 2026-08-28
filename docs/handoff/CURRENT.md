@@ -19,7 +19,10 @@
 - M4-011 final governance CI: **PASS — CI #359**
 - M4-011 final governance Harness: **PASS — #301**
 - M4-012 implementation boundary: **ACCEPTED**
-- M4-012 governance: **PENDING ACCEPTANCE-RECORD EXACT-HEAD DUAL-GREEN**
+- M4-012 acceptance-record head: `18360fb464d66b7e1c427e23a4f6750144f1d2c3`
+- M4-012 acceptance-record CI: **PASS — CI #368 / run `33149738632`**
+- M4-012 acceptance-record Harness: **PASS — #310 / run `33149738626`**
+- M4-012 final governance closure: **PENDING THIS GOVERNANCE HEAD DUAL-GREEN**
 - M4-013+, M4-020+ and M6: **NOT AUTHORIZED until final M4-012 governance dual-green**
 
 Live GitHub state overrides this file.
@@ -38,7 +41,7 @@ Harness APIs/runtime behavior MUST NOT define Core protocol capability semantics
 provider containment, policy/PDP semantics, classifier fallback policy or plugin
 classifier precedence.
 
-## M4-012 normative boundary
+## M4-012 accepted normative boundary
 
 Normative profile:
 
@@ -178,7 +181,7 @@ At `debfce009c4d082aed6cd62646943e36242396e1`:
 No schema, validator, TCK, dependency, lockfile, Adapter contract or pinned Harness
 baseline was changed to obtain green status.
 
-## Acceptance audit
+## Acceptance-record verification
 
 Acceptance audit:
 
@@ -192,34 +195,44 @@ Audit commit:
 10f385990b2c3aff0d3bef902cafe404c47dba61
 ```
 
-The audit records M4-012 as **ACCEPTED AT IMPLEMENTATION BOUNDARY** only.
+Acceptance-record head:
+
+```text
+18360fb464d66b7e1c427e23a4f6750144f1d2c3
+```
+
+That exact acceptance-record head reached dual-green before this final governance
+candidate was prepared:
+
+- normal CI #368 / run `33149738632`: PASS;
+- exact Harness rc5 source-conformance #310 / run `33149738626`: PASS.
+
+This satisfies the prerequisite for the M4-012 final governance candidate. It
+does not by itself authorize M4-013; the governance head containing HISTORY,
+roadmap and CURRENT closure must also reach exact-head dual-green.
 
 ## Current gate
 
-This snapshot and the package-stage update form the M4-012 acceptance-record
-candidate. The resulting exact head must reach:
+`docs/acceptance/m4-012-acceptance-audit.md` records **M4-012 ACCEPTED AT
+IMPLEMENTATION BOUNDARY**.
 
-1. normal CI PASS;
-2. exact pinned Harness rc5 source-conformance PASS.
+This final governance candidate is intentionally limited to operational and
+governance state:
 
-Only after that dual-green may an independent final governance commit:
-
-1. append the M4-012 acceptance record to `docs/handoff/HISTORY.md`;
+1. append M4-012 acceptance evidence to `docs/handoff/HISTORY.md`;
 2. mark only M4-012 accepted in `docs/roadmap.md`;
-3. update this snapshot to record final governance closure and authorize only
-   M4-013;
+3. update this handoff snapshot with verified acceptance-record evidence;
 4. make no production-code, schema, TCK, dependency, lockfile or security-boundary
-   change.
+   change;
+5. require exact-head normal CI + Harness rc5 dual-green on the resulting
+   governance commit before authorizing M4-013.
 
-That final governance head must itself reach exact-head dual-green before M4-013
-engineering begins.
-
-Until then:
+Until this final governance head is dual-green:
 
 ```text
 M4-012 implementation: ACCEPTED
-M4-012 acceptance record: PENDING EXACT-HEAD DUAL-GREEN
-M4-012 governance: PENDING
+M4-012 acceptance-record head: DUAL-GREEN
+M4-012 governance: PENDING FINAL GOVERNANCE-HEAD DUAL-GREEN
 M4-013+: NOT AUTHORIZED
 M4-020+: NOT AUTHORIZED
 M6: NOT AUTHORIZED
@@ -250,7 +263,7 @@ On the next session:
 1. read `docs/handoff/README.md` and this file;
 2. fetch PR #3 live head/base, reviews/threads and exact-head workflows;
 3. live GitHub state overrides this snapshot;
-4. if the M4-012 acceptance-record head is dual-green, prepare only the final
-   governance patch for M4-012;
+4. if this final M4-012 governance head is dual-green, treat M4-012 governance as
+   closed and authorize only M4-013 as the next protocol-first Gate;
 5. otherwise inspect the exact current-head failure before editing;
-6. do not start M4-013+, M4-020+ or M6 early.
+6. do not start M4-014+, M4-020+ or M6 early.
