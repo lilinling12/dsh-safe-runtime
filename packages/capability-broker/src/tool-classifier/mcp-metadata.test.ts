@@ -15,6 +15,13 @@ interface FixtureCase {
   readonly expected: unknown;
 }
 
+const knownHints = [
+  ["readOnlyHint", "MCP_TOOL_READ_ONLY_HINT_INVALID"],
+  ["destructiveHint", "MCP_TOOL_DESTRUCTIVE_HINT_INVALID"],
+  ["idempotentHint", "MCP_TOOL_IDEMPOTENT_HINT_INVALID"],
+  ["openWorldHint", "MCP_TOOL_OPEN_WORLD_HINT_INVALID"],
+] as const;
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -74,6 +81,13 @@ describe("M4-012 hostile MCP metadata", () => {
     expect(classifyMcpToolMetadata(metadata)).toEqual(classifyMcpToolMetadata({}));
   });
 
+  test("own annotations undefined is invalid instead of treated as absent", () => {
+    expect(classifyMcpToolMetadata({ annotations: undefined })).toEqual({
+      status: "ERROR",
+      reason: "MCP_TOOL_ANNOTATIONS_INVALID",
+    });
+  });
+
   test("annotations accessor is rejected without executing the getter", () => {
     let getterCalls = 0;
     const metadata = Object.defineProperty({}, "annotations", {
@@ -91,6 +105,26 @@ describe("M4-012 hostile MCP metadata", () => {
     expect(getterCalls).toBe(0);
   });
 
+  test("revoked metadata Proxy is fail-closed without escaping a host exception", () => {
+    const { proxy, revoke } = Proxy.revocable({}, {});
+    revoke();
+
+    expect(classifyMcpToolMetadata(proxy)).toEqual({
+      status: "ERROR",
+      reason: "MCP_TOOL_METADATA_UNREADABLE",
+    });
+  });
+
+  test("revoked annotations Proxy is fail-closed without escaping a host exception", () => {
+    const { proxy, revoke } = Proxy.revocable({}, {});
+    revoke();
+
+    expect(classifyMcpToolMetadata({ annotations: proxy })).toEqual({
+      status: "ERROR",
+      reason: "MCP_TOOL_METADATA_UNREADABLE",
+    });
+  });
+
   test("inherited known hints cannot override MCP defaults", () => {
     const annotations = Object.create({
       readOnlyHint: true,
@@ -104,12 +138,14 @@ describe("M4-012 hostile MCP metadata", () => {
     );
   });
 
-  for (const name of [
-    "readOnlyHint",
-    "destructiveHint",
-    "idempotentHint",
-    "openWorldHint",
-  ] as const) {
+  for (const [name, invalidReason] of knownHints) {
+    test(`${name} undefined is invalid`, () => {
+      expect(classifyMcpToolMetadata({ annotations: { [name]: undefined } })).toEqual({
+        status: "ERROR",
+        reason: invalidReason,
+      });
+    });
+
     test(`${name} accessor is rejected without executing the getter`, () => {
       let getterCalls = 0;
       const annotations = Object.defineProperty({}, name, {
@@ -127,6 +163,44 @@ describe("M4-012 hostile MCP metadata", () => {
       expect(getterCalls).toBe(0);
     });
   }
+
+  test("unknown outer metadata and title accessors are never touched", () => {
+    let descriptionGetterCalls = 0;
+    let titleGetterCalls = 0;
+    let ownKeysCalls = 0;
+    const target = Object.defineProperties({}, {
+      description: {
+        enumerable: true,
+        get() {
+          descriptionGetterCalls += 1;
+          throw new Error("outer metadata must not be inspected");
+        },
+      },
+      annotations: {
+        enumerable: true,
+        value: Object.defineProperty({}, "title", {
+          enumerable: true,
+          get() {
+            titleGetterCalls += 1;
+            throw new Error("presentation metadata must not be inspected");
+          },
+        }),
+      },
+    });
+    const metadata = new Proxy(target, {
+      ownKeys() {
+        ownKeysCalls += 1;
+        throw new Error("classifier must not enumerate metadata");
+      },
+    });
+
+    expect(classifyMcpToolMetadata(metadata)).toEqual(
+      classifyMcpToolMetadata({ annotations: {} }),
+    );
+    expect(descriptionGetterCalls).toBe(0);
+    expect(titleGetterCalls).toBe(0);
+    expect(ownKeysCalls).toBe(0);
+  });
 
   test("unknown annotation getters and ownKeys traps are never touched", () => {
     let getterCalls = 0;
@@ -155,7 +229,7 @@ describe("M4-012 hostile MCP metadata", () => {
   test("descriptor failures are fail-closed for the carrier", () => {
     const metadata = new Proxy({}, {
       getOwnPropertyDescriptor() {
-        throw new Error("revoked-like carrier");
+        throw new Error("unreadable carrier descriptor");
       },
     });
 
@@ -165,28 +239,28 @@ describe("M4-012 hostile MCP metadata", () => {
     });
   });
 
-  test("descriptor failures are fail-closed for known annotation fields", () => {
-    const visited: string[] = [];
-    const annotations = new Proxy({}, {
-      getOwnPropertyDescriptor(_target, key) {
-        visited.push(String(key));
-        if (key === "idempotentHint") {
-          throw new Error("unreadable idempotent hint");
-        }
-        return undefined;
-      },
-    });
+  for (const [failureIndex, [failedHint]] of knownHints.entries()) {
+    test(`descriptor failure at ${failedHint} is fail-closed in normative order`, () => {
+      const visited: string[] = [];
+      const annotations = new Proxy({}, {
+        getOwnPropertyDescriptor(_target, key) {
+          visited.push(String(key));
+          if (key === failedHint) {
+            throw new Error(`unreadable ${failedHint}`);
+          }
+          return undefined;
+        },
+      });
 
-    expect(classifyMcpToolMetadata({ annotations })).toEqual({
-      status: "ERROR",
-      reason: "MCP_TOOL_METADATA_UNREADABLE",
+      expect(classifyMcpToolMetadata({ annotations })).toEqual({
+        status: "ERROR",
+        reason: "MCP_TOOL_METADATA_UNREADABLE",
+      });
+      expect(visited).toEqual(
+        knownHints.slice(0, failureIndex + 1).map(([name]) => name),
+      );
     });
-    expect(visited).toEqual([
-      "readOnlyHint",
-      "destructiveHint",
-      "idempotentHint",
-    ]);
-  });
+  }
 
   test("known fields are inspected in normative order and stop at first invalid field", () => {
     const visited: string[] = [];
