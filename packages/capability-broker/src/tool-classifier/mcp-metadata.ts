@@ -1,4 +1,4 @@
-import { isArgumentRecord, readOwnDataProperty } from "./hostile-input.js";
+import { inspectArgumentRecord, readOwnDataProperty } from "./hostile-input.js";
 
 /** Provenance for one normalized standard MCP ToolAnnotations boolean hint. */
 export type McpToolHintSource = "EXPLICIT" | "MCP_DEFAULT";
@@ -68,9 +68,15 @@ type KnownBooleanHintName =
   | "idempotentHint"
   | "openWorldHint";
 
+type HintInvalidReason =
+  | "MCP_TOOL_READ_ONLY_HINT_INVALID"
+  | "MCP_TOOL_DESTRUCTIVE_HINT_INVALID"
+  | "MCP_TOOL_IDEMPOTENT_HINT_INVALID"
+  | "MCP_TOOL_OPEN_WORLD_HINT_INVALID";
+
 type HintReadResult =
   | { readonly status: "OK"; readonly hint: McpBooleanHintEvidence }
-  | { readonly status: "ERROR"; readonly reason: McpToolMetadataClassificationErrorReason };
+  | { readonly status: "ERROR"; readonly reason: HintInvalidReason | "MCP_TOOL_METADATA_UNREADABLE" };
 
 const METADATA_INVALID: McpToolMetadataClassificationError = Object.freeze({
   status: "ERROR",
@@ -118,11 +124,15 @@ const METADATA_UNREADABLE: McpToolMetadataClassificationError = Object.freeze({
 export function classifyMcpToolMetadata(
   metadata: unknown,
 ): McpToolMetadataClassification {
-  if (!isArgumentRecord(metadata)) {
+  const metadataRecord = inspectArgumentRecord(metadata);
+  if (metadataRecord.status === "UNREADABLE") {
+    return METADATA_UNREADABLE;
+  }
+  if (metadataRecord.status === "INVALID") {
     return METADATA_INVALID;
   }
 
-  const annotationsProperty = readOwnDataProperty(metadata, "annotations");
+  const annotationsProperty = readOwnDataProperty(metadataRecord.value, "annotations");
   if (annotationsProperty.status === "UNREADABLE") {
     return METADATA_UNREADABLE;
   }
@@ -134,11 +144,16 @@ export function classifyMcpToolMetadata(
       defaultHint(true),
     );
   }
-  if (!isArgumentRecord(annotationsProperty.value)) {
+
+  const annotationsRecord = inspectArgumentRecord(annotationsProperty.value);
+  if (annotationsRecord.status === "UNREADABLE") {
+    return METADATA_UNREADABLE;
+  }
+  if (annotationsRecord.status === "INVALID") {
     return ANNOTATIONS_INVALID;
   }
 
-  const annotations = annotationsProperty.value;
+  const annotations = annotationsRecord.value;
 
   // This order is normative (Spec 0028 §4.2) so hostile multi-field input has
   // deterministic diagnostics across implementations.
@@ -194,7 +209,7 @@ function readBooleanHint(
   annotations: object,
   name: KnownBooleanHintName,
   defaultValue: boolean,
-  invalidReason: McpToolMetadataClassificationErrorReason,
+  invalidReason: HintInvalidReason,
 ): HintReadResult {
   const property = readOwnDataProperty(annotations, name);
   if (property.status === "UNREADABLE") {
