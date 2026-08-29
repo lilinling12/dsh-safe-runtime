@@ -6,26 +6,33 @@
 
 ## Snapshot
 
-- Recorded at: `2026-08-28`
+- Recorded at: `2026-08-30`
 - Repository: `lilinling12/dsh-safe-runtime`
 - Phase: `M4 — Capability Broker v0.1`
 - Active pull request: `#3 — feat(policy): begin M4 capability broker`
-- PR state: `OPEN / DRAFT / mergeable`
+- PR state at acceptance review: `OPEN / DRAFT / mergeable`
 - Branch: `feat/m4-capability-broker`
-- Base: `main@57430273e065be8d38807d67b175fa154c801d43`
-- M2 / M3: **ACCEPTED / MERGED**
-- M4-001 through M4-011: **ACCEPTED / GOVERNANCE CLOSED**
-- M4-011 final governance head: `f9aebf73e08fdd229d8271e57a73884b810fc4c5`
-- M4-011 final governance CI: **PASS — CI #359**
-- M4-011 final governance Harness: **PASS — #301**
-- M4-012 implementation boundary: **ACCEPTED**
-- M4-012 acceptance-record head: `18360fb464d66b7e1c427e23a4f6750144f1d2c3`
-- M4-012 acceptance-record CI: **PASS — CI #368 / run `33149738632`**
-- M4-012 acceptance-record Harness: **PASS — #310 / run `33149738626`**
-- M4-012 final governance closure: **PENDING THIS GOVERNANCE HEAD DUAL-GREEN**
-- M4-013+, M4-020+ and M6: **NOT AUTHORIZED until final M4-012 governance dual-green**
+- Main: `57430273e065be8d38807d67b175fa154c801d43`
+- M4-001 through M4-012: **ACCEPTED / GOVERNANCE CLOSED**
+- M4-013 implementation boundary: **ACCEPTED**
+- M4-013 accepted implementation head: `bee673cb8463efa04ff314b93d56cfb785dc8b99`
+- M4-013 acceptance audit commit: `8dc19ffe482660b3f098653dbff7fe4bd96c1346`
+- M4-013 final governance closure: **PENDING ACCEPTANCE-RECORD + FINAL GOVERNANCE EXACT-HEAD DUAL-GREEN**
+- M4-014+, M4-020+ and M6: **NOT AUTHORIZED until M4-013 final governance dual-green**
 
 Live GitHub state overrides this file.
+
+## Live ancestry note
+
+At M4-013 acceptance review, GitHub compare reported the PR head relative to
+current `main` as `ahead 150 / behind 2 / diverged`. The compare merge-base
+`65870612d039ce026a6952c16d5e069b11bd24a7` and
+`main@57430273e065be8d38807d67b175fa154c801d43` both point to tree
+`ed0c142bf6bbd00f607cc169222f0bf67057fca5`.
+
+This is therefore ancestry-only drift, not source-tree content drift. Do not
+rewrite, rebase or force-update the accepted ancestry merely to make the compare
+counter read `behind 0`.
 
 ## Accepted compatibility baseline
 
@@ -41,199 +48,136 @@ Harness APIs/runtime behavior MUST NOT define Core protocol capability semantics
 provider containment, policy/PDP semantics, classifier fallback policy or plugin
 classifier precedence.
 
-## M4-012 accepted normative boundary
+## M4-013 normative boundary
 
 Normative profile:
 
 ```text
-specs/0028-m4-mcp-tool-metadata-classification.md
+specs/0029-m4-unknown-tool-fallback-resolution.md
 ```
 
 Portable corpus:
 
 ```text
-fixtures/tool-classifier/mcp-metadata-cases.json
+fixtures/tool-classifier/unknown-tool-fallback-cases.json
 ```
 
-MCP protocol profile:
+Portable cases: `22`.
+
+The only portable fallback profile is:
 
 ```text
-2025-11-25
+STRICT_DENY_V1
 ```
 
-M4-012 classifies the four standard ToolAnnotations boolean behavior/risk hints
-only as immutable advisory evidence. Successful evidence is fixed to:
+Resolver semantics are fixed to:
 
 ```text
-kind: MCP_TOOL_ANNOTATIONS
-profile: MCP_2025_11_25
-authority: ADVISORY_ONLY
-trust: UNVERIFIED_SERVER
+validate profile
+-> validate toolName
+-> classifyBuiltinFilesystemTool
+-> if NOT_APPLICABLE classifyBuiltinShellTool
+-> if still NOT_APPLICABLE return UNCLASSIFIED / BLOCK
 ```
 
-It does not map metadata to `StandardCapability`, authorize tool execution,
-establish server trust, evaluate policy/PDP, resolve resources, route approval,
-allocate leases, assign guarantees, parse MCP public names or invent an Adapter
-metadata-retention seam.
+Recognized `CLASSIFIED` and `ERROR` results are preserved as-is. Unknown-tool
+arguments remain opaque and are not enumerated, cloned, spread, stringified,
+recursively traversed or retained.
 
-`title` and unknown fields are ignored without enumeration or traversal. Unknown
-future optional fields gain no authority merely by being tolerated.
+MCP-looking model-facing names remain opaque. M4-012 ToolAnnotations evidence
+remains `ADVISORY_ONLY / UNVERIFIED_SERVER` and cannot turn an unknown tool into
+allow/ask or reduce the strict fallback.
+
+M4-013 creates no synthetic capability, CapabilityRequest/Decision, approval,
+lease, guarantee, plugin registry or runtime PEP/enforcement claim.
 
 ## Protocol-first evidence
 
 Protocol-first head:
 
 ```text
-ca04e4beeb240a88e2dc12cf31e781682eab6795
+7c1f5e650923475045e197e13b8c6d6baab0bc2c
 ```
 
 Exact evidence:
 
-- CI #360 / run `33123653051`: PASS;
-- Harness rc5 source-conformance #302 / run `33123652932`: PASS.
+- CI #371 / run `33213233181`: PASS;
+- Harness rc5 source-conformance #313 / run `33213233223`: PASS.
 
-The pre-implementation review corrected the MCP target to `2025-11-25`, matching
-the pinned rc5 MCP v1 SDK compatibility era rather than silently targeting the
-newer `2026-07-28` profile.
+## Accepted implementation evidence
 
-## Accepted hardened implementation
-
-Accepted hardened implementation head:
+Accepted implementation head:
 
 ```text
-debfce009c4d082aed6cd62646943e36242396e1
+bee673cb8463efa04ff314b93d56cfb785dc8b99
 ```
 
-Implementation files are limited to the capability-broker classifier surface:
+Implementation delta from the protocol-first head is three commits ahead and
+zero behind and is limited to:
 
-```text
-packages/capability-broker/src/
-├── index.ts
-└── tool-classifier/
-    ├── hostile-input.ts
-    ├── mcp-metadata.ts
-    └── mcp-metadata.test.ts
-```
+- `packages/capability-broker/src/tool-classifier/unknown-tool-fallback.ts`;
+- `packages/capability-broker/src/tool-classifier/unknown-tool-fallback.test.ts`;
+- `packages/capability-broker/src/index.ts`.
 
-The classifier:
+Exact implementation-head evidence:
 
-- accepts only non-null, non-array metadata and annotations records;
-- inspects only own data-property descriptors;
-- reads known hints in deterministic normative order;
-- preserves explicit versus MCP-default provenance;
-- records read-only conditional applicability without rewriting values;
-- performs no coercion;
-- returns stable privacy-preserving error reasons;
-- does not retain caller-controlled objects;
-- returns recursively frozen successful evidence.
+- CI #374 / run `33213727426`: PASS;
+- Harness rc5 source-conformance #316 / run `33213727405`: PASS.
 
-The shared hostile-input primitive converts revoked Proxy record inspection into
-explicit `UNREADABLE` rather than allowing host exceptions to escape the
-classifier. Existing filesystem and shell classifier public behavior remains
-unchanged and green.
+The review confirmed all 22 portable fixtures are consumed by production tests
+and runtime tests cover invalid-profile/name inspection ordering, untouched
+getters/ownKeys, revoked Proxy behavior, owning-classifier error preservation,
+frozen M4-013 results and no caller argument retention.
 
-## Hostile-runtime acceptance evidence
-
-Runtime tests cover:
-
-- inherited and accessor-backed `annotations`;
-- own `annotations: undefined`;
-- revoked metadata and annotations Proxies;
-- inherited known hints;
-- explicit `undefined` and accessors for every known hint;
-- unknown outer metadata and `title` getters remaining unread;
-- metadata and annotations `ownKeys` traps remaining unused;
-- descriptor failure at the carrier and every known-hint inspection position;
-- deterministic inspection order and first-failure behavior;
-- caller mutation after return;
-- recursive output immutability.
-
-Stable public errors remain:
-
-- `MCP_TOOL_METADATA_INVALID`;
-- `MCP_TOOL_ANNOTATIONS_INVALID`;
-- `MCP_TOOL_READ_ONLY_HINT_INVALID`;
-- `MCP_TOOL_DESTRUCTIVE_HINT_INVALID`;
-- `MCP_TOOL_IDEMPOTENT_HINT_INVALID`;
-- `MCP_TOOL_OPEN_WORLD_HINT_INVALID`;
-- `MCP_TOOL_METADATA_UNREADABLE`.
-
-## Exact accepted implementation evidence
-
-At `debfce009c4d082aed6cd62646943e36242396e1`:
-
-- normal CI #366 / run `33136379895`: PASS;
-- exact Harness rc5 source-conformance #308 / run `33136379910`: PASS;
-- frozen install: PASS;
-- supply-chain policy: PASS (124 entries);
-- architecture boundaries: PASS;
-- schema shape: PASS (16 schemas);
-- schema compatibility baseline: PASS;
-- strict workspace TypeScript: PASS;
-- 40 test files / 654 tests: PASS;
-- M4-012 MCP metadata classifier suite: 44 PASS;
-- M4-011 shell classifier suite: 38 PASS;
-- M4-010 filesystem classifier suite: 34 PASS;
-- oxlint: 0 warnings / 0 errors on 125 files;
-- packed Shared TCK + external non-workspace consumer: 44 assets PASS;
-- Harness source-conformance steps 6–11: PASS.
-
-No schema, validator, TCK, dependency, lockfile, Adapter contract or pinned Harness
-baseline was changed to obtain green status.
-
-## Acceptance-record verification
+## Acceptance audit
 
 Acceptance audit:
 
 ```text
-docs/acceptance/m4-012-acceptance-audit.md
+docs/acceptance/m4-013-acceptance-audit.md
 ```
 
 Audit commit:
 
 ```text
-10f385990b2c3aff0d3bef902cafe404c47dba61
+8dc19ffe482660b3f098653dbff7fe4bd96c1346
 ```
 
-Acceptance-record head:
-
-```text
-18360fb464d66b7e1c427e23a4f6750144f1d2c3
-```
-
-That exact acceptance-record head reached dual-green before this final governance
-candidate was prepared:
-
-- normal CI #368 / run `33149738632`: PASS;
-- exact Harness rc5 source-conformance #310 / run `33149738626`: PASS.
-
-This satisfies the prerequisite for the M4-012 final governance candidate. It
-does not by itself authorize M4-013; the governance head containing HISTORY,
-roadmap and CURRENT closure must also reach exact-head dual-green.
+The audit records **M4-013 ACCEPTED AT IMPLEMENTATION BOUNDARY** and found no
+acceptance-blocking implementation defect.
 
 ## Current gate
 
-`docs/acceptance/m4-012-acceptance-audit.md` records **M4-012 ACCEPTED AT
-IMPLEMENTATION BOUNDARY**.
+This acceptance-record candidate is intentionally limited to:
 
-This final governance candidate is intentionally limited to operational and
-governance state:
+1. preserving the M4-013 acceptance audit in ancestry;
+2. transitioning `packages/capability-broker/src/index.ts` from
+   `M4-013-UNKNOWN-TOOL-FALLBACK-IMPLEMENTED` to
+   `M4-013-UNKNOWN-TOOL-FALLBACK-ACCEPTED`;
+3. refreshing this non-normative handoff with exact acceptance/live-state facts;
+4. making no production classifier, schema, Shared TCK, dependency, lockfile,
+   Harness baseline, architecture rule or security-boundary change.
 
-1. append M4-012 acceptance evidence to `docs/handoff/HISTORY.md`;
-2. mark only M4-012 accepted in `docs/roadmap.md`;
-3. update this handoff snapshot with verified acceptance-record evidence;
-4. make no production-code, schema, TCK, dependency, lockfile or security-boundary
-   change;
-5. require exact-head normal CI + Harness rc5 dual-green on the resulting
-   governance commit before authorizing M4-013.
+This acceptance-record exact head must reach normal CI plus exact pinned Harness
+rc5 source-conformance dual-green before final governance may be created.
 
-Until this final governance head is dual-green:
+After acceptance-record dual-green, final governance may only perform the
+material governance state transition:
+
+- append M4-013 evidence to `docs/handoff/HISTORY.md`;
+- mark only M4-013 accepted in `docs/roadmap.md`;
+- update `docs/handoff/CURRENT.md` to record final closure and authorize only
+  M4-014 as the next Gate.
+
+The final governance exact head must itself reach dual-green. If it does, M4-013
+is governance-closed immediately; do not create a closure-only follow-up commit.
+
+Until final governance exact-head dual-green:
 
 ```text
-M4-012 implementation: ACCEPTED
-M4-012 acceptance-record head: DUAL-GREEN
-M4-012 governance: PENDING FINAL GOVERNANCE-HEAD DUAL-GREEN
-M4-013+: NOT AUTHORIZED
+M4-013 implementation: ACCEPTED
+M4-013 governance: PENDING
+M4-014+: NOT AUTHORIZED
 M4-020+: NOT AUTHORIZED
 M6: NOT AUTHORIZED
 ```
@@ -243,15 +187,17 @@ M6: NOT AUTHORIZED
 - Protocol/spec precedes implementation.
 - Specs/schemas/TCK remain semantic authority.
 - Harness remains Adapter compatibility evidence only.
-- M4-001 through M4-011 remain governance-closed authorities for their concerns.
-- M4-012 is advisory MCP ToolAnnotations normalization only.
-- Unknown-tool fallback/profile policy remains M4-013.
+- Filesystem and shell classifier `ERROR` results must never degrade to unknown fallback.
+- Unknown tool arguments remain completely opaque.
+- No MCP public-name parsing or metadata-based authorization.
+- No synthetic capability vocabulary.
 - Generic/plugin classifier API remains M4-014.
-- Subject resolution/full policy evaluation remain M4-020/M4-021.
+- Subject resolution/full PDP remain M4-020/M4-021.
 - Approval remains M4-023.
-- Decision receipt/provenance remains M4-024.
+- Receipt/provenance remains M4-024.
 - Guarantee assignment remains M4-025.
-- Provider-aware containment and execution remain separate enforcement concerns.
+- Actual pre-execution PEP/enforcement remains M4-040+.
+- M6 workspace transaction remains unauthorized.
 - Never weaken schemas, validators, TCK, strict TypeScript, frozen installs,
   supply-chain policy, architecture boundaries, compatibility evidence or
   fail-closed behavior for CI.
@@ -260,10 +206,11 @@ M6: NOT AUTHORIZED
 
 On the next session:
 
-1. read `docs/handoff/README.md` and this file;
-2. fetch PR #3 live head/base, reviews/threads and exact-head workflows;
-3. live GitHub state overrides this snapshot;
-4. if this final M4-012 governance head is dual-green, treat M4-012 governance as
-   closed and authorize only M4-013 as the next protocol-first Gate;
-5. otherwise inspect the exact current-head failure before editing;
-6. do not start M4-014+, M4-020+ or M6 early.
+1. refresh PR #3 exact head/base/reviews/threads and exact-head workflows;
+2. live GitHub state overrides this snapshot;
+3. if the M4-013 acceptance-record head is not dual-green, inspect only its exact
+   failing workflow/job/step before editing;
+4. if it is dual-green, prepare only the final governance transition described
+   above;
+5. do not start M4-014 production work until final governance exact-head
+   dual-green closes M4-013.
