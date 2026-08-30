@@ -44,12 +44,8 @@ export function resolveSubject(
   const requestSessionRef = requestSessionRefInput;
 
   const recordStatus = inspectSubjectRecord(subjectInput);
-  if (recordStatus === "INVALID") {
-    return failure("SUBJECT_INPUT_INVALID");
-  }
-  if (recordStatus === "UNREADABLE") {
-    return failure("SUBJECT_INPUT_UNREADABLE");
-  }
+  if (recordStatus === "INVALID") return failure("SUBJECT_INPUT_INVALID");
+  if (recordStatus === "UNREADABLE") return failure("SUBJECT_INPUT_UNREADABLE");
   const subject = subjectInput as object;
 
   let keys: readonly (string | symbol)[];
@@ -68,32 +64,26 @@ export function resolveSubject(
   }
 
   const kindRead = readOwnData(subject, "kind");
-  const kindFailure = readFailure(kindRead);
-  if (kindFailure !== undefined) return kindFailure;
-  if (!isSubjectKind(kindRead.value)) {
-    return failure("SUBJECT_KIND_INVALID");
-  }
+  if (kindRead.status === "UNREADABLE") return failure("SUBJECT_INPUT_UNREADABLE");
+  if (kindRead.status !== "DATA") return failure("SUBJECT_FIELDS_INVALID");
+  if (!isSubjectKind(kindRead.value)) return failure("SUBJECT_KIND_INVALID");
   const kind = kindRead.value;
 
   const idRead = readOwnData(subject, "id");
-  const idFailure = readFailure(idRead);
-  if (idFailure !== undefined) return idFailure;
-  if (!isProtocolRef(idRead.value)) {
-    return failure("SUBJECT_ID_INVALID");
-  }
+  if (idRead.status === "UNREADABLE") return failure("SUBJECT_INPUT_UNREADABLE");
+  if (idRead.status !== "DATA") return failure("SUBJECT_FIELDS_INVALID");
+  if (!isProtocolRef(idRead.value)) return failure("SUBJECT_ID_INVALID");
   const id = idRead.value;
 
   const hasParent = keys.includes("parent");
   let parent: string | null | undefined;
   if (hasParent) {
     const parentRead = readOwnData(subject, "parent");
-    const parentFailure = readFailure(parentRead);
-    if (parentFailure !== undefined) return parentFailure;
+    if (parentRead.status === "UNREADABLE") return failure("SUBJECT_INPUT_UNREADABLE");
+    if (parentRead.status !== "DATA") return failure("SUBJECT_FIELDS_INVALID");
 
     if (kind === "subagent") {
-      if (!isProtocolRef(parentRead.value)) {
-        return failure("SUBJECT_PARENT_INVALID");
-      }
+      if (!isProtocolRef(parentRead.value)) return failure("SUBJECT_PARENT_INVALID");
       parent = parentRead.value;
     } else if (parentRead.value === null) {
       parent = null;
@@ -110,14 +100,10 @@ export function resolveSubject(
   let resolvedSessionRef = requestSessionRef;
   if (hasSubjectSession) {
     const sessionRead = readOwnData(subject, "sessionRef");
-    const sessionFailure = readFailure(sessionRead);
-    if (sessionFailure !== undefined) return sessionFailure;
-    if (!isProtocolRef(sessionRead.value)) {
-      return failure("SUBJECT_SESSION_REF_INVALID");
-    }
-    if (sessionRead.value !== requestSessionRef) {
-      return failure("SUBJECT_SESSION_MISMATCH");
-    }
+    if (sessionRead.status === "UNREADABLE") return failure("SUBJECT_INPUT_UNREADABLE");
+    if (sessionRead.status !== "DATA") return failure("SUBJECT_FIELDS_INVALID");
+    if (!isProtocolRef(sessionRead.value)) return failure("SUBJECT_SESSION_REF_INVALID");
+    if (sessionRead.value !== requestSessionRef) return failure("SUBJECT_SESSION_MISMATCH");
     resolvedSessionRef = sessionRead.value;
   }
 
@@ -138,9 +124,7 @@ export function resolveSubject(
 }
 
 function inspectSubjectRecord(value: unknown): "RECORD" | "INVALID" | "UNREADABLE" {
-  if (typeof value !== "object" || value === null) {
-    return "INVALID";
-  }
+  if (typeof value !== "object" || value === null) return "INVALID";
   try {
     return Array.isArray(value) ? "INVALID" : "RECORD";
   } catch {
@@ -151,27 +135,11 @@ function inspectSubjectRecord(value: unknown): "RECORD" | "INVALID" | "UNREADABL
 function readOwnData(input: object, key: string): OwnDataRead {
   try {
     const descriptor = Object.getOwnPropertyDescriptor(input, key);
-    if (descriptor === undefined) {
-      return { status: "MISSING" };
-    }
-    if (!("value" in descriptor)) {
-      return { status: "MALFORMED" };
-    }
+    if (descriptor === undefined) return { status: "MISSING" };
+    if (!("value" in descriptor)) return { status: "MALFORMED" };
     return { status: "DATA", value: descriptor.value };
   } catch {
     return { status: "UNREADABLE" };
-  }
-}
-
-function readFailure(read: OwnDataRead): SubjectResolutionFailure | undefined {
-  switch (read.status) {
-    case "DATA":
-      return undefined;
-    case "UNREADABLE":
-      return failure("SUBJECT_INPUT_UNREADABLE");
-    case "MISSING":
-    case "MALFORMED":
-      return failure("SUBJECT_FIELDS_INVALID");
   }
 }
 
@@ -185,16 +153,12 @@ function isSubjectKind(value: unknown): value is SubjectKind {
  * once the portable bound is exceeded and performs no normalization.
  */
 function isProtocolRef(value: unknown): value is string {
-  if (typeof value !== "string" || value.length === 0) {
-    return false;
-  }
+  if (typeof value !== "string" || value.length === 0) return false;
 
   let codePoints = 0;
   for (const _codePoint of value) {
     codePoints += 1;
-    if (codePoints > SUBJECT_REF_CODE_POINT_LIMIT) {
-      return false;
-    }
+    if (codePoints > SUBJECT_REF_CODE_POINT_LIMIT) return false;
   }
   return codePoints > 0;
 }
