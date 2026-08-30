@@ -10,31 +10,26 @@
 - Repository: `lilinling12/dsh-safe-runtime`
 - Phase: `M4 — Capability Broker v0.1`
 - Active pull request: `#3 — feat(policy): begin M4 capability broker`
-- PR state at final-governance preparation: `OPEN / DRAFT / mergeable`
 - Branch: `feat/m4-capability-broker`
 - Main: `57430273e065be8d38807d67b175fa154c801d43`
-- M4-001 through M4-012: **ACCEPTED / GOVERNANCE CLOSED**
-- M4-013 implementation boundary: **ACCEPTED**
-- M4-013 accepted implementation head: `bee673cb8463efa04ff314b93d56cfb785dc8b99`
-- M4-013 acceptance audit commit: `8dc19ffe482660b3f098653dbff7fe4bd96c1346`
-- M4-013 acceptance-record head: `3e5c98813a94ef756135d5f4c3c0bc48c64962f5`
-- M4-013 acceptance-record exact-head gates: **DUAL-GREEN**
-- M4-013 final governance closure: **PENDING FINAL-GOVERNANCE EXACT-HEAD DUAL-GREEN**
-- M4-014+, M4-020+ and M6: **NOT AUTHORIZED until M4-013 final-governance exact-head dual-green**
+- M4-001 through M4-013: **ACCEPTED / GOVERNANCE CLOSED**
+- M4-013 final-governance head: `48e8a16ee747e620ffc16e2d57844874fe59ba1e`
+- M4-013 final-governance exact-head gates: **DUAL-GREEN**
+- M4-014 P1 plugin-supplied classifier API: **ACTIVE / PROTOCOL-FIRST**
+- M4-014 production implementation: **NOT AUTHORIZED until protocol-first exact-head dual-green**
+- M4-020+ PDP, M4-040+ PEP and M6: **NOT AUTHORIZED**
 
 Live GitHub state overrides this file.
 
 ## Live ancestry note
 
-At M4-013 acceptance review, GitHub compare reported the PR head relative to
-current `main` as `ahead 150 / behind 2 / diverged`. The compare merge-base
-`65870612d039ce026a6952c16d5e069b11bd24a7` and
-`main@57430273e065be8d38807d67b175fa154c801d43` both point to tree
+The long-running PR has known ancestry-only drift relative to `main`. The compare
+merge-base `65870612d039ce026a6952c16d5e069b11bd24a7` and
+`main@57430273e065be8d38807d67b175fa154c801d43` point to the same source tree
 `ed0c142bf6bbd00f607cc169222f0bf67057fca5`.
 
-This is therefore ancestry-only drift, not source-tree content drift. Do not
-rewrite, rebase or force-update the accepted ancestry merely to make the compare
-counter read `behind 0`.
+Do not rewrite, rebase or force-update accepted ancestry merely to make GitHub's
+behind counter read zero.
 
 ## Accepted compatibility baseline
 
@@ -46,166 +41,182 @@ commit: 47f943859bef60e4160492346772ded9b24f765a
 distribution: distribution-blocked
 ```
 
-Harness APIs/runtime behavior MUST NOT define Core protocol capability semantics,
-provider containment, policy/PDP semantics, classifier fallback policy or plugin
-classifier precedence.
+Harness runtime behavior MUST NOT define Core protocol capability semantics,
+provider containment, policy/PDP semantics, plugin precedence or authorization.
 
-## M4-013 normative boundary
+## M4-013 closure evidence
+
+M4-013 final-governance head:
+
+```text
+48e8a16ee747e620ffc16e2d57844874fe59ba1e
+```
+
+Exact final-governance evidence:
+
+- CI #377 / run `33302539105`: PASS;
+- Harness rc5 source-conformance #319 / run `33302539079`: PASS.
+
+Therefore M4-013 is governance-closed and M4-014 is authorized as the next
+protocol-first Gate. No closure-only follow-up commit was created.
+
+## M4-014 normative boundary
 
 Normative profile:
 
 ```text
-specs/0029-m4-unknown-tool-fallback-resolution.md
+specs/0030-m4-plugin-tool-classifier-api.md
+```
+
+Spec commit:
+
+```text
+3f2f6b18d98fd43129e079f6713b89e3fb0f62bd
 ```
 
 Portable corpus:
 
 ```text
-fixtures/tool-classifier/unknown-tool-fallback-cases.json
+fixtures/tool-classifier/plugin-classifier-cases.json
 ```
 
-Portable cases: `22`.
-
-The only portable fallback profile is:
+Portable corpus commit:
 
 ```text
-STRICT_DENY_V1
+ed25447e6082e681a488b64f7a97609aa1124cbe
 ```
 
-Resolver semantics are fixed to:
+Portable cases: `27`.
+
+The v0.1 M4-014 design is intentionally narrow:
 
 ```text
-validate profile
--> validate toolName
--> classifyBuiltinFilesystemTool
--> if NOT_APPLICABLE classifyBuiltinShellTool
--> if still NOT_APPLICABLE return UNCLASSIFIED / BLOCK
+validate toolName
+-> M4-010 built-in filesystem classifier
+-> preserve CLASSIFIED / ERROR
+-> M4-011 built-in shell classifier
+-> preserve CLASSIFIED / ERROR
+-> exact immutable plugin-owner lookup by toolName only
+-> invoke at most one exact owner
+-> validate/detach existing FS or SHELL_PROCESS family result
+-> otherwise M4-013 STRICT_DENY_V1 terminal block
 ```
 
-Recognized `CLASSIFIED` and `ERROR` results are preserved as-is. Unknown-tool
-arguments remain opaque and are not enumerated, cloned, spread, stringified,
-recursively traversed or retained.
+### Ownership and precedence
 
-MCP-looking model-facing names remain opaque. M4-012 ToolAnnotations evidence
-remains `ADVISORY_ONLY / UNVERIFIED_SERVER` and cannot turn an unknown tool into
-allow/ask or reduce the strict fallback.
+Plugin ownership is exact-string and finite. The accepted built-in names are
+reserved. Registry construction rejects duplicate classifier IDs, duplicate
+names inside one classifier, built-in claims and cross-classifier ownership
+conflicts.
 
-M4-013 creates no synthetic capability, CapabilityRequest/Decision, approval,
-lease, guarantee, plugin registry or runtime PEP/enforcement claim.
+There is deliberately no:
 
-## Protocol-first evidence
+- registration-order precedence;
+- first-wins / last-wins behavior;
+- numeric priority;
+- regex/glob/prefix/fuzzy matcher;
+- MCP public-name parsing;
+- callback probing to discover ownership.
 
-Protocol-first head:
+This keeps authorization-relevant classifier selection deterministic and
+registration-order independent.
+
+### Argument privacy and callback trust boundary
+
+The registry chooses the owning callback using only the validated primitive
+`toolName`. Unrelated callbacks do not receive invocation arguments. The broker
+does not enumerate, clone, stringify, recursively traverse or normalize
+arguments merely to dispatch.
+
+An exact owning callback is trusted in-process integration code and may inspect
+its own invocation arguments. M4-014 is not a plugin sandbox and does not claim
+`process-isolated` or provider-level enforcement.
+
+### Supported result families
+
+A plugin callback may classify only into already normative classifier families:
+
+- M4-010 filesystem requirement grammar;
+- M4-011 shell/process requirement grammar.
+
+M4-014 does not authorize custom capability strings or new network/secret/
+external-effect semantics. Plugin output must be validated, detached and made
+immutable before it becomes classifier evidence.
+
+### Owner failure
+
+Once an exact owner is selected, failure is terminal for classification and must
+not fall through to another plugin or unknown fallback. Stable invocation
+failures are:
 
 ```text
-7c1f5e650923475045e197e13b8c6d6baab0bc2c
+PLUGIN_CLASSIFIER_REJECTED
+PLUGIN_CLASSIFIER_THROWN
+PLUGIN_CLASSIFIER_RESULT_INVALID
+PLUGIN_CLASSIFIER_ASYNC_UNSUPPORTED
 ```
 
-Exact evidence:
+The v0.1 callback is synchronous only.
 
-- CI #371 / run `33213233181`: PASS;
-- Harness rc5 source-conformance #313 / run `33213233223`: PASS.
+## Portable bounds
 
-## Accepted implementation evidence
-
-Accepted implementation head:
+Spec 0030 fixes these language-independent limits:
 
 ```text
-bee673cb8463efa04ff314b93d56cfb785dc8b99
+MAX_PLUGIN_CLASSIFIERS = 128
+MAX_PLUGIN_TOOL_NAMES_PER_CLASSIFIER = 128
+MAX_PLUGIN_TOOL_CLAIMS = 1024
+MAX_CLASSIFIER_ID_CODE_POINTS = 128
+MAX_TOOL_NAME_CODE_POINTS = 256
 ```
 
-Implementation delta from the protocol-first head is three commits ahead and
-zero behind and is limited to:
+The corpus covers success, strict fallback, built-in reservation, duplicate
+ownership, registration-order independence, limits, owner rejection, malformed
+or unsupported results, built-in CLASSIFIED/ERROR preservation and opaque
+MCP-looking exact names.
 
-- `packages/capability-broker/src/tool-classifier/unknown-tool-fallback.ts`;
-- `packages/capability-broker/src/tool-classifier/unknown-tool-fallback.test.ts`;
-- `packages/capability-broker/src/index.ts`.
-
-Exact implementation-head evidence:
-
-- CI #374 / run `33213727426`: PASS;
-- Harness rc5 source-conformance #316 / run `33213727405`: PASS.
-
-The review confirmed all 22 portable fixtures are consumed by production tests
-and runtime tests cover invalid-profile/name inspection ordering, untouched
-getters/ownKeys, revoked Proxy behavior, owning-classifier error preservation,
-frozen M4-013 results and no caller argument retention.
-
-## Acceptance audit
-
-Acceptance audit:
-
-```text
-docs/acceptance/m4-013-acceptance-audit.md
-```
-
-Audit commit:
-
-```text
-8dc19ffe482660b3f098653dbff7fe4bd96c1346
-```
-
-The audit records **M4-013 ACCEPTED AT IMPLEMENTATION BOUNDARY** and found no
-acceptance-blocking implementation defect.
-
-## Acceptance-record evidence
-
-Acceptance-record head:
-
-```text
-3e5c98813a94ef756135d5f4c3c0bc48c64962f5
-```
-
-Exact acceptance-record evidence:
-
-- CI #376 / run `33278767205`: PASS;
-- Harness rc5 source-conformance #318 / run `33278767065`: PASS.
-
-The acceptance-record exact head is therefore dual-green and the final M4-013
-governance transition may proceed.
+JavaScript-only hostile cases such as accessors, inherited properties, sparse or
+named arrays, descriptor failures, revoked proxies, callback throws,
+Promise/thenable returns, result detachment and reference-retention checks remain
+required runtime tests after the protocol-first Gate passes.
 
 ## Current gate
 
-This final-governance candidate is intentionally limited to:
+This handoff update completes the M4-014 protocol-first candidate containing only:
 
-1. appending M4-013 acceptance evidence to `docs/handoff/HISTORY.md` without
-   rewriting prior history;
-2. marking only M4-013 accepted in `docs/roadmap.md`, while leaving M4-014
-   unchecked;
-3. refreshing this non-normative handoff with acceptance-record dual-green facts;
-4. making no production classifier, spec, schema, Shared TCK, dependency,
-   lockfile, Harness baseline, architecture rule or security-boundary change.
+1. Spec 0030;
+2. the 27-case portable classifier corpus;
+3. this operational handoff refresh.
 
-This final-governance exact head must itself reach normal CI plus exact pinned
-Harness rc5 source-conformance dual-green.
+There is intentionally no production plugin registry/resolver implementation in
+this candidate.
 
-If it does, M4-013 governance is CLOSED immediately and M4-014 P1
-plugin-supplied classifier API becomes the next and only newly authorized Gate.
-Do not create a closure-only follow-up commit merely to restate that result; the
-exact-head workflow evidence can be recorded with the next material M4-014
-change.
-
-Until final-governance exact-head dual-green:
+The exact candidate head must reach both:
 
 ```text
-M4-013 implementation: ACCEPTED
-M4-013 acceptance record: DUAL-GREEN
-M4-013 governance: PENDING FINAL EXACT-HEAD DUAL-GREEN
-M4-014+: NOT AUTHORIZED
-M4-020+: NOT AUTHORIZED
-M6: NOT AUTHORIZED
+normal CI
+exact pinned Harness rc5 source-conformance
 ```
+
+Only after that exact head is dual-green may M4-014 production implementation
+begin.
+
+If either workflow fails, inspect the exact failing job/step and fix only the
+protocol-first defect. Do not weaken a gate and do not begin production
+implementation while the protocol-first head is red or pending.
 
 ## Boundaries that remain enforced
 
-- Protocol/spec precedes implementation.
+- Protocol/spec/portable fixtures precede implementation.
 - Specs/schemas/TCK remain semantic authority.
 - Harness remains Adapter compatibility evidence only.
-- Filesystem and shell classifier `ERROR` results must never degrade to unknown fallback.
-- Unknown tool arguments remain completely opaque.
-- No MCP public-name parsing or metadata-based authorization.
-- No synthetic capability vocabulary.
-- Generic/plugin classifier API remains M4-014.
+- Accepted M4-013 `resolveToolClassification()` behavior remains unchanged.
+- Built-in classifier `CLASSIFIED` and `ERROR` results cannot be shadowed.
+- Unknown unowned tools still terminate at `STRICT_DENY_V1` block.
+- No MCP public-name parsing or ToolAnnotations-based authorization.
+- No plugin discovery/loading, hot mutation or global singleton registry in M4-014 v0.1.
+- No synthetic/new capability vocabulary through plugin callbacks.
+- No plugin isolation claim; host-privileged direct effects remain outside current tool enforcement.
 - Subject resolution/full PDP remain M4-020/M4-021.
 - Approval remains M4-023.
 - Receipt/provenance remains M4-024.
@@ -218,13 +229,9 @@ M6: NOT AUTHORIZED
 
 ## Resume instruction
 
-On the next session:
-
 1. refresh PR #3 exact head/base/reviews/threads and exact-head workflows;
 2. live GitHub state overrides this snapshot;
-3. if the M4-013 final-governance head is not dual-green, inspect only its exact
-   failing workflow/job/step before editing;
-4. only after final-governance exact-head dual-green may M4-014 begin
-   protocol-first;
-5. do not create a closure-only follow-up commit after final-governance
-   dual-green.
+3. require exact M4-014 protocol-first dual-green before implementation;
+4. if green, implement only Spec 0030 + portable corpus semantics inside
+   `@dsh-safe/capability-broker` with hostile runtime tests;
+5. do not pull M4-020+, M4-040+ or M6 work forward.
