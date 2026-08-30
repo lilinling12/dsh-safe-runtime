@@ -133,7 +133,6 @@ describe("M4-021 hostile runtime boundary", () => {
         },
       });
       expect(evaluateCapabilityPolicy(input)).toEqual({
-        ok: false,
         status: "FAIL_CLOSED",
         effect: "deny",
         stage: "INPUT",
@@ -256,7 +255,6 @@ describe("M4-021 hostile runtime boundary", () => {
         rules: [{ id: "read", effect: "allow", capabilities: ["fs.read"], resources: ["workspace://src/**"], constraints: revocable.proxy }],
       });
       expect(evaluateCapabilityPolicy({ ...baseInput(), policy: candidate })).toEqual({
-        ok: false,
         status: "FAIL_CLOSED",
         effect: "deny",
         stage: "CONSTRAINT",
@@ -283,7 +281,6 @@ describe("M4-021 hostile runtime boundary", () => {
       }],
     });
     expect(evaluateCapabilityPolicy({ ...baseInput(), policy: candidate })).toEqual({
-      ok: true,
       status: "EVALUATED",
       effect: "deny",
       basis: "DEFAULT_DENY",
@@ -322,7 +319,7 @@ describe("M4-021 hostile runtime boundary", () => {
     const result = evaluateCapabilityPolicy(input);
     expect(result).toMatchObject({ status: "EVALUATED", effect: "allow" });
     expect(Object.isFrozen(result)).toBe(true);
-    if (result.ok) {
+    if (result.status === "EVALUATED") {
       expect(Object.isFrozen(result.fullyApplicableRuleIds)).toBe(true);
       expect(Object.isFrozen(result.contributingRuleIds)).toBe(true);
     }
@@ -339,7 +336,6 @@ describe("M4-021 hostile runtime boundary", () => {
     });
     const result = evaluateCapabilityPolicy({ ...baseInput(), policy: candidate });
     expect(result).toEqual({
-      ok: false,
       status: "FAIL_CLOSED",
       effect: "deny",
       stage: "SUBJECT_SELECTOR",
