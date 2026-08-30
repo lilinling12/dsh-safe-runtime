@@ -10,13 +10,14 @@
 - Repository: `lilinling12/dsh-safe-runtime`
 - Phase: `M4 — Capability Broker v0.1`
 - Active pull request: `#3 — feat(policy): begin M4 capability broker`
-- PR state at acceptance-record preparation: `OPEN / DRAFT`
+- PR state at final-governance preparation: `OPEN / DRAFT`
 - Branch: `feat/m4-capability-broker`
 - Main: `57430273e065be8d38807d67b175fa154c801d43`
 - M4-001 through M4-013: **ACCEPTED / GOVERNANCE CLOSED**
 - M4-014 implementation boundary: **ACCEPTED**
-- M4-014 governance: **PENDING ACCEPTANCE-RECORD + FINAL-GOVERNANCE EXACT-HEAD DUAL-GREEN**
-- M4-020+ PDP, M4-040+ PEP and M6: **NOT AUTHORIZED**
+- M4-014 acceptance-record exact-head gates: **DUAL-GREEN**
+- M4-014 final governance: **PENDING FINAL-GOVERNANCE EXACT-HEAD DUAL-GREEN**
+- M4-020+ PDP, M4-040+ PEP and M6: **NOT AUTHORIZED until M4-014 final governance closes**
 
 Live GitHub state overrides this file.
 
@@ -192,34 +193,47 @@ ecfa7aa0e079835f57ae5c11dbbf7a46d7ec6ccb
 The audit records **M4-014 ACCEPTED AT IMPLEMENTATION BOUNDARY** and found no
 acceptance-blocking defect in the final net implementation delta.
 
+## Acceptance-record evidence
+
+Acceptance-record head:
+
+```text
+290fa8d28d4823114b26fba942f1904dfd093e46
+```
+
+Exact acceptance-record evidence:
+
+- CI #391 / run `33304165439`: PASS;
+- Harness rc5 source-conformance #333 / run `33304165445`: PASS.
+
+The acceptance-record exact head is dual-green. Final governance may therefore
+proceed.
+
 ## Current gate
 
-This acceptance-record candidate is intentionally limited to:
+This final-governance candidate is intentionally limited to governance state:
 
-1. transitioning capability-broker `PACKAGE_STAGE` from
-   `M4-014-PLUGIN-CLASSIFIER-IMPLEMENTED` to
-   `M4-014-PLUGIN-CLASSIFIER-ACCEPTED`;
-2. including the M4-014 acceptance audit already created from the verified
-   implementation head;
-3. refreshing this non-normative handoff with exact protocol-first,
-   implementation and audit evidence;
-4. making no production classifier behavior, schema, Shared TCK, dependency,
+1. append M4-014 acceptance evidence to `docs/handoff/HISTORY.md` without
+   rewriting prior history;
+2. mark only M4-014 accepted in `docs/roadmap.md`;
+3. refresh this non-normative handoff with acceptance-record dual-green facts;
+4. make no production classifier behavior, schema, Shared TCK, dependency,
    lockfile, Harness baseline, architecture rule or security-boundary change.
 
-The exact acceptance-record head must itself reach normal CI plus exact pinned
+The final-governance exact head must itself reach normal CI plus exact pinned
 Harness rc5 source-conformance dual-green.
 
-Only after acceptance-record dual-green may final governance append M4-014 to
-`docs/handoff/HISTORY.md`, mark only M4-014 accepted in `docs/roadmap.md`, and
-identify the next authorized Gate. That final governance head must also be
-exact-head dual-green.
+If it does, M4-014 governance is CLOSED immediately and `M4-020 P0 — Subject
+resolution` becomes the next and only newly authorized engineering Gate. Do not
+create a closure-only follow-up commit merely to restate that result; the exact
+workflow evidence can be recorded with the next material M4-020 change.
 
-Until then:
+Until final-governance exact-head dual-green:
 
 ```text
 M4-014 implementation: ACCEPTED
-M4-014 acceptance record: PENDING EXACT-HEAD DUAL-GREEN
-M4-014 governance: PENDING
+M4-014 acceptance record: DUAL-GREEN
+M4-014 governance: PENDING FINAL EXACT-HEAD DUAL-GREEN
 M4-020+: NOT AUTHORIZED
 M4-040+: NOT AUTHORIZED
 M6: NOT AUTHORIZED
@@ -237,7 +251,7 @@ M6: NOT AUTHORIZED
   reload in M4-014 v0.1.
 - No plugin isolation claim.
 - No synthetic/new capability vocabulary through classifier callbacks.
-- Subject resolution/full PDP remain M4-020/M4-021.
+- Subject resolution/full PDP remain M4-020/M4-021 until M4-020 is authorized.
 - Approval remains M4-023.
 - Receipt/provenance remains M4-024.
 - Guarantee assignment remains M4-025.
@@ -250,7 +264,7 @@ M6: NOT AUTHORIZED
 ## Resume instruction
 
 1. refresh PR #3 exact head/base/reviews/threads and workflows;
-2. require this M4-014 acceptance-record exact head to be dual-green;
-3. if green, perform only final governance bookkeeping for M4-014;
-4. final governance exact head must itself be dual-green;
-5. do not start the next Gate until that final closure is complete.
+2. require this final-governance exact head to be dual-green;
+3. if green, treat M4-014 as governance-closed immediately;
+4. only then begin M4-020 protocol-first;
+5. do not create a closure-only follow-up commit after final-governance dual-green.
