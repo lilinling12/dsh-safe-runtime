@@ -1,11 +1,11 @@
 /**
  * @dsh-safe/policy-engine public boundary.
  *
- * M4-001 through M4-008 are acceptance-audited and governance-closed. M4-009
- * atomic policy hot reload is accepted at its implementation boundary; later
- * policy/classifier/PDP/provenance gates remain unauthorized pending governance.
+ * M4-001 through M4-014 are governance-closed. M4-020 Subject resolution is
+ * the active implementation gate; later PDP/lease/approval/provenance gates
+ * remain unauthorized pending protocol-first review and acceptance.
  */
-export const PACKAGE_STAGE = "M4-009-HOT-RELOAD-CONFORMANCE" as const;
+export const PACKAGE_STAGE = "M4-020-SUBJECT-RESOLUTION-CONFORMANCE" as const;
 
 export {
   loadPolicyDocument,
@@ -125,3 +125,14 @@ export {
   type PolicyReloadResult,
   type PolicyReloadSuccess,
 } from "./policy-hot-reload-types.js";
+export { resolveSubject } from "./subject-resolution.js";
+export {
+  SUBJECT_REF_CODE_POINT_LIMIT,
+  type ResolvedNonSubagentSubject,
+  type ResolvedSubagentSubject,
+  type ResolvedSubject,
+  type SubjectResolutionFailure,
+  type SubjectResolutionFailureReason,
+  type SubjectResolutionResult,
+  type SubjectResolutionSuccess,
+} from "./subject-resolution-types.js";
