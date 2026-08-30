@@ -5,7 +5,7 @@ import { describe, expect, test } from "vitest";
 import { resolveSubject } from "./subject-resolution.js";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
-const root = resolve(here, "../../../..");
+const root = resolve(here, "../../..");
 const fixturePath = resolve(root, "fixtures/subject-resolution/cases.json");
 
 interface FixtureCase {
