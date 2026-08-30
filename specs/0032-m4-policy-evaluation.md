@@ -7,49 +7,44 @@ Accepted prerequisites: **M4-003, M4-004, M4-005, M4-006, M4-007, M4-009, M4-020
 
 ## 1. Purpose
 
-M4-021 defines the portable policy-evaluation boundary that turns one immutable,
-already schema-validated `CapabilityPolicy` snapshot plus already resolved
-request identity/resource evidence into a deterministic policy effect.
-
-This Gate closes the applicability gap deliberately left by M4-004 through
-M4-007:
+M4-021 defines the portable boundary that turns one immutable, already
+schema-validated `CapabilityPolicy` snapshot plus already resolved request
+evidence into a deterministic policy effect.
 
 ```text
 resolved Subject
 + canonical Resource
 + request capability
-+ request constraints evidence
++ request constraint evidence
 + one immutable validated CapabilityPolicy snapshot
   -> subject applicability
   -> capability applicability
   -> M4-004 resource applicability / structural precedence
   -> portable constraint boundary
-  -> fully-applicable rule set
+  -> fully-applicable rules
   -> M4-005 effect resolution
   -> M4-006 default-deny finalization
   -> M4-007 deterministic explanation
   -> policy-evaluation fact
 ```
 
-M4-021 is still **not** a complete authorization/execution pipeline. It does not
-look up or consume leases, route approval, create a protocol
-`CapabilityDecision`, construct stable `matchedRuleRefs`, assign a guarantee
-level, persist a receipt, prove delegation attenuation, or enforce an action.
-Those remain later roadmap Gates.
+M4-021 is not the complete authorization/execution pipeline. It does not look up
+or consume leases, route approval, create a protocol `CapabilityDecision`,
+construct stable `matchedRuleRefs`, assign a guarantee level, persist a receipt,
+prove delegation attenuation, or enforce an action.
 
 ## 2. Existing authority and non-redefinition rule
 
-M4-021 MUST compose accepted semantics rather than reimplementing them:
+M4-021 MUST compose accepted semantics instead of reimplementing them:
 
 1. M4-020 owns Subject identity/context resolution;
 2. M4-003 owns canonical Resource and policy-resource-selector normalization;
 3. M4-004 owns lexical resource matching, specificity, comparison-time priority,
-   and structural precedence bands;
-4. M4-005 owns global explicit-deny, highest-band selection and `ask > allow`;
+   rule-ID uniqueness, and structural precedence bands;
+4. M4-005 owns global explicit deny, highest-band selection, and `ask > allow`;
 5. M4-006 owns defensive default deny;
 6. M4-007 owns deterministic effect explanation;
-7. M4-009 owns immutable active-policy snapshot publication and snapshot
-   isolation.
+7. M4-009 owns immutable active-policy publication and snapshot isolation.
 
 The v0.1 precedence remains exactly:
 
@@ -63,25 +58,22 @@ explicit deny
 ```
 
 M4-021 MUST NOT add declaration order, subject-selector order, capability-array
-order, resource-selector order, map/object order, policy epoch, Harness runtime
-identity or any other hidden tie-breaker.
+order, resource-selector order, object/map order, policy epoch, Harness runtime
+identity, subject-selector specificity, or any other hidden tie-breaker.
 
 ## 3. One immutable policy snapshot per evaluation
 
-One M4-021 invocation evaluates exactly **one** `CapabilityPolicy` snapshot.
-Multi-policy aggregation/merging is not defined by v0.1 M4-021.
+One invocation evaluates exactly one `CapabilityPolicy` snapshot. Multi-policy
+aggregation is not defined by this profile.
 
-The policy input MUST already have passed M4-002 schema validation. When the
-caller uses the M4-009 hot-reload store, it MUST acquire one immutable ACTIVE
-snapshot handle before evaluation and use that exact snapshot for the complete
-invocation.
+The policy MUST already have passed M4-002 schema validation. When the caller
+uses the M4-009 store, it MUST acquire one immutable ACTIVE snapshot handle and
+use that same handle for the complete evaluation. The evaluator MUST NOT reread
+the active store between matching stages.
 
-An evaluator MUST NOT reread the active store between rule-matching stages.
-Therefore a concurrent policy swap cannot produce a result composed from two
-policy epochs.
-
-M4-021 does not construct `policyRef` from `metadata.name`, M4-009 epoch, source
-path, digest or display data.
+M4-009 epoch is local snapshot identity only. M4-021 MUST NOT use it as policy
+precedence or synthesize a `policyRef` from it, `metadata.name`, a source path,
+or a digest.
 
 ## 4. Evaluation input
 
@@ -97,26 +89,22 @@ PolicyEvaluationInput {
 }
 ```
 
-`subject` MUST be the detached resolved Subject produced under Spec 0031, with an
-authoritative materialized `sessionRef`.
+`subject` MUST be the detached resolved Subject produced under Spec 0031 with a
+materialized authoritative `sessionRef`.
 
-`resource` MUST be the canonical M4-003 exact resource. M4-021 MUST NOT perform
+`resource` MUST be the canonical M4-003 exact Resource. M4-021 does not perform
 OS path resolution, provider containment, realpath, DNS resolution, executable
-resolution or secret dereference.
+resolution, or secret dereference.
 
-`capability` is matched as protocol capability text. Standard and extension
-capability names use the existing CapabilityRequest lexical shape. M4-021 does
-not maintain a second capability registry whose absence can turn an explicitly
-policy-matched extension capability into an unknown value.
+`capability` uses the existing CapabilityRequest lexical profile and is preserved
+exactly. Standard and extension capability names share the same matching rule.
 
-`requestConstraints`, when present, is request evidence only. It has no matching
-semantics unless a rule declares a constraint predicate that a portable profile
-knows how to evaluate.
+`requestConstraints`, when present, is request evidence only. It has no generic
+matching semantics by itself.
 
-## 5. Rule applicability is conjunction across dimensions
+## 5. Full applicability
 
-For a rule to become **fully applicable**, every policy-relevant matching
-dimension owned by M4-021 must succeed:
+A rule is **fully applicable** only when every M4-021 matching dimension succeeds:
 
 ```text
 subject matches
@@ -125,41 +113,53 @@ AND resource matches
 AND every declared portable constraint predicate is satisfied
 ```
 
-Rule array position has no semantic meaning.
+Within selector arrays, alternatives are OR. Across dimensions, matching is AND.
+Rule array position has no semantic meaning. A resource-only M4-004 match is not
+full applicability.
 
-Within selector arrays, alternatives are OR:
+## 6. Request-independent policy semantic preflight
+
+M4-002 proves JSON-Schema shape, but some semantics intentionally belong to later
+policy profiles. Before request-dependent filtering, M4-021 MUST preflight the
+entire rule set for the semantic invariants it owns or reuses:
+
+1. rule IDs MUST be globally unique across the complete policy rule array;
+2. every present Subject selector MUST satisfy §7;
+3. malformed runtime projections MUST fail closed rather than being repaired.
+
+Global rule-ID uniqueness is security-relevant even when one duplicate would
+later fail the Subject or capability dimension: later explanation and provenance
+must never have two policy rules sharing the same identifier. M4-021 MUST NOT
+filter first and thereby hide a duplicate ID.
+
+The required duplicate-ID failure preserves the accepted M4-004 reason:
 
 ```text
-subjects[]     -> any selector may match
-capabilities[] -> any capability may match
-resources[]    -> any selector may match
+RULE_ORDERING_DUPLICATE_RULE_ID
 ```
 
-Across dimensions the result is AND.
+with M4-021 failure stage `INPUT`.
 
-A resource-only match is not full applicability, preserving the security-critical
-M4-005 definition.
+M4-009 currently preflights resource selectors only. M4-021 does not retroactively
+change M4-009 activation semantics in this Gate; a structurally valid policy with
+an invalid Subject selector may remain loadable but MUST fail closed when passed
+to M4-021. A future activation-profile revision may move the same semantic check
+earlier without changing M4-021 matching meaning.
 
-## 6. Subject selector profile
+## 7. Subject selector profile
 
-### 6.1 Why a profile is required here
+### 7.1 Exact syntax
 
-`CapabilityPolicy.spec.rules[].subjects` is structurally an optional array of
-strings, but pre-M4-021 Core/Schema intentionally did not define portable string
-semantics. M4-020 explicitly deferred those semantics to this Gate.
+`CapabilityPolicy.spec.rules[].subjects` is optional and structurally a string
+array. M4-020 deliberately left its portable meaning to M4-021.
 
-M4-021 defines one deliberately narrow v0.1 profile: **exact Subject identity
-selectors only**.
-
-### 6.2 Exact selector syntax
-
-A portable selector is:
+The v0.1 selector is exactly:
 
 ```text
 <SubjectKind>://<SubjectId>
 ```
 
-where `<SubjectKind>` is exactly one of:
+`<SubjectKind>` MUST be one exact standard kind:
 
 ```text
 agent
@@ -172,245 +172,198 @@ human
 service
 ```
 
-and `<SubjectId>` is a valid M4-020 protocol reference string: non-empty and at
-most 512 Unicode code points.
+`<SubjectId>` MUST be a valid M4-020 protocol ref: primitive string, non-empty,
+and at most 512 Unicode code points at runtime.
 
-Examples:
-
-```text
-agent://agent/root
-subagent://subagent:child
-service://service:ci
-```
-
-Parsing uses the **first** literal `://` delimiter. Everything after that first
-delimiter is opaque Subject ID data. Therefore:
+Parsing uses the first literal `://`. Everything after it is opaque Subject ID
+data, so this is valid and unambiguous:
 
 ```text
-selector: agent://svc://worker
-kind:     agent
-id:       svc://worker
+agent://svc://worker
 ```
 
-is valid and unambiguous.
+No trimming, case folding, Unicode normalization, percent decoding, escaping,
+or alias lookup is performed.
 
-Accepted text is exact. There is no trimming, case folding, Unicode
-normalization, percent decoding, escaping or alias lookup.
+### 7.2 Exact matching
 
-### 6.3 Matching
-
-A selector matches a resolved Subject if and only if:
+A selector matches iff:
 
 ```text
 selector.kind == subject.kind
-AND
-selector.id == subject.id
+AND selector.id == subject.id
 ```
 
-using exact code-point-preserving string equality.
+using exact preserved string equality.
 
-The selector does not inspect or match:
+The selector does not inspect `parent`, `sessionRef`, display names, roles,
+groups, teams, Harness IDs/names, workflow IDs, provider names, or delegation
+depth.
 
-- `subject.parent`;
-- `subject.sessionRef`;
-- display names;
-- roles/groups/teams;
-- Harness `SessionId`;
-- Harness agent/subagent/provider names;
-- workflow/run identifiers;
-- delegation depth.
+### 7.3 Omitted `subjects`
 
-### 6.4 Omitted `subjects`
+Omitting `subjects` means that the Subject dimension is unconstrained and matches
+any already-resolved standard Subject. If `subjects` is present, at least one
+selector MUST match.
 
-If a rule omits `subjects`, the Subject dimension is unconstrained and therefore
-matches every already-resolved standard Subject.
+An empty or duplicate `subjects` array remains schema-invalid. Runtime callers
+that bypass M4-002 and supply malformed selector containers fail closed.
 
-If `subjects` is present, at least one exact selector MUST match.
+### 7.4 No wildcard/prefix semantics
 
-The schema already forbids an empty `subjects` array. A runtime input that
-bypasses schema validation and supplies empty/duplicate/malformed subject
-selectors MUST fail closed rather than acquiring implementation-specific
-meaning.
+There is no subject wildcard, prefix, glob, regex, descendant, parent, session,
+role/group, or fuzzy matching.
 
-### 6.5 No wildcard/prefix semantics
-
-M4-021 v0.1 defines no subject wildcard. In particular these are not valid
-portable selectors:
+Importantly, wildcard-looking characters inside `<SubjectId>` remain ordinary
+opaque identity characters because M4-020 did not reserve them. Therefore:
 
 ```text
-*://agent/root
-agent://*
-agent://agent/*
-agent:agent/root
-agent/root
+agent://*        -> exact selector for Subject id "*"
+agent://agent/*  -> exact selector for Subject id "agent/*"
 ```
 
-Policy authors who want a rule to apply to all resolved Subjects omit the
-`subjects` field. Implementations MUST NOT add prefix, glob, regex, descendant,
-parent, session, role/group or fuzzy matching while claiming this v0.1 profile.
+They MUST NOT match any other Subject ID. A policy author who wants all Subjects
+omits `subjects`.
 
-The current CapabilityPolicy JSON Schema remains a structural string boundary;
-subject-selector grammar is a semantic policy-evaluation rule in the same way
-that M4-003/M4-004 own semantics beyond the generic `resources[]` string shape.
-M4-021 therefore does not need to weaken or duplicate schema validation.
-
-## 7. Capability matching
-
-A rule capability selector matches if one element of `rule.capabilities` equals
-the request capability exactly.
-
-No wildcard, prefix, namespace inheritance or case folding is defined.
-
-Examples:
+These are malformed selectors:
 
 ```text
-fs.read       == fs.read       -> match
-fs.read       != fs.*          -> `fs.*` is not a valid schema capability name
-fs.read       != FS.READ       -> no match
-vendor.op.run == vendor.op.run -> exact extension capability may match
+*://agent/root   # unknown SubjectKind
+agent:agent/root # missing :// delimiter
+agent/root       # missing :// delimiter
+agent://         # empty SubjectId
 ```
 
-An extension capability that is explicitly named by a schema-valid rule is not
-denied merely because it is absent from the built-in TypeScript
-`StandardCapability` union. Conversely an otherwise valid capability with no
-fully applicable rule reaches the normal default-deny path.
+This preserves the full M4-020 identity domain while preventing hidden glob
+semantics.
 
-The schema already requires non-empty unique capability arrays. Runtime callers
-that bypass the validated-policy boundary and provide malformed/duplicate
-capability selector data MUST fail closed.
+## 8. Capability matching
 
-## 8. Resource matching and structural precedence
+A rule matches the capability dimension iff one element of `rule.capabilities`
+is exactly equal to the request capability.
 
-M4-021 MUST reuse M4-004 rather than implement another resource matcher.
+There is no wildcard, prefix, namespace inheritance, or case folding.
 
-For rules that pass the Subject and capability dimensions, M4-021 supplies their
-`id`, `resources` and optional `priority` to the accepted M4-004 ordering
-primitive for the canonical request resource.
+An extension capability explicitly named by a schema-valid rule can match even
+when it is absent from the built-in TypeScript `StandardCapability` union.
+Conversely, a valid capability for which no rule becomes fully applicable follows
+the normal default-deny path.
 
-M4-004 then determines:
+The schema already requires a non-empty unique capability array. A runtime caller
+that bypasses the validated-policy boundary and provides malformed capability
+selector data MUST fail closed.
 
-1. which remaining rules resource-match;
-2. the best matching selector specificity for each rule;
-3. effective comparison priority;
-4. canonical structural precedence bands.
+## 9. Resource matching and structural precedence
 
-A rule absent from the M4-004 matched bands has not passed the resource
-dimension and MUST NOT participate in later constraint or effect evaluation.
+M4-021 MUST reuse M4-004 rather than implement a second resource matcher.
 
-Any M4-003/M4-004 semantic failure MUST fail closed. M4-021 MUST preserve the
-underlying stable component reason rather than treating malformed policy
-resource syntax as a normal no-match.
+After Subject and capability filtering, the evaluator passes the remaining
+rules' `id`, `resources`, and optional `priority` to accepted M4-004 ordering for
+the canonical request Resource.
+
+M4-004 determines resource match, each rule's best matching-selector
+specificity, comparison-time priority, and canonical structural bands. A rule
+absent from the returned bands did not pass the resource dimension.
+
+Any M4-003/M4-004 semantic failure fails closed and preserves that component's
+stable reason. It MUST NOT be translated into an ordinary no-match/default deny.
 
 Provider identity remains opaque and does not create lexical authorization
 semantics.
 
-## 9. Constraint boundary
+## 10. Constraint boundary
 
-### 9.1 Recovered fact
+### 10.1 Recovered protocol fact
 
-Both CapabilityRequest and CapabilityPolicy currently model `constraints` as an
-open JSON object (`additionalProperties: true`). No existing Core profile defines
-a portable predicate vocabulary, comparison operator, containment rule, JSON
-subset relation, numeric comparison rule, argv grammar or extension registry
-whose semantics M4-021 could safely assume.
+CapabilityRequest and CapabilityPolicy currently model `constraints` as open JSON
+objects (`additionalProperties: true`). Existing Core/specs define no portable
+predicate vocabulary, comparison operator, containment rule, JSON subset rule,
+argv grammar, or extension registry that M4-021 can safely assume.
 
 M4-021 MUST NOT invent generic constraint semantics from object shape.
 
-### 9.2 v0.1 M4-021 portable rule
+### 10.2 v0.1 portable rule
 
-For a rule that has already matched Subject, capability and resource:
-
-```text
-constraints omitted -> no additional predicate -> applicable
-constraints {}      -> zero declared predicates -> applicable
-constraints non-empty -> portable predicate semantics unavailable -> FAIL_CLOSED
-```
-
-The required fail-closed reason is:
+Only after a rule has matched Subject, capability, and resource:
 
 ```text
-POLICY_CONSTRAINT_PROFILE_UNSUPPORTED
+constraints omitted   -> zero predicates -> applicable
+constraints {}        -> zero predicates -> applicable
+constraints non-empty -> unsupported portable predicate profile -> FAIL_CLOSED
 ```
 
-The fail-closed effective effect is always `deny`.
-
-A non-empty constrained rule that does **not** pass Subject, capability or
-resource matching MUST NOT fail an otherwise independent evaluation merely by
-existing in the policy. Its constraint body is irrelevant because that rule
-cannot become applicable to this request.
-
-This ordering prevents both unsafe behaviors:
-
-- silently ignoring a constraint and over-authorizing; and
-- globally rejecting a request because an unrelated rule contains an extension
-  predicate.
-
-A future normative constraint profile may define registered predicates and their
-attenuation semantics. It must not retroactively reinterpret existing unknown
-objects as though M4-021 had already understood them.
-
-### 9.3 Request constraints
-
-A non-empty `requestConstraints` object does not by itself make a rule fail or
-match. It is policy-relevant request evidence available to a future/registered
-constraint evaluator.
-
-When every otherwise matching rule has no declared constraint predicate, the
-request may still be evaluated using the subject/capability/resource dimensions.
-
-M4-021 MUST NOT compare `requestConstraints` and rule `constraints` by generic
-JSON equality, subset, deep-merge or stringification.
-
-## 10. Fields that do not determine M4-021 applicability
-
-The following policy fields do not add matching dimensions in this Gate:
-
-- `rule.effect`: consumed only after full applicability by M4-005;
-- `rule.priority`: consumed only by M4-004 structural precedence;
-- `rule.lease`: not a predicate and MUST NOT cause lease lookup/consumption here;
-- `spec.delegation`: M4-021 does not prove delegation attenuation;
-- `metadata.name`: does not affect rule matching or construct `policyRef`.
-
-A schema-valid `lease` object on a fully applicable rule does not change its
-M4-021 effect. Lease lookup/consumption remains M4-022 and lease issuance/
-attenuation remains later lease work.
-
-## 11. Deterministic evaluation pipeline
-
-For one immutable validated snapshot, the portable logical order is:
+The stable failure is:
 
 ```text
-1. validate/materialize the narrow M4-021 input boundary
-2. validate/materialize policy rule identity and matching fields without getters
-3. preflight every present subject selector using §6
-4. select rules whose Subject dimension matches
-5. select rules whose capability dimension matches
-6. run accepted M4-004 ordering against the canonical Resource
-7. identify subject+capability+resource matched rules from M4-004 bands
-8. inspect constraints only for those matched rules
-9. if any such rule has non-empty constraints -> FAIL_CLOSED deny
-10. otherwise those rules are the fully-applicable rule set
-11. restrict the M4-004 bands to that exact fully-applicable set
-12. build exact one-to-one M4-005 effect bindings
-13. call M4-005 effect resolution
-14. call M4-006 with the same snapshot's policy spec
-15. call M4-007 for the same bands/effects/policy spec
-16. return detached deterministic evaluation fact
+stage: CONSTRAINT
+reasonCode: POLICY_CONSTRAINT_PROFILE_UNSUPPORTED
+effect: deny
 ```
 
-Because the current portable constraint profile has only zero-predicate success
-or unsupported fail-closed, step 11 does not remove any successfully constrained
-rule. It remains explicit so future constraint profiles cannot accidentally feed
-resource-only bands into M4-005.
+A non-empty constrained rule that does not pass Subject, capability, or resource
+matching MUST NOT block an otherwise independent request merely by existing in
+the policy.
 
-After any failure, later policy-relevant stages MUST NOT be used to manufacture an
-allow/ask result.
+This ordering avoids both over-authorization (silently ignoring a constraint)
+and unrelated global failure (interpreting an irrelevant extension predicate).
 
-## 12. Output model
+### 10.3 Request constraints
 
-M4-021 returns a policy-evaluation fact, not a protocol `CapabilityDecision`.
+Non-empty `requestConstraints` alone neither matches nor rejects a rule. It is
+request evidence available to a future registered/normative constraint evaluator.
 
-### 12.1 Successful evaluated effect
+M4-021 MUST NOT compare request and rule constraints using generic JSON equality,
+subset, merge, serialization, or host-language object semantics.
+
+## 11. Non-matching fields
+
+These fields do not add M4-021 applicability dimensions:
+
+- `rule.effect` — consumed only by M4-005 after full applicability;
+- `rule.priority` — consumed only by M4-004;
+- `rule.lease` — does not trigger lease lookup or consumption here;
+- `spec.delegation` — does not prove attenuation here;
+- `metadata.name` — does not determine matching or create policy identity.
+
+A schema-valid `lease` on a fully applicable rule does not change the M4-021
+effect. Lease lookup is M4-022; approval routing is M4-023.
+
+## 12. Deterministic evaluation pipeline
+
+One conforming invocation follows this logical order:
+
+```text
+1. validate/materialize the narrow M4-021 runtime input
+2. materialize the complete policy rule identity/matching projection safely
+3. preflight global rule-ID uniqueness
+4. preflight every present Subject selector
+5. select rules matching the resolved Subject
+6. select rules matching the exact capability
+7. invoke accepted M4-004 for canonical Resource matching/structural bands
+8. identify Subject+capability+resource matched rules
+9. inspect constraints only for those matched rules
+10. any non-empty matched-rule constraints -> FAIL_CLOSED deny
+11. otherwise those rules are the exact fully-applicable set
+12. preserve/restrict the M4-004 bands to that exact set
+13. build exact one-to-one M4-005 effect bindings
+14. invoke M4-005
+15. invoke M4-006 with the same policy spec
+16. invoke M4-007 with the same bands/effects/policy spec
+17. return detached deterministic evaluation fact
+```
+
+After a failure, later stages MUST NOT manufacture an allow/ask result.
+
+The current zero-predicate constraint profile does not remove any successfully
+checked rule at step 11, but the stage remains explicit so future constraint
+profiles cannot accidentally feed resource-only candidates into M4-005.
+
+## 13. Output model
+
+M4-021 returns a policy-evaluation fact, **not** a protocol
+`CapabilityDecision`.
+
+### 13.1 Successful effect fact
 
 ```text
 EVALUATED {
@@ -431,22 +384,20 @@ EVALUATED {
 }
 ```
 
-`fullyApplicableRuleIds` is the complete M4-021 full-match set, sorted by Unicode
-code-point lexicographic order for deterministic presentation only.
+`fullyApplicableRuleIds` is the complete full-match set, sorted with the existing
+M4-004 Unicode code-point comparator for deterministic presentation only.
 
 `contributingRuleIds` preserves M4-007 semantics:
 
 - explicit deny: all fully-applicable deny rules across structural bands;
 - highest-band ask: ask rules from the highest band;
-- highest-band allow: all rules in the highest band;
+- highest-band allow: all rules from the highest band;
 - default deny: empty.
 
-Neither list is protocol `CapabilityDecision.matchedRuleRefs`. M4-024 owns stable
-persisted decision/provenance references.
+Neither list is `CapabilityDecision.matchedRuleRefs`. Stable persisted decision
+references remain a later decision/provenance concern.
 
-### 12.2 Fail-closed evaluation failure
-
-A failure is logically:
+### 13.2 Fail-closed result
 
 ```text
 FAIL_CLOSED {
@@ -472,197 +423,156 @@ POLICY_SUBJECT_SELECTOR_INVALID
 POLICY_CONSTRAINT_PROFILE_UNSUPPORTED
 ```
 
-For delegated accepted components, M4-021 MUST preserve their existing stable
-reason code and identify the owning stage instead of translating the failure into
-a normal default deny.
+Accepted component reasons, including
+`RULE_ORDERING_DUPLICATE_RULE_ID`, M4-003/M4-004 resource failures, M4-005
+failures, and M4-006/M4-007 failures, MUST be preserved with the owning M4-021
+stage rather than rewritten into a normal default deny.
 
-A `FAIL_CLOSED` result is not proof that a policy rule explicitly denied the
-request. It is an enforcement fact that evaluation could not safely establish a
-normal policy result.
-
-Failure output MUST NOT echo Subject IDs, resource locators, capability values,
-constraint bodies, policy source text, exception messages or stacks.
-
-## 13. Rule identity, ordering and privacy
-
-Rule IDs remain the schema-defined non-empty strings used by M4-004/M4-005.
-M4-021 MUST preserve their accepted bounds and uniqueness rules.
-
-For deterministic output:
-
-- `fullyApplicableRuleIds` MUST be sorted by the existing M4-004 Unicode
-  code-point comparator;
-- `contributingRuleIds` MUST preserve M4-007 deterministic ordering;
-- source rule order MUST NOT become authorization precedence.
-
-Evaluation output MUST NOT include:
-
-- raw policy source;
-- request `reason`;
-- request arguments/constraint values;
-- resource contents;
-- secrets;
-- Harness objects;
-- provider tokens.
+A fail-closed result is not proof that an explicit policy deny matched. Failure
+output MUST NOT echo Subject IDs, resource locators, capabilities, constraint
+bodies, source text, exception messages, or stacks.
 
 ## 14. Runtime hostile-object boundary
 
-Portable fixtures are JSON data, but language bindings may receive prototype
-properties, accessors, sparse arrays, symbols or proxies.
+Portable fixtures are JSON, but language bindings may receive prototypes,
+accessors, sparse arrays, named/symbol array properties, symbols, and proxies.
 
-The TypeScript reference implementation MUST treat raw runtime containers as
-untrusted even when static types appear valid.
+The TypeScript reference implementation MUST treat runtime containers as
+untrusted. Authorization-relevant values MUST come from own data-property
+descriptors. Getters MUST NOT execute to decide an effect. Unexpected own fields
+in the narrow public input projection, symbol fields, sparse/named/symbol
+selector-array properties, descriptor failures, and revoked proxies MUST fail
+closed.
 
-Authorization-relevant fields MUST be read only from own data properties.
-Getters for policy rules, selector arrays, subject identity, capability,
-resource, constraints, effects or priority MUST NOT be executed to decide an
-effect.
+The implementation MUST not retain caller-owned mutable containers. Successful
+output, nested rule-ID lists, and failure output MUST be detached and immutable.
 
-Unexpected own fields in M4-021's narrow input projection, symbol fields,
-sparse/named/symbol selector-array properties, descriptor failures and revoked
-Proxies MUST fail closed.
-
-This hardening is a language-runtime boundary and MUST NOT redefine the portable
-JSON semantics.
+These are runtime hardening requirements, not new portable JSON semantics.
 
 ## 15. Re-evaluation invariant
 
-An M4-021 result applies only to the exact policy-relevant input facts evaluated.
-If an execution Adapter or later classifier rewrites any policy-relevant value
-after evaluation, including:
+An M4-021 fact applies only to the policy-relevant facts actually evaluated. If
+an Adapter or later classifier rewrites any such value after evaluation,
+including Subject identity/context, capability, canonical resource operand, or
+constraint/argument evidence used by a predicate, the caller MUST reject the
+stale result or evaluate again before execution, preserving Core §8.3.
 
-```text
-subject identity/context
-capability
-a canonical resource operand
-constraint/argument evidence used by a predicate
-```
-
-the caller MUST reject the stale result or perform a new evaluation before
-execution, preserving Core §8.3.
-
-M4-021 does not invent an input digest or claim that a later PEP already enforces
-this invariant. PEP integration remains M4-040+.
+M4-021 does not invent an input digest or claim that a PEP already enforces this.
+PEP integration remains M4-040+.
 
 ## 16. Delegation and subagent boundary
 
-A resolved `subagent` may be matched by an exact subject selector, but M4-021 does
-not thereby prove that the child is entitled to exercise a parent capability.
+An exact selector may match a resolved `subagent`, but that does not prove child
+entitlement to a parent capability. Core attenuation remains mandatory. Parent
+existence, capability/resource containment, TTL/max-use, constraint attenuation,
+and guarantee inheritance remain later delegation/lease concerns.
 
-Core attenuation remains mandatory. Parent/child capability, resource, TTL,
-max-use, constraint and guarantee attenuation checks remain later delegation/
-lease work. An `allow` effect from M4-021 is therefore only a policy effect fact,
-not final execution authority for a child.
+Therefore `EVALUATED allow` is only a policy effect fact, not final execution
+authority for a child.
 
 ## 17. DeepSeek Harness boundary
 
 DeepSeek Harness `0.1.0-rc.5` at
 `47f943859bef60e4160492346772ded9b24f765a` remains compatibility evidence only.
+Harness agent names, provider names, SessionId values, subagent run IDs, workflow
+sequence values, and plugin registration order MUST NOT become portable Subject
+selectors or precedence inputs.
 
-M4-021 MUST NOT use Harness agent names, provider names, SessionId values,
-subagent run IDs, workflow sequence numbers or plugin registration order as
-portable Subject selectors or policy precedence.
-
-No concrete Harness type belongs in the protocol or policy-engine core API for
-this Gate.
+No concrete Harness type belongs in the policy-engine core API for M4-021.
 
 ## 18. Explicit non-goals
 
 M4-021 MUST NOT:
 
-- authenticate a Subject;
-- perform directory/identity-provider lookup;
+- authenticate a Subject or perform directory/identity-provider lookup;
 - infer Subject parent/descendant relationships from strings;
-- define subject wildcards/prefixes/roles/groups;
+- define Subject wildcard/prefix/role/group semantics;
 - define a generic arbitrary-JSON constraint language;
-- parse shell commands or tool arguments into new policy constraints;
-- perform lease lookup or consumption (M4-022);
+- parse shell/tool arguments into invented policy predicates;
+- perform lease lookup/consumption (M4-022);
 - route approval (M4-023);
-- create/persist `CapabilityDecision` or stable `matchedRuleRefs` (M4-024);
+- create/persist a protocol `CapabilityDecision`, receipt, or stable
+  `matchedRuleRefs` (M4-024 and later provenance work);
 - assign guarantee level (M4-025);
 - prove delegation attenuation or consume parent leases;
 - classify tools;
-- perform PEP enforcement (M4-040+);
+- enforce at a PEP (M4-040+);
 - aggregate multiple policies;
-- interpret M4-009 epoch as policy identity;
-- claim provider containment, process isolation or plugin sandboxing.
-
-In particular:
+- treat M4-009 epoch as policy identity;
+- claim provider containment, process isolation, or plugin sandboxing.
 
 ```text
 M4-021 EVALUATED allow != action authorized for execution
 M4-021 EVALUATED ask   != approval granted
-M4-021 EVALUATED deny  != persisted CapabilityDecision already exists
+M4-021 EVALUATED deny  != persisted CapabilityDecision exists
 ```
 
 ## 19. Portable fixture requirements
 
-Before production implementation, M4-021 MUST publish language-independent
-fixtures covering at least:
+Before production implementation, a language-independent corpus MUST cover at
+least:
 
 ### Subject semantics
 
 1. omitted `subjects` matches any resolved Subject;
 2. exact kind+id selector match;
-3. kind mismatch does not match;
-4. ID mismatch does not match;
-5. matching is case-sensitive/exact;
-6. ID containing `://` remains opaque after the first delimiter;
-7. malformed selector fails closed;
-8. wildcard-looking selector fails closed;
-9. parent/session fields do not alter exact kind+id selector matching.
+3. kind mismatch;
+4. ID mismatch;
+5. exact/case-sensitive matching;
+6. Subject ID containing `://` after the first delimiter;
+7. malformed selector fail closed;
+8. wildcard-looking Subject ID remains literal, never wildcard;
+9. parent/session do not alter exact kind+id selector matching.
 
 ### Capability/resource conjunction
 
 10. exact capability match;
-11. capability mismatch reaches default deny when no other rule applies;
-12. extension capability can match exactly;
-13. resource selector matching reuses M4-004 wildcard semantics;
-14. resource mismatch does not create applicability;
-15. subject + capability + resource are conjunctive;
+11. capability mismatch -> default deny if no other rule applies;
+12. exact extension capability match;
+13. M4-004 resource wildcard semantics are reused;
+14. resource mismatch;
+15. Subject+capability+resource conjunction;
 16. resource specificity outranks priority for ask/allow;
 17. explicit deny remains global across lower structural bands;
-18. equal-band `ask > allow` remains preserved.
+18. equal-band `ask > allow`.
 
 ### Constraint boundary
 
-19. omitted rule constraints are zero-predicate success;
-20. empty rule constraints are zero-predicate success;
-21. non-empty constraints on an otherwise matching rule fail closed;
-22. non-empty constraints on a subject-nonmatching rule are not inspected as an
-    applicability blocker;
-23. non-empty constraints on a capability-nonmatching rule are not inspected;
-24. non-empty constraints on a resource-nonmatching rule are not inspected;
-25. non-empty request constraints do not invent matching semantics when a rule
-    declares no constraint predicate.
+19. omitted constraints -> zero-predicate success;
+20. empty constraints -> zero-predicate success;
+21. non-empty constraints on an otherwise matching rule -> fail closed;
+22. non-empty constraints on a Subject-nonmatching rule are not a blocker;
+23. non-empty constraints on a capability-nonmatching rule are not a blocker;
+24. non-empty constraints on a resource-nonmatching rule are not a blocker;
+25. non-empty request constraints do not invent semantics when the rule declares
+    no predicate.
 
 ### Composition/determinism
 
-26. no applicable rule becomes M4-006/M4-007 default deny;
+26. no applicable rule -> M4-006/M4-007 default deny;
 27. rule declaration permutation does not change the result;
-28. complete fully-applicable rule IDs are deterministic and separate from
-    effect contributors;
-29. a schema-valid lease field does not change M4-021 applicability/effect;
-30. one evaluation uses one immutable snapshot; policy epoch/order is not a
-    precedence input.
+28. full-match IDs are deterministic and distinct from effect contributors;
+29. schema-valid lease data does not change M4-021 applicability/effect;
+30. policy epoch/order is not a precedence input;
+31. duplicate rule IDs fail closed before request-dependent filtering, including
+    when one duplicate would otherwise not match Subject/capability.
 
-Portable cases MUST not depend on JavaScript prototypes/accessors or Harness
-objects. Hostile-runtime cases belong to the TypeScript conformance suite after
-the protocol-first exact head is accepted.
+Portable cases MUST NOT depend on JavaScript prototypes/accessors or Harness
+objects. Hostile-runtime cases belong to the TypeScript implementation suite only
+after the protocol-first exact head is dual-green.
 
 ## 20. Protocol-first completion criteria
 
-M4-021 production implementation is NOT AUTHORIZED until one exact repository
-head contains at least:
+Production M4-021 implementation is NOT AUTHORIZED until one exact repository
+head contains:
 
 1. this Spec 0032;
-2. a portable M4-021 evaluation corpus satisfying §19;
-3. repository handoff state recording M4-020 final-governance evidence and the
-   M4-021 boundary;
+2. a portable M4-021 corpus satisfying §19;
+3. handoff state recording M4-020 final closure and the M4-021 boundary;
 4. no production PDP implementation;
 5. no M4-022+ lease/approval/receipt/guarantee/PEP implementation;
 6. exact-head normal CI PASS;
 7. exact pinned Harness rc5 source-conformance PASS.
 
-Only after that dual-green protocol-first head may the TypeScript reference PDP
-projection begin.
+Only after that exact dual-green protocol-first head may the TypeScript reference
+policy evaluator begin.
