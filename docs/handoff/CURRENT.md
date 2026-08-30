@@ -6,16 +6,16 @@
 
 ## Snapshot
 
-- Recorded at: `2026-08-30`
+- Recorded at: `2026-08-31`
 - Repository: `lilinling12/dsh-safe-runtime`
 - Phase: `M4 — Capability Broker v0.1`
 - Active pull request: `#3 — feat(policy): begin M4 capability broker`
-- PR state at acceptance review: `OPEN / DRAFT / mergeable`
+- PR state at final-governance review: `OPEN / DRAFT / mergeable`
 - Branch: `feat/m4-capability-broker`
 - Main: `57430273e065be8d38807d67b175fa154c801d43`
 - M4-001 through M4-014: **ACCEPTED / GOVERNANCE CLOSED**
-- M4-020 P0 Subject resolution: **IMPLEMENTATION ACCEPTED / GOVERNANCE PENDING**
-- M4-021+, M4-040+ and M6: **NOT AUTHORIZED**
+- M4-020 P0 Subject resolution: **IMPLEMENTATION ACCEPTED / ACCEPTANCE-RECORD DUAL-GREEN / FINAL GOVERNANCE IN PROGRESS**
+- M4-021+, M4-040+ and M6: **NOT AUTHORIZED UNTIL M4-020 FINAL GOVERNANCE IS DUAL-GREEN**
 
 Live GitHub state overrides this file.
 
@@ -108,7 +108,7 @@ The Subject type projection was aligned at:
 8fbf53fd1df7132ee76b58979ce3586b95f3eb83
 ```
 
-That exact head also reached normal CI and pinned Harness source-conformance
+That exact head reached normal CI and pinned Harness source-conformance
 dual-green before production resolver work continued.
 
 ### Accepted implementation head
@@ -147,6 +147,22 @@ Package implementation-acceptance marker commit:
 ```text
 7ec3549929a4896a7aa12fb6fba7a8cf923bd9fd
 ```
+
+### Acceptance-record exact head
+
+```text
+3e761499a250c48552042c03b106f89ba68a2f68
+```
+
+Exact acceptance-record evidence:
+
+- CI #417 / run `33323912340`: PASS;
+- Harness rc5 source-conformance #359 / run `33323912336`: PASS.
+
+The acceptance-record transition changed only the M4-020 acceptance audit,
+policy-engine package stage and this handoff state; it made no production
+resolver, schema, corpus, Shared TCK, dependency, lockfile, Harness baseline or
+security-boundary change.
 
 ### Accepted M4-020 boundary
 
@@ -192,37 +208,30 @@ and define subject matching protocol-first rather than inventing hidden
 `kind:id`, wildcard, prefix, parent/descendant, role/group or Harness-name
 semantics.
 
-## Acceptance-record Gate
+## Final-governance Gate
 
-M4-020 implementation is accepted, but governance is not yet closed.
+The acceptance-record head is dual-green, so final M4-020 governance is now
+permitted. The final-governance candidate is strictly limited to:
 
-The current acceptance-record transition is limited to:
+1. this `docs/handoff/CURRENT.md` state update;
+2. append-only M4-020 acceptance history in `docs/handoff/HISTORY.md`;
+3. changing only M4-020 from unchecked to accepted in `docs/roadmap.md`.
 
-1. marking `@dsh-safe/policy-engine` as
-   `M4-020-SUBJECT-RESOLUTION-ACCEPTED`;
-2. recording the exact protocol-first and accepted implementation evidence in
-   this handoff;
-3. no production resolver, schema, corpus, Shared TCK, dependency, lockfile,
-   Harness baseline or security-boundary change.
+No production resolver, schema, fixture/corpus, Shared TCK, dependency,
+lockfile, Harness baseline, architecture boundary or security guarantee may
+change in this transition.
 
-The acceptance-record exact head must reach normal CI plus exact pinned Harness
-rc5 source-conformance dual-green.
+The resulting final-governance exact head must reach normal CI plus exact pinned
+Harness rc5 source-conformance dual-green. Only that evidence closes M4-020 and
+permits M4-021 to become the next protocol-first Gate.
 
-Only then may final governance:
-
-- append the M4-020 acceptance record to `docs/handoff/HISTORY.md`;
-- mark only M4-020 accepted in `docs/roadmap.md`;
-- record the acceptance-record evidence here;
-- determine the next authorized Gate from the roadmap.
-
-The final governance exact head must itself be dual-green.
-
-Until then:
+Until that final exact head is dual-green:
 
 ```text
 M4-014: GOVERNANCE CLOSED
 M4-020 implementation: ACCEPTED
-M4-020 governance: PENDING
+M4-020 acceptance-record: DUAL-GREEN
+M4-020 governance: FINAL-GOVERNANCE IN PROGRESS
 M4-021+: NOT AUTHORIZED
 M4-040+: NOT AUTHORIZED
 M6: NOT AUTHORIZED
@@ -251,7 +260,10 @@ M6: NOT AUTHORIZED
 ## Resume instruction
 
 1. refresh PR #3 exact head/base/reviews/threads and workflows;
-2. verify this M4-020 acceptance-record exact head with normal CI plus pinned
-   Harness rc5 source-conformance;
-3. if and only if dual-green, perform final M4-020 governance updates;
-4. do not start M4-021 or any later Gate before M4-020 governance closure.
+2. verify final-governance net delta is only CURRENT, append-only HISTORY and the
+   M4-020 roadmap acceptance marker;
+3. require normal CI plus pinned Harness rc5 source-conformance on that exact
+   final-governance head;
+4. only after dual-green treat M4-020 governance as CLOSED and authorize M4-021
+   as the next protocol-first Gate;
+5. do not merge PR #3 without explicit authorization.
