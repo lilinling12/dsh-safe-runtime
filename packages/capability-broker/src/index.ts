@@ -16,4 +16,4 @@ export * from "./builtin-filesystem-tool-classifier.js";
 export * from "./tool-classifier/builtin-shell.js";
 export * from "./tool-classifier/mcp-metadata.js";
 export * from "./tool-classifier/unknown-tool-fallback.js";
-export * from "./tool-classifier/plugin-classifier.js";
+export * from "./tool-classifier/plugin-classifier-registry.js";
