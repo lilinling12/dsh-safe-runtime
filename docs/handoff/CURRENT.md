@@ -16,7 +16,7 @@
 - M4-013 final-governance head: `48e8a16ee747e620ffc16e2d57844874fe59ba1e`
 - M4-013 final-governance exact-head gates: **DUAL-GREEN**
 - M4-014 P1 plugin-supplied classifier API: **ACTIVE / PROTOCOL-FIRST**
-- M4-014 production implementation: **NOT AUTHORIZED until protocol-first exact-head dual-green**
+- M4-014 production implementation: **NOT AUTHORIZED until the clarified protocol-first exact head is dual-green**
 - M4-020+ PDP, M4-040+ PEP and M6: **NOT AUTHORIZED**
 
 Live GitHub state overrides this file.
@@ -68,7 +68,7 @@ Normative profile:
 specs/0030-m4-plugin-tool-classifier-api.md
 ```
 
-Spec commit:
+Initial spec commit:
 
 ```text
 3f2f6b18d98fd43129e079f6713b89e3fb0f62bd
@@ -88,10 +88,48 @@ ed25447e6082e681a488b64f7a97609aa1124cbe
 
 Portable cases: `27`.
 
-The v0.1 M4-014 design is intentionally narrow:
+The first assembled protocol-first head was:
 
 ```text
-validate toolName
+f4d41277efd722396c28b8425dbb0765059e183a
+```
+
+Exact evidence for that head:
+
+- CI #380 / run `33303317938`: PASS;
+- Harness rc5 source-conformance #322 / run `33303317919`: PASS.
+
+### Pre-implementation protocol clarification
+
+Before writing production code, review found one wording defect: Spec 0030 called
+the registry-aware `toolName` validation rule an "accepted" M4-013 rule even
+though accepted M4-013 intentionally has its own older public input behavior.
+
+The clarification commit is:
+
+```text
+0a87b68ae75ddbe92b0a63b4e9109a0c3cef69f3
+```
+
+It makes two non-implementation corrections:
+
+1. non-blank / `MAX_TOOL_NAME_CODE_POINTS` validation is explicitly an **M4-014
+   registry-aware resolver rule only**; accepted M4-013
+   `resolveToolClassification()` behavior remains unchanged;
+2. portable `generatedString`, `generatedNames`, and `generatedClassifiers`
+   directives are explicitly fixture encoding that consumers expand before API
+   invocation; those objects are never valid production registration values.
+
+Because this clarification changes normative text, the clarified protocol-first
+exact head must be dual-green before production implementation begins, even
+though the earlier assembled protocol-first head was already dual-green.
+
+## M4-014 composition semantics
+
+The v0.1 design remains intentionally narrow:
+
+```text
+validate M4-014 registry-aware toolName
 -> M4-010 built-in filesystem classifier
 -> preserve CLASSIFIED / ERROR
 -> M4-011 built-in shell classifier
@@ -102,65 +140,32 @@ validate toolName
 -> otherwise M4-013 STRICT_DENY_V1 terminal block
 ```
 
-### Ownership and precedence
-
-Plugin ownership is exact-string and finite. The accepted built-in names are
+Plugin ownership is exact-string and finite. Accepted built-in names are
 reserved. Registry construction rejects duplicate classifier IDs, duplicate
 names inside one classifier, built-in claims and cross-classifier ownership
 conflicts.
 
-There is deliberately no:
+There is deliberately no registration-order precedence, first/last wins,
+numeric priority, regex/glob/prefix/fuzzy matching, MCP public-name parsing, or
+callback probing to discover ownership.
 
-- registration-order precedence;
-- first-wins / last-wins behavior;
-- numeric priority;
-- regex/glob/prefix/fuzzy matcher;
-- MCP public-name parsing;
-- callback probing to discover ownership.
-
-This keeps authorization-relevant classifier selection deterministic and
-registration-order independent.
-
-### Argument privacy and callback trust boundary
-
-The registry chooses the owning callback using only the validated primitive
-`toolName`. Unrelated callbacks do not receive invocation arguments. The broker
-does not enumerate, clone, stringify, recursively traverse or normalize
-arguments merely to dispatch.
+The registry chooses the owner using only validated primitive `toolName`.
+Unrelated callbacks do not receive invocation arguments. The broker does not
+enumerate, clone, stringify, recursively traverse or normalize arguments merely
+to dispatch.
 
 An exact owning callback is trusted in-process integration code and may inspect
 its own invocation arguments. M4-014 is not a plugin sandbox and does not claim
 `process-isolated` or provider-level enforcement.
 
-### Supported result families
+A plugin may classify only into the already normative M4-010 filesystem or
+M4-011 shell/process requirement grammars. It cannot invent network, secret,
+external-effect or custom capability semantics.
 
-A plugin callback may classify only into already normative classifier families:
-
-- M4-010 filesystem requirement grammar;
-- M4-011 shell/process requirement grammar.
-
-M4-014 does not authorize custom capability strings or new network/secret/
-external-effect semantics. Plugin output must be validated, detached and made
-immutable before it becomes classifier evidence.
-
-### Owner failure
-
-Once an exact owner is selected, failure is terminal for classification and must
-not fall through to another plugin or unknown fallback. Stable invocation
-failures are:
-
-```text
-PLUGIN_CLASSIFIER_REJECTED
-PLUGIN_CLASSIFIER_THROWN
-PLUGIN_CLASSIFIER_RESULT_INVALID
-PLUGIN_CLASSIFIER_ASYNC_UNSUPPORTED
-```
-
-The v0.1 callback is synchronous only.
+Once an exact owner is selected, owner rejection/throw/async/malformed output is
+a terminal fail-closed classification error and must not fall through.
 
 ## Portable bounds
-
-Spec 0030 fixes these language-independent limits:
 
 ```text
 MAX_PLUGIN_CLASSIFIERS = 128
@@ -170,40 +175,29 @@ MAX_CLASSIFIER_ID_CODE_POINTS = 128
 MAX_TOOL_NAME_CODE_POINTS = 256
 ```
 
-The corpus covers success, strict fallback, built-in reservation, duplicate
-ownership, registration-order independence, limits, owner rejection, malformed
-or unsupported results, built-in CLASSIFIED/ERROR preservation and opaque
-MCP-looking exact names.
-
-JavaScript-only hostile cases such as accessors, inherited properties, sparse or
-named arrays, descriptor failures, revoked proxies, callback throws,
-Promise/thenable returns, result detachment and reference-retention checks remain
-required runtime tests after the protocol-first Gate passes.
+Bounds are measured in Unicode code points. Validation stops after exceeding the
+relevant bound and must not materialize an input-sized code-point array merely
+to count it.
 
 ## Current gate
 
-This handoff update completes the M4-014 protocol-first candidate containing only:
+The current candidate contains only Spec 0030, its 27-case portable corpus, the
+pre-implementation wording/fixture-encoding clarification, and handoff updates.
+There is still no production plugin registry or registry-aware resolver code.
 
-1. Spec 0030;
-2. the 27-case portable classifier corpus;
-3. this operational handoff refresh.
-
-There is intentionally no production plugin registry/resolver implementation in
-this candidate.
-
-The exact candidate head must reach both:
+Require exact-head dual-green from:
 
 ```text
 normal CI
 exact pinned Harness rc5 source-conformance
 ```
 
-Only after that exact head is dual-green may M4-014 production implementation
+Only after this clarified exact head is dual-green may production implementation
 begin.
 
 If either workflow fails, inspect the exact failing job/step and fix only the
 protocol-first defect. Do not weaken a gate and do not begin production
-implementation while the protocol-first head is red or pending.
+implementation while the clarified protocol-first head is red or pending.
 
 ## Boundaries that remain enforced
 
@@ -231,7 +225,7 @@ implementation while the protocol-first head is red or pending.
 
 1. refresh PR #3 exact head/base/reviews/threads and exact-head workflows;
 2. live GitHub state overrides this snapshot;
-3. require exact M4-014 protocol-first dual-green before implementation;
-4. if green, implement only Spec 0030 + portable corpus semantics inside
+3. require the clarified M4-014 protocol-first exact head to be dual-green;
+4. only then implement Spec 0030 + portable corpus semantics inside
    `@dsh-safe/capability-broker` with hostile runtime tests;
 5. do not pull M4-020+, M4-040+ or M6 work forward.
