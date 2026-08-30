@@ -1279,3 +1279,51 @@ implementation boundary. This governance head is intentionally limited to
 HISTORY, roadmap and CURRENT state. It must itself reach exact-head normal CI +
 Harness rc5 dual-green before M4-014 is authorized. M4-020+ and M6 remain
 unauthorized by this Gate.
+
+## 2026-08-30 — Accept M4-014 deterministic plugin-supplied classifier API
+
+M4-014 is accepted at the implementation boundary on
+`4290249c282426e7e95aa0ad133ff17a7ca9a9c0` after protocol-first definition in
+Spec 0030 and a 27-case portable corpus.
+
+The accepted v0.1 extension seam uses immutable exact-name ownership. Built-in
+filesystem and shell tool names are reserved; duplicate classifier IDs,
+duplicate owned names and cross-classifier ownership conflicts are rejected
+instead of resolved through hidden registration order, priority or first/last
+wins. There is no regex/glob/prefix/fuzzy ownership or MCP public-name parsing.
+
+Registry-aware resolution preserves accepted built-in `CLASSIFIED` and `ERROR`
+results before plugin lookup. Exact plugin ownership is selected using only the
+validated tool name, so unrelated callbacks never receive invocation arguments.
+Only the selected owner receives the original opaque argument value. Owner
+rejection, throw, asynchronous return or malformed output is terminal fail-closed
+and never falls through to another classifier or an allow/ask path.
+
+Plugin output is restricted to the already normative M4-010 filesystem and
+M4-011 shell/process requirement grammars. Successful evidence is validated,
+detached and recursively frozen. M4-014 creates no new capability vocabulary,
+CapabilityDecision, PDP, approval, lease, receipt, guarantee, provider
+containment, PEP enforcement or plugin-isolation claim.
+
+The clarified protocol-first head
+`979f1a2d60e90254a85a992e38f33bf13689be51` reached normal CI #382 / run
+`33303563719` PASS and exact Harness rc5 source-conformance #324 / run
+`33303563713` PASS before production implementation began.
+
+Exact accepted implementation evidence at `4290249c...`:
+
+- normal CI #388 / run `33303937406`: PASS;
+- exact Harness rc5 source-conformance #330 / run `33303937405`: PASS.
+
+Acceptance audit commit is
+`ecfa7aa0e079835f57ae5c11dbbf7a46d7ec6ccb`. Acceptance-record head is
+`290fa8d28d4823114b26fba942f1904dfd093e46`, which reached normal CI #391 /
+run `33304165439` PASS and exact Harness rc5 source-conformance #333 /
+run `33304165445` PASS before this final governance record was prepared.
+
+`docs/acceptance/m4-014-acceptance-audit.md` records M4-014 accepted at the
+implementation boundary. This final governance state changes only handoff/roadmap
+bookkeeping; production classifier behavior remains unchanged. The final
+governance exact head must itself reach normal CI + exact Harness rc5
+source-conformance dual-green before M4-020 is authorized. M4-021+, M4-040+ and
+M6 remain unauthorized by this Gate.
