@@ -288,7 +288,7 @@ Acceptance evidence
 
 ## M4.3 PDP
 
-- [ ] `M4-020 P0` Subject resolution。
+- [x] `M4-020 P0` Subject resolution。 **ACCEPTED：Spec 0031 + 30 portable cases + deterministic fail-closed Subject identity/context resolution + authoritative request-session consistency + hostile own-data/proxy hardening；accepted implementation head `31b3b190...`，CI #414 / Harness #356 PASS；验收记录 `docs/acceptance/m4-020-acceptance-audit.md`。**
 - [ ] `M4-021 P0` policy evaluation。
 - [ ] `M4-022 P0` lease lookup。
 - [ ] `M4-023 P0` approval routing。
