@@ -337,7 +337,7 @@ registry
 
 the registry-aware resolver MUST execute these stages in this exact order:
 
-1. validate `toolName` using the accepted primitive/non-blank/bounded rule;
+1. validate `toolName` using the M4-014 registry-aware invocation rule in Section 12;
 2. invoke M4-010 built-in filesystem classifier;
 3. if result is `CLASSIFIED` or `ERROR`, return it unchanged;
 4. invoke M4-011 built-in shell classifier;
@@ -357,13 +357,15 @@ Consequences:
 
 ## 12. Tool-name validation
 
-For registry-aware invocation, `toolName` MUST be:
+For the **new M4-014 registry-aware resolver only**, `toolName` MUST be:
 
 - a primitive string;
 - non-blank under `trim()`;
 - at most `MAX_TOOL_NAME_CODE_POINTS` Unicode code points.
 
-Invalid tool names return the accepted fail-closed tool-name error before built-in dispatch, plugin lookup, or callback invocation.
+This is an M4-014 input-hardening rule. It is **not** a retroactive claim about the accepted M4-013 resolver, whose existing public behavior remains unchanged as required by Sections 2.3 and 18.
+
+Invalid M4-014 registry-aware tool names return the existing stable fail-closed `TOOL_NAME_INVALID` classification error before built-in dispatch, plugin lookup, or callback invocation.
 
 The original accepted string is used for exact comparison; it is not replaced with the trimmed value.
 
@@ -461,6 +463,8 @@ Before production implementation, M4-014 MUST publish language-independent fixtu
 16. built-in `ERROR` preserved before plugins;
 17. no exact plugin owner -> no plugin callback invocation;
 18. ownership independent of registration order.
+
+The portable corpus may use declarative generation directives solely to express boundary-size data compactly. `generatedString`, `generatedNames`, and `generatedClassifiers` are **fixture encoding**, not runtime API values. A conforming fixture consumer expands them into the primitive strings/lists described by the directive before invoking the API. Implementations MUST NOT accept those directive objects as valid production registration values.
 
 TypeScript/runtime-only hostile-object regressions MUST additionally cover accessors, inherited fields, sparse/named/symbol arrays, descriptor failures, revoked proxies, callback throws, Promise/thenable return, detachment, immutability, and no unrelated-callback argument exposure.
 
