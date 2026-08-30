@@ -1,11 +1,11 @@
 /**
  * @dsh-safe/policy-engine public boundary.
  *
- * M4-001 through M4-014 are governance-closed. M4-020 Subject resolution is
- * accepted at its implementation boundary; later PDP/lease/approval/provenance
- * gates remain unauthorized pending protocol-first review and acceptance.
+ * M4-001 through M4-014 and M4-020 are governance-closed. M4-021 policy
+ * evaluation is in implementation review after an exact-head dual-green
+ * protocol-first Gate. Lease/approval/decision/guarantee/PEP work remains later.
  */
-export const PACKAGE_STAGE = "M4-020-SUBJECT-RESOLUTION-ACCEPTED" as const;
+export const PACKAGE_STAGE = "M4-021-POLICY-EVALUATION-IN-REVIEW" as const;
 
 export {
   loadPolicyDocument,
@@ -136,3 +136,15 @@ export {
   type SubjectResolutionResult,
   type SubjectResolutionSuccess,
 } from "./subject-resolution-types.js";
+export { evaluateCapabilityPolicy } from "./policy-evaluation.js";
+export {
+  type PolicyEvaluationBasis,
+  type PolicyEvaluationEffect,
+  type PolicyEvaluationFailure,
+  type PolicyEvaluationFailureReason,
+  type PolicyEvaluationInput,
+  type PolicyEvaluationReasonCode,
+  type PolicyEvaluationResult,
+  type PolicyEvaluationStage,
+  type PolicyEvaluationSuccess,
+} from "./policy-evaluation-types.js";
