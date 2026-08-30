@@ -1,4 +1,11 @@
-import type { CanonicalResource } from "./resource-normalization-types.js";
+import type { DefaultDenyFailureReason } from "./default-deny-types.js";
+import type { EffectResolutionFailureReason } from "./effect-resolution-types.js";
+import type { PolicyEffectExplainFailureReason } from "./policy-effect-explanation-types.js";
+import type {
+  CanonicalResource,
+  ResourceNormalizationFailureReason,
+} from "./resource-normalization-types.js";
+import type { RuleOrderingFailureReason } from "./rule-ordering-types.js";
 import type { ResolvedSubject } from "./subject-resolution-types.js";
 
 export type PolicyEvaluationEffect = "deny" | "ask" | "allow";
@@ -28,29 +35,19 @@ export type PolicyEvaluationFailureReason =
   | "POLICY_EVALUATION_INPUT_INVALID"
   | "POLICY_SUBJECT_SELECTOR_INVALID"
   | "POLICY_CONSTRAINT_PROFILE_UNSUPPORTED"
-  | "RULE_ORDERING_DUPLICATE_RULE_ID"
-  | "RULE_ORDERING_INPUT_INVALID"
-  | "RESOURCE_PATTERN_SYNTAX_INVALID"
-  | "RESOURCE_INPUT_INVALID"
-  | "RESOURCE_SCHEME_INVALID"
-  | "RESOURCE_LOCATOR_INVALID"
-  | "RESOURCE_PROVIDER_IDENTITY_INVALID"
-  | "RESOURCE_LIMIT_EXCEEDED"
-  | "EFFECT_RESOLUTION_INPUT_INVALID"
-  | "EFFECT_RESOLUTION_EFFECT_INVALID"
-  | "EFFECT_RESOLUTION_RULE_SET_MISMATCH"
-  | "EFFECT_RESOLUTION_BANDS_NONCANONICAL"
-  | "DEFAULT_EFFECT_CONFIG_INVALID"
-  | "DEFAULT_DENY_INPUT_INVALID"
-  | "POLICY_EXPLAIN_INPUT_INVALID";
+  | RuleOrderingFailureReason
+  | ResourceNormalizationFailureReason
+  | EffectResolutionFailureReason
+  | DefaultDenyFailureReason
+  | PolicyEffectExplainFailureReason;
 
 /**
  * Runtime projection accepted by M4-021.
  *
- * `policy` is intentionally typed as unknown at the public boundary because a
- * static TypeScript type is not an authorization boundary. Callers are expected
- * to pass the immutable snapshot already accepted by M4-002/M4-009; the
- * evaluator still materializes the policy-relevant subset defensively.
+ * `policy` remains unknown at the public boundary because a static TypeScript
+ * annotation is not an authorization boundary. Callers are expected to provide
+ * the immutable snapshot accepted by M4-002/M4-009; the evaluator still
+ * materializes the policy-relevant subset defensively before composing it.
  */
 export interface PolicyEvaluationInput {
   readonly policy: unknown;
