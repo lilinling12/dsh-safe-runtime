@@ -2,10 +2,10 @@
  * @dsh-safe/policy-engine public boundary.
  *
  * M4-001 through M4-014 are governance-closed. M4-020 Subject resolution is
- * the active implementation gate; later PDP/lease/approval/provenance gates
- * remain unauthorized pending protocol-first review and acceptance.
+ * accepted at its implementation boundary; later PDP/lease/approval/provenance
+ * gates remain unauthorized pending protocol-first review and acceptance.
  */
-export const PACKAGE_STAGE = "M4-020-SUBJECT-RESOLUTION-CONFORMANCE" as const;
+export const PACKAGE_STAGE = "M4-020-SUBJECT-RESOLUTION-ACCEPTED" as const;
 
 export {
   loadPolicyDocument,
