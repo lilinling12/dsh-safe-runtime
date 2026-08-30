@@ -1327,3 +1327,61 @@ bookkeeping; production classifier behavior remains unchanged. The final
 governance exact head must itself reach normal CI + exact Harness rc5
 source-conformance dual-green before M4-020 is authorized. M4-021+, M4-040+ and
 M6 remain unauthorized by this Gate.
+
+## 2026-08-31 — Accept M4-020 deterministic Subject resolution
+
+M4-020 is accepted at the implementation boundary on
+`31b3b190fc92372f2ccc2f6527b91826153f7917` after protocol-first definition in
+Spec 0031 and a 30-case portable Subject-resolution corpus.
+
+The protocol-first exact head
+`d2a879addd832791c10277be97ce3a7b09e95241` reached normal CI #405 / run
+`33313398737` PASS and exact Harness rc5 source-conformance #347 / run
+`33313398644` PASS before production resolver implementation began. That Gate
+also corrected the existing Core↔Schema mismatch for Subagent parent identity:
+`subagent.parent` is now a required non-null protocol `ref`, the schema baseline
+was refreshed rather than weakened, and the negative request fixture is
+registered as `CAP-REQ-003`.
+
+The accepted resolver validates the authoritative request session before touching
+untrusted Subject input, then inspects only exact own data properties in a fixed
+order. It accepts only the eight standard Subject kinds, preserves the existing
+1..512 Unicode-code-point ref contract, materializes an omitted Subject session
+from the request context, and requires exact session equality when the Subject
+provides one. It performs no trim, case folding, Unicode normalization, string
+coercion or alias lookup.
+
+Runtime hardening rejects inherited identity, accessors, unexpected own string or
+symbol fields, arrays, unreadable ownKeys/descriptors and revoked Proxies without
+executing getters. Subagent parent is required and non-null; non-subagent parent
+retains the pre-existing omitted/null/ref surface. Successful results are
+detached and frozen, while failure output exposes only stable reason codes and
+does not echo attacker-controlled values.
+
+M4-020 remains deliberately narrower than a PDP. It does not authenticate
+actors, look up parent Subjects, prove lineage, perform delegation attenuation,
+define `CapabilityPolicy.spec.rules[].subjects` selector grammar, evaluate full
+policy, resolve leases/approval, emit receipts/provenance, assign guarantees or
+enforce a PEP. Those remain later Gates.
+
+Exact accepted implementation evidence at `31b3b190...`:
+
+- normal CI #414 / run `33323729301`: PASS;
+- exact Harness rc5 source-conformance #356 / run `33323729321`: PASS;
+- 43 test files / 767 tests: PASS;
+- M4-020 Subject-resolution suite: 40 tests PASS.
+
+Acceptance audit commit is
+`d37a381f586367622ce885ed4a1163e413144d40`. Acceptance-record head is
+`3e761499a250c48552042c03b106f89ba68a2f68`, which reached normal CI #417 /
+run `33323912340` PASS and exact Harness rc5 source-conformance #359 /
+run `33323912336` PASS before this final governance record was prepared.
+
+`docs/acceptance/m4-020-acceptance-audit.md` records M4-020 accepted at the
+implementation boundary. This final governance state is limited to append-only
+HISTORY, CURRENT handoff state and the M4-020 roadmap acceptance marker; no
+production resolver, protocol/schema semantics, fixture corpus, Shared TCK,
+dependency, lockfile, Harness baseline or security guarantee changes here. The
+resulting final-governance exact head must itself reach normal CI + exact Harness
+rc5 source-conformance dual-green before M4-020 governance is CLOSED and M4-021
+policy evaluation becomes the next protocol-first Gate.
