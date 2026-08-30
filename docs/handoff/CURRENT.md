@@ -10,15 +10,17 @@
 - Repository: `lilinling12/dsh-safe-runtime`
 - Phase: `M4 — Capability Broker v0.1`
 - Active pull request: `#3 — feat(policy): begin M4 capability broker`
-- PR state at acceptance review: `OPEN / DRAFT / mergeable`
+- PR state at final-governance preparation: `OPEN / DRAFT / mergeable`
 - Branch: `feat/m4-capability-broker`
 - Main: `57430273e065be8d38807d67b175fa154c801d43`
 - M4-001 through M4-012: **ACCEPTED / GOVERNANCE CLOSED**
 - M4-013 implementation boundary: **ACCEPTED**
 - M4-013 accepted implementation head: `bee673cb8463efa04ff314b93d56cfb785dc8b99`
 - M4-013 acceptance audit commit: `8dc19ffe482660b3f098653dbff7fe4bd96c1346`
-- M4-013 final governance closure: **PENDING ACCEPTANCE-RECORD + FINAL GOVERNANCE EXACT-HEAD DUAL-GREEN**
-- M4-014+, M4-020+ and M6: **NOT AUTHORIZED until M4-013 final governance dual-green**
+- M4-013 acceptance-record head: `3e5c98813a94ef756135d5f4c3c0bc48c64962f5`
+- M4-013 acceptance-record exact-head gates: **DUAL-GREEN**
+- M4-013 final governance closure: **PENDING FINAL-GOVERNANCE EXACT-HEAD DUAL-GREEN**
+- M4-014+, M4-020+ and M6: **NOT AUTHORIZED until M4-013 final-governance exact-head dual-green**
 
 Live GitHub state overrides this file.
 
@@ -146,37 +148,49 @@ Audit commit:
 The audit records **M4-013 ACCEPTED AT IMPLEMENTATION BOUNDARY** and found no
 acceptance-blocking implementation defect.
 
+## Acceptance-record evidence
+
+Acceptance-record head:
+
+```text
+3e5c98813a94ef756135d5f4c3c0bc48c64962f5
+```
+
+Exact acceptance-record evidence:
+
+- CI #376 / run `33278767205`: PASS;
+- Harness rc5 source-conformance #318 / run `33278767065`: PASS.
+
+The acceptance-record exact head is therefore dual-green and the final M4-013
+governance transition may proceed.
+
 ## Current gate
 
-This acceptance-record candidate is intentionally limited to:
+This final-governance candidate is intentionally limited to:
 
-1. preserving the M4-013 acceptance audit in ancestry;
-2. transitioning `packages/capability-broker/src/index.ts` from
-   `M4-013-UNKNOWN-TOOL-FALLBACK-IMPLEMENTED` to
-   `M4-013-UNKNOWN-TOOL-FALLBACK-ACCEPTED`;
-3. refreshing this non-normative handoff with exact acceptance/live-state facts;
-4. making no production classifier, schema, Shared TCK, dependency, lockfile,
-   Harness baseline, architecture rule or security-boundary change.
+1. appending M4-013 acceptance evidence to `docs/handoff/HISTORY.md` without
+   rewriting prior history;
+2. marking only M4-013 accepted in `docs/roadmap.md`, while leaving M4-014
+   unchecked;
+3. refreshing this non-normative handoff with acceptance-record dual-green facts;
+4. making no production classifier, spec, schema, Shared TCK, dependency,
+   lockfile, Harness baseline, architecture rule or security-boundary change.
 
-This acceptance-record exact head must reach normal CI plus exact pinned Harness
-rc5 source-conformance dual-green before final governance may be created.
+This final-governance exact head must itself reach normal CI plus exact pinned
+Harness rc5 source-conformance dual-green.
 
-After acceptance-record dual-green, final governance may only perform the
-material governance state transition:
+If it does, M4-013 governance is CLOSED immediately and M4-014 P1
+plugin-supplied classifier API becomes the next and only newly authorized Gate.
+Do not create a closure-only follow-up commit merely to restate that result; the
+exact-head workflow evidence can be recorded with the next material M4-014
+change.
 
-- append M4-013 evidence to `docs/handoff/HISTORY.md`;
-- mark only M4-013 accepted in `docs/roadmap.md`;
-- update `docs/handoff/CURRENT.md` to record final closure and authorize only
-  M4-014 as the next Gate.
-
-The final governance exact head must itself reach dual-green. If it does, M4-013
-is governance-closed immediately; do not create a closure-only follow-up commit.
-
-Until final governance exact-head dual-green:
+Until final-governance exact-head dual-green:
 
 ```text
 M4-013 implementation: ACCEPTED
-M4-013 governance: PENDING
+M4-013 acceptance record: DUAL-GREEN
+M4-013 governance: PENDING FINAL EXACT-HEAD DUAL-GREEN
 M4-014+: NOT AUTHORIZED
 M4-020+: NOT AUTHORIZED
 M6: NOT AUTHORIZED
@@ -208,9 +222,9 @@ On the next session:
 
 1. refresh PR #3 exact head/base/reviews/threads and exact-head workflows;
 2. live GitHub state overrides this snapshot;
-3. if the M4-013 acceptance-record head is not dual-green, inspect only its exact
+3. if the M4-013 final-governance head is not dual-green, inspect only its exact
    failing workflow/job/step before editing;
-4. if it is dual-green, prepare only the final governance transition described
-   above;
-5. do not start M4-014 production work until final governance exact-head
-   dual-green closes M4-013.
+4. only after final-governance exact-head dual-green may M4-014 begin
+   protocol-first;
+5. do not create a closure-only follow-up commit after final-governance
+   dual-green.

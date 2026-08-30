@@ -283,7 +283,7 @@ Acceptance evidence
 - [x] `M4-010 P0` classify built-in FS tools。 **ACCEPTED：Spec 0026 + 22 portable cases + exact rc5 source-backed built-in FS mapping + hostile-runtime fail-closed hardening；accepted implementation head `4be1fffc...`，CI #351 / Harness #293 PASS；验收记录 `docs/acceptance/m4-010-acceptance-audit.md`。**
 - [x] `M4-011 P0` classify Bash/PowerShell。 **ACCEPTED：Spec 0027 + 22 portable cases + exact rc5 source-backed Bash/PowerShell → process.exec mapping + hostile-runtime fail-closed hardening；accepted implementation head `c8a53182...`，CI #356 / Harness #298 PASS；验收记录 `docs/acceptance/m4-011-acceptance-audit.md`。**
 - [x] `M4-012 P0` classify known MCP metadata。 **ACCEPTED：Spec 0028 + MCP 2025-11-25 + 19 portable cases + advisory-only ToolAnnotations normalization + revoked-Proxy/descriptor hostile-runtime fail-closed hardening；accepted implementation head `debfce00...`，CI #366 / Harness #308 PASS；验收记录 `docs/acceptance/m4-012-acceptance-audit.md`。**
-- [ ] `M4-013 P0` unknown tool → fail closed/profile decision。
+- [x] `M4-013 P0` unknown tool → fail closed/profile decision。 **ACCEPTED：Spec 0029 + 22 portable cases + fixed `STRICT_DENY_V1` resolver + recognized classifier result preservation + hostile/opaque unknown-argument fail-closed hardening；accepted implementation head `bee673cb...`，CI #374 / Harness #316 PASS；验收记录 `docs/acceptance/m4-013-acceptance-audit.md`。**
 - [ ] `M4-014 P1` plugin-supplied classifier API。
 
 ## M4.3 PDP

@@ -1243,3 +1243,39 @@ implementation boundary. This governance head is intentionally limited to
 HISTORY, roadmap and CURRENT state. It must itself reach exact-head normal CI +
 Harness rc5 dual-green before M4-013 is authorized. M4-014+, M4-020+ and M6
 remain unauthorized by this Gate.
+
+## 2026-08-30 — Accept M4-013 unknown-tool strict fallback resolution
+
+M4-013 is accepted at the implementation boundary on
+`bee673cb8463efa04ff314b93d56cfb785dc8b99` after protocol-first definition in
+Spec 0029 and a 22-case portable corpus.
+
+The resolver has one portable profile, `STRICT_DENY_V1`. It validates profile
+and tool name before classifier dispatch, then composes the accepted built-in
+filesystem classifier followed by the accepted built-in shell classifier.
+Any owning classifier `CLASSIFIED` or `ERROR` result is preserved as-is. Only
+when both classifiers return `NOT_APPLICABLE` does resolution produce
+`UNCLASSIFIED / BLOCK / NO_APPLICABLE_CLASSIFIER`.
+
+Unknown-tool arguments remain opaque: the resolver does not enumerate, clone,
+spread, stringify, recursively traverse or retain them. MCP-looking public
+names remain opaque; M4-012 advisory/unverified ToolAnnotations cannot grant
+authority or weaken fallback. No synthetic capability, CapabilityDecision,
+approval, lease, guarantee, plugin registry or PEP/enforcement claim is added.
+
+Exact accepted implementation evidence at `bee673cb...`:
+
+- normal CI #374 / run `33213727426`: PASS;
+- exact Harness rc5 source-conformance #316 / run `33213727405`: PASS.
+
+Acceptance audit commit is
+`8dc19ffe482660b3f098653dbff7fe4bd96c1346`. Acceptance-record head is
+`3e5c98813a94ef756135d5f4c3c0bc48c64962f5`, which reached normal CI #376 /
+run `33278767205` PASS and exact Harness rc5 source-conformance #318 /
+run `33278767065` PASS before this final governance record was prepared.
+
+`docs/acceptance/m4-013-acceptance-audit.md` records M4-013 accepted at the
+implementation boundary. This governance head is intentionally limited to
+HISTORY, roadmap and CURRENT state. It must itself reach exact-head normal CI +
+Harness rc5 dual-green before M4-014 is authorized. M4-020+ and M6 remain
+unauthorized by this Gate.
