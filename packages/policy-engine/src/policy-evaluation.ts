@@ -535,7 +535,7 @@ function prepareFailure(stage: PolicyEvaluationStage, reason: PolicyEvaluationFa
 }
 
 function fail(stage: PolicyEvaluationStage, reasonCode: PolicyEvaluationFailureReason): PolicyEvaluationFailure {
-  return Object.freeze({ ok: false, status: "FAIL_CLOSED", effect: "deny", stage, reasonCode });
+  return Object.freeze({ status: "FAIL_CLOSED", effect: "deny", stage, reasonCode });
 }
 
 function success(
@@ -546,7 +546,6 @@ function success(
   contributingRuleIds: readonly string[],
 ): PolicyEvaluationSuccess {
   return Object.freeze({
-    ok: true,
     status: "EVALUATED",
     effect,
     basis,
