@@ -187,7 +187,8 @@ describe("M4-021 hostile runtime boundary", () => {
   });
 
   test("sparse and named selector arrays fail closed", () => {
-    const sparse = new Array<string>(1);
+    const sparse: string[] = [];
+    sparse.length = 1;
     const sparsePolicy = policy({
       defaultEffect: "deny",
       rules: [{ id: "read", effect: "allow", capabilities: sparse, resources: ["workspace://src/**"] }],
