@@ -57,8 +57,8 @@ export interface PolicyEvaluationInput {
   readonly requestConstraints?: unknown;
 }
 
+/** Portable Spec 0032 success projection. `status` is the discriminant. */
 export interface PolicyEvaluationSuccess {
-  readonly ok: true;
   readonly status: "EVALUATED";
   readonly effect: PolicyEvaluationEffect;
   readonly basis: PolicyEvaluationBasis;
@@ -67,8 +67,8 @@ export interface PolicyEvaluationSuccess {
   readonly contributingRuleIds: readonly string[];
 }
 
+/** Portable Spec 0032 fail-closed projection. `status` is the discriminant. */
 export interface PolicyEvaluationFailure {
-  readonly ok: false;
   readonly status: "FAIL_CLOSED";
   readonly effect: "deny";
   readonly stage: PolicyEvaluationStage;
