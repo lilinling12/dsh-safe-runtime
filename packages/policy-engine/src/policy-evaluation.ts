@@ -20,35 +20,19 @@ const MIN_PRIORITY = -1_000_000;
 const MAX_PRIORITY = 1_000_000;
 const CAPABILITY_PATTERN = /^[a-z][a-z0-9.-]*\.[a-z][a-z0-9.-]*$/;
 const SUBJECT_KINDS = new Set([
-  "agent",
-  "subagent",
-  "tool",
-  "plugin",
-  "system",
-  "verifier",
-  "human",
-  "service",
+  "agent", "subagent", "tool", "plugin", "system", "verifier", "human", "service",
 ]);
 const INPUT_KEYS = new Set(["policy", "subject", "capability", "resource", "requestConstraints"]);
 const POLICY_KEYS = new Set(["apiVersion", "kind", "metadata", "spec"]);
 const POLICY_SPEC_KEYS = new Set(["defaultEffect", "rules", "delegation"]);
 const RULE_KEYS = new Set([
-  "id",
-  "effect",
-  "capabilities",
-  "resources",
-  "subjects",
-  "constraints",
-  "lease",
-  "priority",
+  "id", "effect", "capabilities", "resources", "subjects", "constraints", "lease", "priority",
 ]);
 const SUBJECT_KEYS = new Set(["kind", "id", "parent", "sessionRef"]);
 
 type DataRead =
   | { readonly status: "DATA"; readonly value: unknown }
-  | { readonly status: "MISSING" }
-  | { readonly status: "ACCESSOR" }
-  | { readonly status: "UNREADABLE" };
+  | { readonly status: "MISSING" | "ACCESSOR" | "UNREADABLE" };
 
 interface ParsedSubjectSelector {
   readonly kind: string;
@@ -80,82 +64,75 @@ interface MaterializedInput {
   readonly requestConstraints: unknown;
 }
 
+type PrepareFailure = {
+  readonly ok: false;
+  readonly stage: PolicyEvaluationStage;
+  readonly reason: PolicyEvaluationFailureReason;
+};
+type PreparedPolicyResult = { readonly ok: true; readonly policy: PreparedPolicy } | PrepareFailure;
+type PreparedRuleResult = { readonly ok: true; readonly rule: PreparedRule } | PrepareFailure;
+
 /**
- * Evaluate one validated CapabilityPolicy snapshot without crossing into later
- * authorization gates.
+ * Compose the accepted M4 policy primitives into one deterministic effect fact.
  *
- * The function deliberately returns a policy-effect fact only. An `allow` here
- * is not execution authority: lease lookup, approval routing, durable decision
- * provenance, guarantee assignment, delegation attenuation and PEP enforcement
- * remain later gates.
+ * The result is intentionally not execution authority. Lease lookup, approval,
+ * durable CapabilityDecision provenance, guarantees, delegation attenuation and
+ * PEP enforcement remain later gates.
  */
 export function evaluateCapabilityPolicy(input: unknown): PolicyEvaluationResult {
-  const materializedInput = materializeInput(input);
-  if (materializedInput === undefined) {
-    return fail("INPUT", "POLICY_EVALUATION_INPUT_INVALID");
-  }
-
-  if (!isValidCapabilityName(materializedInput.capability)) {
+  const materialized = materializeInput(input);
+  if (materialized === undefined) return fail("INPUT", "POLICY_EVALUATION_INPUT_INVALID");
+  if (!isValidCapabilityName(materialized.capability)) {
     return fail("INPUT", "POLICY_EVALUATION_INPUT_INVALID");
   }
   if (!validateRequestConstraintsBoundary(
-    materializedInput.requestConstraintsPresent,
-    materializedInput.requestConstraints,
+    materialized.requestConstraintsPresent,
+    materialized.requestConstraints,
   )) {
     return fail("INPUT", "POLICY_EVALUATION_INPUT_INVALID");
   }
 
-  const normalizedResource = normalizeCapabilityResource(materializedInput.resource);
-  if (!normalizedResource.ok) {
-    return fail("RESOURCE", normalizedResource.reason);
-  }
+  // Validate/canonicalize the request resource before matching so a malformed
+  // resource cannot become an apparently ordinary no-match/default-deny result.
+  const normalizedResource = normalizeCapabilityResource(materialized.resource);
+  if (!normalizedResource.ok) return fail("RESOURCE", normalizedResource.reason);
 
-  const preparedPolicy = preparePolicy(materializedInput.policy);
-  if (!preparedPolicy.ok) {
-    return fail(preparedPolicy.stage, preparedPolicy.reason);
-  }
+  const prepared = preparePolicy(materialized.policy);
+  if (!prepared.ok) return fail(prepared.stage, prepared.reason);
 
-  const subject = materializedInput.subject;
-  const subjectKind = subject["kind"] as string;
-  const subjectId = subject["id"] as string;
-
-  const subjectMatched = preparedPolicy.policy.rules.filter(rule =>
+  const subjectKind = materialized.subject["kind"] as string;
+  const subjectId = materialized.subject["id"] as string;
+  const subjectMatched = prepared.policy.rules.filter(rule =>
     rule.subjects === undefined
       || rule.subjects.some(selector => selector.kind === subjectKind && selector.id === subjectId),
   );
   const capabilityMatched = subjectMatched.filter(rule =>
-    rule.capabilities.includes(materializedInput.capability),
+    rule.capabilities.includes(materialized.capability),
   );
 
-  const orderingCandidates: RuleOrderingCandidate[] = capabilityMatched.map(rule => {
-    if (rule.priority === undefined) {
-      return Object.freeze({ id: rule.id, resources: rule.resources });
-    }
-    return Object.freeze({ id: rule.id, resources: rule.resources, priority: rule.priority });
-  });
-
+  const candidates: RuleOrderingCandidate[] = capabilityMatched.map(rule =>
+    rule.priority === undefined
+      ? Object.freeze({ id: rule.id, resources: rule.resources })
+      : Object.freeze({ id: rule.id, resources: rule.resources, priority: rule.priority }),
+  );
   const ordering = orderRuleCandidatesForResource(
     normalizedResource.resource,
-    Object.freeze(orderingCandidates),
+    Object.freeze(candidates),
   );
-  if (!ordering.ok) {
-    return fail("RESOURCE", ordering.reason);
-  }
+  if (!ordering.ok) return fail("RESOURCE", ordering.reason);
 
-  const ruleById = new Map(preparedPolicy.policy.rules.map(rule => [rule.id, rule] as const));
-  const resourceMatchedIds = flattenBandRuleIds(ordering.bands);
-  if (resourceMatchedIds === undefined) {
-    return fail("RESOURCE", "RULE_ORDERING_INPUT_INVALID");
-  }
+  const ruleById = new Map(prepared.policy.rules.map(rule => [rule.id, rule] as const));
+  const matchedRuleIds = flattenBandRuleIds(ordering.bands);
+  if (matchedRuleIds === undefined) return fail("RESOURCE", "RULE_ORDERING_INPUT_INVALID");
 
-  for (const ruleId of resourceMatchedIds) {
+  // Constraints are deliberately inspected only after the other three
+  // applicability dimensions match. Unknown predicates can never be ignored to
+  // gain permission, while irrelevant extension predicates cannot globally DoS
+  // unrelated requests.
+  for (const ruleId of matchedRuleIds) {
     const rule = ruleById.get(ruleId);
-    if (rule === undefined) {
-      return fail("INPUT", "POLICY_EVALUATION_INPUT_INVALID");
-    }
-    if (!rule.constraintsPresent) {
-      continue;
-    }
+    if (rule === undefined) return fail("INPUT", "POLICY_EVALUATION_INPUT_INVALID");
+    if (!rule.constraintsPresent) continue;
     const constraintShape = inspectConstraintObject(rule.constraints);
     if (constraintShape === "INVALID") {
       return fail("CONSTRAINT", "POLICY_EVALUATION_INPUT_INVALID");
@@ -166,68 +143,82 @@ export function evaluateCapabilityPolicy(input: unknown): PolicyEvaluationResult
   }
 
   const fullyApplicableRuleIds = Object.freeze(
-    [...resourceMatchedIds].sort(compareUnicodeCodePointStrings),
+    [...matchedRuleIds].sort(compareUnicodeCodePointStrings),
   );
   const effects: ApplicableRuleEffect[] = [];
-  for (const ruleId of resourceMatchedIds) {
+  for (const ruleId of matchedRuleIds) {
     const rule = ruleById.get(ruleId);
-    if (rule === undefined) {
-      return fail("INPUT", "POLICY_EVALUATION_INPUT_INVALID");
-    }
+    if (rule === undefined) return fail("INPUT", "POLICY_EVALUATION_INPUT_INVALID");
     effects.push(Object.freeze({ ruleId, effect: rule.effect }));
   }
   const frozenEffects = Object.freeze(effects);
 
-  const effectResolution = resolveApplicableRuleEffects(ordering.bands, frozenEffects);
-  if (!effectResolution.ok) {
-    return fail("EFFECT", effectResolution.reason);
-  }
+  const resolvedEffects = resolveApplicableRuleEffects(ordering.bands, frozenEffects);
+  if (!resolvedEffects.ok) return fail("EFFECT", resolvedEffects.reason);
 
-  const finalized = finalizeDefaultDeny(effectResolution, preparedPolicy.policy.policySpec);
-  if (!finalized.ok) {
-    return fail("DEFAULT_DENY", finalized.reason);
-  }
+  const finalized = finalizeDefaultDeny(resolvedEffects, prepared.policy.policySpec);
+  if (!finalized.ok) return fail("DEFAULT_DENY", finalized.reason);
 
   const explanation = explainPolicyEffect(
     ordering.bands,
     frozenEffects,
-    preparedPolicy.policy.policySpec,
+    prepared.policy.policySpec,
   );
-  if (!explanation.ok) {
-    return fail("EXPLAIN", explanation.reasonCode);
-  }
-  if (explanation.basis === "FAIL_CLOSED") {
-    return fail("DEFAULT_DENY", explanation.reasonCode);
-  }
+  if (!explanation.ok) return fail("EXPLAIN", explanation.reasonCode);
 
-  if (finalized.effect !== explanation.effect) {
+  // Narrow basis/reason pairs explicitly instead of relying on correlated-union
+  // inference. Any impossible pair is treated as a component-contract failure.
+  if (explanation.basis === "FAIL_CLOSED") {
+    if (
+      explanation.reasonCode === "DEFAULT_EFFECT_CONFIG_INVALID"
+      || explanation.reasonCode === "DEFAULT_DENY_INPUT_INVALID"
+    ) {
+      return fail("DEFAULT_DENY", explanation.reasonCode);
+    }
     return fail("EXPLAIN", "POLICY_EXPLAIN_INPUT_INVALID");
   }
-
-  return success(
-    finalized.effect,
-    explanation.basis,
-    explanation.reasonCode,
-    fullyApplicableRuleIds,
-    explanation.contributingRuleIds,
-  );
+  if (
+    explanation.basis === "EXPLICIT_DENY"
+    && explanation.reasonCode === "POLICY_EXPLICIT_DENY"
+    && finalized.effect === "deny"
+  ) {
+    return success("deny", "EXPLICIT_DENY", "POLICY_EXPLICIT_DENY", fullyApplicableRuleIds, explanation.contributingRuleIds);
+  }
+  if (
+    explanation.basis === "HIGHEST_BAND_ASK"
+    && explanation.reasonCode === "POLICY_HIGHEST_BAND_ASK"
+    && finalized.effect === "ask"
+  ) {
+    return success("ask", "HIGHEST_BAND_ASK", "POLICY_HIGHEST_BAND_ASK", fullyApplicableRuleIds, explanation.contributingRuleIds);
+  }
+  if (
+    explanation.basis === "HIGHEST_BAND_ALLOW"
+    && explanation.reasonCode === "POLICY_HIGHEST_BAND_ALLOW"
+    && finalized.effect === "allow"
+  ) {
+    return success("allow", "HIGHEST_BAND_ALLOW", "POLICY_HIGHEST_BAND_ALLOW", fullyApplicableRuleIds, explanation.contributingRuleIds);
+  }
+  if (
+    explanation.basis === "DEFAULT_DENY"
+    && explanation.reasonCode === "POLICY_DEFAULT_DENY"
+    && finalized.effect === "deny"
+  ) {
+    return success("deny", "DEFAULT_DENY", "POLICY_DEFAULT_DENY", fullyApplicableRuleIds, explanation.contributingRuleIds);
+  }
+  return fail("EXPLAIN", "POLICY_EXPLAIN_INPUT_INVALID");
 }
 
 function materializeInput(input: unknown): MaterializedInput | undefined {
   if (!isRecord(input)) return undefined;
   const keys = ownKeys(input);
   if (keys === undefined || !hasOnlyAllowedStringKeys(keys, INPUT_KEYS)) return undefined;
-  if (!keys.includes("policy") || !keys.includes("subject") || !keys.includes("capability") || !keys.includes("resource")) {
-    return undefined;
-  }
+  if (!keys.includes("policy") || !keys.includes("subject") || !keys.includes("capability") || !keys.includes("resource")) return undefined;
 
   const policy = readData(input, "policy");
   const subject = readData(input, "subject");
   const capability = readData(input, "capability");
   const resource = readData(input, "resource");
-  if (policy.status !== "DATA" || subject.status !== "DATA" || capability.status !== "DATA" || resource.status !== "DATA") {
-    return undefined;
-  }
+  if (policy.status !== "DATA" || subject.status !== "DATA" || capability.status !== "DATA" || resource.status !== "DATA") return undefined;
 
   const resolvedSubject = materializeResolvedSubject(subject.value);
   if (resolvedSubject === undefined || typeof capability.value !== "string") return undefined;
@@ -260,115 +251,76 @@ function materializeResolvedSubject(value: unknown): Readonly<Record<string, unk
   const id = readData(value, "id");
   const sessionRef = readData(value, "sessionRef");
   if (
-    kind.status !== "DATA" ||
-    id.status !== "DATA" ||
-    sessionRef.status !== "DATA" ||
-    typeof kind.value !== "string" ||
-    !SUBJECT_KINDS.has(kind.value) ||
-    !isBoundedNonEmptyString(id.value, SUBJECT_REF_CODE_POINT_LIMIT) ||
-    !isBoundedNonEmptyString(sessionRef.value, SUBJECT_REF_CODE_POINT_LIMIT)
-  ) {
-    return undefined;
-  }
+    kind.status !== "DATA" || typeof kind.value !== "string" || !SUBJECT_KINDS.has(kind.value)
+    || id.status !== "DATA" || !isBoundedNonEmptyString(id.value, SUBJECT_REF_CODE_POINT_LIMIT)
+    || sessionRef.status !== "DATA" || !isBoundedNonEmptyString(sessionRef.value, SUBJECT_REF_CODE_POINT_LIMIT)
+  ) return undefined;
 
-  const result: Record<string, unknown> = {
-    kind: kind.value,
-    id: id.value,
-    sessionRef: sessionRef.value,
-  };
-
-  const hasParent = keys.includes("parent");
-  if (hasParent) {
+  const result: Record<string, unknown> = { kind: kind.value, id: id.value, sessionRef: sessionRef.value };
+  if (keys.includes("parent")) {
     const parent = readData(value, "parent");
     if (parent.status !== "DATA") return undefined;
     if (kind.value === "subagent") {
       if (!isBoundedNonEmptyString(parent.value, SUBJECT_REF_CODE_POINT_LIMIT)) return undefined;
-    } else if (
-      parent.value !== null
-      && !isBoundedNonEmptyString(parent.value, SUBJECT_REF_CODE_POINT_LIMIT)
-    ) {
+    } else if (parent.value !== null && !isBoundedNonEmptyString(parent.value, SUBJECT_REF_CODE_POINT_LIMIT)) {
       return undefined;
     }
     result["parent"] = parent.value;
   } else if (kind.value === "subagent") {
     return undefined;
   }
-
   return Object.freeze(result);
 }
-
-type PreparedPolicyResult =
-  | { readonly ok: true; readonly policy: PreparedPolicy }
-  | { readonly ok: false; readonly stage: PolicyEvaluationStage; readonly reason: PolicyEvaluationFailureReason };
 
 function preparePolicy(value: unknown): PreparedPolicyResult {
   if (!isRecord(value)) return prepareFailure("INPUT", "POLICY_EVALUATION_INPUT_INVALID");
   const policyKeys = ownKeys(value);
-  if (policyKeys === undefined || !hasOnlyAllowedStringKeys(policyKeys, POLICY_KEYS)) {
-    return prepareFailure("INPUT", "POLICY_EVALUATION_INPUT_INVALID");
-  }
-  if (!policyKeys.includes("apiVersion") || !policyKeys.includes("kind") || !policyKeys.includes("metadata") || !policyKeys.includes("spec")) {
-    return prepareFailure("INPUT", "POLICY_EVALUATION_INPUT_INVALID");
-  }
+  if (policyKeys === undefined || !hasOnlyAllowedStringKeys(policyKeys, POLICY_KEYS)) return prepareFailure("INPUT", "POLICY_EVALUATION_INPUT_INVALID");
+  if (!policyKeys.includes("apiVersion") || !policyKeys.includes("kind") || !policyKeys.includes("metadata") || !policyKeys.includes("spec")) return prepareFailure("INPUT", "POLICY_EVALUATION_INPUT_INVALID");
 
   const apiVersion = readData(value, "apiVersion");
   const kind = readData(value, "kind");
   const metadata = readData(value, "metadata");
   const spec = readData(value, "spec");
   if (
-    apiVersion.status !== "DATA" || apiVersion.value !== "safe-runtime.dev/v1alpha1" ||
-    kind.status !== "DATA" || kind.value !== "CapabilityPolicy" ||
-    metadata.status !== "DATA" || !isRecord(metadata.value) ||
-    spec.status !== "DATA" || !isRecord(spec.value)
-  ) {
-    return prepareFailure("INPUT", "POLICY_EVALUATION_INPUT_INVALID");
-  }
+    apiVersion.status !== "DATA" || apiVersion.value !== "safe-runtime.dev/v1alpha1"
+    || kind.status !== "DATA" || kind.value !== "CapabilityPolicy"
+    || metadata.status !== "DATA" || !isRecord(metadata.value)
+    || spec.status !== "DATA" || !isRecord(spec.value)
+  ) return prepareFailure("INPUT", "POLICY_EVALUATION_INPUT_INVALID");
 
   const specKeys = ownKeys(spec.value);
-  if (specKeys === undefined || !hasOnlyAllowedStringKeys(specKeys, POLICY_SPEC_KEYS)) {
-    return prepareFailure("INPUT", "POLICY_EVALUATION_INPUT_INVALID");
-  }
+  if (specKeys === undefined || !hasOnlyAllowedStringKeys(specKeys, POLICY_SPEC_KEYS)) return prepareFailure("INPUT", "POLICY_EVALUATION_INPUT_INVALID");
   const defaultEffect = readData(spec.value, "defaultEffect");
   const rulesRead = readData(spec.value, "rules");
-  if (defaultEffect.status !== "DATA" || defaultEffect.value !== "deny" || rulesRead.status !== "DATA") {
-    return prepareFailure("INPUT", "POLICY_EVALUATION_INPUT_INVALID");
-  }
+  if (defaultEffect.status !== "DATA" || defaultEffect.value !== "deny" || rulesRead.status !== "DATA") return prepareFailure("INPUT", "POLICY_EVALUATION_INPUT_INVALID");
 
   const rawRules = snapshotArray(rulesRead.value);
   if (rawRules === undefined) return prepareFailure("INPUT", "POLICY_EVALUATION_INPUT_INVALID");
 
-  const preparedRules: PreparedRule[] = [];
+  const rules: PreparedRule[] = [];
   const seenRuleIds = new Set<string>();
   for (const rawRule of rawRules) {
     const prepared = prepareRule(rawRule);
     if (!prepared.ok) return prepared;
-    if (seenRuleIds.has(prepared.rule.id)) {
-      return prepareFailure("INPUT", "RULE_ORDERING_DUPLICATE_RULE_ID");
-    }
+    if (seenRuleIds.has(prepared.rule.id)) return prepareFailure("INPUT", "RULE_ORDERING_DUPLICATE_RULE_ID");
     seenRuleIds.add(prepared.rule.id);
-    preparedRules.push(prepared.rule);
+    rules.push(prepared.rule);
   }
 
-  const policySpec = Object.freeze({ defaultEffect: "deny" });
   return Object.freeze({
     ok: true,
     policy: Object.freeze({
-      policySpec,
-      rules: Object.freeze(preparedRules),
+      policySpec: Object.freeze({ defaultEffect: "deny" }),
+      rules: Object.freeze(rules),
     }),
   });
 }
 
-type PreparedRuleResult =
-  | { readonly ok: true; readonly rule: PreparedRule }
-  | { readonly ok: false; readonly stage: PolicyEvaluationStage; readonly reason: PolicyEvaluationFailureReason };
-
 function prepareRule(value: unknown): PreparedRuleResult {
   if (!isRecord(value)) return prepareFailure("INPUT", "POLICY_EVALUATION_INPUT_INVALID");
   const keys = ownKeys(value);
-  if (keys === undefined || !hasOnlyAllowedStringKeys(keys, RULE_KEYS)) {
-    return prepareFailure("INPUT", "POLICY_EVALUATION_INPUT_INVALID");
-  }
+  if (keys === undefined || !hasOnlyAllowedStringKeys(keys, RULE_KEYS)) return prepareFailure("INPUT", "POLICY_EVALUATION_INPUT_INVALID");
   for (const required of ["id", "effect", "capabilities", "resources"] as const) {
     if (!keys.includes(required)) return prepareFailure("INPUT", "POLICY_EVALUATION_INPUT_INVALID");
   }
@@ -378,18 +330,14 @@ function prepareRule(value: unknown): PreparedRuleResult {
   const capabilities = readData(value, "capabilities");
   const resources = readData(value, "resources");
   if (
-    id.status !== "DATA" || !isBoundedNonEmptyString(id.value, RULE_ID_CODE_POINT_LIMIT) ||
-    effect.status !== "DATA" || !isPolicyRuleEffect(effect.value) ||
-    capabilities.status !== "DATA" || resources.status !== "DATA"
-  ) {
-    return prepareFailure("INPUT", "POLICY_EVALUATION_INPUT_INVALID");
-  }
+    id.status !== "DATA" || !isBoundedNonEmptyString(id.value, RULE_ID_CODE_POINT_LIMIT)
+    || effect.status !== "DATA" || !isPolicyRuleEffect(effect.value)
+    || capabilities.status !== "DATA" || resources.status !== "DATA"
+  ) return prepareFailure("INPUT", "POLICY_EVALUATION_INPUT_INVALID");
 
   const capabilityList = snapshotUniqueNonEmptyStrings(capabilities.value);
   const resourceList = snapshotUniqueNonEmptyStrings(resources.value);
-  if (capabilityList === undefined || resourceList === undefined) {
-    return prepareFailure("INPUT", "POLICY_EVALUATION_INPUT_INVALID");
-  }
+  if (capabilityList === undefined || resourceList === undefined) return prepareFailure("INPUT", "POLICY_EVALUATION_INPUT_INVALID");
 
   let subjects: readonly ParsedSubjectSelector[] | undefined;
   if (keys.includes("subjects")) {
@@ -399,11 +347,9 @@ function prepareRule(value: unknown): PreparedRuleResult {
     if (subjectStrings === undefined) return prepareFailure("SUBJECT_SELECTOR", "POLICY_SUBJECT_SELECTOR_INVALID");
     const parsed: ParsedSubjectSelector[] = [];
     for (const selector of subjectStrings) {
-      const parsedSelector = parseSubjectSelector(selector);
-      if (parsedSelector === undefined) {
-        return prepareFailure("SUBJECT_SELECTOR", "POLICY_SUBJECT_SELECTOR_INVALID");
-      }
-      parsed.push(parsedSelector);
+      const item = parseSubjectSelector(selector);
+      if (item === undefined) return prepareFailure("SUBJECT_SELECTOR", "POLICY_SUBJECT_SELECTOR_INVALID");
+      parsed.push(item);
     }
     subjects = Object.freeze(parsed);
   }
@@ -412,52 +358,34 @@ function prepareRule(value: unknown): PreparedRuleResult {
   if (keys.includes("priority")) {
     const priorityRead = readData(value, "priority");
     if (
-      priorityRead.status !== "DATA" ||
-      typeof priorityRead.value !== "number" ||
-      !Number.isInteger(priorityRead.value) ||
-      priorityRead.value < MIN_PRIORITY ||
-      priorityRead.value > MAX_PRIORITY
-    ) {
-      return prepareFailure("INPUT", "POLICY_EVALUATION_INPUT_INVALID");
-    }
+      priorityRead.status !== "DATA" || typeof priorityRead.value !== "number"
+      || !Number.isInteger(priorityRead.value)
+      || priorityRead.value < MIN_PRIORITY || priorityRead.value > MAX_PRIORITY
+    ) return prepareFailure("INPUT", "POLICY_EVALUATION_INPUT_INVALID");
     priority = priorityRead.value;
   }
 
-  let constraints: unknown;
   const constraintsPresent = keys.includes("constraints");
+  let constraints: unknown;
   if (constraintsPresent) {
     const constraintsRead = readData(value, "constraints");
     if (constraintsRead.status !== "DATA") return prepareFailure("INPUT", "POLICY_EVALUATION_INPUT_INVALID");
     constraints = constraintsRead.value;
   }
+  if (keys.includes("lease") && readData(value, "lease").status !== "DATA") return prepareFailure("INPUT", "POLICY_EVALUATION_INPUT_INVALID");
 
-  // Lease/delegation semantics are later gates, but accessor-backed values are
-  // still rejected here so a purported validated snapshot cannot hide active
-  // behavior behind schema-looking fields.
-  if (keys.includes("lease") && readData(value, "lease").status !== "DATA") {
-    return prepareFailure("INPUT", "POLICY_EVALUATION_INPUT_INVALID");
-  }
-
+  const common = {
+    id: id.value,
+    effect: effect.value,
+    capabilities: capabilityList,
+    resources: resourceList,
+    ...(subjects === undefined ? {} : { subjects }),
+    constraintsPresent,
+    constraints,
+  };
   const rule: PreparedRule = priority === undefined
-    ? Object.freeze({
-        id: id.value,
-        effect: effect.value,
-        capabilities: capabilityList,
-        resources: resourceList,
-        ...(subjects === undefined ? {} : { subjects }),
-        constraintsPresent,
-        constraints,
-      })
-    : Object.freeze({
-        id: id.value,
-        effect: effect.value,
-        capabilities: capabilityList,
-        resources: resourceList,
-        ...(subjects === undefined ? {} : { subjects }),
-        constraintsPresent,
-        constraints,
-        priority,
-      });
+    ? Object.freeze(common)
+    : Object.freeze({ ...common, priority });
   return Object.freeze({ ok: true, rule });
 }
 
@@ -466,9 +394,7 @@ function parseSubjectSelector(selector: string): ParsedSubjectSelector | undefin
   if (delimiter <= 0) return undefined;
   const kind = selector.slice(0, delimiter);
   const id = selector.slice(delimiter + 3);
-  if (!SUBJECT_KINDS.has(kind) || !isBoundedNonEmptyString(id, SUBJECT_REF_CODE_POINT_LIMIT)) {
-    return undefined;
-  }
+  if (!SUBJECT_KINDS.has(kind) || !isBoundedNonEmptyString(id, SUBJECT_REF_CODE_POINT_LIMIT)) return undefined;
   return Object.freeze({ kind, id });
 }
 
@@ -490,10 +416,7 @@ function validateRequestConstraintsBoundary(present: boolean, value: unknown): b
   if (!isRecord(value)) return false;
   const keys = ownKeys(value);
   if (keys === undefined || keys.some(key => typeof key !== "string")) return false;
-  for (const key of keys) {
-    if (readData(value, key).status !== "DATA") return false;
-  }
-  return true;
+  return keys.every(key => readData(value, key).status === "DATA");
 }
 
 function inspectConstraintObject(value: unknown): "EMPTY" | "NON_EMPTY" | "INVALID" {
@@ -523,18 +446,10 @@ function snapshotArray(value: unknown): readonly unknown[] | undefined {
   } catch {
     return undefined;
   }
-
   const keys = ownKeys(value);
   if (keys === undefined) return undefined;
   const lengthRead = readData(value, "length");
-  if (
-    lengthRead.status !== "DATA" ||
-    typeof lengthRead.value !== "number" ||
-    !Number.isSafeInteger(lengthRead.value) ||
-    lengthRead.value < 0
-  ) {
-    return undefined;
-  }
+  if (lengthRead.status !== "DATA" || typeof lengthRead.value !== "number" || !Number.isSafeInteger(lengthRead.value) || lengthRead.value < 0) return undefined;
   const length = lengthRead.value;
 
   let indexes = 0;
@@ -615,10 +530,7 @@ function isPolicyRuleEffect(value: unknown): value is PolicyRuleEffect {
   return value === "deny" || value === "ask" || value === "allow";
 }
 
-function prepareFailure(
-  stage: PolicyEvaluationStage,
-  reason: PolicyEvaluationFailureReason,
-): { readonly ok: false; readonly stage: PolicyEvaluationStage; readonly reason: PolicyEvaluationFailureReason } {
+function prepareFailure(stage: PolicyEvaluationStage, reason: PolicyEvaluationFailureReason): PrepareFailure {
   return Object.freeze({ ok: false, stage, reason });
 }
 
