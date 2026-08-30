@@ -10,11 +10,11 @@
 - Repository: `lilinling12/dsh-safe-runtime`
 - Phase: `M4 — Capability Broker v0.1`
 - Active pull request: `#3 — feat(policy): begin M4 capability broker`
-- PR state: `OPEN / DRAFT / mergeable`
+- PR state at acceptance review: `OPEN / DRAFT / mergeable`
 - Branch: `feat/m4-capability-broker`
 - Main: `57430273e065be8d38807d67b175fa154c801d43`
 - M4-001 through M4-014: **ACCEPTED / GOVERNANCE CLOSED**
-- M4-020 P0 Subject resolution: **AUTHORIZED / PROTOCOL-FIRST IN PROGRESS**
+- M4-020 P0 Subject resolution: **IMPLEMENTATION ACCEPTED / GOVERNANCE PENDING**
 - M4-021+, M4-040+ and M6: **NOT AUTHORIZED**
 
 Live GitHub state overrides this file.
@@ -45,114 +45,116 @@ guarantees.
 
 ## M4-014 final closure
 
-Accepted implementation head:
-
-```text
-4290249c282426e7e95aa0ad133ff17a7ca9a9c0
-```
-
-Acceptance audit:
-
-```text
-docs/acceptance/m4-014-acceptance-audit.md
-```
-
-Acceptance audit commit:
-
-```text
-ecfa7aa0e079835f57ae5c11dbbf7a46d7ec6ccb
-```
-
-Acceptance-record head:
-
-```text
-290fa8d28d4823114b26fba942f1904dfd093e46
-```
-
-Acceptance-record exact-head evidence:
-
-- CI #391 / run `33304165439`: PASS;
-- Harness rc5 source-conformance #333 / run `33304165445`: PASS.
-
 Final-governance head:
 
 ```text
 5d5140c9fc2bedaf7d218e5f7dd38637628d1b6c
 ```
 
-Final-governance net delta from the acceptance-record head is limited to:
-
-- `docs/handoff/CURRENT.md`;
-- `docs/handoff/HISTORY.md` with append-only `+48 / -0`;
-- `docs/roadmap.md` with only M4-014 acceptance state changed.
-
 Exact final-governance evidence:
 
 - CI #398 / run `33312906693`: PASS;
 - Harness rc5 source-conformance #340 / run `33312906680`: PASS.
 
-Therefore **M4-014 governance is CLOSED**. No closure-only follow-up commit is
-required; this M4-020 material change records the exact closure evidence.
+Therefore **M4-014 governance is CLOSED**.
 
 ## Current Gate — M4-020 Subject resolution
 
-Normative profile under construction:
+Normative profile:
 
 ```text
 specs/0031-m4-subject-resolution.md
 ```
 
-Portable corpus under construction:
+Portable corpus:
 
 ```text
 fixtures/subject-resolution/cases.json
 ```
 
-Current portable cases: `30`.
+Portable cases: `30`.
 
-Fixture-only boundary expansion syntax is documented in:
+Fixture-only boundary expansion syntax:
 
 ```text
 fixtures/subject-resolution/README.md
 ```
 
-### Recovered protocol authority
+The schema-invalid null-subagent-parent CapabilityRequest fixture is registered
+in `fixtures/manifest.json` as `CAP-REQ-003`.
 
-Core §4/§5 and the protocol types/schema already establish:
+### Protocol-first exact head
 
-- Subject represents who requests capability;
-- standard kinds are `agent`, `subagent`, `tool`, `plugin`, `system`,
-  `verifier`, `human`, `service`;
-- identity refs are stable/non-secret and not derived from mutable display names;
-- Subagent MUST have a Parent Subject;
-- CapabilityRequest has an authoritative required top-level `sessionRef`;
-- Subject carries optional `sessionRef`;
-- Core precedence requires subject canonicalization before policy matching.
+```text
+d2a879addd832791c10277be97ce3a7b09e95241
+```
 
-### Normative mismatch found before implementation
+Exact protocol-first evidence:
 
-`specs/0001-safe-runtime-core.md` requires a Subagent parent, but the pre-M4-020
-`defs.schema.json` conditional required the `parent` property while still
-allowing `null`.
+- CI #405 / run `33313398737`: PASS;
+- Harness rc5 source-conformance #347 / run `33313398644`: PASS.
 
-Protocol-first M4-020 corrects this mismatch rather than coding around it:
+The protocol-first Gate corrected an existing Core↔Schema mismatch: Core requires
+Subagent to have a Parent Subject, while the previous schema required the field
+but allowed `null`. The corrected schema requires `subagent.parent` to be a
+non-null existing protocol `ref`; the compatibility baseline was refreshed
+rather than disabled.
 
-- any non-null Subject `parent` now uses the existing `ref` shape/bound;
-- `subagent.parent` must resolve through `ref` and therefore cannot be null;
-- a schema-invalid CapabilityRequest fixture with `subagent.parent: null` has
-  been added;
-- `schemas/v1alpha1/baseline.sha256` has been refreshed rather than disabling
-  the compatibility check.
+### TypeScript protocol projection
 
-This is a bug fix aligning Schema with the already existing Core MUST, not a new
-delegation model.
+The Subject type projection was aligned at:
 
-### M4-020 intended boundary
+```text
+8fbf53fd1df7132ee76b58979ce3586b95f3eb83
+```
+
+That exact head also reached normal CI and pinned Harness source-conformance
+dual-green before production resolver work continued.
+
+### Accepted implementation head
+
+```text
+31b3b190fc92372f2ccc2f6527b91826153f7917
+```
+
+Exact accepted-head evidence:
+
+- CI #414 / run `33323729301`: PASS;
+- Harness rc5 source-conformance #356 / run `33323729321`: PASS;
+- 43 test files / 767 tests: PASS;
+- M4-020 Subject-resolution suite: 40 tests PASS;
+- architecture boundaries: PASS;
+- 16-schema shape check: PASS;
+- schema compatibility baseline: PASS;
+- strict workspace TypeScript: PASS;
+- frozen install / supply-chain policy: PASS (124 entries);
+- packed Shared TCK external consumer: PASS (44 installed assets).
+
+Acceptance audit:
+
+```text
+docs/acceptance/m4-020-acceptance-audit.md
+```
+
+Acceptance audit commit:
+
+```text
+d37a381f586367622ce885ed4a1163e413144d40
+```
+
+Package implementation-acceptance marker commit:
+
+```text
+7ec3549929a4896a7aa12fb6fba7a8cf923bd9fd
+```
+
+### Accepted M4-020 boundary
 
 M4-020 resolves only Subject identity/context:
 
 ```text
 untrusted Subject + authoritative requestSessionRef
+  -> request session validation first
   -> bounded own-data validation
   -> exact standard SubjectKind
   -> exact protocol refs
@@ -161,55 +163,66 @@ untrusted Subject + authoritative requestSessionRef
   -> detached immutable resolved Subject
 ```
 
-It does not authenticate an actor, look up a parent, prove lineage, evaluate
-delegation attenuation, match policy rules or produce a CapabilityDecision.
+Accepted properties include:
 
-`CapabilityPolicy.spec.rules[].subjects` already exists structurally, but its
-portable selector grammar is not defined by current Core/schema. M4-020 MUST NOT
-invent hidden `kind:id`, wildcard, prefix, parent/descendant, role/group or
-Harness-name matching. M4-021 owns policy subject matching and full policy
-evaluation protocol-first.
-
-### Runtime hardening required later
-
-After the protocol-first exact head is dual-green, the TypeScript implementation
-must cover:
-
-- inherited normative fields cannot manufacture identity;
-- accessor-backed fields do not execute getters;
+- standard kinds are exactly `agent`, `subagent`, `tool`, `plugin`, `system`,
+  `verifier`, `human`, `service`;
+- primitive refs remain the existing 1..512 Unicode-code-point contract;
+- no trim, case-folding, Unicode normalization, string coercion or alias lookup;
+- request `sessionRef` is authoritative and validated before Subject inspection;
+- Subject `sessionRef` is materialized when absent and must match exactly when
+  present;
+- inherited identity fields cannot manufacture Subject identity;
+- accessor-backed normative fields do not execute getters;
 - unexpected own string/symbol fields fail closed;
-- arrays, descriptor failures, ownKeys failures and revoked Proxies fail closed;
-- validation order is deterministic and bounded;
-- no string coercion or Unicode/case normalization;
-- result is detached and recursively frozen;
-- rejected values are not echoed or retained.
+- arrays, ownKeys/descriptor failures and revoked Proxies fail closed;
+- subagent parent is required/non-null while non-subagent parent preserves the
+  pre-existing omitted/null/ref surface;
+- output is detached and immutable;
+- failures expose stable reasons only and do not echo attacker-controlled data.
 
-## Current Gate status
+M4-020 does **not** authenticate actors, look up parents, prove lineage, perform
+delegation attenuation, define policy Subject selectors, evaluate a full PDP,
+resolve leases/approval, emit receipts/provenance, assign guarantees or enforce a
+PEP.
 
-Protocol-first work is still being assembled. Production Subject resolver code
-has **NOT STARTED**.
+`CapabilityPolicy.spec.rules[].subjects` exists structurally, but its portable
+selector grammar remains deliberately undefined by M4-020. M4-021 must recover
+and define subject matching protocol-first rather than inventing hidden
+`kind:id`, wildcard, prefix, parent/descendant, role/group or Harness-name
+semantics.
 
-Before implementation begins, the exact protocol-first head must include and
-synchronize:
+## Acceptance-record Gate
 
-1. Spec 0031;
-2. 30-case portable Subject-resolution corpus;
-3. fixture expansion encoding documentation;
-4. corrected Subject schema;
-5. schema-invalid null-subagent-parent CapabilityRequest fixture;
-6. refreshed schema compatibility baseline;
-7. any fixture manifest/TCK registration required by repository checks;
-8. this handoff state.
+M4-020 implementation is accepted, but governance is not yet closed.
 
-That exact head must reach normal CI plus exact pinned Harness rc5
-source-conformance dual-green.
+The current acceptance-record transition is limited to:
+
+1. marking `@dsh-safe/policy-engine` as
+   `M4-020-SUBJECT-RESOLUTION-ACCEPTED`;
+2. recording the exact protocol-first and accepted implementation evidence in
+   this handoff;
+3. no production resolver, schema, corpus, Shared TCK, dependency, lockfile,
+   Harness baseline or security-boundary change.
+
+The acceptance-record exact head must reach normal CI plus exact pinned Harness
+rc5 source-conformance dual-green.
+
+Only then may final governance:
+
+- append the M4-020 acceptance record to `docs/handoff/HISTORY.md`;
+- mark only M4-020 accepted in `docs/roadmap.md`;
+- record the acceptance-record evidence here;
+- determine the next authorized Gate from the roadmap.
+
+The final governance exact head must itself be dual-green.
 
 Until then:
 
 ```text
 M4-014: GOVERNANCE CLOSED
-M4-020: AUTHORIZED / PROTOCOL-FIRST IN PROGRESS
-M4-020 production implementation: NOT STARTED
+M4-020 implementation: ACCEPTED
+M4-020 governance: PENDING
 M4-021+: NOT AUTHORIZED
 M4-040+: NOT AUTHORIZED
 M6: NOT AUTHORIZED
@@ -238,7 +251,7 @@ M6: NOT AUTHORIZED
 ## Resume instruction
 
 1. refresh PR #3 exact head/base/reviews/threads and workflows;
-2. finish only the M4-020 protocol-first artifact set;
-3. run exact-head normal CI plus Harness rc5 source-conformance;
-4. do not start production Subject resolver until protocol-first is dual-green;
-5. do not start M4-021 or any later Gate.
+2. verify this M4-020 acceptance-record exact head with normal CI plus pinned
+   Harness rc5 source-conformance;
+3. if and only if dual-green, perform final M4-020 governance updates;
+4. do not start M4-021 or any later Gate before M4-020 governance closure.
