@@ -6,9 +6,10 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "typecheck": "pnpm --filter @dsh-safe/protocol build && tsc -p tsconfig.json --noEmit"
+    "typecheck": "pnpm --filter @dsh-safe/policy-engine build && tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@dsh-safe/policy-engine": "workspace:*",
     "@dsh-safe/protocol": "workspace:*"
   }
 }
