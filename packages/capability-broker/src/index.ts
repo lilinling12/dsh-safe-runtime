@@ -3,7 +3,8 @@
  *
  * M4-010 through M4-014 classifier/fallback stages and M4-020 through M4-022
  * prerequisites are governance-closed. M4-023 deterministic approval routing is
- * in implementation review after its exact-head dual-green protocol-first Gate.
+ * implementation-accepted after exact-head dual-green protocol-first and
+ * implementation Gates; final governance closure remains separate.
  *
  * Approval routing is not a durable CapabilityDecision or execution authority.
  * Lease lifecycle/consume, decision receipts, guarantees and PEP enforcement
@@ -12,7 +13,7 @@
  * Protocol capability names remain owned by `@dsh-safe/protocol`; this package
  * has no concrete DeepSeek Harness runtime dependency.
  */
-export const PACKAGE_STAGE = "M4-023-APPROVAL-ROUTING-IN-REVIEW" as const;
+export const PACKAGE_STAGE = "M4-023-APPROVAL-ROUTING-ACCEPTED" as const;
 
 export * from "./builtin-filesystem-tool-classifier.js";
 export * from "./tool-classifier/builtin-shell.js";
