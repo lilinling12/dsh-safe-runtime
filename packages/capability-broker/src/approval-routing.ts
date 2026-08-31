@@ -1,7 +1,6 @@
 import type {
   PolicyEvaluationBasis,
   PolicyEvaluationFailureReason,
-  PolicyEvaluationReasonCode,
   PolicyEvaluationStage,
 } from "@dsh-safe/policy-engine";
 
