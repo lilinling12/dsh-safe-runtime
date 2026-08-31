@@ -292,7 +292,7 @@ Acceptance evidence
 - [x] `M4-021 P0` policy evaluation。 **ACCEPTED：Spec 0032 + 31 portable cases + exact Subject/capability/resource applicability composition + global rule-ID preflight + fail-closed unsupported-constraint boundary + hostile-runtime hardening；accepted implementation head `21487cb2...`，CI #437 / Harness #379 PASS；验收记录 `docs/acceptance/m4-021-acceptance-audit.md`。**
 - [x] `M4-022 P0` lease lookup。 **ACCEPTED：Spec 0033 + 28 portable cases + exact Subject/capability/canonical-resource candidate lookup + duplicate leaseRef preflight + unsupported matching-constraint fail-closed boundary + hostile-runtime hardening；accepted implementation head `ef465fcf...`，CI #459 / Harness #401 PASS；验收记录 `docs/acceptance/m4-022-acceptance-audit.md`。**
 - [x] `M4-023 P0` approval routing。 **ACCEPTED：Spec 0034 + 25 portable cases + deterministic ask-only approval routing + policy-deny non-override + candidate-Lease non-bypass + four-outcome fail-closed mapping + runtime-neutral approval port + hostile-runtime/coercion hardening；accepted implementation head `98bb59e7...`，CI #474 / Harness #416 PASS；验收记录 `docs/acceptance/m4-023-acceptance-audit.md`。**
-- [ ] `M4-024 P0` decision receipt。
+- [x] `M4-024 P0` decision receipt。 **ACCEPTED：Spec 0035 + 27 portable cases + deterministic immutable CapabilityDecision/CapabilityReceipt construction + explicit identity/time inputs + guarantee copy-only boundary + Unicode/RFC3339/hostile-runtime hardening；accepted implementation head `8c12354c...`，CI #491 / Harness #433 PASS；验收记录 `docs/acceptance/m4-024-acceptance-audit.md`。**
 - [ ] `M4-025 P0` guarantee level。
 
 ## M4.4 Lease
