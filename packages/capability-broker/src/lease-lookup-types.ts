@@ -39,7 +39,7 @@ export interface LeaseLookupCandidatesFound {
 
 export interface LeaseLookupNoCandidate {
   readonly status: "NO_CANDIDATE";
-  readonly candidateLeaseRefs: readonly [];
+  readonly candidateLeaseRefs: readonly string[];
 }
 
 export interface LeaseLookupFailure {
