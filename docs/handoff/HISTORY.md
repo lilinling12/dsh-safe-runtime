@@ -1453,3 +1453,68 @@ lockfile, Harness baseline or later-Gate behavior changes here. The resulting
 final-governance exact head must itself reach normal CI + exact Harness rc5
 source-conformance dual-green before M4-021 governance is CLOSED and M4-022 P0
 lease lookup becomes the next protocol-first Gate.
+
+## 2026-08-31 — Accept M4-022 deterministic CapabilityLease lookup
+
+M4-022 is accepted at the implementation boundary on
+`ef465fcfc50687b2590e20001d2ad7a123d2ab73` after protocol-first definition in
+Spec 0033 and a 28-case portable CapabilityLease lookup corpus.
+
+The protocol-first exact head
+`2def23a6f0523eea17540ec6327fcca372bb4702` reached normal CI #449 PASS and
+exact Harness rc5 source-conformance #391 PASS before production lookup
+implementation began.
+
+The accepted implementation is deterministic **candidate lookup**, not Lease
+validity or authorization. It binds `CapabilityLease.subjectRef` exactly to the
+resolved Subject id, compares request and Lease capability by exact code-point
+identity under their existing distinct validation profiles, and reuses accepted
+M4-003 canonical Resource normalization for exact scheme/locator/providerIdentity
+presence and value matching. It does not synthesize policy-selector grammar,
+interpret wildcard-looking Resource text, rank authorization kind or parent
+depth, or select a single candidate by insertion order.
+
+Snapshot identity is checked before request filtering: duplicate `leaseRef`
+values fail the whole snapshot. All exact candidates are returned in Unicode
+code-point order for deterministic presentation only. Omitted/empty constraints
+mean zero portable predicates; non-empty constraints on an otherwise exact match
+fail closed as `LEASE_CONSTRAINT_PROFILE_UNSUPPORTED`. Constraint bodies on
+Subject/capability/Resource-nonmatching Leases are not traversed merely to block
+an unrelated request.
+
+Hostile runtime hardening uses own data-property inspection and fails closed on
+accessors, revoked Proxies, sparse/named/symbol snapshot arrays, unexpected
+fields and unreadable descriptors without executing getters. Lifecycle and
+provenance fields are deliberately not read to invent later-Gate semantics.
+An expired-looking Lease or one with `remainingUses: 0` may still be a lookup
+candidate; that does not make it active, usable or authorized.
+
+M4-022 does not perform TTL/expiry validity (M4-030), usage validity (M4-031),
+atomic consume (M4-032), revocation (M4-033), attenuation (M4-034), approval
+routing (M4-023), durable decision/receipt construction (M4-024), guarantee
+assignment (M4-025), PEP enforcement (M4-040+) or M6.
+
+The implementation delta reused the existing policy-engine normalizer/comparator
+through a public workspace package boundary. The lockfile was explicitly audited
+after an intermediate whole-file integrity-hash churn incident and repaired to
+exactly the intended capability-broker workspace dependency delta (`+3/-0`) with
+no residual integrity churn.
+
+Exact accepted implementation evidence at `ef465fcf...`:
+
+- normal CI #459: PASS;
+- exact Harness rc5 source-conformance #401: PASS.
+
+Acceptance audit is
+`docs/acceptance/m4-022-acceptance-audit.md`. Acceptance-record exact head is
+`778c9ff6cae329dfd5c892028cc795b67bc105fe`, which reached normal CI #461 /
+run `33367807229` PASS and exact Harness rc5 source-conformance #403 / run
+`33367807191` PASS before this final governance record was prepared.
+
+This final governance state is intentionally limited to append-only HISTORY,
+CURRENT handoff state and only the M4-022 roadmap acceptance marker. No production
+lookup code, Spec/corpus/schema, Shared TCK, dependency, lockfile, Harness
+baseline or later-Gate behavior changes here. The resulting final-governance
+exact head must itself reach normal CI + exact Harness rc5 source-conformance
+dual-green before M4-022 governance is CLOSED and M4-023 P0 approval routing
+becomes the next protocol-first Gate.
