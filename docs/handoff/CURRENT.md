@@ -14,8 +14,8 @@
 - Base: `main@57430273e065be8d38807d67b175fa154c801d43`
 - M4-001 through M4-014: **GOVERNANCE CLOSED**
 - M4-020 through M4-023: **GOVERNANCE CLOSED**
-- M4-024 decision receipt: **AUTHORIZED / PROTOCOL-FIRST**
-- M4-024 production implementation: **NOT AUTHORIZED until the protocol-first exact head is dual-green**
+- M4-024 decision receipt: **IMPLEMENTATION ACCEPTED / ACCEPTANCE-RECORD DUAL-GREEN**
+- M4-024 final governance: **IN PROGRESS — this governance head must be dual-green before closure**
 - M4-025+, M4-030+, M4-040+ and M6: **NOT AUTHORIZED**
 
 Live GitHub state overrides this file.
@@ -57,32 +57,15 @@ Exact-head evidence:
 - normal CI #480 / run `33378220417`: PASS;
 - exact Harness rc5 source-conformance #422 / run `33378220400`: PASS.
 
-The final governance delta from acceptance-record head
-`4ca482371dde4d865fdc1aa090d0c44b35c952e9` was exactly:
+The accepted final governance delta from acceptance-record head
+`4ca482371dde4d865fdc1aa090d0c44b35c952e9` was limited to CURRENT, append-only
+HISTORY (`+71/-0`) and only the M4-023 roadmap acceptance marker.
 
-```text
-docs/handoff/CURRENT.md
-docs/handoff/HISTORY.md   # +71 / -0, append-only
-docs/roadmap.md           # only M4-023 acceptance marker
-```
+Therefore M4-023 governance is CLOSED.
 
-A prior HISTORY attempt had modified two old M3 lines (`+73/-2`). That state was
-rejected and repaired before closure. The accepted final head restores the old
-history verbatim and appends only the M4-023 record.
+## M4-024 protocol-first closure
 
-Therefore:
-
-```text
-M4-023: GOVERNANCE CLOSED
-M4-024: P0 decision receipt — AUTHORIZED / PROTOCOL-FIRST
-```
-
-PR #3 remains Open, Draft and mergeable; no review or review-thread blocker was
-present at closure. No merge is authorized.
-
-## M4-024 protocol-first authority
-
-Normative draft:
+Normative specification:
 
 ```text
 specs/0035-m4-decision-receipt-construction.md
@@ -96,243 +79,187 @@ fixtures/decision-receipt/cases.json
 
 Portable cases: `27`.
 
-M4-024 defines deterministic construction of a post-routing immutable pair:
+Protocol-first exact head:
 
 ```text
-CapabilityDecision
-CapabilityReceipt
+04cd977078478d414af8daee06e24dc21754618e
 ```
 
-It consumes an accepted M4-023 routing fact plus explicit issuance context. It
-does not re-run policy, approval or Lease logic and does not execute an action.
-
-## Core ↔ wire-shape reconciliation
-
-M4-024 research found a pre-existing Core §13 illustrative Receipt mismatch.
-Core used:
+Relative to M4-023 final governance, the protocol-first delta was exactly:
 
 ```text
-actionRef
-outcome
-argumentsDigest
+docs/handoff/CURRENT.md
+fixtures/decision-receipt/cases.json
+specs/0001-safe-runtime-core.md
+specs/0035-m4-decision-receipt-construction.md
 ```
 
-while all current v1alpha1 wire authorities already agree on:
+The Core edit only reconciled the stale §13 Receipt example with the already
+published v1alpha1 Schema/TypeScript/fixture wire shape (`effect`,
+`argumentDigest`, requestRef-based action correlation). No schema or later-Gate
+semantics were changed.
+
+Exact-head protocol-first evidence:
+
+- normal CI #484 / run `33379337103`: PASS;
+- exact Harness rc5 source-conformance #426 / run `33379337065`: PASS.
+
+Therefore M4-024 production implementation was authorized only after the
+protocol-first head became dual-green.
+
+## M4-024 accepted implementation
+
+Accepted implementation exact head:
 
 ```text
-schemas/v1alpha1/capability-receipt.schema.json
-packages/protocol/src/capability.ts
-fixtures/receipt/valid/allowed.json
+8c12354c8e4902945c352b74536d3ea47615e14a
 ```
 
-with:
+Implementation delta from `04cd9770...` is exactly five Capability Broker files:
 
 ```text
-effect
-argumentDigest
+packages/capability-broker/src/decision-receipt-hardening.test.ts
+packages/capability-broker/src/decision-receipt-types.ts
+packages/capability-broker/src/decision-receipt.test.ts
+packages/capability-broker/src/decision-receipt.ts
+packages/capability-broker/src/index.ts
 ```
 
-and no duplicate Receipt-level `actionRef`.
+No dependency/lockfile, Adapter, Harness baseline, schema, Shared TCK, M4-025+,
+M4-030+, M4-040+ or M6 change is part of that implementation delta.
 
-Protocol-first work therefore changes only the stale Core §13 example/wording to
-match the already published v1alpha1 wire shape. Action identity remains linked
-through:
+Exact-head implementation evidence:
 
-```text
-CapabilityReceipt.requestRef
-  -> CapabilityRequest.requestId
-  -> CapabilityRequest.actionRef
-```
+- normal CI #491 / run `33381979888`: PASS;
+- exact Harness rc5 source-conformance #433 / run `33381979902`: PASS;
+- frozen install / 124-entry supply-chain policy: PASS;
+- architecture boundaries / 16-schema shape / schema baseline: PASS;
+- strict workspace TypeScript: PASS;
+- 49 test files / 933 tests: PASS;
+- M4-024 primary suite: 30 PASS;
+- M4-024 hostile-runtime hardening suite: 10 PASS;
+- packed Shared TCK + external non-workspace consumer: 44 assets PASS;
+- Harness pinned build, reproducible install, projection/idempotence,
+  exact-source typecheck and real runtime conformance: PASS.
 
-This reconciliation is not a schema change and must not be used to alter Lease,
-guarantee, PEP, transaction or execution semantics.
+The repository still reports two pre-existing oxlint warnings unrelated to
+M4-024. M4-024 did not add a lint-warning regression and did not fold unrelated
+cleanup into this security-sensitive Gate.
 
-## M4-024 record-construction boundary
+## M4-024 accepted semantics
 
-### Explicit identities and time
-
-M4-024 does not generate identity or time from host state. The caller supplies:
+M4-024 is a deterministic record-construction primitive, not a PEP or execution
+engine. It consumes an already-final M4-023 routing fact plus explicit caller
+inputs:
 
 ```text
 requestRef
 decisionRef
 receiptRef
+guaranteeLevel
 decidedAt
 observedAt
 ```
 
-The three refs reuse the existing opaque `defs.ref` domain and are preserved
-exactly. No trim/case-fold/Unicode normalization/prefix synthesis is allowed.
+It does not generate IDs or read host time/randomness.
 
-The timestamps are explicit protocol inputs. M4-024 must not call host time or
-create hidden counters/random IDs.
-
-Successful cross-record coherence is:
+Accepted mapping is:
 
 ```text
-decision.requestId  == requestRef
-receipt.requestRef  == requestRef
-decision.decisionId == decisionRef
-receipt.decisionRef == decisionRef
-receipt.receiptRef  == receiptRef
+M4-023 routed allow  -> Decision allow + Receipt allowed
+M4-023 routed deny   -> Decision deny  + Receipt denied
+M4-023 FAIL_CLOSED   -> Decision deny  + Receipt error
 ```
 
-## Guarantee boundary
+Post-routing `ask` / `approval-required` is not emitted by this profile.
 
-Both existing Decision and Receipt schemas require `guaranteeLevel`, but
-**M4-025 owns guarantee determination**.
+The exact `guaranteeLevel` is validated and copied into both records but is not
+determined or justified by M4-024. M4-025 owns trusted guarantee assignment.
 
-M4-024 therefore accepts an explicit guarantee input, validates that it is one
-of the four existing values and copies the exact same value into both records:
+M4-024 deliberately omits fabricated or not-yet-authoritative fields:
 
 ```text
-advisory
-tool-enforced
-provider-enforced
-process-isolated
+Decision: policyRef, matchedRuleRefs, free-text reason
+Receipt:  leaseRef, resourceDigest, argumentDigest, resultDigest
 ```
 
-M4-024 MUST NOT infer, upgrade or downgrade that value from tool type, provider
-presence, approval result, Harness feature flags or process requests.
+It also does not fabricate `approvalRef` or `AuthorizationRef(kind=approval)`.
+The broker decision Receipt is an observation of the authorization decision, not
+proof that the governed action executed or succeeded.
 
-Until M4-025 is accepted, the supplied value is record-construction input, not
-proof that production composition is entitled to claim that guarantee.
+## Runtime/security hardening
 
-## Routing → record mapping
+The accepted TypeScript implementation:
 
-M4-024 is post-M4-023. Its normal profile is narrower than the generic schemas:
+- consumes runtime input as `unknown` despite providing typed caller surfaces;
+- reads security-relevant values through own data-property descriptors;
+- rejects accessors without executing getters;
+- rejects unexpected string/symbol fields in the narrow input projections;
+- fails closed on revoked Proxies and unreadable ownKeys/descriptors;
+- performs exact scalar comparisons without `String(value)` or implicit coercion;
+- validates opaque refs by Unicode code points, including 512-astral PASS and
+  513-astral FAIL regressions;
+- uses deterministic lexical/calendar RFC3339-compatible timestamp validation
+  rather than locale-sensitive host parsing;
+- returns detached/frozen outer result, Decision and Receipt;
+- never emits partial records on failure;
+- never echoes attacker-controlled refs/timestamps/errors in failure output.
+
+Acceptance review found and fixed one semantic hardening defect after an earlier
+green implementation: valid M4-023 failure `stage` and `reasonCode` values had
+been validated independently, allowing impossible cross-stage combinations to be
+persisted. The accepted head validates stage-to-reason ownership coherence and
+rejects forged combinations such as `POLICY + LEASE_LOOKUP_DUPLICATE_LEASE_REF`.
+
+## Acceptance record
+
+Acceptance audit:
 
 ```text
-M4-023 routed allow
-  -> CapabilityDecision.effect = allow
-  -> CapabilityReceipt.effect  = allowed
-
-M4-023 routed deny
-  -> CapabilityDecision.effect = deny
-  -> CapabilityReceipt.effect  = denied
-
-M4-023 FAIL_CLOSED
-  -> CapabilityDecision.effect = deny
-  -> CapabilityReceipt.effect  = error
+docs/acceptance/m4-024-acceptance-audit.md
 ```
 
-The accepted stable routing `reasonCode` is copied into the Decision.
-
-M4-024 does **not** emit a new:
+Acceptance-record exact head:
 
 ```text
-CapabilityDecision.effect = ask
-CapabilityReceipt.effect  = approval-required
+bfb42d9600b223937081f8ebaf19627ea4282bbc
 ```
 
-An ask-like/incoherent post-routing tuple is malformed input and fails closed
-without constructing partial records.
-
-## Deliberately omitted provenance/data
-
-M4-024 v0.1 does not fabricate optional Decision fields:
+Relative to accepted implementation head `8c12354c...`, the acceptance-record
+delta is exactly:
 
 ```text
-policyRef
-matchedRuleRefs
-reason
+docs/acceptance/m4-024-acceptance-audit.md
+packages/capability-broker/src/index.ts   # package stage only
 ```
 
-Reasons:
+Exact-head acceptance-record evidence:
 
-- no normative stable policyRef-generation grammar currently exists;
-- M4-021 explicitly did not promote evaluator rule IDs to
-  `CapabilityDecision.matchedRuleRefs`;
-- free-text reason persistence would expand the sensitive-data surface.
+- normal CI #493 / run `33382353257`: PASS;
+- exact Harness rc5 source-conformance #435 / run `33382353285`: PASS;
+- Harness steps 6–11 all PASS.
 
-It also omits Receipt:
+## Final-governance transition
 
-```text
-leaseRef
-resourceDigest
-argumentDigest
-resultDigest
-```
-
-because:
-
-- M4-022 candidates are not valid/consumed Lease authority;
-- M4-030+ owns Lease lifecycle/consume;
-- no M4-024 canonical byte serialization for Resource/arguments exists;
-- no action has executed yet, so resultDigest would be fabricated.
-
-## Approval provenance boundary
-
-M4-023 established that the synchronous normalized approval result does not
-carry the Harness-generated durable `approvalRef`.
-
-M4-024 therefore MUST NOT fabricate:
+This transition is intentionally limited to:
 
 ```text
-approvalRef
-AuthorizationRef(kind=approval)
-policyRef
-matchedRuleRefs
-```
-
-The Decision/Receipt pair correlates request and decision identity but is not a
-self-contained proof of the human approval event. Authoritative approval event
-identity remains external correlated evidence until a later provenance/profile
-Gate binds it normatively.
-
-## Receipt meaning
-
-The M4-024 Receipt is a **broker decision observation**. It is not proof that the
-governed action executed or succeeded.
-
-Although Core requires durable Receipt persistence after redaction, M4-024 only
-constructs the protocol records. It does not choose or implement AuditLedger
-storage, retries, retention, encryption or redaction infrastructure.
-
-## Hostile-runtime requirements
-
-The TypeScript implementation, once authorized, must:
-
-- use own data-property descriptors for every consumed security field;
-- reject accessors without executing getters;
-- reject unexpected/symbol fields in the narrow input/issuance projections;
-- fail closed on revoked Proxies and descriptor/ownKeys traps;
-- use exact scalar comparisons, never `String(value)` or implicit coercion;
-- not use host clock/randomness for IDs or timestamps;
-- return detached/frozen Decision, Receipt and outer result;
-- never return partial records on construction failure;
-- never echo attacker-controlled refs/timestamps/errors in failure output.
-
-## Protocol-first exact file scope
-
-Relative to M4-023 final-governance head
-`be6b5c3ea88d469a1f94cc17a00b965352a877b1`, this Gate may contain exactly:
-
-```text
-specs/0035-m4-decision-receipt-construction.md
-fixtures/decision-receipt/cases.json
-specs/0001-safe-runtime-core.md   # §13 wire-shape reconciliation only
 docs/handoff/CURRENT.md
+docs/handoff/HISTORY.md   # append-only; deletions MUST equal 0
+docs/roadmap.md           # only M4-024 acceptance marker
 ```
 
-It MUST NOT contain production M4-024 TypeScript, M4-025 guarantee assignment,
-schema/TCK weakening, Adapter/Harness implementation, dependency/lockfile
-changes, M4-030+, M4-040+ or M6 work.
+No production implementation, normative Spec/corpus/schema, Shared TCK,
+dependency, lockfile, Adapter/Harness baseline, M4-025+, M4-030+, M4-040+ or M6
+change is authorized in final governance.
 
-## Protocol-first Gate
-
-Production M4-024 implementation remains **NOT AUTHORIZED** until one exact head
-containing the four-file protocol-first transition above reaches:
+The resulting exact governance head MUST itself reach:
 
 1. normal CI PASS;
 2. exact pinned Harness rc5 source-conformance PASS.
 
-Before claiming that Gate complete, re-audit the portable corpus mechanically,
-including the explicit >512-code-point ref boundary, rather than accepting a
-manually repeated string by visual inspection.
-
-Only after same-head dual-green may M4-024 production implementation begin.
-M4-025+, M4-030+, M4-040+ and M6 remain unauthorized.
+Only after that same-head dual-green evidence may M4-024 governance be declared
+CLOSED and M4-025 P0 guarantee level become the next protocol-first Gate.
 
 ## Boundaries that remain enforced
 
@@ -343,16 +270,17 @@ M4-025+, M4-030+, M4-040+ and M6 remain unauthorized.
   behavior for CI.
 - M4-024 records are not PEP execution authority.
 - M4-024 does not determine guarantee truth.
-- M4-024 does not claim Lease use or action execution.
+- M4-024 does not claim Lease use, approval provenance completeness, persistence
+  or action execution.
 - No merge of PR #3 without explicit user authorization.
 
 ## Resume instruction
 
 1. refresh PR #3 exact head/base/reviews/threads;
-2. audit the M4-024 protocol-first delta from `be6b5c3e...` and require exactly
-   Spec 0035, the decision-receipt corpus, Core §13 reconciliation and CURRENT;
-3. mechanically verify corpus boundary cases, especially >512-code-point refs;
-4. require protocol-first exact-head normal CI + pinned Harness dual-green;
-5. only then authorize M4-024 production implementation;
-6. keep M4-025+, M4-030+, M4-040+ and M6 unauthorized;
-7. keep PR #3 Draft and do not merge without explicit authorization.
+2. if the final-governance head is not yet created, require a three-file-only
+   CURRENT/HISTORY/roadmap transition from acceptance-record head `bfb42d96...`;
+3. mechanically require HISTORY deletions = 0 and roadmap only M4-024 marker;
+4. require final-governance exact-head normal CI + pinned Harness dual-green;
+5. only then declare M4-024 governance CLOSED and authorize M4-025
+   protocol-first work;
+6. keep M4-030+, M4-040+, M6 and PR merge unauthorized.
