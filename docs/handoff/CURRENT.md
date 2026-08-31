@@ -14,7 +14,7 @@
 - Base: `main@57430273e065be8d38807d67b175fa154c801d43`
 - M4-001 through M4-014: **ACCEPTED / GOVERNANCE CLOSED**
 - M4-020 P0 Subject resolution: **GOVERNANCE CLOSED**
-- M4-021 P0 policy evaluation: **AUTHORIZED / PROTOCOL-FIRST IN PROGRESS**
+- M4-021 P0 policy evaluation: **IMPLEMENTATION ACCEPTED / ACCEPTANCE RECORD IN PROGRESS**
 - M4-022+, M4-040+ and M6: **NOT AUTHORIZED**
 
 Live GitHub state overrides this file.
@@ -31,7 +31,7 @@ change GitHub compare counters.
 
 ## Compatibility baseline
 
-DeepSeek Harness is Adapter compatibility evidence only:
+DeepSeek Harness remains Adapter compatibility evidence only:
 
 ```text
 version: 0.1.0-rc.5
@@ -55,35 +55,26 @@ Exact-head evidence:
 - CI #420 / run `33326180401`: PASS;
 - Harness rc5 source-conformance #362 / run `33326180648`: PASS.
 
-Final-governance delta was limited to:
-
-- `docs/handoff/CURRENT.md`;
-- append-only `docs/handoff/HISTORY.md`;
-- only the M4-020 acceptance marker in `docs/roadmap.md`.
-
-No production resolver/schema/corpus/TCK/dependency/lockfile/Harness/security
-boundary changed in that transition. Therefore **M4-020 governance is CLOSED**.
-
 M4-020 accepted implementation remains:
 
 ```text
 31b3b190fc92372f2ccc2f6527b91826153f7917
 ```
 
-with acceptance audit `docs/acceptance/m4-020-acceptance-audit.md`.
+Acceptance audit:
 
-## Current Gate — M4-021 P0 policy evaluation
+```text
+docs/acceptance/m4-020-acceptance-audit.md
+```
 
-Normative profile under protocol-first review:
+Therefore **M4-020 governance is CLOSED**.
+
+## M4-021 protocol-first record
+
+Normative profile:
 
 ```text
 specs/0032-m4-policy-evaluation.md
-```
-
-Initial Spec commit:
-
-```text
-48365467e6f9644c27bb010cc5ec6e844a313f2f
 ```
 
 Portable corpus:
@@ -94,21 +85,42 @@ fixtures/policy-evaluation/cases.json
 
 Portable cases: `31`.
 
-Initial corpus commit:
+Protocol-first exact head:
 
 ```text
-9f0da13c679b5fc1235bf1c381d66fbe0a32f044
+3e9575ec90db6b509d818716cc9d3dc48c6febd4
 ```
 
-Protocol-first review then hardened the Subject-selector and rule-identity
-boundary:
+Exact-head evidence:
 
-- corrected Spec head: `2fdd37a4db46c6fee2d4b0f063c5af6468ccbf2b`;
-- corrected corpus head: `07db531af8d0bfc09cdad37a62f770e01fee835f`.
+- CI #425 / run `33327340780`: PASS;
+- Harness rc5 source-conformance #367: PASS.
 
-### M4-021 recovered composition boundary
+Production evaluator work began only after this exact protocol-first head was
+dual-green.
 
-M4-021 composes accepted primitives rather than creating another PDP algorithm:
+## M4-021 accepted implementation
+
+Accepted implementation exact head:
+
+```text
+21487cb2107dd708aab255472a1c2f71d3659584
+```
+
+Exact-head evidence:
+
+- CI #437 / run `33347983574`: PASS;
+- Harness rc5 source-conformance #379 / run `33347983577`: PASS.
+
+Acceptance audit:
+
+```text
+docs/acceptance/m4-021-acceptance-audit.md
+```
+
+### Accepted composition boundary
+
+M4-021 composes accepted primitives rather than creating a second PDP algorithm:
 
 ```text
 resolved M4-020 Subject
@@ -123,7 +135,7 @@ resolved M4-020 Subject
   -> accepted M4-005 effect resolution
   -> accepted M4-006 default deny
   -> accepted M4-007 explanation
-  -> M4-021 policy-evaluation fact
+  -> detached M4-021 policy-evaluation fact
 ```
 
 The accepted precedence remains unchanged:
@@ -139,104 +151,88 @@ explicit deny
 
 ### Subject selector semantics
 
-`rules[].subjects` now has one deliberately narrow portable v0.1 grammar:
+`rules[].subjects` portable v0.1 grammar:
 
 ```text
 <SubjectKind>://<SubjectId>
 ```
 
-Properties:
+- exact standard SubjectKind;
+- first literal `://` is structural;
+- remainder is opaque Subject ID data;
+- exact kind + exact ID matching only;
+- omitted `subjects` means unconstrained Subject dimension;
+- no trim/case-fold/Unicode normalization/alias/prefix/glob/regex/role/group/
+  parent/descendant/session/Harness-name semantics;
+- `*` is ordinary opaque ID data, not a wildcard;
+- malformed selectors fail closed as `POLICY_SUBJECT_SELECTOR_INVALID`.
 
-- SubjectKind is exactly one standard M4-020 kind;
-- parse the first literal `://` only;
-- the remainder is opaque Subject ID data;
-- exact kind + exact ID equality only;
-- no trim, case-folding, Unicode normalization, alias lookup, prefix, glob,
-  regex, parent/descendant, session, role/group, Harness-name or fuzzy semantics;
-- omitted `subjects` means the Subject dimension is unconstrained;
-- `*` inside Subject ID is ordinary opaque ID data, never a wildcard;
-- malformed selectors fail closed with `POLICY_SUBJECT_SELECTOR_INVALID`.
+### Capability semantics and final acceptance hardening
 
-This preserves the full already-accepted M4-020 Subject ID domain instead of
-reserving new wildcard characters after the fact.
+Capability selection uses the existing CapabilityRequest lexical profile and
+exact string equality. No wildcard/prefix/namespace inheritance or case folding
+exists.
 
-### Capability semantics
+Final acceptance review found that a caller bypassing M4-002 could otherwise
+supply a schema-invalid `rule.capabilities[]` string that became an ordinary
+no-match. Accepted implementation head `21487cb...` corrects this by validating
+all materialized rule capability selectors before request-dependent filtering.
+Malformed capability selectors therefore fail closed as
+`POLICY_EVALUATION_INPUT_INVALID`.
 
-Capability selection is exact string equality under the existing
-CapabilityRequest lexical profile. No wildcard/prefix/namespace inheritance or
-case folding exists.
+### Rule identity and constraint boundaries
 
-A schema-valid extension capability can match when explicitly named by a rule;
-a valid capability with no fully-applicable rule reaches normal default deny.
+- rule IDs are globally unique across the complete policy before request
+  filtering;
+- duplicate IDs preserve `RULE_ORDERING_DUPLICATE_RULE_ID`;
+- omitted or empty rule `constraints` means zero predicates;
+- non-empty constraints on a Subject+capability+Resource matching rule fail
+  closed as `POLICY_CONSTRAINT_PROFILE_UNSUPPORTED`;
+- irrelevant constrained rules are not traversed as global blockers;
+- request constraints do not invent generic JSON equality/subset semantics.
 
-### Rule identity preflight
+### Runtime hardening
 
-Rule IDs MUST be globally unique across the complete policy before
-request-dependent filtering. This prevents a duplicate ID from being hidden just
-because one duplicate later fails Subject/capability matching.
+Accepted implementation rejects/fails closed on hostile runtime mechanics,
+including accessors, inherited/symbol authority, sparse/named arrays, revoked
+Proxies, unreadable descriptors and malformed capability selectors.
 
-The failure preserves accepted M4-004 reason:
+Successful output is detached and immutable; failure output is bounded and does
+not echo attacker-controlled policy values or host exceptions.
 
-```text
-RULE_ORDERING_DUPLICATE_RULE_ID
-```
+### Explicit non-goals preserved
 
-The portable corpus includes a dedicated cross-filter duplicate case.
+M4-021 does not:
 
-### Constraint boundary
-
-Current Core/Schema expose request/rule `constraints` as open JSON objects but do
-not define a portable predicate language. M4-021 therefore MUST NOT invent JSON
-equality/subset/merge/argv semantics.
-
-For a rule that already matches Subject + capability + resource:
-
-```text
-constraints omitted -> zero predicates -> applicable
-constraints {}      -> zero predicates -> applicable
-constraints non-empty -> FAIL_CLOSED deny
-```
-
-Stable reason:
-
-```text
-POLICY_CONSTRAINT_PROFILE_UNSUPPORTED
-```
-
-A non-empty constrained rule that is irrelevant because Subject, capability, or
-resource did not match is not inspected as an applicability blocker.
-Non-empty request constraints alone do not invent policy semantics.
-
-### Snapshot and later-Gate boundaries
-
-- one evaluation uses one immutable policy snapshot;
-- M4-009 epoch is not policy precedence/identity;
-- `rule.lease` does not trigger lease lookup in M4-021;
-- `ask` remains a policy effect and does not invoke approval yet;
-- no `CapabilityDecision`/stable `matchedRuleRefs` is persisted here;
-- no guarantee level is assigned;
-- no receipt/provenance is created;
-- no delegation attenuation is proved;
-- no PEP enforcement is performed.
+- look up or consume leases;
+- route approval;
+- persist `CapabilityDecision` / stable `matchedRuleRefs`;
+- assign guarantee levels;
+- prove delegation attenuation;
+- persist receipts/provenance;
+- perform provider execution or PEP enforcement;
+- use Harness identity/order as protocol semantics.
 
 M4-022 lease lookup, M4-023 approval routing, M4-024 decision/receipt/provenance,
-M4-025 guarantee assignment, and M4-040+ enforcement remain unauthorized.
+M4-025 guarantee assignment and M4-040+ PEP remain later Gates.
 
-## Protocol-first Gate condition
+## Acceptance-record gate
 
-**Production M4-021 evaluator implementation has NOT STARTED and is NOT
-AUTHORIZED yet.**
+The implementation is accepted, but M4-021 governance is **not closed yet**.
 
-Before any `packages/policy-engine` M4-021 evaluator implementation, the exact
-protocol-first head containing Spec 0032, the 31 portable cases, and this handoff
-transition MUST reach both:
+The current acceptance-record transition may change only:
+
+- `packages/policy-engine/src/index.ts` package stage;
+- this `docs/handoff/CURRENT.md` snapshot;
+- the already-created acceptance audit is evidence, not production behavior.
+
+Before final governance, the exact acceptance-record head MUST reach:
 
 1. normal CI PASS;
 2. exact pinned Harness rc5 source-conformance PASS.
 
-The protocol-first delta MUST NOT contain production evaluator code, schema/TCK
-weakening, dependency/lockfile changes, Harness baseline changes, or M4-022+
-implementation.
+No production evaluator behavior, Spec/corpus/schema/TCK, dependency/lockfile,
+Harness baseline or M4-022+ behavior may change in that transition.
 
 ## Boundaries that remain enforced
 
@@ -245,20 +241,19 @@ implementation.
 - Never weaken schema validation, TCK, strict TypeScript, frozen installs,
   supply-chain policy, architecture boundaries, source-conformance, or
   fail-closed behavior for CI.
-- M4-021 must reuse M4-003/004/005/006/007/020 rather than duplicate their
-  semantics.
+- M4-021 must reuse M4-003/004/005/006/007/020 rather than duplicate semantics.
 - Unknown/malformed semantic input fails closed; it must not silently no-match
   when doing so could create permission.
-- No Subject authentication or directory lookup is claimed.
-- No parent existence/lineage proof is inferred from a parent ref.
 - No merge of PR #3 without explicit user authorization.
 
 ## Resume instruction
 
-1. refresh PR #3 exact head/base/reviews/threads and exact-head workflows;
-2. audit the M4-021 protocol-first delta from M4-020 final head
-   `005f436007ce05ed607979ca77f12960544ca655`;
-3. require normal CI plus pinned Harness rc5 source-conformance dual-green on the
-   exact protocol-first head;
-4. only after that evidence authorize TypeScript M4-021 evaluator work;
-5. do not start M4-022+ and do not merge PR #3 without explicit authorization.
+1. refresh PR #3 exact head/base/reviews/threads and workflows;
+2. verify the M4-021 acceptance-record delta contains only audit/stage/handoff
+   evidence and no production behavior change;
+3. require normal CI + pinned Harness rc5 source-conformance dual-green on the
+   exact acceptance-record head;
+4. only after that append M4-021 to `HISTORY.md`, mark only M4-021 accepted in
+   `docs/roadmap.md`, and refresh this file for final governance;
+5. do not authorize M4-022 until M4-021 final-governance exact head is dual-green;
+6. do not merge PR #3 without explicit authorization.
