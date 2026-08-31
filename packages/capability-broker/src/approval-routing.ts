@@ -250,11 +250,23 @@ function isCoherentPolicySuccess(
   basis: string,
   reasonCode: string,
 ): basis is PolicyEvaluationBasis {
-  const pair = `${String(effect)}\u0000${basis}\u0000${reasonCode}`;
-  return pair === "deny\u0000EXPLICIT_DENY\u0000POLICY_EXPLICIT_DENY"
-    || pair === "deny\u0000DEFAULT_DENY\u0000POLICY_DEFAULT_DENY"
-    || pair === "ask\u0000HIGHEST_BAND_ASK\u0000POLICY_HIGHEST_BAND_ASK"
-    || pair === "allow\u0000HIGHEST_BAND_ALLOW\u0000POLICY_HIGHEST_BAND_ALLOW";
+  return (
+    effect === "deny"
+    && basis === "EXPLICIT_DENY"
+    && reasonCode === "POLICY_EXPLICIT_DENY"
+  ) || (
+    effect === "deny"
+    && basis === "DEFAULT_DENY"
+    && reasonCode === "POLICY_DEFAULT_DENY"
+  ) || (
+    effect === "ask"
+    && basis === "HIGHEST_BAND_ASK"
+    && reasonCode === "POLICY_HIGHEST_BAND_ASK"
+  ) || (
+    effect === "allow"
+    && basis === "HIGHEST_BAND_ALLOW"
+    && reasonCode === "POLICY_HIGHEST_BAND_ALLOW"
+  );
 }
 
 function materializeLeaseFact(value: unknown): LeaseRoutingFact {
