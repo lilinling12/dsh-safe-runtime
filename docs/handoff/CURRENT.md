@@ -12,11 +12,11 @@
 - Active pull request: `#3 — feat(policy): begin M4 capability broker`
 - Branch: `feat/m4-capability-broker`
 - Base: `main@57430273e065be8d38807d67b175fa154c801d43`
-- M4-001 through M4-014: **ACCEPTED / GOVERNANCE CLOSED**
+- M4-001 through M4-014: **GOVERNANCE CLOSED**
 - M4-020 Subject resolution: **GOVERNANCE CLOSED**
 - M4-021 policy evaluation: **GOVERNANCE CLOSED**
-- M4-022 lease lookup: **AUTHORIZED / PROTOCOL-FIRST IN PROGRESS**
-- M4-023+, M4-030+, M4-040+ and M6: **NOT AUTHORIZED**
+- M4-022 lease lookup: **IMPLEMENTATION ACCEPTED / FINAL GOVERNANCE VERIFICATION**
+- M4-023+, M4-030+, M4-040+ and M6: **NOT AUTHORIZED until M4-022 final-governance exact head is dual-green**
 
 Live GitHub state overrides this file.
 
@@ -43,37 +43,9 @@ distribution: distribution-blocked
 Harness behavior MUST NOT define Core Subject identity, policy/PDP semantics,
 Lease identity/lifecycle, guarantees, plugin trust, or PEP behavior.
 
-## M4-021 final closure
+## M4-022 accepted implementation
 
-Final-governance exact head:
-
-```text
-211a7580f92ceb9df24ac0b0297d3f25009eb6c2
-```
-
-Exact-head evidence:
-
-- CI #444 / run `33348911193`: PASS;
-- Harness rc5 source-conformance #386 / run `33348911194`: PASS.
-
-The final-governance net delta from the M4-021 acceptance-record head was limited
-to CURRENT, append-only HISTORY and only the M4-021 roadmap marker. HISTORY was
-explicitly re-audited to `+68/-0` after an intermediate whole-file write exposed
-and corrected accidental historical churn.
-
-Therefore **M4-021 governance is CLOSED**.
-
-Accepted implementation remains:
-
-```text
-21487cb2107dd708aab255472a1c2f71d3659584
-```
-
-with acceptance audit `docs/acceptance/m4-021-acceptance-audit.md`.
-
-## Current Gate — M4-022 P0 deterministic CapabilityLease lookup
-
-Normative draft:
+Normative specification:
 
 ```text
 specs/0033-m4-capability-lease-lookup.md
@@ -87,99 +59,88 @@ fixtures/lease-lookup/cases.json
 
 Portable cases: `28`.
 
-M4-022 is deliberately a **candidate lookup** boundary, not Lease lifecycle or
-authorization. It answers which existing Lease records in one coherent snapshot
-match the exact request identity tuple. A returned candidate is not `allow`, not
-a CapabilityDecision, and not proof of TTL/use/revocation/attenuation validity.
+Protocol-first exact head:
 
-### Subject binding
+```text
+2def23a6f0523eea17540ec6327fcca372bb4702
+```
 
-Existing protocol fixtures use the same stable ref value in
-`CapabilityRequest.subject.id` and `CapabilityLease.subjectRef`.
+Exact-head evidence:
 
-M4-022 therefore binds exactly:
+- CI #449: PASS;
+- Harness rc5 source-conformance #391: PASS.
+
+Accepted implementation exact head:
+
+```text
+ef465fcfc50687b2590e20001d2ad7a123d2ab73
+```
+
+Exact-head evidence:
+
+- CI #459 / run `33367497095`: PASS;
+- Harness rc5 source-conformance #401 / run `33367497083`: PASS.
+
+Acceptance audit:
+
+```text
+docs/acceptance/m4-022-acceptance-audit.md
+```
+
+Acceptance-record exact head:
+
+```text
+778c9ff6cae329dfd5c892028cc795b67bc105fe
+```
+
+Exact-head evidence:
+
+- CI #461 / run `33367807229`: PASS;
+- Harness rc5 source-conformance #403 / run `33367807191`: PASS.
+
+The accepted implementation uses the existing CapabilityLease schema and reuses
+M4-003 exact Resource normalization. It added the minimal
+`@dsh-safe/policy-engine` workspace package export boundary needed by the broker;
+the corresponding lockfile delta was explicitly audited to the single expected
+capability-broker importer dependency (`+3/-0`) with no integrity churn.
+
+## M4-022 semantic boundary
+
+M4-022 is deterministic **candidate lookup**, not Lease validity or authorization.
+A Lease is a candidate only when all three lookup dimensions match exactly:
 
 ```text
 lease.subjectRef == resolvedSubject.id
+lease.capability == request capability
+canonical lease Resource == canonical request Resource
 ```
 
-It MUST NOT synthesize `kind/id`, `kind://id`, session-based, parent-based or
-Harness-specific Lease identity. The M4-021 `<SubjectKind>://<SubjectId>` grammar
-remains policy-selector syntax only.
+Important accepted properties:
 
-### Capability binding
+- no synthetic `kind/id` or `kind://id` Lease identity;
+- request and Lease capability validation profiles remain distinct as existing
+  schemas define them;
+- no case fold, aliases, prefix inheritance or wildcard capability matching;
+- Lease Resource is exact structured data, not an M4-004 selector;
+- providerIdentity presence/value participates in exact Resource equality;
+- duplicate `leaseRef` fails the whole snapshot before request filtering;
+- all exact candidates are returned in Unicode code-point order; ordering is
+  presentation only and never consumption/authorization precedence;
+- omitted or empty constraints mean zero portable predicates;
+- non-empty constraints on an otherwise exact match fail closed as
+  `LEASE_CONSTRAINT_PROFILE_UNSUPPORTED`;
+- constraints on nonmatching Leases are not traversed merely to block an
+  unrelated request;
+- failure payloads do not echo attacker-controlled refs or values.
 
-Request and Lease capability validation profiles remain distinct exactly as the
-existing schemas define them:
+Hostile runtime hardening reads security-relevant lookup fields through own data
+properties and fails closed on accessors, revoked Proxies, sparse/named/symbol
+snapshot arrays and unreadable descriptors. It deliberately does **not** inspect
+lifecycle/provenance fields merely to invent later-Gate semantics.
 
-- request capability uses the accepted CapabilityRequest lexical regex;
-- CapabilityLease capability currently uses its own string length `3..256`
-  schema surface;
-- M4-022 MUST NOT retroactively impose the request regex on Lease records;
-- matching is exact code-point equality.
+## Later Gates remain separate
 
-Thus schema-valid Lease capability `Process.exec` is an ordinary mismatch for
-request `process.exec`, while a runtime-bypass value outside the Lease field's own
-domain fails closed.
-
-### Resource binding
-
-Lease resources are exact structured `CapabilityResource` values. Request and
-Lease resources reuse accepted M4-003 normalization and then require exact:
-
-```text
-scheme
-locator
-providerIdentity presence
-providerIdentity value when present
-```
-
-No M4-004 glob/wildcard semantics apply to Lease resources and no provider
-containment is inferred from strings.
-
-### Existing Lease model only
-
-Ordinary portable lookup input is a snapshot of complete existing
-`CapabilityLease` values under the existing schema. M4-022 does not create a
-second reduced "lookup lease" wire model.
-
-`CapabilityPolicy.rules[].lease` and `CapabilityRequest.requestedLease` describe
-requested issuance bounds; neither is an existing Lease lookup key and neither
-causes Lease creation in M4-022.
-
-### Identity and multiplicity
-
-Lease refs are globally unique across the complete snapshot before
-request-dependent filtering. Duplicate refs fail closed as:
-
-```text
-LEASE_LOOKUP_DUPLICATE_LEASE_REF
-```
-
-All exact candidates are returned; none is silently selected by insertion order,
-time, remaining uses, authorization kind or parent depth. Candidate refs are
-Unicode code-point lexicographically sorted for deterministic presentation only.
-
-### Constraint boundary
-
-Current CapabilityLease `constraints` is an open JSON object without an accepted
-generic portable predicate grammar. M4-022 therefore does not invent equality,
-subset, argv, cwd or provider semantics.
-
-For an otherwise exact Subject+capability+Resource match:
-
-```text
-constraints omitted -> zero predicates -> candidate
-constraints {}      -> zero predicates -> candidate
-constraints non-empty -> FAIL_CLOSED / LEASE_CONSTRAINT_PROFILE_UNSUPPORTED
-```
-
-Constraints on Subject/capability/Resource-nonmatching Leases are not traversed
-merely to block unrelated requests.
-
-### Later lifecycle Gates remain separate
-
-M4-022 does not read host time or determine:
+M4-022 does not determine or mutate:
 
 - TTL / expiry validity — M4-030;
 - maxUses / remaining-use validity — M4-031;
@@ -187,33 +148,40 @@ M4-022 does not read host time or determine:
 - revocation — M4-033;
 - parent-child attenuation — M4-034.
 
-Accordingly, an expired-looking or `remainingUses: 0` schema-valid Lease can be
-returned only as a lookup **candidate**. It is not thereby usable.
+It also does not invoke approval (M4-023), construct a durable
+CapabilityDecision/receipt (M4-024), assign guarantee level (M4-025), enforce a
+PEP (M4-040+) or implement M6.
 
-M4-022 also does not invoke approval (M4-023), create a durable decision/receipt
-(M4-024), assign guarantee (M4-025), enforce a PEP (M4-040+) or implement M6.
+An expired-looking or `remainingUses: 0` schema-valid Lease can therefore still
+be an M4-022 candidate. It is not thereby active, usable or authorized.
 
-## Protocol-first Gate condition
+## Final governance condition
 
-**Production M4-022 implementation has NOT STARTED and is NOT AUTHORIZED yet.**
+The M4-022 acceptance-record head is dual-green. Final governance is now limited
+to exactly:
 
-Before any M4-022 production implementation, the exact protocol-first head
-containing Spec 0033, the 28-case corpus and this handoff transition MUST reach:
+```text
+docs/handoff/CURRENT.md
+docs/handoff/HISTORY.md   # append-only
+docs/roadmap.md           # only M4-022 marker
+```
+
+The final-governance exact head MUST itself reach:
 
 1. normal CI PASS;
 2. exact pinned Harness rc5 source-conformance PASS.
 
-The protocol-first delta from M4-021 final governance head
-`211a7580f92ceb9df24ac0b0297d3f25009eb6c2` MUST contain only:
+Before that evidence exists, M4-022 MUST NOT be declared governance closed and
+M4-023 MUST NOT start.
+
+After exact-head dual-green verification, M4-022 governance is CLOSED and the
+next and only newly authorized engineering Gate is:
 
 ```text
-specs/0033-m4-capability-lease-lookup.md
-fixtures/lease-lookup/cases.json
-docs/handoff/CURRENT.md
+M4-023 P0 — approval routing, protocol-first
 ```
 
-It MUST NOT contain production code, schema/TCK weakening, dependency/lockfile
-changes, Harness baseline changes, M4-023+, M4-030+ or M6 implementation.
+M4-024+, M4-030+, M4-040+ and M6 remain unauthorized by that transition.
 
 ## Boundaries that remain enforced
 
@@ -222,16 +190,18 @@ changes, Harness baseline changes, M4-023+, M4-030+ or M6 implementation.
 - Never weaken schema validation, TCK, strict TypeScript, frozen installs,
   supply-chain policy, architecture boundaries, source-conformance or fail-closed
   behavior for CI.
-- Reuse M4-003 normalization rather than silently redefining Resource identity.
 - Candidate lookup is not authorization and is never the atomic consume point.
 - No merge of PR #3 without explicit user authorization.
 
 ## Resume instruction
 
 1. refresh PR #3 exact head/base/reviews/threads and exact-head workflows;
-2. audit protocol-first delta from `211a7580...` and require exactly Spec 0033,
-   the 28-case corpus and CURRENT;
-3. require normal CI plus exact pinned Harness rc5 source-conformance dual-green;
-4. only then authorize M4-022 TypeScript production implementation;
-5. keep M4-023+, M4-030+, M4-040+ and M6 unauthorized;
-6. do not merge PR #3 without explicit authorization.
+2. audit the M4-022 final-governance delta against acceptance-record head
+   `778c9ff6...` and require only CURRENT, append-only HISTORY and only the
+   M4-022 roadmap marker;
+3. explicitly require HISTORY deletions = `0`;
+4. require final-governance exact-head normal CI + pinned Harness dual-green;
+5. only then declare **M4-022 GOVERNANCE CLOSED** and authorize **M4-023 P0
+   approval routing protocol-first**;
+6. keep M4-024+, M4-030+, M4-040+ and M6 unauthorized;
+7. keep PR #3 Draft and do not merge without explicit authorization.
