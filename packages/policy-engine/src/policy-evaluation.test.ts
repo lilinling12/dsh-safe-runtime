@@ -186,6 +186,27 @@ describe("M4-021 hostile runtime boundary", () => {
     }
   });
 
+  test("malformed capability selectors fail closed before request filtering", () => {
+    for (const malformed of ["FS.READ", "fs", "fs.*", ".read", "fs.", "fs/read"]) {
+      const candidate = policy({
+        defaultEffect: "deny",
+        rules: [{
+          id: "malformed",
+          effect: "allow",
+          capabilities: [malformed],
+          resources: ["workspace://src/**"],
+          subjects: ["service://service:ci"],
+        }],
+      });
+      expect(evaluateCapabilityPolicy({ ...baseInput(), policy: candidate })).toEqual({
+        status: "FAIL_CLOSED",
+        effect: "deny",
+        stage: "INPUT",
+        reasonCode: "POLICY_EVALUATION_INPUT_INVALID",
+      });
+    }
+  });
+
   test("sparse and named selector arrays fail closed", () => {
     const sparse: string[] = [];
     sparse.length = 1;
