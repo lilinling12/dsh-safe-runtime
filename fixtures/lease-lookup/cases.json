@@ -12,7 +12,19 @@
       "capability": "process.exec",
       "resource": { "scheme": "process", "locator": "git" },
       "leases": [
-        { "leaseRef": "lease:01", "subjectRef": "agent/root", "capability": "process.exec", "resource": { "scheme": "process", "locator": "git" } }
+        {
+          "apiVersion": "safe-runtime.dev/v1alpha1",
+          "kind": "CapabilityLease",
+          "leaseRef": "lease:01",
+          "subjectRef": "agent/root",
+          "capability": "process.exec",
+          "resource": { "scheme": "process", "locator": "git" },
+          "issuedAt": "2030-01-01T00:00:00Z",
+          "expiresAt": "2030-01-01T00:05:00Z",
+          "maxUses": 3,
+          "remainingUses": 3,
+          "authorization": { "kind": "approval", "ref": "approval:fixture" }
+        }
       ],
       "expected": { "status": "CANDIDATES_FOUND", "candidateLeaseRefs": ["lease:01"] }
     },
@@ -23,7 +35,19 @@
       "capability": "process.exec",
       "resource": { "scheme": "process", "locator": "git" },
       "leases": [
-        { "leaseRef": "lease:other", "subjectRef": "agent/other", "capability": "process.exec", "resource": { "scheme": "process", "locator": "git" } }
+        {
+          "apiVersion": "safe-runtime.dev/v1alpha1",
+          "kind": "CapabilityLease",
+          "leaseRef": "lease:other",
+          "subjectRef": "agent/other",
+          "capability": "process.exec",
+          "resource": { "scheme": "process", "locator": "git" },
+          "issuedAt": "2030-01-01T00:00:00Z",
+          "expiresAt": "2030-01-01T00:05:00Z",
+          "maxUses": 3,
+          "remainingUses": 3,
+          "authorization": { "kind": "approval", "ref": "approval:fixture" }
+        }
       ],
       "expected": { "status": "NO_CANDIDATE", "candidateLeaseRefs": [] }
     },
@@ -34,20 +58,44 @@
       "capability": "process.exec",
       "resource": { "scheme": "process", "locator": "git" },
       "leases": [
-        { "leaseRef": "lease:synthetic", "subjectRef": "agent://agent/root", "capability": "process.exec", "resource": { "scheme": "process", "locator": "git" } }
+        {
+          "apiVersion": "safe-runtime.dev/v1alpha1",
+          "kind": "CapabilityLease",
+          "leaseRef": "lease:synthetic",
+          "subjectRef": "agent://agent/root",
+          "capability": "process.exec",
+          "resource": { "scheme": "process", "locator": "git" },
+          "issuedAt": "2030-01-01T00:00:00Z",
+          "expiresAt": "2030-01-01T00:05:00Z",
+          "maxUses": 3,
+          "remainingUses": 3,
+          "authorization": { "kind": "approval", "ref": "approval:fixture" }
+        }
       ],
       "expected": { "status": "NO_CANDIDATE", "candidateLeaseRefs": [] }
     },
     {
       "id": "LEASE-LOOKUP-004",
-      "description": "capability matching is exact and case-sensitive",
+      "description": "schema-valid differently cased Lease capability is an ordinary exact mismatch",
       "subject": { "kind": "agent", "id": "agent/root", "sessionRef": "session:1" },
       "capability": "process.exec",
       "resource": { "scheme": "process", "locator": "git" },
       "leases": [
-        { "leaseRef": "lease:case", "subjectRef": "agent/root", "capability": "Process.exec", "resource": { "scheme": "process", "locator": "git" } }
+        {
+          "apiVersion": "safe-runtime.dev/v1alpha1",
+          "kind": "CapabilityLease",
+          "leaseRef": "lease:case",
+          "subjectRef": "agent/root",
+          "capability": "Process.exec",
+          "resource": { "scheme": "process", "locator": "git" },
+          "issuedAt": "2030-01-01T00:00:00Z",
+          "expiresAt": "2030-01-01T00:05:00Z",
+          "maxUses": 3,
+          "remainingUses": 3,
+          "authorization": { "kind": "approval", "ref": "approval:fixture" }
+        }
       ],
-      "expected": { "status": "FAIL_CLOSED", "stage": "LEASE_SNAPSHOT", "reasonCode": "LEASE_LOOKUP_CAPABILITY_INVALID" }
+      "expected": { "status": "NO_CANDIDATE", "candidateLeaseRefs": [] }
     },
     {
       "id": "LEASE-LOOKUP-005",
@@ -56,7 +104,19 @@
       "capability": "process.exec",
       "resource": { "scheme": "process", "locator": "git" },
       "leases": [
-        { "leaseRef": "lease:resolve", "subjectRef": "agent/root", "capability": "process.resolve", "resource": { "scheme": "process", "locator": "git" } }
+        {
+          "apiVersion": "safe-runtime.dev/v1alpha1",
+          "kind": "CapabilityLease",
+          "leaseRef": "lease:resolve",
+          "subjectRef": "agent/root",
+          "capability": "process.resolve",
+          "resource": { "scheme": "process", "locator": "git" },
+          "issuedAt": "2030-01-01T00:00:00Z",
+          "expiresAt": "2030-01-01T00:05:00Z",
+          "maxUses": 3,
+          "remainingUses": 3,
+          "authorization": { "kind": "approval", "ref": "approval:fixture" }
+        }
       ],
       "expected": { "status": "NO_CANDIDATE", "candidateLeaseRefs": [] }
     },
@@ -67,7 +127,19 @@
       "capability": "fs.read",
       "resource": { "scheme": "workspace", "locator": "src/a.ts" },
       "leases": [
-        { "leaseRef": "lease:host", "subjectRef": "agent/root", "capability": "fs.read", "resource": { "scheme": "hostfs", "locator": "src/a.ts" } }
+        {
+          "apiVersion": "safe-runtime.dev/v1alpha1",
+          "kind": "CapabilityLease",
+          "leaseRef": "lease:host",
+          "subjectRef": "agent/root",
+          "capability": "fs.read",
+          "resource": { "scheme": "hostfs", "locator": "src/a.ts" },
+          "issuedAt": "2030-01-01T00:00:00Z",
+          "expiresAt": "2030-01-01T00:05:00Z",
+          "maxUses": 3,
+          "remainingUses": 3,
+          "authorization": { "kind": "approval", "ref": "approval:fixture" }
+        }
       ],
       "expected": { "status": "NO_CANDIDATE", "candidateLeaseRefs": [] }
     },
@@ -78,7 +150,19 @@
       "capability": "fs.read",
       "resource": { "scheme": "workspace", "locator": "src/a.ts" },
       "leases": [
-        { "leaseRef": "lease:b", "subjectRef": "agent/root", "capability": "fs.read", "resource": { "scheme": "workspace", "locator": "src/b.ts" } }
+        {
+          "apiVersion": "safe-runtime.dev/v1alpha1",
+          "kind": "CapabilityLease",
+          "leaseRef": "lease:b",
+          "subjectRef": "agent/root",
+          "capability": "fs.read",
+          "resource": { "scheme": "workspace", "locator": "src/b.ts" },
+          "issuedAt": "2030-01-01T00:00:00Z",
+          "expiresAt": "2030-01-01T00:05:00Z",
+          "maxUses": 3,
+          "remainingUses": 3,
+          "authorization": { "kind": "approval", "ref": "approval:fixture" }
+        }
       ],
       "expected": { "status": "NO_CANDIDATE", "candidateLeaseRefs": [] }
     },
@@ -89,7 +173,19 @@
       "capability": "fs.read",
       "resource": { "scheme": "workspace", "locator": "src/a.ts" },
       "leases": [
-        { "leaseRef": "lease:glob-looking", "subjectRef": "agent/root", "capability": "fs.read", "resource": { "scheme": "workspace", "locator": "src/**" } }
+        {
+          "apiVersion": "safe-runtime.dev/v1alpha1",
+          "kind": "CapabilityLease",
+          "leaseRef": "lease:glob-looking",
+          "subjectRef": "agent/root",
+          "capability": "fs.read",
+          "resource": { "scheme": "workspace", "locator": "src/**" },
+          "issuedAt": "2030-01-01T00:00:00Z",
+          "expiresAt": "2030-01-01T00:05:00Z",
+          "maxUses": 3,
+          "remainingUses": 3,
+          "authorization": { "kind": "approval", "ref": "approval:fixture" }
+        }
       ],
       "expected": { "status": "NO_CANDIDATE", "candidateLeaseRefs": [] }
     },
@@ -100,7 +196,19 @@
       "capability": "fs.read",
       "resource": { "scheme": "workspace", "locator": "src/a.ts", "providerIdentity": "provider:1" },
       "leases": [
-        { "leaseRef": "lease:provider", "subjectRef": "agent/root", "capability": "fs.read", "resource": { "scheme": "workspace", "locator": "src/a.ts", "providerIdentity": "provider:1" } }
+        {
+          "apiVersion": "safe-runtime.dev/v1alpha1",
+          "kind": "CapabilityLease",
+          "leaseRef": "lease:provider",
+          "subjectRef": "agent/root",
+          "capability": "fs.read",
+          "resource": { "scheme": "workspace", "locator": "src/a.ts", "providerIdentity": "provider:1" },
+          "issuedAt": "2030-01-01T00:00:00Z",
+          "expiresAt": "2030-01-01T00:05:00Z",
+          "maxUses": 3,
+          "remainingUses": 3,
+          "authorization": { "kind": "approval", "ref": "approval:fixture" }
+        }
       ],
       "expected": { "status": "CANDIDATES_FOUND", "candidateLeaseRefs": ["lease:provider"] }
     },
@@ -111,7 +219,19 @@
       "capability": "fs.read",
       "resource": { "scheme": "workspace", "locator": "src/a.ts", "providerIdentity": "provider:1" },
       "leases": [
-        { "leaseRef": "lease:provider", "subjectRef": "agent/root", "capability": "fs.read", "resource": { "scheme": "workspace", "locator": "src/a.ts", "providerIdentity": "provider:2" } }
+        {
+          "apiVersion": "safe-runtime.dev/v1alpha1",
+          "kind": "CapabilityLease",
+          "leaseRef": "lease:provider",
+          "subjectRef": "agent/root",
+          "capability": "fs.read",
+          "resource": { "scheme": "workspace", "locator": "src/a.ts", "providerIdentity": "provider:2" },
+          "issuedAt": "2030-01-01T00:00:00Z",
+          "expiresAt": "2030-01-01T00:05:00Z",
+          "maxUses": 3,
+          "remainingUses": 3,
+          "authorization": { "kind": "approval", "ref": "approval:fixture" }
+        }
       ],
       "expected": { "status": "NO_CANDIDATE", "candidateLeaseRefs": [] }
     },
@@ -122,7 +242,19 @@
       "capability": "fs.read",
       "resource": { "scheme": "workspace", "locator": "src/a.ts", "providerIdentity": "provider:1" },
       "leases": [
-        { "leaseRef": "lease:no-provider", "subjectRef": "agent/root", "capability": "fs.read", "resource": { "scheme": "workspace", "locator": "src/a.ts" } }
+        {
+          "apiVersion": "safe-runtime.dev/v1alpha1",
+          "kind": "CapabilityLease",
+          "leaseRef": "lease:no-provider",
+          "subjectRef": "agent/root",
+          "capability": "fs.read",
+          "resource": { "scheme": "workspace", "locator": "src/a.ts" },
+          "issuedAt": "2030-01-01T00:00:00Z",
+          "expiresAt": "2030-01-01T00:05:00Z",
+          "maxUses": 3,
+          "remainingUses": 3,
+          "authorization": { "kind": "approval", "ref": "approval:fixture" }
+        }
       ],
       "expected": { "status": "NO_CANDIDATE", "candidateLeaseRefs": [] }
     },
@@ -133,9 +265,45 @@
       "capability": "process.exec",
       "resource": { "scheme": "process", "locator": "git" },
       "leases": [
-        { "leaseRef": "lease:z", "subjectRef": "agent/root", "capability": "process.exec", "resource": { "scheme": "process", "locator": "git" } },
-        { "leaseRef": "lease:A", "subjectRef": "agent/root", "capability": "process.exec", "resource": { "scheme": "process", "locator": "git" } },
-        { "leaseRef": "lease:ä", "subjectRef": "agent/root", "capability": "process.exec", "resource": { "scheme": "process", "locator": "git" } }
+        {
+          "apiVersion": "safe-runtime.dev/v1alpha1",
+          "kind": "CapabilityLease",
+          "leaseRef": "lease:z",
+          "subjectRef": "agent/root",
+          "capability": "process.exec",
+          "resource": { "scheme": "process", "locator": "git" },
+          "issuedAt": "2030-01-01T00:00:00Z",
+          "expiresAt": "2030-01-01T00:05:00Z",
+          "maxUses": 3,
+          "remainingUses": 3,
+          "authorization": { "kind": "approval", "ref": "approval:fixture-z" }
+        },
+        {
+          "apiVersion": "safe-runtime.dev/v1alpha1",
+          "kind": "CapabilityLease",
+          "leaseRef": "lease:A",
+          "subjectRef": "agent/root",
+          "capability": "process.exec",
+          "resource": { "scheme": "process", "locator": "git" },
+          "issuedAt": "2030-01-01T00:00:00Z",
+          "expiresAt": "2030-01-01T00:05:00Z",
+          "maxUses": 3,
+          "remainingUses": 3,
+          "authorization": { "kind": "approval", "ref": "approval:fixture-a" }
+        },
+        {
+          "apiVersion": "safe-runtime.dev/v1alpha1",
+          "kind": "CapabilityLease",
+          "leaseRef": "lease:ä",
+          "subjectRef": "agent/root",
+          "capability": "process.exec",
+          "resource": { "scheme": "process", "locator": "git" },
+          "issuedAt": "2030-01-01T00:00:00Z",
+          "expiresAt": "2030-01-01T00:05:00Z",
+          "maxUses": 3,
+          "remainingUses": 3,
+          "authorization": { "kind": "approval", "ref": "approval:fixture-umlaut" }
+        }
       ],
       "expected": { "status": "CANDIDATES_FOUND", "candidateLeaseRefs": ["lease:A", "lease:z", "lease:ä"] }
     },
@@ -146,9 +314,45 @@
       "capability": "process.exec",
       "resource": { "scheme": "process", "locator": "git" },
       "leases": [
-        { "leaseRef": "lease:ä", "subjectRef": "agent/root", "capability": "process.exec", "resource": { "scheme": "process", "locator": "git" } },
-        { "leaseRef": "lease:z", "subjectRef": "agent/root", "capability": "process.exec", "resource": { "scheme": "process", "locator": "git" } },
-        { "leaseRef": "lease:A", "subjectRef": "agent/root", "capability": "process.exec", "resource": { "scheme": "process", "locator": "git" } }
+        {
+          "apiVersion": "safe-runtime.dev/v1alpha1",
+          "kind": "CapabilityLease",
+          "leaseRef": "lease:ä",
+          "subjectRef": "agent/root",
+          "capability": "process.exec",
+          "resource": { "scheme": "process", "locator": "git" },
+          "issuedAt": "2030-01-01T00:00:00Z",
+          "expiresAt": "2030-01-01T00:05:00Z",
+          "maxUses": 3,
+          "remainingUses": 3,
+          "authorization": { "kind": "approval", "ref": "approval:fixture-umlaut" }
+        },
+        {
+          "apiVersion": "safe-runtime.dev/v1alpha1",
+          "kind": "CapabilityLease",
+          "leaseRef": "lease:z",
+          "subjectRef": "agent/root",
+          "capability": "process.exec",
+          "resource": { "scheme": "process", "locator": "git" },
+          "issuedAt": "2030-01-01T00:00:00Z",
+          "expiresAt": "2030-01-01T00:05:00Z",
+          "maxUses": 3,
+          "remainingUses": 3,
+          "authorization": { "kind": "approval", "ref": "approval:fixture-z" }
+        },
+        {
+          "apiVersion": "safe-runtime.dev/v1alpha1",
+          "kind": "CapabilityLease",
+          "leaseRef": "lease:A",
+          "subjectRef": "agent/root",
+          "capability": "process.exec",
+          "resource": { "scheme": "process", "locator": "git" },
+          "issuedAt": "2030-01-01T00:00:00Z",
+          "expiresAt": "2030-01-01T00:05:00Z",
+          "maxUses": 3,
+          "remainingUses": 3,
+          "authorization": { "kind": "approval", "ref": "approval:fixture-a" }
+        }
       ],
       "expected": { "status": "CANDIDATES_FOUND", "candidateLeaseRefs": ["lease:A", "lease:z", "lease:ä"] }
     },
@@ -159,41 +363,101 @@
       "capability": "process.exec",
       "resource": { "scheme": "process", "locator": "git" },
       "leases": [
-        { "leaseRef": "lease:dup", "subjectRef": "agent/root", "capability": "process.exec", "resource": { "scheme": "process", "locator": "git" } },
-        { "leaseRef": "lease:dup", "subjectRef": "agent/other", "capability": "fs.read", "resource": { "scheme": "workspace", "locator": "other" } }
+        {
+          "apiVersion": "safe-runtime.dev/v1alpha1",
+          "kind": "CapabilityLease",
+          "leaseRef": "lease:dup",
+          "subjectRef": "agent/root",
+          "capability": "process.exec",
+          "resource": { "scheme": "process", "locator": "git" },
+          "issuedAt": "2030-01-01T00:00:00Z",
+          "expiresAt": "2030-01-01T00:05:00Z",
+          "maxUses": 3,
+          "remainingUses": 3,
+          "authorization": { "kind": "approval", "ref": "approval:fixture-1" }
+        },
+        {
+          "apiVersion": "safe-runtime.dev/v1alpha1",
+          "kind": "CapabilityLease",
+          "leaseRef": "lease:dup",
+          "subjectRef": "agent/other",
+          "capability": "fs.read",
+          "resource": { "scheme": "workspace", "locator": "other" },
+          "issuedAt": "2030-01-01T00:00:00Z",
+          "expiresAt": "2030-01-01T00:05:00Z",
+          "maxUses": 3,
+          "remainingUses": 3,
+          "authorization": { "kind": "approval", "ref": "approval:fixture-2" }
+        }
       ],
       "expected": { "status": "FAIL_CLOSED", "stage": "LEASE_SNAPSHOT", "reasonCode": "LEASE_LOOKUP_DUPLICATE_LEASE_REF" }
     },
     {
       "id": "LEASE-LOOKUP-015",
-      "description": "empty leaseRef is invalid during request-independent preflight",
+      "description": "empty leaseRef is invalid when a runtime caller bypasses the CapabilityLease schema boundary",
       "subject": { "kind": "agent", "id": "agent/root", "sessionRef": "session:1" },
       "capability": "process.exec",
       "resource": { "scheme": "process", "locator": "git" },
       "leases": [
-        { "leaseRef": "", "subjectRef": "agent/other", "capability": "fs.read", "resource": { "scheme": "workspace", "locator": "other" } }
+        {
+          "apiVersion": "safe-runtime.dev/v1alpha1",
+          "kind": "CapabilityLease",
+          "leaseRef": "",
+          "subjectRef": "agent/other",
+          "capability": "fs.read",
+          "resource": { "scheme": "workspace", "locator": "other" },
+          "issuedAt": "2030-01-01T00:00:00Z",
+          "expiresAt": "2030-01-01T00:05:00Z",
+          "maxUses": 3,
+          "remainingUses": 3,
+          "authorization": { "kind": "approval", "ref": "approval:fixture" }
+        }
       ],
       "expected": { "status": "FAIL_CLOSED", "stage": "LEASE_SNAPSHOT", "reasonCode": "LEASE_LOOKUP_LEASE_REF_INVALID" }
     },
     {
       "id": "LEASE-LOOKUP-016",
-      "description": "empty subjectRef is invalid during request-independent preflight",
+      "description": "empty subjectRef is invalid when a runtime caller bypasses the CapabilityLease schema boundary",
       "subject": { "kind": "agent", "id": "agent/root", "sessionRef": "session:1" },
       "capability": "process.exec",
       "resource": { "scheme": "process", "locator": "git" },
       "leases": [
-        { "leaseRef": "lease:bad-subject", "subjectRef": "", "capability": "fs.read", "resource": { "scheme": "workspace", "locator": "other" } }
+        {
+          "apiVersion": "safe-runtime.dev/v1alpha1",
+          "kind": "CapabilityLease",
+          "leaseRef": "lease:bad-subject",
+          "subjectRef": "",
+          "capability": "fs.read",
+          "resource": { "scheme": "workspace", "locator": "other" },
+          "issuedAt": "2030-01-01T00:00:00Z",
+          "expiresAt": "2030-01-01T00:05:00Z",
+          "maxUses": 3,
+          "remainingUses": 3,
+          "authorization": { "kind": "approval", "ref": "approval:fixture" }
+        }
       ],
       "expected": { "status": "FAIL_CLOSED", "stage": "LEASE_SNAPSHOT", "reasonCode": "LEASE_LOOKUP_SUBJECT_REF_INVALID" }
     },
     {
       "id": "LEASE-LOOKUP-017",
-      "description": "malformed Lease resource preserves accepted M4-003 failure",
+      "description": "malformed Lease resource preserves accepted M4-003 failure when validation is bypassed",
       "subject": { "kind": "agent", "id": "agent/root", "sessionRef": "session:1" },
       "capability": "process.exec",
       "resource": { "scheme": "process", "locator": "git" },
       "leases": [
-        { "leaseRef": "lease:bad-resource", "subjectRef": "agent/other", "capability": "fs.read", "resource": { "scheme": "Workspace", "locator": "other" } }
+        {
+          "apiVersion": "safe-runtime.dev/v1alpha1",
+          "kind": "CapabilityLease",
+          "leaseRef": "lease:bad-resource",
+          "subjectRef": "agent/other",
+          "capability": "fs.read",
+          "resource": { "scheme": "Workspace", "locator": "other" },
+          "issuedAt": "2030-01-01T00:00:00Z",
+          "expiresAt": "2030-01-01T00:05:00Z",
+          "maxUses": 3,
+          "remainingUses": 3,
+          "authorization": { "kind": "approval", "ref": "approval:fixture" }
+        }
       ],
       "expected": { "status": "FAIL_CLOSED", "stage": "RESOURCE", "reasonCode": "RESOURCE_SCHEME_UNSUPPORTED" }
     },
@@ -204,7 +468,19 @@
       "capability": "process.exec",
       "resource": { "scheme": "process", "locator": "git" },
       "leases": [
-        { "leaseRef": "lease:no-constraints", "subjectRef": "agent/root", "capability": "process.exec", "resource": { "scheme": "process", "locator": "git" } }
+        {
+          "apiVersion": "safe-runtime.dev/v1alpha1",
+          "kind": "CapabilityLease",
+          "leaseRef": "lease:no-constraints",
+          "subjectRef": "agent/root",
+          "capability": "process.exec",
+          "resource": { "scheme": "process", "locator": "git" },
+          "issuedAt": "2030-01-01T00:00:00Z",
+          "expiresAt": "2030-01-01T00:05:00Z",
+          "maxUses": 3,
+          "remainingUses": 3,
+          "authorization": { "kind": "approval", "ref": "approval:fixture" }
+        }
       ],
       "expected": { "status": "CANDIDATES_FOUND", "candidateLeaseRefs": ["lease:no-constraints"] }
     },
@@ -215,7 +491,20 @@
       "capability": "process.exec",
       "resource": { "scheme": "process", "locator": "git" },
       "leases": [
-        { "leaseRef": "lease:empty-constraints", "subjectRef": "agent/root", "capability": "process.exec", "resource": { "scheme": "process", "locator": "git" }, "constraints": {} }
+        {
+          "apiVersion": "safe-runtime.dev/v1alpha1",
+          "kind": "CapabilityLease",
+          "leaseRef": "lease:empty-constraints",
+          "subjectRef": "agent/root",
+          "capability": "process.exec",
+          "resource": { "scheme": "process", "locator": "git" },
+          "constraints": {},
+          "issuedAt": "2030-01-01T00:00:00Z",
+          "expiresAt": "2030-01-01T00:05:00Z",
+          "maxUses": 3,
+          "remainingUses": 3,
+          "authorization": { "kind": "approval", "ref": "approval:fixture" }
+        }
       ],
       "expected": { "status": "CANDIDATES_FOUND", "candidateLeaseRefs": ["lease:empty-constraints"] }
     },
@@ -226,7 +515,20 @@
       "capability": "process.exec",
       "resource": { "scheme": "process", "locator": "git" },
       "leases": [
-        { "leaseRef": "lease:argv", "subjectRef": "agent/root", "capability": "process.exec", "resource": { "scheme": "process", "locator": "git" }, "constraints": { "argvPrefix": ["push"] } }
+        {
+          "apiVersion": "safe-runtime.dev/v1alpha1",
+          "kind": "CapabilityLease",
+          "leaseRef": "lease:argv",
+          "subjectRef": "agent/root",
+          "capability": "process.exec",
+          "resource": { "scheme": "process", "locator": "git" },
+          "constraints": { "argvPrefix": ["push"] },
+          "issuedAt": "2030-01-01T00:00:00Z",
+          "expiresAt": "2030-01-01T00:05:00Z",
+          "maxUses": 3,
+          "remainingUses": 3,
+          "authorization": { "kind": "approval", "ref": "approval:fixture" }
+        }
       ],
       "expected": { "status": "FAIL_CLOSED", "stage": "CONSTRAINT", "reasonCode": "LEASE_CONSTRAINT_PROFILE_UNSUPPORTED" }
     },
@@ -237,7 +539,20 @@
       "capability": "process.exec",
       "resource": { "scheme": "process", "locator": "git" },
       "leases": [
-        { "leaseRef": "lease:other-subject", "subjectRef": "agent/other", "capability": "process.exec", "resource": { "scheme": "process", "locator": "git" }, "constraints": { "future": true } }
+        {
+          "apiVersion": "safe-runtime.dev/v1alpha1",
+          "kind": "CapabilityLease",
+          "leaseRef": "lease:other-subject",
+          "subjectRef": "agent/other",
+          "capability": "process.exec",
+          "resource": { "scheme": "process", "locator": "git" },
+          "constraints": { "future": true },
+          "issuedAt": "2030-01-01T00:00:00Z",
+          "expiresAt": "2030-01-01T00:05:00Z",
+          "maxUses": 3,
+          "remainingUses": 3,
+          "authorization": { "kind": "approval", "ref": "approval:fixture" }
+        }
       ],
       "expected": { "status": "NO_CANDIDATE", "candidateLeaseRefs": [] }
     },
@@ -248,7 +563,20 @@
       "capability": "process.exec",
       "resource": { "scheme": "process", "locator": "git" },
       "leases": [
-        { "leaseRef": "lease:other-capability", "subjectRef": "agent/root", "capability": "process.resolve", "resource": { "scheme": "process", "locator": "git" }, "constraints": { "future": true } }
+        {
+          "apiVersion": "safe-runtime.dev/v1alpha1",
+          "kind": "CapabilityLease",
+          "leaseRef": "lease:other-capability",
+          "subjectRef": "agent/root",
+          "capability": "process.resolve",
+          "resource": { "scheme": "process", "locator": "git" },
+          "constraints": { "future": true },
+          "issuedAt": "2030-01-01T00:00:00Z",
+          "expiresAt": "2030-01-01T00:05:00Z",
+          "maxUses": 3,
+          "remainingUses": 3,
+          "authorization": { "kind": "approval", "ref": "approval:fixture" }
+        }
       ],
       "expected": { "status": "NO_CANDIDATE", "candidateLeaseRefs": [] }
     },
@@ -259,7 +587,20 @@
       "capability": "process.exec",
       "resource": { "scheme": "process", "locator": "git" },
       "leases": [
-        { "leaseRef": "lease:other-resource", "subjectRef": "agent/root", "capability": "process.exec", "resource": { "scheme": "process", "locator": "node" }, "constraints": { "future": true } }
+        {
+          "apiVersion": "safe-runtime.dev/v1alpha1",
+          "kind": "CapabilityLease",
+          "leaseRef": "lease:other-resource",
+          "subjectRef": "agent/root",
+          "capability": "process.exec",
+          "resource": { "scheme": "process", "locator": "node" },
+          "constraints": { "future": true },
+          "issuedAt": "2030-01-01T00:00:00Z",
+          "expiresAt": "2030-01-01T00:05:00Z",
+          "maxUses": 3,
+          "remainingUses": 3,
+          "authorization": { "kind": "approval", "ref": "approval:fixture" }
+        }
       ],
       "expected": { "status": "NO_CANDIDATE", "candidateLeaseRefs": [] }
     },
@@ -270,7 +611,19 @@
       "capability": "process.exec",
       "resource": { "scheme": "process", "locator": "git" },
       "leases": [
-        { "leaseRef": "lease:expired-looking", "subjectRef": "agent/root", "capability": "process.exec", "resource": { "scheme": "process", "locator": "git" }, "issuedAt": "2020-01-01T00:00:00Z", "expiresAt": "2020-01-01T00:01:00Z", "maxUses": 1, "remainingUses": 1, "authorization": { "kind": "approval", "ref": "approval:old" } }
+        {
+          "apiVersion": "safe-runtime.dev/v1alpha1",
+          "kind": "CapabilityLease",
+          "leaseRef": "lease:expired-looking",
+          "subjectRef": "agent/root",
+          "capability": "process.exec",
+          "resource": { "scheme": "process", "locator": "git" },
+          "issuedAt": "2020-01-01T00:00:00Z",
+          "expiresAt": "2020-01-01T00:01:00Z",
+          "maxUses": 1,
+          "remainingUses": 1,
+          "authorization": { "kind": "approval", "ref": "approval:old" }
+        }
       ],
       "expected": { "status": "CANDIDATES_FOUND", "candidateLeaseRefs": ["lease:expired-looking"] }
     },
@@ -281,7 +634,19 @@
       "capability": "process.exec",
       "resource": { "scheme": "process", "locator": "git" },
       "leases": [
-        { "leaseRef": "lease:zero", "subjectRef": "agent/root", "capability": "process.exec", "resource": { "scheme": "process", "locator": "git" }, "issuedAt": "2030-01-01T00:00:00Z", "expiresAt": "2030-01-01T00:01:00Z", "maxUses": 1, "remainingUses": 0, "authorization": { "kind": "approval", "ref": "approval:future" } }
+        {
+          "apiVersion": "safe-runtime.dev/v1alpha1",
+          "kind": "CapabilityLease",
+          "leaseRef": "lease:zero",
+          "subjectRef": "agent/root",
+          "capability": "process.exec",
+          "resource": { "scheme": "process", "locator": "git" },
+          "issuedAt": "2030-01-01T00:00:00Z",
+          "expiresAt": "2030-01-01T00:01:00Z",
+          "maxUses": 1,
+          "remainingUses": 0,
+          "authorization": { "kind": "approval", "ref": "approval:future" }
+        }
       ],
       "expected": { "status": "CANDIDATES_FOUND", "candidateLeaseRefs": ["lease:zero"] }
     },
@@ -292,7 +657,20 @@
       "capability": "fs.read",
       "resource": { "scheme": "workspace", "locator": "src/a.ts" },
       "leases": [
-        { "leaseRef": "lease:child", "subjectRef": "subagent:child", "parentLeaseRef": "lease:missing-parent", "capability": "fs.read", "resource": { "scheme": "workspace", "locator": "src/a.ts" } }
+        {
+          "apiVersion": "safe-runtime.dev/v1alpha1",
+          "kind": "CapabilityLease",
+          "leaseRef": "lease:child",
+          "subjectRef": "subagent:child",
+          "parentLeaseRef": "lease:missing-parent",
+          "capability": "fs.read",
+          "resource": { "scheme": "workspace", "locator": "src/a.ts" },
+          "issuedAt": "2030-01-01T00:00:00Z",
+          "expiresAt": "2030-01-01T00:05:00Z",
+          "maxUses": 3,
+          "remainingUses": 3,
+          "authorization": { "kind": "lease", "ref": "lease:missing-parent" }
+        }
       ],
       "expected": { "status": "CANDIDATES_FOUND", "candidateLeaseRefs": ["lease:child"] }
     },
@@ -303,10 +681,57 @@
       "capability": "process.exec",
       "resource": { "scheme": "process", "locator": "git" },
       "leases": [
-        { "leaseRef": "lease:system", "subjectRef": "agent/root", "capability": "process.exec", "resource": { "scheme": "process", "locator": "git" }, "authorization": { "kind": "system", "ref": "system:1" } },
-        { "leaseRef": "lease:approval", "subjectRef": "agent/root", "capability": "process.exec", "resource": { "scheme": "process", "locator": "git" }, "authorization": { "kind": "approval", "ref": "approval:1" } }
+        {
+          "apiVersion": "safe-runtime.dev/v1alpha1",
+          "kind": "CapabilityLease",
+          "leaseRef": "lease:system",
+          "subjectRef": "agent/root",
+          "capability": "process.exec",
+          "resource": { "scheme": "process", "locator": "git" },
+          "issuedAt": "2030-01-01T00:00:00Z",
+          "expiresAt": "2030-01-01T00:05:00Z",
+          "maxUses": 3,
+          "remainingUses": 3,
+          "authorization": { "kind": "system", "ref": "system:1" }
+        },
+        {
+          "apiVersion": "safe-runtime.dev/v1alpha1",
+          "kind": "CapabilityLease",
+          "leaseRef": "lease:approval",
+          "subjectRef": "agent/root",
+          "capability": "process.exec",
+          "resource": { "scheme": "process", "locator": "git" },
+          "issuedAt": "2030-01-01T00:00:00Z",
+          "expiresAt": "2030-01-01T00:05:00Z",
+          "maxUses": 3,
+          "remainingUses": 3,
+          "authorization": { "kind": "approval", "ref": "approval:1" }
+        }
       ],
       "expected": { "status": "CANDIDATES_FOUND", "candidateLeaseRefs": ["lease:approval", "lease:system"] }
+    },
+    {
+      "id": "LEASE-LOOKUP-028",
+      "description": "too-short Lease capability fails closed when a runtime caller bypasses the CapabilityLease schema boundary",
+      "subject": { "kind": "agent", "id": "agent/root", "sessionRef": "session:1" },
+      "capability": "process.exec",
+      "resource": { "scheme": "process", "locator": "git" },
+      "leases": [
+        {
+          "apiVersion": "safe-runtime.dev/v1alpha1",
+          "kind": "CapabilityLease",
+          "leaseRef": "lease:bad-capability",
+          "subjectRef": "agent/other",
+          "capability": "x",
+          "resource": { "scheme": "workspace", "locator": "other" },
+          "issuedAt": "2030-01-01T00:00:00Z",
+          "expiresAt": "2030-01-01T00:05:00Z",
+          "maxUses": 3,
+          "remainingUses": 3,
+          "authorization": { "kind": "approval", "ref": "approval:fixture" }
+        }
+      ],
+      "expected": { "status": "FAIL_CLOSED", "stage": "LEASE_SNAPSHOT", "reasonCode": "LEASE_LOOKUP_CAPABILITY_INVALID" }
     }
   ]
 }
