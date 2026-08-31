@@ -1165,8 +1165,9 @@ are detached and deeply frozen.
 
 M4-011 also introduced package-internal classifier modularization:
 `tool-classifier/hostile-input.ts`, `builtin-filesystem.ts`, and
-`builtin-shell.ts`, while retaining the original filesystem classifier import as
-a compatibility facade. This is not a registry and does not pull M4-014 forward.
+`tool-classifier/builtin-shell.ts`, while retaining the original filesystem
+classifier import as a compatibility facade. This is not a registry and does not
+pull M4-014 forward.
 
 Exact accepted implementation evidence at `c8a53182...`:
 
@@ -1385,3 +1386,71 @@ dependency, lockfile, Harness baseline or security guarantee changes here. The
 resulting final-governance exact head must itself reach normal CI + exact Harness
 rc5 source-conformance dual-green before M4-020 governance is CLOSED and M4-021
 policy evaluation becomes the next protocol-first Gate.
+
+## 2026-08-31 — Accept M4-021 deterministic policy evaluation
+
+M4-021 is accepted at the implementation boundary on
+`21487cb2107dd708aab255472a1c2f71d3659584` after protocol-first definition in
+Spec 0032 and a 31-case portable policy-evaluation corpus.
+
+The protocol-first exact head
+`3e9575ec90db6b509d818716cc9d3dc48c6febd4` reached normal CI #425 / run
+`33327340780` PASS and exact Harness rc5 source-conformance #367 PASS before
+production evaluator implementation began.
+
+The accepted evaluator composes the already accepted M4 primitives instead of
+creating a second precedence algorithm: exact resolved-Subject applicability and
+exact capability applicability feed M4-004 resource matching/specificity/priority
+bands, then M4-005 effect resolution, M4-006 default deny and M4-007 explanation.
+The existing precedence remains explicit deny > resource specificity > explicit
+priority > ask > allow > default deny.
+
+The portable Subject-selector grammar is exactly
+`<SubjectKind>://<SubjectId>`. Matching is exact standard kind + exact opaque ID;
+omitted `subjects` means unconstrained. No wildcard, prefix, regex, role/group,
+parent/descendant, session, alias or Harness identity semantics are introduced,
+and `*` remains ordinary Subject ID data.
+
+Rule IDs are globally unique before request-dependent filtering. Capabilities use
+the existing CapabilityRequest lexical profile and exact string equality.
+Acceptance review found and fixed a defensive-boundary defect: a caller bypassing
+M4-002 could previously supply schema-invalid `rule.capabilities[]` text that
+became an ordinary no-match. The accepted head validates every materialized rule
+capability before request filtering, so malformed selector text fails closed.
+
+Because Core/Schema still define `constraints` as open JSON objects without a
+portable predicate language, M4-021 does not invent equality/subset/merge
+semantics. Omitted or empty constraints mean zero predicates; a non-empty
+constraint on an otherwise Subject+capability+Resource matching rule fails closed
+as `POLICY_CONSTRAINT_PROFILE_UNSUPPORTED`. Irrelevant constrained rules are not
+traversed as global blockers.
+
+Runtime hardening rejects accessor/inherited/symbol authority, sparse or named
+arrays, unreadable descriptors and revoked Proxies without executing getters.
+Successful evaluation facts are detached and immutable; failures expose stable
+bounded stage/reason data without echoing attacker-controlled values.
+
+M4-021 deliberately does not perform lease lookup/consumption, approval routing,
+persisted CapabilityDecision or matched-rule references, receipt/provenance,
+guarantee assignment, delegation attenuation proof, provider execution or PEP
+enforcement.
+
+Exact accepted implementation evidence at `21487cb2...`:
+
+- normal CI #437 / run `33347983574`: PASS;
+- exact Harness rc5 source-conformance #379 / run `33347983577`: PASS.
+
+Acceptance audit commit is
+`140c6bb0af5ef74f3b727ff929863350bf541b7a`. Acceptance-record exact head is
+`17c7c9ddd69f78490a0008f9cd86a0208fdc723a`, which reached normal CI #440 /
+run `33348242609` PASS and exact Harness rc5 source-conformance #382 / run
+`33348242607` PASS before this final governance record was prepared.
+
+`docs/acceptance/m4-021-acceptance-audit.md` records M4-021 accepted at the
+implementation boundary. This final governance state is restricted to append-only
+HISTORY, CURRENT handoff state and only the M4-021 roadmap acceptance marker. No
+production evaluator, protocol Spec/corpus/schema, Shared TCK, dependency,
+lockfile, Harness baseline or later-Gate behavior changes here. The resulting
+final-governance exact head must itself reach normal CI + exact Harness rc5
+source-conformance dual-green before M4-021 governance is CLOSED and M4-022 P0
+lease lookup becomes the next protocol-first Gate.
