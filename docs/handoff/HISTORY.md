@@ -569,8 +569,8 @@ Direct evidence:
 - the external dummy implementation proves required PASS, deliberate FAIL, and
   thrown-implementation ERROR behavior through public testkit exports;
 - exact Harness rc5 source-conformance #177 / run `32482908210`: PASS, including
-  pinned source build, reproducible install, package projection,
-  idempotence, exact-source TypeScript, and real rc5 runtime conformance.
+  pinned source build, projection/idempotence, exact binding typecheck and real
+  rc5 runtime conformance.
 
 DeepSeek Harness remains Adapter compatibility evidence only; it did not define
 or modify Shared TCK semantics.
