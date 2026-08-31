@@ -1589,3 +1589,64 @@ CURRENT handoff state and only the M4-023 roadmap acceptance marker. The
 resulting exact head must itself reach normal CI + exact pinned Harness rc5
 source-conformance dual-green before M4-023 governance is CLOSED and M4-024 P0
 decision receipt becomes the next protocol-first Gate.
+
+## 2026-08-31 — Accept M4-024 deterministic Decision/Receipt construction
+
+M4-024 is accepted at the implementation boundary on
+`8c12354c8e4902945c352b74536d3ea47615e14a` after protocol-first definition in
+Spec 0035 and a 27-case portable decision-receipt corpus.
+
+The protocol-first exact head
+`04cd977078478d414af8daee06e24dc21754618e` reached normal CI #484 / run
+`33379337103` PASS and exact Harness rc5 source-conformance #426 / run
+`33379337065` PASS before production implementation began. Protocol-first work
+also reconciled only the stale Core §13 Receipt example with the already
+published v1alpha1 wire shape; no schema/type wire-model change was introduced.
+
+The accepted primitive constructs an immutable CapabilityDecision plus broker
+decision-Receipt from an already-final M4-023 routing fact and explicit
+requestRef/decisionRef/receiptRef/guarantee/timestamp inputs. It never generates
+IDs, reads host time/randomness, reruns policy/approval/Lease logic, executes an
+action or persists audit state.
+
+Mapping is routed allow -> allow/allowed, routed deny -> deny/denied, and accepted
+M4-023 FAIL_CLOSED -> deny/error. Post-routing ask/approval-required is not
+emitted. The supplied guaranteeLevel is only validated/copied; M4-025 owns trusted
+guarantee determination.
+
+M4-024 deliberately does not fabricate policyRef, matchedRuleRefs, free-text
+reason, approvalRef/AuthorizationRef, leaseRef, resource/argument/result digests,
+execution success or PEP authority.
+
+Runtime hardening uses exact own data-property inspection, rejects
+accessors/inherited/symbol authority and revoked/unreadable Proxies without
+executing getters, performs no implicit string coercion, validates opaque refs by
+Unicode code points and timestamps using deterministic RFC3339 lexical/calendar
+checks, returns detached frozen records, and never emits attacker values in
+failures.
+
+Acceptance review found and fixed a semantic issue after an earlier green
+implementation: legal M4-023 failure stage/reason values were initially checked
+independently, permitting impossible cross-stage combinations to become durable
+records. The accepted head validates stage-to-reason ownership coherence and adds
+a forged-combination regression.
+
+Exact accepted implementation evidence at `8c12354c...`:
+
+- normal CI #491 / run `33381979888`: PASS;
+- exact Harness rc5 source-conformance #433 / run `33381979902`: PASS;
+- 49 test files / 933 tests PASS;
+- M4-024 primary suite: 30 PASS;
+- M4-024 hostile-runtime hardening suite: 10 PASS.
+
+Acceptance audit is `docs/acceptance/m4-024-acceptance-audit.md`.
+Acceptance-record exact head is
+`bfb42d9600b223937081f8ebaf19627ea4282bbc`, which reached normal CI #493 /
+run `33382353257` PASS and exact Harness rc5 source-conformance #435 / run
+`33382353285` PASS before this final governance record was prepared.
+
+This final governance transition is intentionally limited to append-only HISTORY,
+CURRENT handoff state and only the M4-024 roadmap acceptance marker. The
+resulting exact head must itself reach normal CI + exact pinned Harness rc5
+source-conformance dual-green before M4-024 governance is CLOSED and M4-025 P0
+guarantee level becomes the next protocol-first Gate.
