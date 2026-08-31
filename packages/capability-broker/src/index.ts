@@ -1,17 +1,18 @@
 /**
  * Capability Broker public package surface.
  *
- * M4-010 through M4-014 classifier/fallback stages and M4-020 through M4-022
- * prerequisites are governance-closed. M4-023 deterministic approval routing is
- * implementation-accepted after exact-head dual-green protocol-first and
- * implementation Gates; final governance closure remains separate.
+ * M4-010 through M4-014 classifier/fallback stages and M4-020 through M4-023
+ * PDP prerequisites are governance-closed. M4-024 deterministic Decision /
+ * broker decision-Receipt construction is implemented behind its protocol-first
+ * contract and remains subject to exact-head implementation acceptance.
  *
- * Approval routing is not a durable CapabilityDecision or execution authority.
- * Lease lifecycle/consume, decision receipts, guarantees and PEP enforcement
- * remain later Gates.
+ * M4-024 does not determine guarantee truth, validate/consume Lease lifecycle,
+ * enforce a PEP, execute actions or persist audit records. Those remain later
+ * Gates.
  *
- * Protocol capability names remain owned by `@dsh-safe/protocol`; this package
- * has no concrete DeepSeek Harness runtime dependency.
+ * Protocol capability/Decision/Receipt types remain owned by
+ * `@dsh-safe/protocol`; this package has no concrete DeepSeek Harness runtime
+ * dependency.
  */
 export const PACKAGE_STAGE = "M4-023-APPROVAL-ROUTING-ACCEPTED" as const;
 
@@ -46,3 +47,16 @@ export {
   type AuthorityApprovalRoute,
   type PolicyApprovalRoute,
 } from "./approval-routing-types.js";
+export { constructCapabilityDecisionReceipt } from "./decision-receipt.js";
+export {
+  type ConstructedCapabilityDecision,
+  type ConstructedCapabilityReceipt,
+  type DecisionReceiptConstructed,
+  type DecisionReceiptConstructionInput,
+  type DecisionReceiptConstructionResult,
+  type DecisionReceiptDecisionReasonCode,
+  type DecisionReceiptFailure,
+  type DecisionReceiptFailureReason,
+  type DecisionReceiptIssuanceContext,
+  type DecisionReceiptStage,
+} from "./decision-receipt-types.js";
