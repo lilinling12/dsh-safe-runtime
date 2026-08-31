@@ -290,7 +290,7 @@ Acceptance evidence
 
 - [x] `M4-020 P0` Subject resolution。 **ACCEPTED：Spec 0031 + 30 portable cases + deterministic fail-closed Subject identity/context resolution + authoritative request-session consistency + hostile own-data/proxy hardening；accepted implementation head `31b3b190...`，CI #414 / Harness #356 PASS；验收记录 `docs/acceptance/m4-020-acceptance-audit.md`。**
 - [x] `M4-021 P0` policy evaluation。 **ACCEPTED：Spec 0032 + 31 portable cases + exact Subject/capability/resource applicability composition + global rule-ID preflight + fail-closed unsupported-constraint boundary + hostile-runtime hardening；accepted implementation head `21487cb2...`，CI #437 / Harness #379 PASS；验收记录 `docs/acceptance/m4-021-acceptance-audit.md`。**
-- [ ] `M4-022 P0` lease lookup。
+- [x] `M4-022 P0` lease lookup。 **ACCEPTED：Spec 0033 + 28 portable cases + exact Subject/capability/canonical-resource candidate lookup + duplicate leaseRef preflight + unsupported matching-constraint fail-closed boundary + hostile-runtime hardening；accepted implementation head `ef465fcf...`，CI #459 / Harness #401 PASS；验收记录 `docs/acceptance/m4-022-acceptance-audit.md`。**
 - [ ] `M4-023 P0` approval routing。
 - [ ] `M4-024 P0` decision receipt。
 - [ ] `M4-025 P0` guarantee level。
