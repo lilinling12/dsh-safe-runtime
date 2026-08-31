@@ -2,10 +2,10 @@
  * @dsh-safe/policy-engine public boundary.
  *
  * M4-001 through M4-014 and M4-020 are governance-closed. M4-021 policy
- * evaluation is in implementation review after an exact-head dual-green
- * protocol-first Gate. Lease/approval/decision/guarantee/PEP work remains later.
+ * evaluation is accepted at the implementation boundary; final governance is
+ * still pending. Lease/approval/decision/guarantee/PEP work remains later.
  */
-export const PACKAGE_STAGE = "M4-021-POLICY-EVALUATION-IN-REVIEW" as const;
+export const PACKAGE_STAGE = "M4-021-POLICY-EVALUATION-ACCEPTED" as const;
 
 export {
   loadPolicyDocument,
