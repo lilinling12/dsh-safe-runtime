@@ -1165,9 +1165,8 @@ are detached and deeply frozen.
 
 M4-011 also introduced package-internal classifier modularization:
 `tool-classifier/hostile-input.ts`, `builtin-filesystem.ts`, and
-`tool-classifier/builtin-shell.ts`, while retaining the original filesystem
-classifier import as a compatibility facade. This is not a registry and does not
-pull M4-014 forward.
+`builtin-shell.ts`, while retaining the original filesystem classifier import as
+a compatibility facade. This is not a registry and does not pull M4-014 forward.
 
 Exact accepted implementation evidence at `c8a53182...`:
 
