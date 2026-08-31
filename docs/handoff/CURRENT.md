@@ -16,8 +16,8 @@
 - M4-020 Subject resolution: **GOVERNANCE CLOSED**
 - M4-021 policy evaluation: **GOVERNANCE CLOSED**
 - M4-022 lease lookup: **GOVERNANCE CLOSED**
-- M4-023 approval routing: **AUTHORIZED / PROTOCOL-FIRST IN PROGRESS**
-- M4-024+, M4-030+, M4-040+ and M6: **NOT AUTHORIZED**
+- M4-023 approval routing: **IMPLEMENTATION ACCEPTED / FINAL GOVERNANCE VERIFICATION**
+- M4-024+, M4-030+, M4-040+ and M6: **NOT AUTHORIZED until M4-023 final-governance exact head is dual-green**
 
 Live GitHub state overrides this file.
 
@@ -45,36 +45,9 @@ Harness behavior MUST NOT define Core approval semantics, action identity,
 CapabilityDecision identity/provenance, Lease lifecycle, guarantees, plugin
 trust, or PEP behavior.
 
-## M4-022 final closure
+## M4-023 accepted implementation
 
-M4-022 final-governance exact head:
-
-```text
-2c22f385b3e68d6c208f30d8527e2fce5abbc016
-```
-
-Exact-head evidence:
-
-- CI #464: PASS;
-- Harness rc5 source-conformance #406: PASS.
-
-The final-governance delta from acceptance-record head `778c9ff6...` was exactly:
-
-```text
-docs/handoff/CURRENT.md
-docs/handoff/HISTORY.md
-docs/roadmap.md
-```
-
-with HISTORY `+65/-0` and roadmap `+1/-1`. No production code, normative Spec,
-Schema, TCK, dependency, lockfile or Harness baseline changed in that governance
-transition.
-
-Therefore **M4-022 governance is CLOSED**.
-
-## Current Gate — M4-023 P0 deterministic approval routing
-
-Normative draft:
+Normative specification:
 
 ```text
 specs/0034-m4-approval-routing.md
@@ -88,10 +61,66 @@ fixtures/approval-routing/cases.json
 
 Portable cases: `25`.
 
-M4-023 is deliberately an **approval-routing fact**, not a durable authorization
-object. It consumes the accepted M4-021 policy-evaluation result and, only on an
-`ask` effect, the accepted M4-022 Lease-lookup result plus minimal original-action
-correlation.
+Protocol-first exact head:
+
+```text
+85b8f5dd6e171beeccab96554f748191a200449e
+```
+
+Exact-head evidence:
+
+- CI #467 / run `33375423438`: PASS;
+- Harness rc5 source-conformance #409 / run `33375423440`: PASS.
+
+Accepted implementation exact head:
+
+```text
+98bb59e7dbd74b0522be5c4e028b72f3dc074e8b
+```
+
+Exact-head evidence:
+
+- CI #474 / run `33376276973`: PASS;
+- Harness rc5 source-conformance #416 / run `33376276981`: PASS;
+- 47 test files / 893 tests PASS;
+- M4-023 primary suite: 38 tests PASS;
+- post-green coercion hardening: 2 tests PASS.
+
+Acceptance audit:
+
+```text
+docs/acceptance/m4-023-acceptance-audit.md
+```
+
+Acceptance-record exact head:
+
+```text
+4ca482371dde4d865fdc1aa090d0c44b35c952e9
+```
+
+Exact-head evidence:
+
+- CI #476 / run `33376643531`: PASS;
+- Harness rc5 source-conformance #418 / run `33376643536`: PASS.
+
+The implementation delta from protocol-first to accepted implementation was
+audited and limited to exactly five `packages/capability-broker/src` files:
+
+```text
+approval-routing-types.ts
+approval-routing.ts
+approval-routing.test.ts
+approval-routing-hardening.test.ts
+index.ts
+```
+
+No Adapter, protocol/schema/TCK, dependency, lockfile, Harness baseline or later
+Gate file changed in the implementation delta.
+
+## M4-023 semantic boundary
+
+M4-023 produces a deterministic **approval-routing fact**, not a durable
+CapabilityDecision and not execution authority.
 
 ### Policy short-circuit
 
@@ -102,13 +131,12 @@ M4-021 deny        -> routed deny from POLICY; no approval
 M4-021 ask         -> enter Lease-result/approval path
 ```
 
-Human approval cannot override a policy deny. Policy allow/deny/failure paths do
-not inspect irrelevant Lease or approval-request values.
+A human approval path cannot override policy deny.
 
 ### Lease boundary
 
-M4-022 returns candidates, not usable Lease authority. M4-023 therefore does not
-skip approval merely because candidates exist:
+M4-022 `CANDIDATES_FOUND` remains candidate identity only and cannot bypass
+approval before Lease lifecycle/validity/consume semantics exist:
 
 ```text
 ask + Lease FAIL_CLOSED      -> preserve failure; no approval
@@ -116,116 +144,110 @@ ask + NO_CANDIDATE           -> approval exactly once
 ask + CANDIDATES_FOUND       -> approval exactly once
 ```
 
-Candidate Lease refs are not forwarded to approval and do not participate in
-routing precedence. TTL, remaining-use validity, atomic consume, revoke and
-attenuation remain M4-030 through M4-034.
+Candidate refs are not traversed or forwarded by M4-023.
 
 ### Approval outcome boundary
 
-The portable approval result domain remains exactly the already accepted four
-values:
+The accepted portable outcomes remain exactly:
 
 ```text
 ALLOWED_ONCE -> routed allow
 REJECTED     -> routed deny
-CANCELLED    -> routed deny with distinct outcome
-UNAVAILABLE  -> routed deny with distinct outcome
+CANCELLED    -> routed deny, distinct outcome preserved
+UNAVAILABLE  -> routed deny, distinct outcome preserved
 ```
 
-Only `ALLOWED_ONCE` produces an M4-023 routed allow fact. No `ALLOWED_ALWAYS`,
-truthy alias, remembered approval or implicit approval is accepted. Provider
-throw/rejection or malformed outcome fails closed with a stable sanitized reason.
+No `ALLOWED_ALWAYS`, truthy alias, remembered approval or implicit success is
+accepted. Provider throw/rejection and malformed outcomes fail closed with
+sanitized stable reason codes.
 
-### Correlation boundary
+### Correlation and provenance boundary
 
-The portable approval request is intentionally minimal:
+The portable request contains only:
 
 ```text
-ApprovalRoutingRequest {
-  requestRef: original CapabilityRequest.requestId
-  actionRef:  original CapabilityRequest.actionRef
-  reason?:    original caller-supplied reason
-}
+requestRef
+actionRef
+reason?
 ```
 
-`requestRef` and `actionRef` reuse the existing opaque `defs.ref` domain and are
-preserved exactly. M4-023 MUST NOT assume that protocol `actionRef` equals a
-DeepSeek Harness `callRef` or `CallId` merely because a string resembles one.
-Runtime call/session/tool correlation belongs to the Adapter/PEP composition
-layer and must be supplied from authoritative runtime context.
+Protocol `actionRef` is not guessed/cast into a Harness `callRef` or `CallId`.
+The synchronous M2 approval port returns only the normalized outcome; durable
+Harness `approvalRef` evidence is separate. M4-023 therefore does not fabricate
+approvalRef, AuthorizationRef, CapabilityDecision identity or receipt identity.
 
-### Provenance boundary
+### Hostile-runtime hardening
 
-The accepted M2 synchronous approval port returns only the normalized decision.
-Pinned Harness generates its durable `approvalRef` separately in approval event
-evidence. M4-023 therefore MUST NOT fabricate:
+Security-relevant consumed fields are read through own data-property
+descriptors. Earlier authoritative results stop later hostile-value inspection.
+Tests cover accessors, revoked Proxies, unexpected/symbol fields, non-traversal
+of policy rule-ID arrays and candidate Lease refs, sync throws, async rejects,
+malformed provider outcomes, exact-once invocation, detached/frozen requests and
+outputs, and failure redaction.
+
+Acceptance review found a security issue after an already green implementation:
+`String(effect)` could execute attacker-controlled coercion hooks when static
+typing was bypassed. The accepted head replaced coercion with exact scalar
+comparisons and added dedicated `Symbol.toPrimitive`/accessor regressions.
+
+## Quality note
+
+The repository-wide oxlint run reports two warnings that already existed on the
+M4-023 protocol-first head before production implementation:
 
 ```text
-approvalRef
-AuthorizationRef(kind=approval)
-CapabilityDecision.decisionId
-receiptRef
+Do not use `new Array(singleArgument)`.
+Do not add `then` to an object.
 ```
 
-Authoritative approval provenance must be correlated later before durable
-Decision/Receipt construction. M4-023 itself performs no execution.
+M4-023 introduces no lint-warning regression. These unrelated historical
+warning sites were not folded into this security-sensitive Gate merely to make a
+cosmetic claim of 0/0.
 
-### Architecture boundary
-
-The eventual reference implementation belongs under `packages/capability-broker`
-and should define a minimal runtime-independent `ApprovalInvocationPort`.
-Capability Broker MUST NOT import concrete `@dsh-safe/adapter-dsh` or
-`@deepseek-ai/*` types. A later composition layer may structurally adapt this
-port to the active Runtime Adapter without redefining portable semantics.
-
-### Privacy / least disclosure
-
-M4-023 does not automatically forward Subject/session data, capability, Resource,
-constraints/raw arguments, policy/rule IDs, candidate Lease refs, provider
-identity/tokens, secrets or host exception text. Only requestRef, actionRef and an
-explicit caller-supplied reason are in the portable approval request.
-
-## Explicit non-goals
+## Later Gates remain separate
 
 M4-023 does not:
 
-- create/persist protocol `CapabilityDecision` — M4-024;
-- create/persist `CapabilityReceipt` — M4-024 and later provenance work;
+- construct/persist final CapabilityDecision or CapabilityReceipt — M4-024;
 - assign guarantee level — M4-025;
 - validate Lease TTL — M4-030;
 - validate/decrement maxUses/remainingUses — M4-031;
 - atomically consume a Lease — M4-032;
-- revoke a Lease — M4-033;
+- revoke — M4-033;
 - prove parent-child attenuation — M4-034;
 - register/enforce a PEP — M4-040+;
 - implement M6.
 
-An M4-023 `ROUTED allow` remains an intermediate fact and is not permission to
-execute outside later final-decision/provenance/PEP requirements.
+An M4-023 routed allow remains an intermediate fact and cannot independently
+authorize execution.
 
-## Protocol-first Gate condition
+## Final governance condition
 
-**Production M4-023 implementation has NOT STARTED and is NOT AUTHORIZED yet.**
-
-Before production implementation, one exact protocol-first head MUST contain,
-relative to M4-022 final-governance head `2c22f385...`, exactly:
+The M4-023 implementation and acceptance-record heads are dual-green. Final
+governance is now limited to exactly:
 
 ```text
-specs/0034-m4-approval-routing.md
-fixtures/approval-routing/cases.json
 docs/handoff/CURRENT.md
+docs/handoff/HISTORY.md   # append-only
+docs/roadmap.md           # only M4-023 marker
 ```
 
-It MUST NOT contain production M4-023 code, Adapter changes, protocol/schema/TCK
-weakening, dependency/lockfile changes, Harness baseline changes, M4-024+,
-M4-030+, M4-040+ or M6 implementation.
-
-That exact protocol-first head MUST reach both:
+The resulting final-governance exact head MUST itself reach:
 
 1. normal CI PASS;
 2. exact pinned Harness rc5 source-conformance PASS.
 
-Only after exact-head dual-green may M4-023 production implementation begin.
+Before that exact-head evidence exists, M4-023 MUST NOT be declared governance
+closed and M4-024 MUST NOT start.
+
+After exact-head dual-green verification:
+
+```text
+M4-023: GOVERNANCE CLOSED
+M4-024: P0 decision receipt — AUTHORIZED / PROTOCOL-FIRST
+```
+
+M4-025+, M4-030+, M4-040+ and M6 remain unauthorized by that transition.
 
 ## Boundaries that remain enforced
 
@@ -234,17 +256,20 @@ Only after exact-head dual-green may M4-023 production implementation begin.
 - Never weaken schema validation, TCK, strict TypeScript, frozen installs,
   supply-chain policy, architecture boundaries, source-conformance or fail-closed
   behavior for CI.
-- Approval cannot override policy deny or broaden the original request.
-- Lease candidates remain non-authoritative until later lifecycle/consume Gates.
-- No fabricated approval provenance.
+- Approval cannot override policy deny or expand the original request.
+- Lease candidates are not usable Lease authority.
+- No fabricated approval provenance or actionRef-to-callRef identity.
 - No merge of PR #3 without explicit user authorization.
 
 ## Resume instruction
 
 1. refresh PR #3 exact head/base/reviews/threads and exact-head workflows;
-2. audit the M4-023 protocol-first delta from `2c22f385...` and require exactly
-   Spec 0034, the 25-case corpus and CURRENT;
-3. require normal CI plus exact pinned Harness rc5 source-conformance dual-green;
-4. only then authorize M4-023 TypeScript production implementation;
-5. keep M4-024+, M4-030+, M4-040+ and M6 unauthorized;
-6. keep PR #3 Draft and do not merge without explicit authorization.
+2. audit M4-023 final-governance delta from acceptance-record head
+   `4ca48237...` and require only CURRENT, append-only HISTORY and only the
+   M4-023 roadmap marker;
+3. explicitly require HISTORY deletions = `0`;
+4. require final-governance exact-head normal CI + pinned Harness dual-green;
+5. only then declare **M4-023 GOVERNANCE CLOSED** and authorize **M4-024 P0
+   decision receipt protocol-first**;
+6. keep M4-025+, M4-030+, M4-040+ and M6 unauthorized;
+7. keep PR #3 Draft and do not merge without explicit authorization.
