@@ -569,8 +569,8 @@ Direct evidence:
 - the external dummy implementation proves required PASS, deliberate FAIL, and
   thrown-implementation ERROR behavior through public testkit exports;
 - exact Harness rc5 source-conformance #177 / run `32482908210`: PASS, including
-  pinned source build, projection/idempotence, exact binding typecheck and real
-  rc5 runtime conformance.
+  pinned source build, reproducible install, package projection,
+  idempotence, exact-source TypeScript, and real rc5 runtime conformance.
 
 DeepSeek Harness remains Adapter compatibility evidence only; it did not define
 or modify Shared TCK semantics.
@@ -1518,3 +1518,74 @@ baseline or later-Gate behavior changes here. The resulting final-governance
 exact head must itself reach normal CI + exact Harness rc5 source-conformance
 dual-green before M4-022 governance is CLOSED and M4-023 P0 approval routing
 becomes the next protocol-first Gate.
+
+## 2026-08-31 — Accept M4-023 deterministic approval routing
+
+M4-023 is accepted at the implementation boundary on
+`98bb59e7dbd74b0522be5c4e028b72f3dc074e8b` after protocol-first definition in
+Spec 0034 and a 25-case portable approval-routing corpus.
+
+The protocol-first exact head
+`85b8f5dd6e171beeccab96554f748191a200449e` reached normal CI #467 / run
+`33375423438` PASS and exact Harness rc5 source-conformance #409 / run
+`33375423440` PASS before production implementation began.
+
+The accepted primitive consumes the existing M4-021 policy result rather than
+redefining PDP semantics. Policy fail-closed reasons are preserved, policy
+`allow` and `deny` short-circuit without approval, and only `ask` proceeds to the
+Lease-result/approval path. Human approval cannot override a policy deny.
+
+M4-022 candidates remain non-authoritative: both `NO_CANDIDATE` and
+`CANDIDATES_FOUND` route an `ask` to approval exactly once, while Lease lookup
+failure stops before approval. Candidate refs and policy rule-ID arrays are not
+traversed or forwarded merely to make the routing decision.
+
+The exact portable approval outcome domain is `ALLOWED_ONCE`, `REJECTED`,
+`CANCELLED`, and `UNAVAILABLE`. Only `ALLOWED_ONCE` produces a routed allow fact;
+all other accepted outcomes deny. Provider throw/rejection and malformed values
+fail closed with sanitized stable reasons. There is no `ALLOWED_ALWAYS`, implicit
+truthy approval, retry or remembered approval.
+
+The capability-broker owns a minimal runtime-independent approval port and does
+not import concrete Adapter/Harness types. Portable correlation is limited to the
+original `requestRef`, `actionRef`, and optional caller-supplied reason. M4-023
+does not guess that protocol `actionRef` equals Harness `callRef`, and it does not
+fabricate approvalRef, AuthorizationRef, CapabilityDecision identity or receipt
+identity.
+
+Hostile-runtime hardening uses own data-property inspection, rejects accessors,
+revoked Proxies, unexpected/symbol fields and unreadable descriptors, preserves
+earlier short-circuit ordering, and returns detached frozen provider requests and
+routing results. Acceptance review found a security issue after an already green
+implementation: `String(effect)` could execute attacker-controlled coercion hooks
+when static typing was bypassed. The accepted head replaced coercion with exact
+scalar comparisons and added dedicated `Symbol.toPrimitive`/accessor regressions.
+
+Exact accepted implementation evidence at `98bb59e7...`:
+
+- normal CI #474 / run `33376276973`: PASS;
+- exact Harness rc5 source-conformance #416 / run `33376276981`: PASS;
+- 47 test files / 893 tests PASS;
+- M4-023 primary routing suite: 38 PASS;
+- post-green coercion hardening: 2 PASS.
+
+The two repository-wide oxlint warnings at this point were already present on the
+protocol-first head before M4-023 implementation; M4-023 introduced no lint
+warning regression. No unrelated historical warning cleanup was folded into this
+security-sensitive Gate.
+
+Acceptance audit is `docs/acceptance/m4-023-acceptance-audit.md`.
+Acceptance-record exact head is
+`4ca482371dde4d865fdc1aa090d0c44b35c952e9`, which reached normal CI #476 / run
+`33376643531` PASS and exact Harness rc5 source-conformance #418 / run
+`33376643536` PASS before this final governance record was prepared.
+
+M4-023 does not construct the durable CapabilityDecision/Receipt (M4-024), assign
+guarantee level (M4-025), validate/consume/revoke/attenuate Lease state
+(M4-030+), enforce a PEP (M4-040+) or implement M6.
+
+This final governance transition is intentionally limited to append-only HISTORY,
+CURRENT handoff state and only the M4-023 roadmap acceptance marker. The
+resulting exact head must itself reach normal CI + exact pinned Harness rc5
+source-conformance dual-green before M4-023 governance is CLOSED and M4-024 P0
+decision receipt becomes the next protocol-first Gate.
