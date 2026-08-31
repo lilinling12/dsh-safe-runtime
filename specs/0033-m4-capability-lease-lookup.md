@@ -65,6 +65,21 @@ CapabilityLease {
 M4-022 does not add a `revoked` flag, turn-bound lifetime field, delegation mode,
 or alternative lease identity.
 
+The ordinary portable lookup domain is a snapshot of complete values that
+conform to that existing CapabilityLease schema. M4-022 does not create a second
+"lookup lease" wire model with lifecycle/provenance fields removed.
+
+The schema-validity boundary and lookup-semantics boundary are distinct:
+
+- schema validity determines whether a value is a CapabilityLease;
+- M4-022 interprets only the fields required for candidate lookup;
+- lifecycle/provenance fields remain present but their later-Gate semantics are
+  not evaluated here.
+
+Portable hostile/bypass cases MAY intentionally violate one lookup-consumed
+field to prove fail-closed runtime handling, but ordinary positive and mismatch
+cases MUST use complete schema-shaped CapabilityLease values.
+
 ### 2.2 Subject reference binding
 
 The protocol's Subject carries a stable `id` field. Existing portable fixtures
@@ -101,18 +116,40 @@ Subject kind is still authoritative where the Subject or policy selector
 contract uses it, but `CapabilityLease` itself contains only `subjectRef`.
 M4-022 MUST NOT invent a hidden Lease subject-kind field.
 
+`leaseRef`, `subjectRef`, `parentLeaseRef`, and authorization refs retain the
+existing `defs.ref` domain: non-empty strings with the accepted maximum length.
+M4-022 does not define a new lexical grammar inside those refs.
+
 ### 2.3 Capability
 
-The request capability and Lease capability use the existing portable capability
-name profile:
+The request capability and Lease capability have **different existing schema
+surfaces**, and M4-022 MUST preserve that distinction.
+
+A CapabilityRequest capability already uses the request lexical profile:
 
 ```text
 ^[a-z][a-z0-9.-]*\.[a-z][a-z0-9.-]*$
 ```
 
-with the accepted protocol length bound. Matching is exact code-point equality.
+with the request's accepted length bound.
+
+By contrast, the existing CapabilityLease schema currently constrains its
+`capability` field only as a string of length `3..256`; it does not apply the
+CapabilityRequest regex. M4-022 MUST NOT retroactively tighten the Lease schema
+by importing the request regex into Lease validation.
+
+Lookup matching is exact code-point equality between the validated request
+capability and the Lease capability. Therefore a schema-valid Lease capability
+such as `Process.exec` is an ordinary non-match for request `process.exec`; it is
+not a malformed snapshot merely because it would be invalid as a
+CapabilityRequest capability.
+
 There is no namespace inheritance, prefix match, wildcard, case folding, or
 alias lookup.
+
+`LEASE_LOOKUP_CAPABILITY_INVALID` is reserved for a runtime value that bypasses
+the CapabilityLease validation boundary and violates the Lease field's own
+string/length domain, not for a schema-valid differently spelled capability.
 
 ### 2.4 Resource
 
@@ -147,13 +184,22 @@ The portable logical input is:
 ```text
 LeaseLookupInput {
   subject: ResolvedSubject
-  capability: CapabilityName
+  capability: CapabilityRequest capability
   resource: CapabilityResource
   leases: CapabilityLease[]
 }
 ```
 
 `subject` is the already-resolved M4-020 Subject identity/context fact.
+
+The normal portable contract assumes the `leases` snapshot consists of complete
+CapabilityLease values that satisfy the existing CapabilityLease schema. This is
+a precondition, not permission for M4-022 to reinterpret lifecycle fields.
+
+A host-language reference implementation MUST still defensively fail closed when
+a caller bypasses that validated boundary and provides malformed values in fields
+that M4-022 actually consumes for lookup. It is not required to invent M4-030+
+lifecycle validation while performing M4-022 lookup.
 
 `leases` represents one immutable lookup snapshot. The storage technology is not
 portable M4-022 semantics. The snapshot MAY originate from memory, SQLite,
@@ -203,8 +249,8 @@ authorization.ref
 parentLeaseRef
 ```
 
-Those fields remain available on the underlying Lease for later Gates, but
-M4-022 does not prefer "newer", "longer", "more uses", "approval-backed",
+Those fields remain present on the CapabilityLease for later Gates, but M4-022
+does not prefer "newer", "longer", "more uses", "approval-backed",
 "parentless", or otherwise apparently stronger candidates.
 
 ## 5. Candidate multiplicity and deterministic order
@@ -284,8 +330,9 @@ M4-022 MUST NOT determine lifecycle validity.
 No host clock is read by M4-022. `issuedAt` and `expiresAt` do not affect lookup
 candidate membership.
 
-A record whose `expiresAt` appears earlier than the current wall clock can still
-be returned as an M4-022 **candidate**. M4-030 owns expiry/lifetime validity.
+A schema-valid record whose `expiresAt` is earlier than an observer's current
+wall clock can still be returned as an M4-022 **candidate**. M4-030 owns
+expiry/lifetime validity.
 
 This does not make an expired Lease usable.
 
@@ -293,7 +340,7 @@ This does not make an expired Lease usable.
 
 M4-022 does not decide usage validity and does not decrement any counter.
 
-A schema-shaped Lease with:
+A schema-valid Lease with:
 
 ```text
 remainingUses == 0
@@ -418,14 +465,14 @@ Implementations MUST apply the following observable order:
 ```text
 1. outer lookup-input domain
 2. resolved Subject lookup identity
-3. request capability
+3. request capability under the accepted CapabilityRequest profile
 4. request exact Resource normalization
 5. lease-snapshot container domain
-6. request-independent Lease lookup projection preflight, in snapshot order:
+6. request-independent lookup projection preflight, in snapshot order:
    a. record object/readability
-   b. leaseRef
-   c. subjectRef
-   d. capability
+   b. leaseRef under defs.ref domain
+   c. subjectRef under defs.ref domain
+   d. Lease capability under the CapabilityLease string/length domain
    e. exact Resource normalization
 7. global duplicate leaseRef detection
 8. exact subjectRef filtering
@@ -436,9 +483,14 @@ Implementations MUST apply the following observable order:
 13. detached immutable result
 ```
 
-The input snapshot order determines only which malformed record is reported
-first during preflight. It MUST NOT determine candidate precedence or returned
-candidate ordering.
+The normal portable domain has already crossed CapabilityLease schema validation;
+step 6 is the required defensive projection for the fields M4-022 consumes if a
+host caller bypasses that boundary. It MUST NOT be expanded into TTL/use/revoke
+semantics belonging to later Gates.
+
+The input snapshot order determines only which malformed consumed field is
+reported first during defensive preflight. It MUST NOT determine candidate
+precedence or returned candidate ordering.
 
 ## 12. Runtime defensive boundary
 
@@ -469,6 +521,10 @@ public input contract.
 
 Non-matching Lease constraints MUST not be recursively traversed.
 
+M4-022 MUST NOT inspect lifecycle/provenance fields merely to create hidden
+ranking or validity semantics. A later Gate remains responsible for interpreting
+those fields against authoritative store state.
+
 Successful output MUST be detached from caller-owned mutable arrays/objects and
 SHOULD be frozen where the host language supports that without changing portable
 semantics.
@@ -494,7 +550,8 @@ A conforming M4-022 implementation MUST satisfy all of the following:
 
 1. **No synthetic Subject identity.** Exact `resolvedSubject.id` is compared to
    `lease.subjectRef`; kind/session/parent are not concatenated into another ref.
-2. **No hidden capability equivalence.** Capability matching is exact.
+2. **No hidden capability equivalence.** Capability matching is exact, while the
+   existing request and Lease field-validation profiles remain distinct.
 3. **No Lease-resource globbing.** Exact `CapabilityResource` is not a policy
    selector.
 4. **Provider identity stays opaque.** No prefix/containment inference.
@@ -511,6 +568,8 @@ A conforming M4-022 implementation MUST satisfy all of the following:
 15. **No PEP execution.** M4-040+ remains later.
 16. **Candidate is not authorization.** Even one exact candidate does not equal
     `allow`.
+17. **No second Lease model.** Ordinary portable lookup cases remain complete
+    CapabilityLease values under the existing schema.
 
 ## 15. Portable fixture requirements
 
@@ -521,7 +580,7 @@ fixture corpus MUST cover at least:
 
 - one exact Subject/capability/Resource candidate;
 - Subject reference mismatch;
-- capability mismatch;
+- schema-valid differently spelled Lease capability as ordinary mismatch;
 - Resource scheme mismatch;
 - Resource locator mismatch;
 - exact providerIdentity match;
@@ -534,7 +593,8 @@ fixture corpus MUST cover at least:
 - deterministic Unicode code-point candidate ordering independent of snapshot
   order;
 - duplicate leaseRef fails before request-dependent filtering;
-- invalid leaseRef / subjectRef / capability fails closed;
+- invalid leaseRef / subjectRef / Lease capability fail closed when the validated
+  boundary is bypassed;
 - invalid Lease resource preserves M4-003 failure.
 
 ### Constraints
@@ -552,8 +612,11 @@ fixture corpus MUST cover at least:
 - parentLeaseRef does not trigger traversal;
 - authorization kind does not change lookup ranking.
 
-Fixtures MUST NOT claim that any returned candidate is active, consumable, or
-approved.
+Except for cases intentionally proving a specific bypass failure, each Lease in
+the portable corpus MUST contain the complete required CapabilityLease schema
+surface (`apiVersion`, `kind`, refs, capability, Resource, timestamps, counters,
+and authorization). Fixtures MUST NOT claim that any returned candidate is
+active, consumable, or approved.
 
 ## 16. Reference implementation placement
 
