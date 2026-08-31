@@ -338,6 +338,9 @@ function prepareRule(value: unknown): PreparedRuleResult {
   const capabilityList = snapshotUniqueNonEmptyStrings(capabilities.value);
   const resourceList = snapshotUniqueNonEmptyStrings(resources.value);
   if (capabilityList === undefined || resourceList === undefined) return prepareFailure("INPUT", "POLICY_EVALUATION_INPUT_INVALID");
+  if (capabilityList.some(capability => !isValidCapabilityName(capability))) {
+    return prepareFailure("INPUT", "POLICY_EVALUATION_INPUT_INVALID");
+  }
 
   let subjects: readonly ParsedSubjectSelector[] | undefined;
   if (keys.includes("subjects")) {
