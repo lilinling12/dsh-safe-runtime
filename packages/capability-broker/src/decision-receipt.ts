@@ -48,20 +48,7 @@ const APPROVAL_OUTCOMES = new Set<ApprovalOutcome>([
   "CANCELLED",
   "UNAVAILABLE",
 ]);
-const ROUTING_FAILURE_STAGES = new Set<ApprovalRoutingStage>([
-  "INPUT",
-  "POLICY",
-  "LEASE_LOOKUP",
-  "APPROVAL_REQUEST",
-  "APPROVAL_SERVICE",
-]);
-const ROUTING_FAILURE_REASONS = new Set<ApprovalRoutingFailureReason>([
-  "APPROVAL_ROUTING_INPUT_INVALID",
-  "APPROVAL_ROUTING_POLICY_RESULT_INVALID",
-  "APPROVAL_ROUTING_LEASE_LOOKUP_RESULT_INVALID",
-  "APPROVAL_ROUTING_REQUEST_INVALID",
-  "APPROVAL_ROUTING_SERVICE_ERROR",
-  "APPROVAL_ROUTING_OUTCOME_INVALID",
+const POLICY_FAILURE_REASONS = new Set<ApprovalRoutingFailureReason>([
   "POLICY_EVALUATION_INPUT_INVALID",
   "POLICY_SUBJECT_SELECTOR_INVALID",
   "POLICY_CONSTRAINT_PROFILE_UNSUPPORTED",
@@ -81,6 +68,8 @@ const ROUTING_FAILURE_REASONS = new Set<ApprovalRoutingFailureReason>([
   "DEFAULT_EFFECT_CONFIG_INVALID",
   "DEFAULT_DENY_INPUT_INVALID",
   "POLICY_EXPLAIN_INPUT_INVALID",
+]);
+const LEASE_FAILURE_REASONS = new Set<ApprovalRoutingFailureReason>([
   "LEASE_LOOKUP_INPUT_INVALID",
   "LEASE_LOOKUP_SUBJECT_INVALID",
   "LEASE_LOOKUP_SNAPSHOT_INVALID",
@@ -89,6 +78,12 @@ const ROUTING_FAILURE_REASONS = new Set<ApprovalRoutingFailureReason>([
   "LEASE_LOOKUP_CAPABILITY_INVALID",
   "LEASE_LOOKUP_DUPLICATE_LEASE_REF",
   "LEASE_CONSTRAINT_PROFILE_UNSUPPORTED",
+  "RESOURCE_INPUT_INVALID",
+  "RESOURCE_SCHEME_UNSUPPORTED",
+  "RESOURCE_LOCATOR_INVALID",
+  "RESOURCE_PROVIDER_IDENTITY_INVALID",
+  "RESOURCE_SELECTOR_SYNTAX_INVALID",
+  "RESOURCE_LIMIT_EXCEEDED",
 ]);
 
 type DataRead =
@@ -166,11 +161,7 @@ export function constructCapabilityDecisionReceipt(
     observedAt: issuance.observedAt,
   });
 
-  return Object.freeze({
-    status: "CONSTRUCTED",
-    decision,
-    receipt,
-  });
+  return Object.freeze({ status: "CONSTRUCTED", decision, receipt });
 }
 
 function materializeRouting(value: unknown): MaterializedRouting | undefined {
@@ -183,7 +174,6 @@ function materializeRouting(value: unknown): MaterializedRouting | undefined {
 
   if (status.value === "FAIL_CLOSED") {
     if (!hasExactRequiredKeys(keys, ROUTING_FAILURE_KEYS)) return undefined;
-
     const effect = readData(value, "effect");
     const stage = readData(value, "stage");
     const reason = readData(value, "reasonCode");
@@ -192,14 +182,12 @@ function materializeRouting(value: unknown): MaterializedRouting | undefined {
       || effect.value !== "deny"
       || stage.status !== "DATA"
       || typeof stage.value !== "string"
-      || !ROUTING_FAILURE_STAGES.has(stage.value as ApprovalRoutingStage)
       || reason.status !== "DATA"
       || typeof reason.value !== "string"
-      || !ROUTING_FAILURE_REASONS.has(reason.value as ApprovalRoutingFailureReason)
+      || !isCoherentRoutingFailure(stage.value, reason.value)
     ) {
       return undefined;
     }
-
     return Object.freeze({
       decisionEffect: "deny",
       receiptEffect: "error",
@@ -208,7 +196,6 @@ function materializeRouting(value: unknown): MaterializedRouting | undefined {
   }
 
   if (status.value !== "ROUTED") return undefined;
-
   const source = readData(value, "routeSource");
   if (source.status !== "DATA") return undefined;
 
@@ -223,25 +210,39 @@ function materializeRouting(value: unknown): MaterializedRouting | undefined {
   return undefined;
 }
 
+function isCoherentRoutingFailure(stage: string, reasonCode: string): boolean {
+  switch (stage as ApprovalRoutingStage) {
+    case "INPUT":
+      return reasonCode === "APPROVAL_ROUTING_INPUT_INVALID";
+    case "POLICY":
+      return reasonCode === "APPROVAL_ROUTING_POLICY_RESULT_INVALID"
+        || POLICY_FAILURE_REASONS.has(reasonCode as ApprovalRoutingFailureReason);
+    case "LEASE_LOOKUP":
+      return reasonCode === "APPROVAL_ROUTING_LEASE_LOOKUP_RESULT_INVALID"
+        || LEASE_FAILURE_REASONS.has(reasonCode as ApprovalRoutingFailureReason);
+    case "APPROVAL_REQUEST":
+      return reasonCode === "APPROVAL_ROUTING_REQUEST_INVALID";
+    case "APPROVAL_SERVICE":
+      return reasonCode === "APPROVAL_ROUTING_SERVICE_ERROR"
+        || reasonCode === "APPROVAL_ROUTING_OUTCOME_INVALID";
+    default:
+      return false;
+  }
+}
+
 function materializePolicyRoute(value: object): MaterializedRouting | undefined {
   const effect = readData(value, "effect");
   const reason = readData(value, "reasonCode");
   if (effect.status !== "DATA" || reason.status !== "DATA") return undefined;
 
-  if (
-    effect.value === "allow"
-    && reason.value === "APPROVAL_NOT_REQUIRED_POLICY_ALLOW"
-  ) {
+  if (effect.value === "allow" && reason.value === "APPROVAL_NOT_REQUIRED_POLICY_ALLOW") {
     return Object.freeze({
       decisionEffect: "allow",
       receiptEffect: "allowed",
       reasonCode: "APPROVAL_NOT_REQUIRED_POLICY_ALLOW",
     });
   }
-  if (
-    effect.value === "deny"
-    && reason.value === "APPROVAL_NOT_REQUIRED_POLICY_DENY"
-  ) {
+  if (effect.value === "deny" && reason.value === "APPROVAL_NOT_REQUIRED_POLICY_DENY") {
     return Object.freeze({
       decisionEffect: "deny",
       receiptEffect: "denied",
@@ -280,23 +281,17 @@ function materializeApprovalRoute(value: object): MaterializedRouting | undefine
     effect.value === "deny"
     && reason.value === "APPROVAL_REJECTED"
     && outcome.value === "REJECTED"
-  ) {
-    return approvalDeny("APPROVAL_REJECTED");
-  }
+  ) return approvalDeny("APPROVAL_REJECTED");
   if (
     effect.value === "deny"
     && reason.value === "APPROVAL_CANCELLED"
     && outcome.value === "CANCELLED"
-  ) {
-    return approvalDeny("APPROVAL_CANCELLED");
-  }
+  ) return approvalDeny("APPROVAL_CANCELLED");
   if (
     effect.value === "deny"
     && reason.value === "APPROVAL_UNAVAILABLE"
     && outcome.value === "UNAVAILABLE"
-  ) {
-    return approvalDeny("APPROVAL_UNAVAILABLE");
-  }
+  ) return approvalDeny("APPROVAL_UNAVAILABLE");
   return undefined;
 }
 
@@ -314,33 +309,23 @@ function materializeIssuance(
   value: unknown,
 ): MaterializedIssuance | DecisionReceiptFailure {
   if (!isRecord(value)) return fail("ISSUANCE", "DECISION_RECEIPT_ISSUANCE_INVALID");
-
   const keys = ownKeys(value);
   if (keys === undefined || !hasExactRequiredKeys(keys, ISSUANCE_KEYS)) {
     return fail("ISSUANCE", "DECISION_RECEIPT_ISSUANCE_INVALID");
   }
 
   const requestRef = readData(value, "requestRef");
-  if (
-    requestRef.status !== "DATA"
-    || !isBoundedString(requestRef.value, 1, REF_CODE_POINT_LIMIT)
-  ) {
+  if (requestRef.status !== "DATA" || !isBoundedString(requestRef.value, 1, REF_CODE_POINT_LIMIT)) {
     return fail("ISSUANCE", "DECISION_RECEIPT_REQUEST_REF_INVALID");
   }
 
   const decisionRef = readData(value, "decisionRef");
-  if (
-    decisionRef.status !== "DATA"
-    || !isBoundedString(decisionRef.value, 1, REF_CODE_POINT_LIMIT)
-  ) {
+  if (decisionRef.status !== "DATA" || !isBoundedString(decisionRef.value, 1, REF_CODE_POINT_LIMIT)) {
     return fail("ISSUANCE", "DECISION_RECEIPT_DECISION_REF_INVALID");
   }
 
   const receiptRef = readData(value, "receiptRef");
-  if (
-    receiptRef.status !== "DATA"
-    || !isBoundedString(receiptRef.value, 1, REF_CODE_POINT_LIMIT)
-  ) {
+  if (receiptRef.status !== "DATA" || !isBoundedString(receiptRef.value, 1, REF_CODE_POINT_LIMIT)) {
     return fail("ISSUANCE", "DECISION_RECEIPT_RECEIPT_REF_INVALID");
   }
 
@@ -412,19 +397,15 @@ function isRfc3339DateTime(value: string): boolean {
     || hour > 23
     || minute > 59
     || second > 60
-  ) {
-    return false;
-  }
+  ) return false;
 
   if (match[8] === undefined) return true;
   const offsetHour = decimal(match[9]);
   const offsetMinute = decimal(match[10]);
-  return (
-    offsetHour !== undefined
+  return offsetHour !== undefined
     && offsetMinute !== undefined
     && offsetHour <= 23
-    && offsetMinute <= 59
-  );
+    && offsetMinute <= 59;
 }
 
 function decimal(value: string | undefined): number | undefined {
@@ -484,9 +465,8 @@ function hasExactRequiredKeys(
   keys: readonly PropertyKey[],
   expected: ReadonlySet<string>,
 ): boolean {
-  return keys.length === expected.size && keys.every(
-    key => typeof key === "string" && expected.has(key),
-  );
+  return keys.length === expected.size
+    && keys.every(key => typeof key === "string" && expected.has(key));
 }
 
 function readData(value: object, key: PropertyKey): DataRead {
