@@ -62,7 +62,7 @@ interface PreparedLease {
   readonly subjectRef: string;
   readonly capability: string;
   readonly resource: CanonicalResource;
-  readonly constraintsDescriptor?: PropertyDescriptor;
+  readonly constraintsDescriptor: PropertyDescriptor | undefined;
 }
 
 type PreparedLeaseResult =
