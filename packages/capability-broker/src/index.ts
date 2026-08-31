@@ -3,8 +3,8 @@
  *
  * M4-010 through M4-014 classifier/fallback stages and M4-020 through M4-023
  * PDP prerequisites are governance-closed. M4-024 deterministic Decision /
- * broker decision-Receipt construction is implemented behind its protocol-first
- * contract and remains subject to exact-head implementation acceptance.
+ * broker decision-Receipt construction is implementation-accepted and is now
+ * undergoing acceptance-record exact-head verification before final governance.
  *
  * M4-024 does not determine guarantee truth, validate/consume Lease lifecycle,
  * enforce a PEP, execute actions or persist audit records. Those remain later
@@ -14,7 +14,7 @@
  * `@dsh-safe/protocol`; this package has no concrete DeepSeek Harness runtime
  * dependency.
  */
-export const PACKAGE_STAGE = "M4-023-APPROVAL-ROUTING-ACCEPTED" as const;
+export const PACKAGE_STAGE = "M4-024-DECISION-RECEIPT-ACCEPTED" as const;
 
 export * from "./builtin-filesystem-tool-classifier.js";
 export * from "./tool-classifier/builtin-shell.js";
