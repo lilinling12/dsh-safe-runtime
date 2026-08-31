@@ -48,7 +48,7 @@ describe("M4-024 hostile runtime boundary", () => {
   test("routing discriminant accessor is rejected without executing", () => {
     let calls = 0;
     const input = validInput();
-    const routing = (input["routing"] as Record<string, unknown>);
+    const routing = input["routing"] as Record<string, unknown>;
     Object.defineProperty(routing, "status", {
       enumerable: true,
       configurable: true,
@@ -60,6 +60,22 @@ describe("M4-024 hostile runtime boundary", () => {
       stage: "ROUTING",
     });
     expect(calls).toBe(0);
+  });
+
+  test("impossible M4-023 failure stage/reason combinations are rejected", () => {
+    const input = validInput();
+    input["routing"] = {
+      status: "FAIL_CLOSED",
+      effect: "deny",
+      stage: "POLICY",
+      reasonCode: "LEASE_LOOKUP_DUPLICATE_LEASE_REF",
+    };
+
+    expect(constructCapabilityDecisionReceipt(input)).toEqual({
+      status: "FAIL_CLOSED",
+      stage: "ROUTING",
+      reasonCode: "DECISION_RECEIPT_ROUTING_INVALID",
+    });
   });
 
   test("issuance is not inspected until routing is coherent", () => {
