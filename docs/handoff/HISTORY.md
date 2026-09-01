@@ -247,7 +247,6 @@ letting a TypeScript runner define the contract:
    contract;
 5. `@dsh-safe/testkit` projects the contract into TypeScript and validates it as
    one implementation only.
-
 The contract requires explicit seed and logical clock inputs, forbids host time
 from deciding fixture outcomes, keeps profile input/output as opaque JSON at the
 envelope layer, and distinguishes `PASS`, `FAIL`, `UNSUPPORTED`, and `ERROR`.
@@ -1650,3 +1649,65 @@ CURRENT handoff state and only the M4-024 roadmap acceptance marker. The
 resulting exact head must itself reach normal CI + exact pinned Harness rc5
 source-conformance dual-green before M4-024 governance is CLOSED and M4-025 P0
 guarantee level becomes the next protocol-first Gate.
+
+## 2026-09-01 — Accept M4-025 deterministic GuaranteeLevel assignment
+
+M4-025 protocol-first closed on
+`79c34ce92e420689cb416f1239a06f07f5d12de7` with Spec 0036 and the 30-case
+portable `GA-001` through `GA-030` corpus. Normal CI #499 and exact pinned
+Harness rc5 source-conformance #441 passed before production implementation
+began.
+
+The accepted implementation head is
+`0fb296447256ba3d1918ec005326ac79eff2394c`. Its implementation delta from the
+protocol-first head is exactly the four guarantee-assignment module/test files
+plus the capability-broker public export. It preserves the existing protocol
+enum and deterministically classifies trusted, action-scoped enforcement as:
+
+```text
+process-isolated
+  > provider-enforced
+  > tool-enforced
+  > advisory
+```
+
+The implementation deliberately distinguishes availability, mediation,
+enforcement and isolation. Tool availability alone cannot create tool-enforced;
+provider mediation alone cannot create provider-enforced; a process/container/
+sandbox category name cannot create process-isolated. Valid weaker evidence may
+downgrade to a weaker boundary, while malformed, unknown or unreadable stronger
+evidence fails closed rather than silently falling through.
+
+The first complete candidate `da72f106627ec93d8d451c4a8e226a01525bf2dc`
+exposed a genuine hostile-runtime defect in CI #504: JavaScript
+`Array.isArray()` can throw on a revoked Proxy. The hardening regression was not
+removed or weakened. The object-shape probe was corrected so the meta-operation
+itself is inside the defensive boundary and revoked/unreadable values become a
+stable fail-closed result.
+
+Corrected implementation head `0fb29644...` reached:
+
+- normal CI #505: PASS;
+- exact Harness rc5 source-conformance #447: PASS;
+- frozen install / 124-entry supply-chain policy: PASS;
+- architecture / 16-schema shape / schema baseline / strict TypeScript: PASS;
+- 51 test files / 976 tests: PASS;
+- M4-025 primary suite: 32 PASS;
+- M4-025 hostile-runtime hardening suite: 10 PASS;
+- packed Shared TCK + external non-workspace consumer: 44 registered assets
+  PASS;
+- Harness build/install/projection/idempotence/exact-source typecheck/runtime:
+  PASS.
+
+The acceptance audit is
+`docs/acceptance/m4-025-acceptance-audit.md`. Acceptance-record exact head is
+`40ba27452f90e06fe4daa3f2a4243986f7d5d0ed`, which reached normal CI #507 and
+exact Harness rc5 source-conformance #449 PASS before this final governance
+record was prepared.
+
+This final governance transition is intentionally limited to CURRENT, append-only
+HISTORY and only the M4-025 roadmap acceptance marker. No production code,
+Spec/corpus/schema, Shared TCK, dependency, lockfile, Adapter/Harness baseline or
+later-Gate behavior changes here. The resulting exact head must itself reach
+normal CI + exact pinned Harness rc5 source-conformance dual-green before M4-025
+governance is CLOSED and M4-030 P0 TTL becomes the next protocol-first Gate.
