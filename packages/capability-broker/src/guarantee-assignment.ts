@@ -165,7 +165,7 @@ function assessIsolation(value: unknown): BoundaryAssessment {
     || typeof boundary.value !== "string"
     || !PROCESS_BOUNDARIES.has(boundary.value as ProcessIsolationBoundary)
     || authorizationBinding.status !== "DATA"
-    || (authorizationBinding.value !== "EXACT_CAPABILITY_RESOURCE")
+    || authorizationBinding.value !== "EXACT_CAPABILITY_RESOURCE"
     || coverage.status !== "DATA"
     || (coverage.value !== "COMPLETE" && coverage.value !== "PARTIAL")
     || directHostBypass.status !== "DATA"
@@ -283,7 +283,12 @@ function invalid(): BoundaryAssessment {
 }
 
 function isRecord(value: unknown): value is object {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+  if (typeof value !== "object" || value === null) return false;
+  try {
+    return !Array.isArray(value);
+  } catch {
+    return false;
+  }
 }
 
 function ownKeys(value: object): readonly PropertyKey[] | undefined {
