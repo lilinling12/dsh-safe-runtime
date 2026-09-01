@@ -247,6 +247,7 @@ letting a TypeScript runner define the contract:
    contract;
 5. `@dsh-safe/testkit` projects the contract into TypeScript and validates it as
    one implementation only.
+
 The contract requires explicit seed and logical clock inputs, forbids host time
 from deciding fixture outcomes, keeps profile input/output as opaque JSON at the
 envelope layer, and distinguishes `PASS`, `FAIL`, `UNSUPPORTED`, and `ERROR`.
