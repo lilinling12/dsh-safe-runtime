@@ -3,7 +3,8 @@
  *
  * M4-010 through M4-014 classifier/fallback stages and M4-020 through M4-024
  * PDP / Decision-Receipt prerequisites are governance-closed. M4-025
- * deterministic GuaranteeLevel assignment is the active implementation Gate.
+ * deterministic GuaranteeLevel assignment is implementation-accepted and now
+ * undergoing acceptance-record verification before final governance.
  *
  * M4-025 classifies a trusted action-scoped enforcement projection. It does not
  * probe the host, wire a PEP, create a sandbox, execute actions, validate or
@@ -13,7 +14,7 @@
  * `@dsh-safe/protocol`; this package has no concrete DeepSeek Harness runtime
  * dependency.
  */
-export const PACKAGE_STAGE = "M4-025-GUARANTEE-ASSIGNMENT-IMPLEMENTING" as const;
+export const PACKAGE_STAGE = "M4-025-GUARANTEE-ASSIGNMENT-ACCEPTED" as const;
 
 export * from "./builtin-filesystem-tool-classifier.js";
 export * from "./tool-classifier/builtin-shell.js";
