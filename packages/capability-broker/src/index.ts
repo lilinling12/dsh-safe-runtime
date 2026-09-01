@@ -1,16 +1,17 @@
 /**
  * Capability Broker public package surface.
  *
- * M4-010 through M4-014 classifier/fallback stages and M4-020 through M4-024
- * PDP / Decision-Receipt prerequisites are governance-closed. M4-025
- * deterministic GuaranteeLevel assignment is implementation-accepted and now
- * undergoing acceptance-record verification before final governance.
+ * M4-010 through M4-014 classifier/fallback stages and M4-020 through M4-025
+ * PDP / Decision-Receipt / GuaranteeLevel prerequisites are governance-closed.
+ * M4-030 CapabilityLease TTL evaluation is the current gate-scoped production
+ * implementation candidate; PACKAGE_STAGE remains the last accepted package
+ * stage until M4-030 passes acceptance.
  *
- * M4-025 classifies a trusted action-scoped enforcement projection. It does not
- * probe the host, wire a PEP, create a sandbox, execute actions, validate or
- * consume Lease lifecycle, or persist audit records. Those remain later Gates.
+ * M4-030 evaluates only an explicit logical observation time against the
+ * existing Lease `[issuedAt, expiresAt)` interval. It does not consume usage,
+ * check revocation/delegation, bypass approval, execute actions, or wire a PEP.
  *
- * Protocol capability/Decision/Receipt/GuaranteeLevel types remain owned by
+ * Protocol capability/Decision/Receipt/Lease types remain owned by
  * `@dsh-safe/protocol`; this package has no concrete DeepSeek Harness runtime
  * dependency.
  */
@@ -77,3 +78,15 @@ export {
   type ProviderEnforcementEvidence,
   type ToolEnforcementEvidence,
 } from "./guarantee-assignment-types.js";
+export { evaluateCapabilityLeaseTtl } from "./lease-ttl.js";
+export {
+  LEASE_TTL_PROFILE,
+  type LeaseTtlEligible,
+  type LeaseTtlEvaluationInput,
+  type LeaseTtlEvaluationResult,
+  type LeaseTtlFailure,
+  type LeaseTtlFailureReason,
+  type LeaseTtlIneligible,
+  type LeaseTtlIneligibleReasonCode,
+  type LeaseTtlStage,
+} from "./lease-ttl-types.js";
