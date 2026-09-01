@@ -1,20 +1,19 @@
 /**
  * Capability Broker public package surface.
  *
- * M4-010 through M4-014 classifier/fallback stages and M4-020 through M4-023
- * PDP prerequisites are governance-closed. M4-024 deterministic Decision /
- * broker decision-Receipt construction is implementation-accepted and is now
- * undergoing acceptance-record exact-head verification before final governance.
+ * M4-010 through M4-014 classifier/fallback stages and M4-020 through M4-024
+ * PDP / Decision-Receipt prerequisites are governance-closed. M4-025
+ * deterministic GuaranteeLevel assignment is the active implementation Gate.
  *
- * M4-024 does not determine guarantee truth, validate/consume Lease lifecycle,
- * enforce a PEP, execute actions or persist audit records. Those remain later
- * Gates.
+ * M4-025 classifies a trusted action-scoped enforcement projection. It does not
+ * probe the host, wire a PEP, create a sandbox, execute actions, validate or
+ * consume Lease lifecycle, or persist audit records. Those remain later Gates.
  *
- * Protocol capability/Decision/Receipt types remain owned by
+ * Protocol capability/Decision/Receipt/GuaranteeLevel types remain owned by
  * `@dsh-safe/protocol`; this package has no concrete DeepSeek Harness runtime
  * dependency.
  */
-export const PACKAGE_STAGE = "M4-024-DECISION-RECEIPT-ACCEPTED" as const;
+export const PACKAGE_STAGE = "M4-025-GUARANTEE-ASSIGNMENT-IMPLEMENTING" as const;
 
 export * from "./builtin-filesystem-tool-classifier.js";
 export * from "./tool-classifier/builtin-shell.js";
@@ -60,3 +59,20 @@ export {
   type DecisionReceiptIssuanceContext,
   type DecisionReceiptStage,
 } from "./decision-receipt-types.js";
+export { assignGuaranteeLevel } from "./guarantee-assignment.js";
+export {
+  GUARANTEE_ASSIGNMENT_PROFILE,
+  type GuaranteeAssigned,
+  type GuaranteeAssignmentFailure,
+  type GuaranteeAssignmentFailureReason,
+  type GuaranteeAssignmentInput,
+  type GuaranteeAssignmentReasonCode,
+  type GuaranteeAssignmentResult,
+  type GuaranteeAssignmentStage,
+  type GuaranteeEvidenceProjection,
+  type NonSecurityProcessMechanism,
+  type ProcessIsolationBoundary,
+  type ProcessIsolationEvidence,
+  type ProviderEnforcementEvidence,
+  type ToolEnforcementEvidence,
+} from "./guarantee-assignment-types.js";
