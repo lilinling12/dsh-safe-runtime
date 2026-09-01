@@ -60,6 +60,21 @@ describe("M4-030 hostile runtime boundary", () => {
     });
   });
 
+  test("property-descriptor traps fail closed at the owning field", () => {
+    const input = new Proxy(validInput(), {
+      getOwnPropertyDescriptor(target, property) {
+        if (property === "issuedAt") throw new Error("secret descriptor detail");
+        return Reflect.getOwnPropertyDescriptor(target, property);
+      },
+    });
+
+    expect(evaluateCapabilityLeaseTtl(input)).toEqual({
+      status: "FAIL_CLOSED",
+      stage: "TIME",
+      reasonCode: "LEASE_TTL_ISSUED_AT_INVALID",
+    });
+  });
+
   test("unexpected string and symbol fields fail closed", () => {
     const extra = validInput();
     extra["remainingUses"] = 1;
@@ -112,6 +127,42 @@ describe("M4-030 hostile runtime boundary", () => {
       reasonCode: "LEASE_TTL_ISSUED_AT_INVALID",
     });
     expect(coercions).toBe(0);
+  });
+
+  test("does not consult host Date APIs or wall clock", () => {
+    const dateDescriptor = Object.getOwnPropertyDescriptor(globalThis, "Date");
+    if (dateDescriptor === undefined) throw new Error("global Date descriptor is required for this regression");
+
+    const forbiddenDate = new Proxy(globalThis.Date, {
+      apply() {
+        throw new Error("Date() must not be consulted by M4-030");
+      },
+      construct() {
+        throw new Error("new Date() must not be consulted by M4-030");
+      },
+      get(target, property, receiver) {
+        if (property === "now" || property === "parse" || property === "UTC") {
+          return () => {
+            throw new Error(`Date.${String(property)} must not be consulted by M4-030`);
+          };
+        }
+        return Reflect.get(target, property, receiver);
+      },
+    });
+
+    let result: ReturnType<typeof evaluateCapabilityLeaseTtl> | undefined;
+    Object.defineProperty(globalThis, "Date", {
+      configurable: true,
+      writable: true,
+      value: forbiddenDate,
+    });
+    try {
+      result = evaluateCapabilityLeaseTtl(validInput());
+    } finally {
+      Object.defineProperty(globalThis, "Date", dateDescriptor);
+    }
+
+    expect(result).toEqual({ status: "TIME_ELIGIBLE", reasonCode: "LEASE_TTL_ACTIVE" });
   });
 
   test("validation order does not traverse later timestamp accessors", () => {
