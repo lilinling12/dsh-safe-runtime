@@ -14,8 +14,8 @@
 - Base: `main@57430273e065be8d38807d67b175fa154c801d43`
 - M4-001 through M4-014: **GOVERNANCE CLOSED**
 - M4-020 through M4-024: **GOVERNANCE CLOSED**
-- M4-025 guarantee level: **AUTHORIZED / PROTOCOL-FIRST IN PROGRESS**
-- M4-025 production implementation: **NOT AUTHORIZED until protocol-first exact head is dual-green**
+- M4-025 guarantee level: **IMPLEMENTATION ACCEPTED / ACCEPTANCE-RECORD DUAL-GREEN**
+- M4-025 final governance: **IN PROGRESS — final governance exact head must be dual-green before closure**
 - M4-030+, M4-040+ and M6: **NOT AUTHORIZED**
 
 Live GitHub state overrides this file.
@@ -24,7 +24,7 @@ Live GitHub state overrides this file.
 
 The long-running PR retains known ancestry-only drift relative to `main`. The
 reconciled merge-base `65870612d039ce026a6952c16d5e069b11bd24a7` and
-`main@57430273e065be8d38807d67b175fa154c801d43` point to the same source tree
+`main@57430273e065be8d38807d67b175fa154c801d43` point to source tree
 `ed0c142bf6bbd00f607cc169222f0bf67057fca5`.
 
 Do not rebase, force-update, squash, or rewrite accepted ancestry merely to
@@ -40,14 +40,12 @@ commit: 47f943859bef60e4160492346772ded9b24f765a
 distribution: distribution-blocked
 ```
 
-Harness behavior MUST NOT define portable GuaranteeLevel semantics. Availability
-or provider metadata from Harness may contribute trusted composition evidence,
-but package names, feature flags or provider strings are never sufficient by
-themselves to upgrade a guarantee.
+Harness availability, provider names and provider-reported metadata MUST NOT by
+themselves define or upgrade Safe Runtime GuaranteeLevel semantics.
 
-## M4-024 final closure
+## M4-024 closure prerequisite
 
-Final-governance exact head:
+M4-024 final-governance exact head:
 
 ```text
 08acc32c3c7d789c5a0d2c591529414d95bcf39e
@@ -56,83 +54,15 @@ Final-governance exact head:
 Exact-head evidence:
 
 - normal CI #496 / run `33384319578`: PASS;
-- exact Harness rc5 source-conformance #438 / run `33384319584`: PASS;
-- pinned Harness public type build: PASS;
-- reproducible safe-runtime install: PASS;
-- exact workspace projection: PASS;
-- projection idempotence: PASS;
-- exact-source TypeScript binding: PASS;
-- real rc5 runtime conformance: PASS.
+- Harness rc5 source-conformance #438 / run `33384319584`: PASS;
+- final governance delta from acceptance-record `bfb42d9600b223937081f8ebaf19627ea4282bbc`
+  was exactly CURRENT, HISTORY `+61/-0`, and the M4-024 roadmap marker.
 
-Final governance net delta from acceptance-record head
-`bfb42d9600b223937081f8ebaf19627ea4282bbc` was exactly:
+Therefore M4-024 governance is CLOSED.
 
-```text
-docs/handoff/CURRENT.md
-docs/handoff/HISTORY.md   # +61 / -0 append-only
-docs/roadmap.md           # +1 / -1; only M4-024 acceptance marker
-```
+## M4-025 protocol-first closure
 
-PR #3 remained Open, Draft and mergeable with no review/review-thread blocker.
-No merge is authorized.
-
-Therefore:
-
-```text
-M4-024: GOVERNANCE CLOSED
-M4-025: P0 guarantee level — AUTHORIZED / PROTOCOL-FIRST
-```
-
-## M4-025 authority research
-
-Existing v1alpha1 GuaranteeLevel authority is already stable and MUST NOT be
-changed by this Gate:
-
-```text
-packages/protocol/src/common.ts
-schemas/v1alpha1/defs.schema.json
-specs/0001-safe-runtime-core.md §3.2
-```
-
-Existing values are exactly:
-
-```text
-advisory
-tool-enforced
-provider-enforced
-process-isolated
-```
-
-M4-025 is therefore an **assignment/admissibility Gate**, not an enum-design
-Gate.
-
-Research also reconciled:
-
-```text
-docs/architecture.md
-docs/compatibility/deepseek-harness-0.1.0-rc.5.md
-docs/compatibility/deepseek-harness-0.1.0-rc.5-provider-probe.md
-packages/adapter-dsh/src/feature-matrix.ts
-packages/adapter-dsh/src/ports.ts
-packages/adapter-dsh/src/provider-ports.ts
-specs/0035-m4-decision-receipt-construction.md
-```
-
-Critical retained negative facts include:
-
-- `tools/pre-execute` availability is not proof that an exact action cannot bypass enforcement;
-- `ctx.fs` / `ctx.subprocess` existence is mediation availability, not provider enforcement;
-- `fs-local` cwd is not containment;
-- local subprocess filesystem access does not traverse `ctx.fs`;
-- `fs-sandbox` is a mutation provider fence, not read/network/process isolation;
-- sandbox `full` is provider-reported scope metadata and may originate from an operator assertion;
-- sandbox `partial` is a hard ceiling;
-- workflow worker threads are not a security boundary;
-- a plain child process is not process isolation merely because it has a separate PID.
-
-## M4-025 normative draft
-
-Protocol-first specification:
+Normative specification:
 
 ```text
 specs/0036-m4-guarantee-assignment.md
@@ -150,14 +80,37 @@ Corpus profile:
 M4-025_GUARANTEE_ASSIGNMENT_V1
 ```
 
-Portable cases: `30` (`GA-001` through `GA-030`).
+Portable cases: `30`, canonical sequential IDs `GA-001` through `GA-030`.
 
-## Guarantee assignment principle
+Protocol-first exact head:
 
-GuaranteeLevel is action-scoped and is assigned from **active enforcement**, not
-component existence, product/category names or optimistic configuration.
+```text
+79c34ce92e420689cb416f1239a06f07f5d12de7
+```
 
-The deterministic strength order for this classification profile is:
+Relative to M4-024 final governance, the protocol-first delta was exactly:
+
+```text
+docs/handoff/CURRENT.md
+fixtures/guarantee-assignment/cases.json
+specs/0036-m4-guarantee-assignment.md
+```
+
+No production TypeScript, protocol enum, schema, Shared TCK, Adapter/Harness
+baseline, dependency, lockfile or later-Gate file was included.
+
+Exact-head evidence:
+
+- normal CI #499: PASS;
+- Harness rc5 source-conformance #441: PASS;
+- no review/review-thread blocker.
+
+Therefore M4-025 production implementation was authorized only after the
+protocol-first head reached same-head dual-green.
+
+## M4-025 accepted semantics
+
+M4-025 classifies the strongest truthful, action-scoped enforcement boundary:
 
 ```text
 process-isolated
@@ -166,35 +119,16 @@ process-isolated
   > advisory
 ```
 
-This is not authorization precedence. Authorization is already resolved by
-M4-021 through M4-024. M4-025 only classifies the strongest proven enforcement
-boundary for the governed capability/resource.
+This is enforcement-strength classification, not authorization precedence.
+Authorization is already resolved upstream by M4-021 through M4-024.
 
-## Portable evidence projection
+Guarantee truth is based on **active verified enforcement**, not component
+existence, package/category names, optimistic feature flags or unverified
+provider strings.
 
-M4-025 consumes a trusted runtime-independent projection:
+### Tool qualification
 
-```text
-GuaranteeAssignmentInput {
-  profile: "M4-025_GUARANTEE_ASSIGNMENT_V1"
-  evidence: {
-    isolation: ProcessIsolationEvidence
-    provider: ProviderEnforcementEvidence
-    tool: ToolEnforcementEvidence
-  }
-}
-```
-
-All three evidence slots are explicit. Missing facts use a valid `NONE` state;
-omission is malformed rather than silently interpreted.
-
-The primitive does not receive raw provider objects, filesystem targets,
-subprocess handles, secrets, policy documents, tool arguments, environment
-variables or platform-specific runtime types.
-
-## Tool-enforced qualification
-
-Tool evidence qualifies only when it explicitly proves:
+`tool-enforced` requires exactly:
 
 ```text
 state                = ENFORCING
@@ -202,14 +136,11 @@ authorizationBinding = EXACT_ACTION
 dispatchControl      = MANDATORY
 ```
 
-`AVAILABLE_ONLY` remains advisory unless a stronger boundary qualifies.
+Tool hook availability alone remains advisory.
 
-This deliberately leaves direct trusted plugin/host API bypass outside the
-`tool-enforced` claim.
+### Provider qualification
 
-## Provider-enforced qualification
-
-Provider evidence qualifies only when all are true:
+`provider-enforced` requires exactly:
 
 ```text
 state                = ENFORCING
@@ -220,24 +151,12 @@ resourceIdentity     = PROVIDER_CANONICAL
 deploymentEvidence   = VERIFIED
 ```
 
-Valid but weaker evidence such as:
+Mediation-only, bypassable traversal, partial coverage, non-canonical resource
+identity or unverified deployment evidence cannot produce provider-enforced.
 
-```text
-BYPASSABLE
-PARTIAL
-NON_CANONICAL
-UNVERIFIED
-```
+### Process-isolation qualification
 
-does not fail merely for being weak; it cannot produce provider-enforced and the
-evaluator may continue to a weaker boundary.
-
-A malformed or unreadable provider record, however, MUST fail closed rather than
-be ignored.
-
-## Process-isolated qualification
-
-Accepted security-boundary categories are intentionally explicit:
+Accepted boundary categories are:
 
 ```text
 OS_PROCESS_SANDBOX
@@ -247,7 +166,7 @@ MICROVM
 REMOTE_ISOLATED_RUNTIME
 ```
 
-The category name alone never qualifies. Assignment additionally requires:
+The category name alone is insufficient. Qualification additionally requires:
 
 ```text
 authorizationBinding = EXACT_CAPABILITY_RESOURCE
@@ -256,7 +175,7 @@ directHostBypass     = BLOCKED
 deploymentEvidence   = VERIFIED
 ```
 
-Explicit non-security-boundary observations are:
+Explicit valid non-security-boundary observations are:
 
 ```text
 PLAIN_PROCESS
@@ -264,178 +183,163 @@ WORKER_THREAD
 SAME_WORLD_SANDBOX
 ```
 
-Those may be valid facts but never qualify as `process-isolated` by themselves.
+Those never become process-isolated merely by mechanism name.
 
-## Action-scoped meaning
-
-A GuaranteeLevel is scoped to the exact governed action/capability/resource.
-
-For example, proving process isolation for one filesystem mutation does not
-silently claim that network, secret, device or unrelated host access is also
-isolated. Each governed action must carry evidence appropriate to its own
-capability/resource scope.
-
-This prevents a deployment from turning one strong sandbox property into an
-unbounded global marketing claim.
-
-## Valid weakness versus malformed evidence
-
-M4-025 makes a strict distinction:
+### Weak versus malformed evidence
 
 ```text
-structurally valid but non-qualifying stronger evidence
-  -> continue to weaker boundary
+structurally valid but explicitly weaker evidence
+  -> continue to the next weaker boundary
 
-malformed / unknown / unreadable stronger evidence
+malformed / unknown / unreadable evidence
   -> FAIL_CLOSED
 ```
 
-A broken process-isolation record MUST NOT be ignored merely because provider or
-tool evidence could otherwise produce a weaker label.
+Malformed stronger evidence is never silently ignored to obtain a weaker label.
 
-## Successful result
+## Accepted implementation
+
+Accepted implementation exact head:
 
 ```text
-{
-  status: "ASSIGNED"
-  guaranteeLevel: GuaranteeLevel
-  reasonCode:
-    GUARANTEE_ASSIGNED_ADVISORY |
-    GUARANTEE_ASSIGNED_TOOL_ENFORCED |
-    GUARANTEE_ASSIGNED_PROVIDER_ENFORCED |
-    GUARANTEE_ASSIGNED_PROCESS_ISOLATED
-}
+0fb296447256ba3d1918ec005326ac79eff2394c
 ```
 
-The result contains no provider names, platform identifiers, process IDs,
-attestation text or raw evidence.
-
-## Failure result
-
-Stable M4-025 failures are:
+Implementation delta from protocol-first head is exactly:
 
 ```text
-GUARANTEE_ASSIGNMENT_INPUT_INVALID
-GUARANTEE_ASSIGNMENT_PROFILE_INVALID
-GUARANTEE_ASSIGNMENT_EVIDENCE_INVALID
-GUARANTEE_ASSIGNMENT_ISOLATION_EVIDENCE_INVALID
-GUARANTEE_ASSIGNMENT_PROVIDER_EVIDENCE_INVALID
-GUARANTEE_ASSIGNMENT_TOOL_EVIDENCE_INVALID
+packages/capability-broker/src/guarantee-assignment-hardening.test.ts
+packages/capability-broker/src/guarantee-assignment-types.ts
+packages/capability-broker/src/guarantee-assignment.test.ts
+packages/capability-broker/src/guarantee-assignment.ts
+packages/capability-broker/src/index.ts
 ```
 
-Failure output is bounded and sanitized and MUST NOT echo attacker-controlled
-values/errors.
+No Adapter, Harness baseline, protocol wire enum, schema, Shared TCK,
+dependency/lockfile or later-Gate change is part of the implementation.
 
-## Hostile-runtime requirements for later implementation
+The implementation is pure and portable:
 
-Once production implementation is authorized, it must:
+- runtime input boundary is `unknown`;
+- exact own-key domains and own data-property descriptors;
+- no getter execution or inherited/symbol authority;
+- no implicit string/value coercion;
+- revoked Proxy / ownKeys / descriptor failures fail closed;
+- qualifying stronger boundaries short-circuit without traversing irrelevant
+  weaker nested evidence;
+- success/failure output is detached and frozen;
+- no host clock/randomness/fs/process/network/container/Harness/provider probe;
+- no concrete Adapter/Harness import.
 
-- accept runtime values defensively as unknown;
-- use exact own-key domains;
-- consume security facts through own data-property descriptors;
-- reject accessors without executing getters;
-- reject symbol fields;
-- fail closed on revoked Proxies / ownKeys / descriptor traps;
-- use exact scalar comparisons only;
-- never call String(value), valueOf, Symbol.toPrimitive or generic JSON serialization on security discriminants;
-- detach and freeze output;
-- short-circuit after the strongest qualifying boundary so irrelevant nested hostile records are not traversed.
+## CI-discovered hardening defect
 
-## Pure deterministic boundary
-
-M4-025 assignment itself MUST NOT probe the host or runtime. It cannot call:
+The first complete implementation candidate was:
 
 ```text
-clock/randomness
-node:fs
-subprocess
-network
-container APIs
-Harness services
-provider methods
-platform sandbox probes
+da72f106627ec93d8d451c4a8e226a01525bf2dc
 ```
 
-Deployment/platform probing belongs to trusted composition code, which then
-projects bounded evidence into this portable profile.
+CI #504 caught a genuine hostile-runtime defect: JavaScript `Array.isArray()`
+throws when applied to a revoked Proxy, so the initial record predicate could
+leak a host `TypeError` instead of returning the stable fail-closed contract.
 
-This separation is required for long-term maintainability and non-TypeScript /
-non-Harness reimplementation.
+The regression test was retained. The object-shape probe was corrected so that
+the meta-operation itself is guarded and unreadable/revoked values become
+invalid evidence.
 
-## M4-024 integration boundary
+Corrected accepted head remained limited to the same five implementation files.
 
-Once M4-025 is implementation-accepted, production composition should
-conceptually be:
+## Accepted implementation evidence
+
+For `0fb296447256ba3d1918ec005326ac79eff2394c`:
+
+- normal CI #505: PASS;
+- Harness rc5 source-conformance #447: PASS;
+- frozen install: PASS;
+- 124-entry supply-chain policy: PASS;
+- architecture boundaries: PASS;
+- 16-schema shape and compatibility baseline: PASS;
+- strict workspace TypeScript: PASS;
+- 51 test files / 976 tests: PASS;
+- M4-025 primary suite: 32 PASS;
+- M4-025 hostile-runtime hardening suite: 10 PASS;
+- oxlint: 0 errors; two pre-existing unrelated warnings;
+- packed Shared TCK / external consumer: 44 registered assets PASS;
+- Harness build/install/projection/idempotence/exact-source typecheck/runtime:
+  PASS.
+
+## Acceptance record
+
+Acceptance audit:
 
 ```text
-guarantee = assignGuaranteeLevel(trustedEvidence)
-
-if FAIL_CLOSED:
-  do not construct authoritative M4-024 records with a guessed level
-
-if ASSIGNED:
-  use guarantee.guaranteeLevel as M4-024 issuance.guaranteeLevel
+docs/acceptance/m4-025-acceptance-audit.md
 ```
 
-Callers MUST NOT override the assigned result with a stronger arbitrary enum.
-
-M4-025 does not modify M4-024 record fields or reconstruct Decision/Receipt.
-
-## Protocol-first exact file scope
-
-Relative to M4-024 final-governance head
-`08acc32c3c7d789c5a0d2c591529414d95bcf39e`, this Gate may contain exactly:
+Acceptance-record exact head:
 
 ```text
-specs/0036-m4-guarantee-assignment.md
-fixtures/guarantee-assignment/cases.json
+40ba27452f90e06fe4daa3f2a4243986f7d5d0ed
+```
+
+Relative to the accepted implementation head, acceptance-record delta is
+exactly:
+
+```text
+docs/acceptance/m4-025-acceptance-audit.md
+packages/capability-broker/src/index.ts   # package stage only
+```
+
+Exact-head evidence:
+
+- normal CI #507: PASS;
+- Harness rc5 source-conformance #449: PASS;
+- pinned public type build, reproducible install, exact projection,
+  projection idempotence, exact-source typecheck and real runtime conformance:
+  PASS.
+
+## Final-governance transition
+
+This transition is intentionally limited to:
+
+```text
 docs/handoff/CURRENT.md
+docs/handoff/HISTORY.md   # append-only; deletions MUST equal 0
+docs/roadmap.md           # only M4-025 acceptance marker
 ```
 
-It MUST NOT contain:
+No production implementation, Spec/corpus/schema, Shared TCK, dependency,
+lockfile, Adapter/Harness baseline, M4-030+, M4-040+ or M6 change is authorized
+in final governance.
 
-```text
-production M4-025 TypeScript
-GuaranteeLevel enum/schema changes
-M4-024 implementation changes
-Adapter/Harness baseline changes
-Shared TCK changes
-dependency/lockfile changes
-M4-030+
-M4-040+
-M6
-```
-
-## Protocol-first Gate
-
-Production M4-025 implementation remains **NOT AUTHORIZED** until one exact head
-with only the three allowed protocol-first files reaches:
+The resulting exact governance head MUST itself reach:
 
 1. normal CI PASS;
 2. exact pinned Harness rc5 source-conformance PASS;
-3. mechanical corpus validation confirms exactly 30 unique sequential IDs
-   `GA-001` through `GA-030` and valid JSON;
-4. no review/review-thread blocker.
+3. PR remains Open/Draft/mergeable with no review/thread blocker.
 
-Only after same-head dual-green may M4-025 production implementation begin.
+Only after that same-head evidence may M4-025 governance be declared CLOSED and
+M4-030 P0 TTL become the next protocol-first Gate.
 
 ## Boundaries that remain enforced
 
-- Protocol/Schema/Core remain authority over the enum and high-level meaning.
-- M4-025 cannot manufacture deployment attestation.
-- Provider mediation is not equivalent to provider enforcement.
-- Process category/name is not equivalent to process isolation.
-- Minimum required guarantee negotiation remains later composition/PEP work.
-- M4-030+, M4-040+ and M6 remain unauthorized.
+- M4-025 classifies trusted evidence; it does not manufacture deployment
+  attestation.
+- Provider mediation is not provider enforcement.
+- Process/container/sandbox category is not itself process isolation.
+- Minimum required GuaranteeLevel negotiation remains later composition/PEP
+  work.
+- M4-030+, M4-040+ and M6 remain unauthorized until the current governance Gate
+  closes.
 - PR #3 remains Draft; no merge without explicit user authorization.
 
 ## Resume instruction
 
 1. refresh PR #3 exact head/base/reviews/threads;
-2. compare current head with M4-024 final-governance `08acc32c...`;
-3. require exactly Spec 0036, guarantee-assignment corpus and CURRENT;
-4. mechanically validate corpus JSON, count and `GA-001..GA-030` uniqueness/order;
-5. review Spec 0036 for accidental early PEP/platform/attestation semantics;
-6. require exact-head normal CI + pinned Harness rc5 source-conformance PASS;
-7. only then declare M4-025 PROTOCOL-FIRST GATE CLOSED and authorize production implementation;
-8. keep M4-030+, M4-040+, M6 and PR merge unauthorized.
+2. compare final-governance head against acceptance-record `40ba2745...`;
+3. require exactly CURRENT, append-only HISTORY and the M4-025 roadmap marker;
+4. mechanically require HISTORY deletions = 0 and roadmap `+1/-1` only;
+5. require final-governance exact-head normal CI + pinned Harness dual-green;
+6. only then declare M4-025 GOVERNANCE CLOSED and authorize M4-030 P0 TTL
+   protocol-first work;
+7. keep M4-031+, M4-040+, M6 and PR merge unauthorized.
