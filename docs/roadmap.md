@@ -293,7 +293,7 @@ Acceptance evidence
 - [x] `M4-022 P0` lease lookup。 **ACCEPTED：Spec 0033 + 28 portable cases + exact Subject/capability/canonical-resource candidate lookup + duplicate leaseRef preflight + unsupported matching-constraint fail-closed boundary + hostile-runtime hardening；accepted implementation head `ef465fcf...`，CI #459 / Harness #401 PASS；验收记录 `docs/acceptance/m4-022-acceptance-audit.md`。**
 - [x] `M4-023 P0` approval routing。 **ACCEPTED：Spec 0034 + 25 portable cases + deterministic ask-only approval routing + policy-deny non-override + candidate-Lease non-bypass + four-outcome fail-closed mapping + runtime-neutral approval port + hostile-runtime/coercion hardening；accepted implementation head `98bb59e7...`，CI #474 / Harness #416 PASS；验收记录 `docs/acceptance/m4-023-acceptance-audit.md`。**
 - [x] `M4-024 P0` decision receipt。 **ACCEPTED：Spec 0035 + 27 portable cases + deterministic immutable CapabilityDecision/CapabilityReceipt construction + explicit identity/time inputs + guarantee copy-only boundary + Unicode/RFC3339/hostile-runtime hardening；accepted implementation head `8c12354c...`，CI #491 / Harness #433 PASS；验收记录 `docs/acceptance/m4-024-acceptance-audit.md`。**
-- [ ] `M4-025 P0` guarantee level。
+- [x] `M4-025 P0` guarantee level。 **ACCEPTED：Spec 0036 + 30 portable cases + deterministic action-scoped strongest-boundary GuaranteeLevel assignment + explicit availability/mediation/enforcement/isolation separation + valid-weak downgrade versus malformed-evidence fail-closed semantics + revoked-Proxy/short-circuit hostile-runtime hardening；accepted implementation head `0fb29644...`，CI #505 / Harness #447 PASS；验收记录 `docs/acceptance/m4-025-acceptance-audit.md`。**
 
 ## M4.4 Lease
 
