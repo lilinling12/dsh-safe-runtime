@@ -94,3 +94,29 @@ describe("M4-030 deterministic instant precision", () => {
     })).toEqual({ status: "TIME_ELIGIBLE", reasonCode: "LEASE_TTL_ACTIVE" });
   });
 });
+
+describe("M4-030 Gregorian calendar boundaries", () => {
+  test("applies the Gregorian century leap-year rule exactly", () => {
+    for (const year of ["2000", "2400"] as const) {
+      expect(evaluateCapabilityLeaseTtl({
+        profile: "M4-030_LEASE_TTL_V1",
+        issuedAt: `${year}-02-29T23:59:59Z`,
+        observedAt: `${year}-03-01T00:00:00Z`,
+        expiresAt: `${year}-03-01T00:00:01Z`,
+      })).toEqual({ status: "TIME_ELIGIBLE", reasonCode: "LEASE_TTL_ACTIVE" });
+    }
+
+    for (const year of ["1900", "2100"] as const) {
+      expect(evaluateCapabilityLeaseTtl({
+        profile: "M4-030_LEASE_TTL_V1",
+        issuedAt: `${year}-02-29T00:00:00Z`,
+        observedAt: `${year}-03-01T00:00:00Z`,
+        expiresAt: `${year}-03-01T00:00:01Z`,
+      })).toEqual({
+        status: "FAIL_CLOSED",
+        stage: "TIME",
+        reasonCode: "LEASE_TTL_ISSUED_AT_INVALID",
+      });
+    }
+  });
+});
