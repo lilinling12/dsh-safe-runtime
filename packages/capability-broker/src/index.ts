@@ -5,18 +5,20 @@
  * PDP / Decision-Receipt / GuaranteeLevel prerequisites are governance-closed.
  * M4-030 deterministic CapabilityLease TTL validity is governance-closed.
  * M4-031 deterministic CapabilityLease usage validity is governance-closed.
- * M4-032 atomic one-use consumption is implementation-accepted and is now
- * undergoing acceptance-record exact-head verification before final governance.
+ * M4-032 atomic one-use consumption is governance-closed.
+ * M4-033 authoritative CapabilityLease revocation is implemented and awaiting
+ * exact-head implementation acceptance.
  *
- * M4-032 consumes only one authoritative usage unit for one leaseRef. It does
- * not check TTL/revocation/delegation, choose among multiple candidate leases,
- * execute actions, or wire a PEP. M4-033+ remain separate Gates.
+ * M4-033 revokes only one exact leaseRef through a trusted atomic store port.
+ * It does not mutate TTL/usage, cascade through parent/child leases, compose
+ * revocation with consume/execution, or wire a PEP. M4-034+ remain separate
+ * Gates.
  *
  * Protocol capability/Decision/Receipt/Lease types remain owned by
  * `@dsh-safe/protocol`; this package has no concrete DeepSeek Harness runtime
  * dependency.
  */
-export const PACKAGE_STAGE = "M4-032-ATOMIC-CONSUME-ACCEPTED" as const;
+export const PACKAGE_STAGE = "M4-033-LEASE-REVOCATION-IMPLEMENTED" as const;
 
 export * from "./builtin-filesystem-tool-classifier.js";
 export * from "./tool-classifier/builtin-shell.js";
@@ -117,3 +119,19 @@ export {
   type LeaseUseStore,
   type LeaseUseStoreOutcome,
 } from "./lease-consume-types.js";
+export { revokeCapabilityLease } from "./lease-revoke.js";
+export { InMemoryLeaseRevocationStore } from "./lease-revoke-memory-store.js";
+export {
+  LEASE_REVOKE_PROFILE,
+  type LeaseAlreadyRevoked,
+  type LeaseNotRevoked,
+  type LeaseRevocationState,
+  type LeaseRevocationStore,
+  type LeaseRevocationStoreOutcome,
+  type LeaseRevokeFailure,
+  type LeaseRevokeFailureReason,
+  type LeaseRevokeInput,
+  type LeaseRevokeResult,
+  type LeaseRevokeStage,
+  type LeaseRevoked,
+} from "./lease-revoke-types.js";
