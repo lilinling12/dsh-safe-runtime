@@ -2,6 +2,7 @@ import { normalizeCapabilityResource, type CanonicalResource } from "@dsh-safe/p
 
 import { evaluateCapabilityLeaseTtl } from "./lease-ttl.js";
 import { evaluateCapabilityLeaseUsage } from "./lease-usage.js";
+import type { LeaseUsageFailureReason } from "./lease-usage-types.js";
 import type {
   LeaseAttenuationState,
   LeaseAttenuationStore,
@@ -33,10 +34,9 @@ type Release = () => void;
 /**
  * Single-process M4-034 reference store.
  *
- * The store serializes operations over every shared Lease identity in a resolved
- * chain and uses the same per-Lease lock for M4-033 revocation. This proves the
- * intended process-local coordination only; it is not a database, multi-process
- * or distributed atomicity claim.
+ * Hierarchy use and M4-033 revocation share the same per-Lease locks. This is a
+ * process-local reference guarantee only; database/multi-process adapters need
+ * their own transactional conformance evidence.
  */
 export class InMemoryLeaseAttenuationStore implements LeaseAttenuationStore, LeaseRevocationStore {
   readonly #states = new Map<string, MutableLeaseAttenuationState>();
@@ -44,9 +44,7 @@ export class InMemoryLeaseAttenuationStore implements LeaseAttenuationStore, Lea
 
   constructor(states: readonly LeaseAttenuationState[] = []) {
     for (const state of states) {
-      if (this.#states.has(state.leaseRef)) {
-        throw new Error("duplicate leaseRef in reference store initialization");
-      }
+      if (this.#states.has(state.leaseRef)) throw new Error("duplicate leaseRef in reference store initialization");
       this.#states.set(state.leaseRef, cloneMutableState(state));
     }
   }
@@ -70,23 +68,16 @@ export class InMemoryLeaseAttenuationStore implements LeaseAttenuationStore, Lea
     try {
       const state = this.#states.get(leaseRef);
       if (state === undefined) return Object.freeze({ status: "NOT_FOUND" });
-      if (state.revoked) {
-        return Object.freeze({ status: "ALREADY_REVOKED", state: revocationSnapshot(state) });
-      }
+      if (state.revoked) return Object.freeze({ status: "ALREADY_REVOKED", state: revocationSnapshot(state) });
 
       const stateBefore = revocationSnapshot(state);
       state.revoked = true;
-      return Object.freeze({
-        status: "REVOKED",
-        stateBefore,
-        stateAfter: revocationSnapshot(state),
-      });
+      return Object.freeze({ status: "REVOKED", stateBefore, stateAfter: revocationSnapshot(state) });
     } finally {
       release();
     }
   }
 
-  /** Detached inspection helper for tests and local reference integrations. */
   snapshot(leaseRef: string): LeaseAttenuationState | undefined {
     const state = this.#states.get(leaseRef);
     return state === undefined ? undefined : stateSnapshot(state);
@@ -96,39 +87,27 @@ export class InMemoryLeaseAttenuationStore implements LeaseAttenuationStore, Lea
     | { readonly status: "CHAIN"; readonly refs: readonly string[] }
     | { readonly status: "OUTCOME"; readonly outcome: LeaseAttenuationStoreOutcome } {
     const target = this.#states.get(leaseRef);
-    if (target === undefined) {
-      return { status: "OUTCOME", outcome: Object.freeze({ status: "NOT_FOUND" }) };
-    }
+    if (target === undefined) return { status: "OUTCOME", outcome: Object.freeze({ status: "NOT_FOUND" }) };
 
     const refs: string[] = [];
     const seen = new Set<string>();
     let current: MutableLeaseAttenuationState | undefined = target;
     while (current !== undefined) {
       if (seen.has(current.leaseRef)) {
-        return {
-          status: "OUTCOME",
-          outcome: semanticFailure("CHAIN", "LEASE_ATTENUATION_CYCLE"),
-        };
+        return { status: "OUTCOME", outcome: semanticFailure("CHAIN", "LEASE_ATTENUATION_CYCLE") };
       }
       if (refs.length >= 32) {
-        return {
-          status: "OUTCOME",
-          outcome: semanticFailure("CHAIN", "LEASE_ATTENUATION_DEPTH_EXCEEDED"),
-        };
+        return { status: "OUTCOME", outcome: semanticFailure("CHAIN", "LEASE_ATTENUATION_DEPTH_EXCEEDED") };
       }
       seen.add(current.leaseRef);
       refs.push(current.leaseRef);
       if (current.parentLeaseRef === undefined) break;
       const parent = this.#states.get(current.parentLeaseRef);
       if (parent === undefined) {
-        return {
-          status: "OUTCOME",
-          outcome: semanticFailure("CHAIN", "LEASE_ATTENUATION_PARENT_NOT_FOUND"),
-        };
+        return { status: "OUTCOME", outcome: semanticFailure("CHAIN", "LEASE_ATTENUATION_PARENT_NOT_FOUND") };
       }
       current = parent;
     }
-
     return { status: "CHAIN", refs: Object.freeze(refs) };
   }
 
@@ -141,10 +120,7 @@ export class InMemoryLeaseAttenuationStore implements LeaseAttenuationStore, Lea
     for (const ref of refs.refs) {
       const state = this.#states.get(ref);
       if (state === undefined) {
-        return {
-          status: "OUTCOME",
-          outcome: semanticFailure("CHAIN", "LEASE_ATTENUATION_PARENT_NOT_FOUND"),
-        };
+        return { status: "OUTCOME", outcome: semanticFailure("CHAIN", "LEASE_ATTENUATION_PARENT_NOT_FOUND") };
       }
       chain.push(state);
     }
@@ -152,42 +128,24 @@ export class InMemoryLeaseAttenuationStore implements LeaseAttenuationStore, Lea
   }
 
   #consumeResolvedChain(chain: readonly MutableLeaseAttenuationState[]): LeaseAttenuationStoreOutcome {
-    const stateFailure = validateStateAndEdges(chain);
-    if (stateFailure !== undefined) return stateFailure;
+    const semantic = validateStateAndEdges(chain);
+    if (semantic !== undefined) return semantic;
 
     const before = Object.freeze(chain.map(stateSnapshot));
     const target = chain[0];
-    if (target === undefined) {
-      return semanticFailure("CHAIN", "LEASE_ATTENUATION_STATE_INVALID");
-    }
+    if (target === undefined) return semanticFailure("CHAIN", "LEASE_ATTENUATION_STATE_INVALID");
 
     if (target.revoked) {
-      return Object.freeze({
-        status: "NOT_CONSUMED",
-        reasonCode: "LEASE_ATTENUATION_TARGET_REVOKED",
-        chain: before,
-      });
+      return Object.freeze({ status: "NOT_CONSUMED", reasonCode: "LEASE_ATTENUATION_TARGET_REVOKED", chain: before });
     }
     if (chain.slice(1).some(state => state.revoked)) {
-      return Object.freeze({
-        status: "NOT_CONSUMED",
-        reasonCode: "LEASE_ATTENUATION_ANCESTOR_REVOKED",
-        chain: before,
-      });
+      return Object.freeze({ status: "NOT_CONSUMED", reasonCode: "LEASE_ATTENUATION_ANCESTOR_REVOKED", chain: before });
     }
     if (target.remainingUses === 0) {
-      return Object.freeze({
-        status: "NOT_CONSUMED",
-        reasonCode: "LEASE_USAGE_EXHAUSTED",
-        chain: before,
-      });
+      return Object.freeze({ status: "NOT_CONSUMED", reasonCode: "LEASE_USAGE_EXHAUSTED", chain: before });
     }
     if (chain.slice(1).some(state => state.remainingUses === 0)) {
-      return Object.freeze({
-        status: "NOT_CONSUMED",
-        reasonCode: "LEASE_ATTENUATION_ANCESTOR_EXHAUSTED",
-        chain: before,
-      });
+      return Object.freeze({ status: "NOT_CONSUMED", reasonCode: "LEASE_ATTENUATION_ANCESTOR_EXHAUSTED", chain: before });
     }
 
     for (const state of chain) state.remainingUses -= 1;
@@ -199,18 +157,15 @@ export class InMemoryLeaseAttenuationStore implements LeaseAttenuationStore, Lea
   }
 
   async #acquireMany(refs: readonly string[]): Promise<readonly Release[]> {
-    const ordered = [...refs].sort(compareCodePoints);
     const releases: Release[] = [];
-    for (const ref of ordered) releases.push(await this.#acquireOne(ref));
+    for (const ref of [...refs].sort(compareCodePoints)) releases.push(await this.#acquireOne(ref));
     return Object.freeze(releases);
   }
 
   async #acquireOne(ref: string): Promise<Release> {
     const previous = this.#tails.get(ref) ?? Promise.resolve();
     let releaseCurrent!: Release;
-    const current = new Promise<void>((resolve) => {
-      releaseCurrent = resolve;
-    });
+    const current = new Promise<void>(resolve => { releaseCurrent = resolve; });
     const tail = previous.then(() => current);
     this.#tails.set(ref, tail);
     await previous;
@@ -227,13 +182,9 @@ export class InMemoryLeaseAttenuationStore implements LeaseAttenuationStore, Lea
   }
 }
 
-function validateStateAndEdges(
-  chain: readonly MutableLeaseAttenuationState[],
-): LeaseAttenuationStoreOutcome | undefined {
+function validateStateAndEdges(chain: readonly MutableLeaseAttenuationState[]): LeaseAttenuationStoreOutcome | undefined {
   for (const state of chain) {
-    if (!validStateShape(state)) {
-      return semanticFailure("CHAIN", "LEASE_ATTENUATION_STATE_INVALID");
-    }
+    if (!validStateShape(state)) return semanticFailure("CHAIN", "LEASE_ATTENUATION_STATE_INVALID");
 
     const time = evaluateCapabilityLeaseTtl({
       profile: "M4-030_LEASE_TTL_V1",
@@ -241,18 +192,14 @@ function validateStateAndEdges(
       expiresAt: state.expiresAt,
       observedAt: state.issuedAt,
     });
-    if (time.status !== "TIME_ELIGIBLE") {
-      return semanticFailure("ATTENUATION", "LEASE_ATTENUATION_TIME_INVALID");
-    }
+    if (time.status !== "TIME_ELIGIBLE") return semanticFailure("ATTENUATION", "LEASE_ATTENUATION_TIME_INVALID");
 
     const usage = evaluateCapabilityLeaseUsage({
       profile: "M4-031_LEASE_USAGE_V1",
       maxUses: state.maxUses,
       remainingUses: state.remainingUses,
     });
-    if (usage.status === "FAIL_CLOSED") {
-      return semanticFailure("USAGE", usage.reasonCode);
-    }
+    if (usage.status === "FAIL_CLOSED") return normalizeUsageFailure(usage.reasonCode);
   }
 
   for (let index = 0; index < chain.length; index += 1) {
@@ -270,20 +217,15 @@ function validateStateAndEdges(
       child.parentLeaseRef !== parent.leaseRef
       || child.authorization.kind !== "lease"
       || child.authorization.ref !== parent.leaseRef
-    ) {
-      return semanticFailure("ATTENUATION", "LEASE_ATTENUATION_AUTHORIZATION_INVALID");
-    }
+    ) return semanticFailure("ATTENUATION", "LEASE_ATTENUATION_AUTHORIZATION_INVALID");
+
     if (child.capability !== parent.capability) {
       return semanticFailure("ATTENUATION", "LEASE_ATTENUATION_CAPABILITY_UNPROVABLE");
     }
 
     const childResource = normalizeCapabilityResource(child.resource);
     const parentResource = normalizeCapabilityResource(parent.resource);
-    if (
-      !childResource.ok
-      || !parentResource.ok
-      || !sameResource(childResource.resource, parentResource.resource)
-    ) {
+    if (!childResource.ok || !parentResource.ok || !sameResource(childResource.resource, parentResource.resource)) {
       return semanticFailure("ATTENUATION", "LEASE_ATTENUATION_RESOURCE_UNPROVABLE");
     }
     if (hasNonEmptyConstraints(child.constraints) || hasNonEmptyConstraints(parent.constraints)) {
@@ -306,14 +248,25 @@ function validateStateAndEdges(
       parentAtChildStart.status !== "TIME_ELIGIBLE"
       || childAtParentEnd.status !== "TIME_INELIGIBLE"
       || childAtParentEnd.reasonCode !== "LEASE_TTL_EXPIRED"
-    ) {
-      return semanticFailure("ATTENUATION", "LEASE_ATTENUATION_TIME_BROADENING");
-    }
+    ) return semanticFailure("ATTENUATION", "LEASE_ATTENUATION_TIME_BROADENING");
+
     if (child.maxUses > parent.maxUses) {
       return semanticFailure("ATTENUATION", "LEASE_ATTENUATION_MAX_USES_BROADENING");
     }
   }
   return undefined;
+}
+
+function normalizeUsageFailure(reasonCode: LeaseUsageFailureReason): LeaseAttenuationStoreOutcome {
+  switch (reasonCode) {
+    case "LEASE_USAGE_MAX_USES_INVALID":
+    case "LEASE_USAGE_REMAINING_USES_INVALID":
+    case "LEASE_USAGE_STATE_INVALID":
+      return semanticFailure("USAGE", reasonCode);
+    case "LEASE_USAGE_INPUT_INVALID":
+    case "LEASE_USAGE_PROFILE_INVALID":
+      return semanticFailure("CHAIN", "LEASE_ATTENUATION_STATE_INVALID");
+  }
 }
 
 function validStateShape(state: MutableLeaseAttenuationState): boolean {
@@ -337,20 +290,12 @@ function validAuthorization(value: LeaseAttenuationState["authorization"]): bool
 function hasInvalidConstraints(value: LeaseAttenuationState["constraints"]): boolean {
   if (value === undefined) return false;
   if (typeof value !== "object" || value === null || Array.isArray(value)) return true;
-  try {
-    return Reflect.ownKeys(value).some(key => typeof key !== "string");
-  } catch {
-    return true;
-  }
+  try { return Reflect.ownKeys(value).some(key => typeof key !== "string"); } catch { return true; }
 }
 
 function hasNonEmptyConstraints(value: LeaseAttenuationState["constraints"]): boolean {
   if (value === undefined) return false;
-  try {
-    return Reflect.ownKeys(value).length !== 0;
-  } catch {
-    return true;
-  }
+  try { return Reflect.ownKeys(value).length !== 0; } catch { return true; }
 }
 
 function sameResource(left: CanonicalResource, right: CanonicalResource): boolean {
@@ -371,9 +316,7 @@ function cloneMutableState(state: LeaseAttenuationState): MutableLeaseAttenuatio
     resource: Object.freeze({
       scheme: resource.resource.scheme,
       locator: resource.resource.locator,
-      ...(Object.hasOwn(resource.resource, "providerIdentity")
-        ? { providerIdentity: resource.resource.providerIdentity }
-        : {}),
+      ...(Object.hasOwn(resource.resource, "providerIdentity") ? { providerIdentity: resource.resource.providerIdentity } : {}),
     }),
     ...(state.constraints === undefined ? {} : { constraints: cloneConstraints(state.constraints) }),
     issuedAt: state.issuedAt,
@@ -386,9 +329,7 @@ function cloneMutableState(state: LeaseAttenuationState): MutableLeaseAttenuatio
 }
 
 function cloneConstraints(value: Readonly<Record<string, unknown>>): Readonly<Record<string, unknown>> {
-  const keys = Reflect.ownKeys(value);
-  if (keys.length !== 0) return Object.freeze({ ...value });
-  return Object.freeze({});
+  return Reflect.ownKeys(value).length === 0 ? Object.freeze({}) : Object.freeze({ ...value });
 }
 
 function stateSnapshot(state: MutableLeaseAttenuationState): LeaseAttenuationState {
