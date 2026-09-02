@@ -1824,3 +1824,66 @@ baseline or M4-032+ behavior changes here. The resulting exact head must itself
 reach normal CI + exact pinned Harness rc5 source-conformance dual-green before
 M4-031 governance is CLOSED and M4-032 P0 atomic consume becomes the next
 protocol-first Gate.
+
+## 2026-09-02 — Accept M4-032 atomic CapabilityLease consumption
+
+M4-032 protocol-first closed on
+`a5c011e55c7e7c55915e8c1aee5a787688d18e67` with Spec 0039 and the 40-case
+portable `LCON-001` through `LCON-040` corpus. Normal CI #524 and exact pinned
+Harness rc5 source-conformance #466 passed before production implementation
+began.
+
+The accepted implementation/hardening exact head is
+`8fa634bfc986c2486ccc778d14af5a76ad690bb1`. The primitive consumes one
+authoritative usage unit for one `leaseRef` through a trusted atomic store port.
+It preserves M4-031 exact safe-integer/coherence semantics, requires per-Lease
+linearizability, rejects exhausted/invalid authoritative state without mutation,
+and does not split an advisory read/check from the authoritative atomic write.
+
+Store failure semantics distinguish a failure known not to have linearized from
+an ambiguous commit outcome. The primitive performs no automatic retry and does
+not claim distributed exactly-once behavior across caller retries. The reference
+in-memory store documents only single-process atomicity; database/multi-process
+adapters require backend-specific evidence.
+
+Acceptance review hardened JavaScript hostile-runtime and store-evidence
+boundaries, including revoked Proxy object-shape probes, accessor/malformed store
+outcomes, exact before/after transition proof, lease identity coherence and
+canonical `-0` evidence. No schema, validator, TCK, TypeScript strictness,
+frozen-lockfile or security invariant was weakened to obtain green CI.
+
+Exact accepted implementation evidence at `8fa634bf...`:
+
+- normal CI #527 / run `33609196856`: PASS;
+- exact Harness rc5 source-conformance #469 / run `33609196891`: PASS;
+- 57 test files / 1118 tests: PASS;
+- portable M4-032 corpus runner: 41 PASS;
+- M4-032 hostile-runtime hardening: 7 PASS;
+- packed Shared TCK + external consumer: PASS.
+
+The acceptance audit is
+`docs/acceptance/m4-032-acceptance-audit.md` at
+`ce5010bbe1def1df157fc856f70e59317af18e22`; that audit-only exact head reached
+normal CI #528 / run `33611612524` and exact Harness rc5 source-conformance #470 /
+run `33611612511` PASS.
+
+Acceptance-record exact head is
+`61829b65a71521e5b21bc0fcf3092dfa503ee424`, where only the Capability Broker
+package-stage marker/comment changed to `M4-032-ATOMIC-CONSUME-ACCEPTED`. That
+exact head reached normal CI #529 / run `33612365181` PASS and exact Harness rc5
+source-conformance #471 / run `33612365191` PASS with PR #3 still Open, Draft,
+mergeable and without review/thread blockers.
+
+M4-032 remains deliberately narrower than a complete Lease lifecycle or PEP. It
+does not select candidates, check TTL, implement revocation, consume a parent,
+prove attenuation, rerun policy/approval, construct Decision/Receipt records,
+assign GuaranteeLevel, execute actions or claim distributed exactly-once retry
+semantics.
+
+This final governance transition is intentionally limited to CURRENT,
+append-only HISTORY and only the M4-032 roadmap acceptance marker/details. No
+production code, Spec/corpus/schema, Shared TCK, dependency, lockfile,
+Adapter/Harness baseline or M4-033+ behavior changes here. The resulting exact
+head must itself reach normal CI + exact pinned Harness rc5 source-conformance
+dual-green before M4-032 governance is CLOSED and M4-033 P0 revocation becomes
+the next protocol-first Gate.
