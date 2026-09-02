@@ -5,8 +5,8 @@
  * PDP / Decision-Receipt / GuaranteeLevel prerequisites are governance-closed.
  * M4-030 deterministic CapabilityLease TTL validity is governance-closed.
  * M4-031 deterministic CapabilityLease usage validity is governance-closed.
- * M4-032 atomic one-use consumption is implemented against a trusted atomic
- * store port and is awaiting exact-head implementation acceptance.
+ * M4-032 atomic one-use consumption is implementation-accepted and is now
+ * undergoing acceptance-record exact-head verification before final governance.
  *
  * M4-032 consumes only one authoritative usage unit for one leaseRef. It does
  * not check TTL/revocation/delegation, choose among multiple candidate leases,
@@ -16,7 +16,7 @@
  * `@dsh-safe/protocol`; this package has no concrete DeepSeek Harness runtime
  * dependency.
  */
-export const PACKAGE_STAGE = "M4-032-ATOMIC-CONSUME-IMPLEMENTED" as const;
+export const PACKAGE_STAGE = "M4-032-ATOMIC-CONSUME-ACCEPTED" as const;
 
 export * from "./builtin-filesystem-tool-classifier.js";
 export * from "./tool-classifier/builtin-shell.js";
