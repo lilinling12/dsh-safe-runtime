@@ -4,18 +4,19 @@
  * M4-010 through M4-014 classifier/fallback stages and M4-020 through M4-025
  * PDP / Decision-Receipt / GuaranteeLevel prerequisites are governance-closed.
  * M4-030 deterministic CapabilityLease TTL validity is governance-closed.
- * M4-031 deterministic CapabilityLease usage validity is implementation-accepted
- * and now undergoing acceptance-record exact-head verification before final governance.
+ * M4-031 deterministic CapabilityLease usage validity is governance-closed.
+ * M4-032 atomic one-use consumption is implemented against a trusted atomic
+ * store port and is awaiting exact-head implementation acceptance.
  *
- * M4-031 evaluates only the current maxUses/remainingUses snapshot. It does not
- * reserve or consume usage, check TTL/revocation/delegation, bypass approval,
- * execute actions, or wire a PEP. Atomic consume remains M4-032.
+ * M4-032 consumes only one authoritative usage unit for one leaseRef. It does
+ * not check TTL/revocation/delegation, choose among multiple candidate leases,
+ * execute actions, or wire a PEP. M4-033+ remain separate Gates.
  *
  * Protocol capability/Decision/Receipt/Lease types remain owned by
  * `@dsh-safe/protocol`; this package has no concrete DeepSeek Harness runtime
  * dependency.
  */
-export const PACKAGE_STAGE = "M4-031-LEASE-USAGE-ACCEPTED" as const;
+export const PACKAGE_STAGE = "M4-032-ATOMIC-CONSUME-IMPLEMENTED" as const;
 
 export * from "./builtin-filesystem-tool-classifier.js";
 export * from "./tool-classifier/builtin-shell.js";
@@ -101,3 +102,18 @@ export {
   type LeaseUsageIneligible,
   type LeaseUsageStage,
 } from "./lease-usage-types.js";
+export { consumeCapabilityLeaseUse } from "./lease-consume.js";
+export { InMemoryLeaseUseStore } from "./lease-consume-memory-store.js";
+export {
+  LEASE_CONSUME_PROFILE,
+  type LeaseConsumed,
+  type LeaseConsumeFailure,
+  type LeaseConsumeFailureReason,
+  type LeaseConsumeInput,
+  type LeaseConsumeResult,
+  type LeaseConsumeStage,
+  type LeaseNotConsumed,
+  type LeaseUseState,
+  type LeaseUseStore,
+  type LeaseUseStoreOutcome,
+} from "./lease-consume-types.js";
