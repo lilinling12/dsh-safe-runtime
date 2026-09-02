@@ -182,29 +182,53 @@ export class InMemoryLeaseAttenuationStore implements LeaseAttenuationStore, Lea
   }
 }
 
+/** Preserve Spec 0041 observable failure precedence by validating in passes. */
 function validateStateAndEdges(chain: readonly MutableLeaseAttenuationState[]): LeaseAttenuationStoreOutcome | undefined {
+  const shapeFailure = validateStateShapes(chain);
+  if (shapeFailure !== undefined) return shapeFailure;
+
+  const authorizationFailure = validateAuthorizationEdges(chain);
+  if (authorizationFailure !== undefined) return authorizationFailure;
+
+  const capabilityFailure = validateCapabilities(chain);
+  if (capabilityFailure !== undefined) return capabilityFailure;
+
+  const resourceFailure = validateResources(chain);
+  if (resourceFailure !== undefined) return resourceFailure;
+
+  const constraintFailure = validateConstraints(chain);
+  if (constraintFailure !== undefined) return constraintFailure;
+
+  const timeFailure = validateTimes(chain);
+  if (timeFailure !== undefined) return timeFailure;
+
+  const usageFailure = validateUsage(chain);
+  if (usageFailure !== undefined) return usageFailure;
+
+  return validateMaxUses(chain);
+}
+
+function validateStateShapes(chain: readonly MutableLeaseAttenuationState[]): LeaseAttenuationStoreOutcome | undefined {
   for (const state of chain) {
-    if (!validStateShape(state)) return semanticFailure("CHAIN", "LEASE_ATTENUATION_STATE_INVALID");
-
-    const time = evaluateCapabilityLeaseTtl({
-      profile: "M4-030_LEASE_TTL_V1",
-      issuedAt: state.issuedAt,
-      expiresAt: state.expiresAt,
-      observedAt: state.issuedAt,
-    });
-    if (time.status !== "TIME_ELIGIBLE") return semanticFailure("ATTENUATION", "LEASE_ATTENUATION_TIME_INVALID");
-
-    const usage = evaluateCapabilityLeaseUsage({
-      profile: "M4-031_LEASE_USAGE_V1",
-      maxUses: state.maxUses,
-      remainingUses: state.remainingUses,
-    });
-    if (usage.status === "FAIL_CLOSED") return normalizeUsageFailure(usage.reasonCode);
+    if (
+      !validRef(state.leaseRef)
+      || !validRef(state.subjectRef)
+      || (state.parentLeaseRef !== undefined && !validRef(state.parentLeaseRef))
+      || typeof state.capability !== "string"
+      || typeof state.issuedAt !== "string"
+      || typeof state.expiresAt !== "string"
+      || typeof state.revoked !== "boolean"
+    ) return semanticFailure("CHAIN", "LEASE_ATTENUATION_STATE_INVALID");
   }
+  return undefined;
+}
 
+function validateAuthorizationEdges(chain: readonly MutableLeaseAttenuationState[]): LeaseAttenuationStoreOutcome | undefined {
   for (let index = 0; index < chain.length; index += 1) {
     const child = chain[index];
-    if (child === undefined) return semanticFailure("CHAIN", "LEASE_ATTENUATION_STATE_INVALID");
+    if (child === undefined || !validAuthorization(child.authorization)) {
+      return semanticFailure("ATTENUATION", "LEASE_ATTENUATION_AUTHORIZATION_INVALID");
+    }
     const parent = chain[index + 1];
     if (parent === undefined) {
       if (child.parentLeaseRef !== undefined || child.authorization.kind === "lease") {
@@ -212,25 +236,67 @@ function validateStateAndEdges(chain: readonly MutableLeaseAttenuationState[]): 
       }
       continue;
     }
-
     if (
       child.parentLeaseRef !== parent.leaseRef
       || child.authorization.kind !== "lease"
       || child.authorization.ref !== parent.leaseRef
     ) return semanticFailure("ATTENUATION", "LEASE_ATTENUATION_AUTHORIZATION_INVALID");
+  }
+  return undefined;
+}
 
-    if (child.capability !== parent.capability) {
+function validateCapabilities(chain: readonly MutableLeaseAttenuationState[]): LeaseAttenuationStoreOutcome | undefined {
+  for (let index = 0; index + 1 < chain.length; index += 1) {
+    const child = chain[index];
+    const parent = chain[index + 1];
+    if (child === undefined || parent === undefined || child.capability !== parent.capability) {
       return semanticFailure("ATTENUATION", "LEASE_ATTENUATION_CAPABILITY_UNPROVABLE");
     }
+  }
+  return undefined;
+}
 
-    const childResource = normalizeCapabilityResource(child.resource);
-    const parentResource = normalizeCapabilityResource(parent.resource);
-    if (!childResource.ok || !parentResource.ok || !sameResource(childResource.resource, parentResource.resource)) {
+function validateResources(chain: readonly MutableLeaseAttenuationState[]): LeaseAttenuationStoreOutcome | undefined {
+  const normalized: CanonicalResource[] = [];
+  for (const state of chain) {
+    const resource = normalizeCapabilityResource(state.resource);
+    if (!resource.ok) return semanticFailure("ATTENUATION", "LEASE_ATTENUATION_RESOURCE_UNPROVABLE");
+    normalized.push(resource.resource);
+  }
+  for (let index = 0; index + 1 < normalized.length; index += 1) {
+    const child = normalized[index];
+    const parent = normalized[index + 1];
+    if (child === undefined || parent === undefined || !sameResource(child, parent)) {
       return semanticFailure("ATTENUATION", "LEASE_ATTENUATION_RESOURCE_UNPROVABLE");
     }
-    if (hasNonEmptyConstraints(child.constraints) || hasNonEmptyConstraints(parent.constraints)) {
+  }
+  return undefined;
+}
+
+function validateConstraints(chain: readonly MutableLeaseAttenuationState[]): LeaseAttenuationStoreOutcome | undefined {
+  for (const state of chain) {
+    if (hasInvalidConstraints(state.constraints) || hasNonEmptyConstraints(state.constraints)) {
       return semanticFailure("ATTENUATION", "LEASE_ATTENUATION_CONSTRAINT_PROFILE_UNSUPPORTED");
     }
+  }
+  return undefined;
+}
+
+function validateTimes(chain: readonly MutableLeaseAttenuationState[]): LeaseAttenuationStoreOutcome | undefined {
+  for (const state of chain) {
+    const time = evaluateCapabilityLeaseTtl({
+      profile: "M4-030_LEASE_TTL_V1",
+      issuedAt: state.issuedAt,
+      expiresAt: state.expiresAt,
+      observedAt: state.issuedAt,
+    });
+    if (time.status !== "TIME_ELIGIBLE") return semanticFailure("ATTENUATION", "LEASE_ATTENUATION_TIME_INVALID");
+  }
+
+  for (let index = 0; index + 1 < chain.length; index += 1) {
+    const child = chain[index];
+    const parent = chain[index + 1];
+    if (child === undefined || parent === undefined) return semanticFailure("CHAIN", "LEASE_ATTENUATION_STATE_INVALID");
 
     const parentAtChildStart = evaluateCapabilityLeaseTtl({
       profile: "M4-030_LEASE_TTL_V1",
@@ -249,7 +315,27 @@ function validateStateAndEdges(chain: readonly MutableLeaseAttenuationState[]): 
       || childAtParentEnd.status !== "TIME_INELIGIBLE"
       || childAtParentEnd.reasonCode !== "LEASE_TTL_EXPIRED"
     ) return semanticFailure("ATTENUATION", "LEASE_ATTENUATION_TIME_BROADENING");
+  }
+  return undefined;
+}
 
+function validateUsage(chain: readonly MutableLeaseAttenuationState[]): LeaseAttenuationStoreOutcome | undefined {
+  for (const state of chain) {
+    const usage = evaluateCapabilityLeaseUsage({
+      profile: "M4-031_LEASE_USAGE_V1",
+      maxUses: state.maxUses,
+      remainingUses: state.remainingUses,
+    });
+    if (usage.status === "FAIL_CLOSED") return normalizeUsageFailure(usage.reasonCode);
+  }
+  return undefined;
+}
+
+function validateMaxUses(chain: readonly MutableLeaseAttenuationState[]): LeaseAttenuationStoreOutcome | undefined {
+  for (let index = 0; index + 1 < chain.length; index += 1) {
+    const child = chain[index];
+    const parent = chain[index + 1];
+    if (child === undefined || parent === undefined) return semanticFailure("CHAIN", "LEASE_ATTENUATION_STATE_INVALID");
     if (child.maxUses > parent.maxUses) {
       return semanticFailure("ATTENUATION", "LEASE_ATTENUATION_MAX_USES_BROADENING");
     }
@@ -267,19 +353,6 @@ function normalizeUsageFailure(reasonCode: LeaseUsageFailureReason): LeaseAttenu
     case "LEASE_USAGE_PROFILE_INVALID":
       return semanticFailure("CHAIN", "LEASE_ATTENUATION_STATE_INVALID");
   }
-}
-
-function validStateShape(state: MutableLeaseAttenuationState): boolean {
-  return validRef(state.leaseRef)
-    && validRef(state.subjectRef)
-    && (state.parentLeaseRef === undefined || validRef(state.parentLeaseRef))
-    && typeof state.capability === "string"
-    && typeof state.issuedAt === "string"
-    && typeof state.expiresAt === "string"
-    && typeof state.revoked === "boolean"
-    && validAuthorization(state.authorization)
-    && normalizeCapabilityResource(state.resource).ok
-    && !hasInvalidConstraints(state.constraints);
 }
 
 function validAuthorization(value: LeaseAttenuationState["authorization"]): boolean {
