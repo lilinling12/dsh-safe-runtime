@@ -3,12 +3,13 @@
  *
  * M4-010 through M4-014 classifier/fallback stages and M4-020 through M4-025
  * PDP / Decision-Receipt / GuaranteeLevel prerequisites are governance-closed.
- * M4-030 deterministic CapabilityLease TTL validity is implementation-accepted
- * and now undergoing acceptance-record verification before final governance.
+ * M4-030 deterministic CapabilityLease TTL validity is governance-closed.
+ * M4-031 deterministic CapabilityLease usage validity is now implemented for
+ * exact-head verification; package-stage acceptance is intentionally unchanged.
  *
- * M4-030 evaluates only an explicit logical observation time against the
- * existing Lease `[issuedAt, expiresAt)` interval. It does not consume usage,
- * check revocation/delegation, bypass approval, execute actions, or wire a PEP.
+ * M4-031 evaluates only the current maxUses/remainingUses snapshot. It does not
+ * reserve or consume usage, check TTL/revocation/delegation, bypass approval,
+ * execute actions, or wire a PEP. Atomic consume remains M4-032.
  *
  * Protocol capability/Decision/Receipt/Lease types remain owned by
  * `@dsh-safe/protocol`; this package has no concrete DeepSeek Harness runtime
@@ -89,3 +90,14 @@ export {
   type LeaseTtlIneligibleReasonCode,
   type LeaseTtlStage,
 } from "./lease-ttl-types.js";
+export { evaluateCapabilityLeaseUsage } from "./lease-usage.js";
+export {
+  LEASE_USAGE_PROFILE,
+  type LeaseUsageEligible,
+  type LeaseUsageEvaluationInput,
+  type LeaseUsageEvaluationResult,
+  type LeaseUsageFailure,
+  type LeaseUsageFailureReason,
+  type LeaseUsageIneligible,
+  type LeaseUsageStage,
+} from "./lease-usage-types.js";
