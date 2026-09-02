@@ -40,7 +40,8 @@ export class InMemoryLeaseUseStore implements LeaseUseStore {
     let release!: () => void;
     const previous = this.#queues.get(leaseRef) ?? Promise.resolve();
     const current = new Promise<void>((resolve) => { release = resolve; });
-    this.#queues.set(leaseRef, previous.then(() => current));
+    const tail = previous.then(() => current);
+    this.#queues.set(leaseRef, tail);
 
     await previous;
     try {
@@ -64,7 +65,7 @@ export class InMemoryLeaseUseStore implements LeaseUseStore {
       return Object.freeze({ status: "CONSUMED", stateBefore: before, stateAfter: clone(state) });
     } finally {
       release();
-      if (this.#queues.get(leaseRef) === current) this.#queues.delete(leaseRef);
+      if (this.#queues.get(leaseRef) === tail) this.#queues.delete(leaseRef);
     }
   }
 

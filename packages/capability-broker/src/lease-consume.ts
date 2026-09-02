@@ -2,6 +2,7 @@ import { evaluateCapabilityLeaseUsage } from "./lease-usage.js";
 import {
   LEASE_CONSUME_PROFILE,
   type LeaseConsumeFailure,
+  type LeaseConsumeFailureReason,
   type LeaseConsumeResult,
   type LeaseUseState,
   type LeaseUseStore,
@@ -10,8 +11,31 @@ import {
 
 const INPUT_KEYS = new Set(["profile", "leaseRef"]);
 
+type PreservedUsageFailureReason = Extract<
+  LeaseConsumeFailureReason,
+  "LEASE_USAGE_MAX_USES_INVALID" | "LEASE_USAGE_REMAINING_USES_INVALID" | "LEASE_USAGE_STATE_INVALID"
+>;
+
 function failure(stage: LeaseConsumeFailure["stage"], reasonCode: LeaseConsumeFailure["reasonCode"]): LeaseConsumeFailure {
   return Object.freeze({ status: "FAIL_CLOSED", stage, reasonCode });
+}
+
+function preservedUsageFailure(reasonCode: string): PreservedUsageFailureReason | undefined {
+  switch (reasonCode) {
+    case "LEASE_USAGE_MAX_USES_INVALID":
+    case "LEASE_USAGE_REMAINING_USES_INVALID":
+    case "LEASE_USAGE_STATE_INVALID":
+      return reasonCode;
+    default:
+      return undefined;
+  }
+}
+
+function usageFailureOrInvalidStore(reasonCode: string): LeaseConsumeFailure {
+  const preserved = preservedUsageFailure(reasonCode);
+  return preserved
+    ? failure("USAGE", preserved)
+    : failure("STORE", "LEASE_CONSUME_STORE_RESULT_INVALID");
 }
 
 function isReadableRecord(value: unknown): value is Record<PropertyKey, unknown> {
@@ -74,7 +98,7 @@ function normalizeOutcome(outcome: LeaseUseStoreOutcome, expectedLeaseRef: strin
       return failure("STORE", "LEASE_CONSUME_STORE_RESULT_INVALID");
     }
     const usage = usageResult(outcome.state);
-    if (usage.status === "FAIL_CLOSED") return failure("USAGE", usage.reasonCode);
+    if (usage.status === "FAIL_CLOSED") return usageFailureOrInvalidStore(usage.reasonCode);
     if (usage.status !== "USAGE_INELIGIBLE") {
       return failure("STORE", "LEASE_CONSUME_STORE_RESULT_INVALID");
     }
@@ -87,13 +111,13 @@ function normalizeOutcome(outcome: LeaseUseStoreOutcome, expectedLeaseRef: strin
   }
 
   const before = usageResult(outcome.stateBefore);
-  if (before.status === "FAIL_CLOSED") return failure("USAGE", before.reasonCode);
+  if (before.status === "FAIL_CLOSED") return usageFailureOrInvalidStore(before.reasonCode);
   if (before.status !== "USAGE_ELIGIBLE") {
     return failure("STORE", "LEASE_CONSUME_STORE_RESULT_INVALID");
   }
 
   const after = usageResult(outcome.stateAfter);
-  if (after.status === "FAIL_CLOSED") return failure("USAGE", after.reasonCode);
+  if (after.status === "FAIL_CLOSED") return usageFailureOrInvalidStore(after.reasonCode);
 
   const beforeRemaining = outcome.stateBefore.remainingUses;
   const afterRemaining = outcome.stateAfter.remainingUses;
