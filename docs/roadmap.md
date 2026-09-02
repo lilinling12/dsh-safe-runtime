@@ -297,7 +297,7 @@ Acceptance evidence
 
 ## M4.4 Lease
 
-- [ ] `M4-030 P0` TTL。
+- [x] `M4-030 P0` TTL。 **ACCEPTED：Spec 0037 + 32 portable cases + deterministic explicit-observedAt half-open Lease TTL validity + RFC3339/Gregorian/offset/fraction/leap-second ordering + hostile-runtime/no-host-clock hardening；accepted implementation head `e7c2832f...`，CI #515 / Harness #457 PASS；验收记录 `docs/acceptance/m4-030-acceptance-audit.md`。**
 - [ ] `M4-031 P0` maxUses。
 - [ ] `M4-032 P0` atomic consume。
 - [ ] `M4-033 P0` revoke。

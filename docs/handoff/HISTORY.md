@@ -1712,3 +1712,56 @@ Spec/corpus/schema, Shared TCK, dependency, lockfile, Adapter/Harness baseline o
 later-Gate behavior changes here. The resulting exact head must itself reach
 normal CI + exact pinned Harness rc5 source-conformance dual-green before M4-025
 governance is CLOSED and M4-030 P0 TTL becomes the next protocol-first Gate.
+
+## 2026-09-02 — Accept M4-030 deterministic CapabilityLease TTL validity
+
+M4-030 protocol-first closed on
+`8cb3a9054cd8a1f0114f3cc5fdd9cf5000548efd` with Spec 0037 and the 32-case
+portable `LTTL-001` through `LTTL-032` corpus. Normal CI #512 and exact pinned
+Harness rc5 source-conformance #454 passed before production implementation
+began.
+
+The accepted implementation/hardening exact head is
+`e7c2832f1263d744e3de6916e01c30db374ce68c`. It evaluates only the caller-supplied
+logical observation time against the existing Lease `[issuedAt, expiresAt)`
+window. It reads no host clock, performs deterministic RFC3339/Gregorian/offset/
+fraction/leap-second ordering, rejects incoherent windows fail closed, and keeps
+usage, consume, revocation, attenuation, approval and PEP semantics outside this
+Gate.
+
+Acceptance review strengthened evidence after the initial implementation by
+adding Gregorian century regressions and hostile-runtime tests proving descriptor
+inspection failure is sanitized and replacing global `Date` with a throwing
+proxy does not affect evaluation. No production semantics were weakened to make
+those regressions pass.
+
+Exact accepted implementation evidence at `e7c2832f...`:
+
+- normal CI #515 / run `33554652123`: PASS;
+- exact Harness rc5 source-conformance #457 / run `33554649460`: PASS;
+- frozen install / 124-entry supply-chain policy: PASS;
+- architecture / 16-schema shape / schema baseline / strict TypeScript: PASS;
+- 53 test files / 1024 tests: PASS;
+- M4-030 primary suite: 36 PASS;
+- hostile-runtime hardening suite: 12 PASS;
+- packed Shared TCK + external non-workspace consumer: 44 assets PASS.
+
+The acceptance audit is
+`docs/acceptance/m4-030-acceptance-audit.md` at
+`fbe7583ae32472d5553590cd1a1c28dd67676586`; that audit-only head reached normal
+CI #516 and exact Harness rc5 source-conformance #458 PASS.
+
+Acceptance-record exact head is
+`0d2a07a4753bda5f2ebcbbdf50725e2c5413e4b9`, where only the Capability Broker
+package-stage marker/comment changed to `M4-030-LEASE-TTL-ACCEPTED`. That exact
+head reached normal CI #517 / run `33555584220` PASS and exact Harness rc5
+source-conformance #459 / run `33555584238` PASS with PR #3 still Open, Draft,
+mergeable and without review/thread blockers.
+
+This final governance transition is intentionally limited to CURRENT,
+append-only HISTORY and only the M4-030 roadmap acceptance marker. No production
+code, Spec/corpus/schema, Shared TCK, dependency, lockfile, Adapter/Harness
+baseline or M4-031+ behavior changes here. The resulting exact head must itself
+reach normal CI + exact pinned Harness rc5 source-conformance dual-green before
+M4-030 governance is CLOSED and M4-031 P0 maxUses becomes the next protocol-first
+Gate.

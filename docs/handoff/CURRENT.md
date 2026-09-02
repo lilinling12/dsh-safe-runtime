@@ -14,8 +14,8 @@
 - Base: `main@57430273e065be8d38807d67b175fa154c801d43`
 - M4-001 through M4-014: **GOVERNANCE CLOSED**
 - M4-020 through M4-025: **GOVERNANCE CLOSED**
-- M4-030 TTL: **AUTHORIZED / PROTOCOL-FIRST IN PROGRESS**
-- M4-030 production implementation: **NOT AUTHORIZED until the resulting protocol-first exact head is dual-green**
+- M4-030 TTL: **IMPLEMENTATION ACCEPTED / ACCEPTANCE-RECORD DUAL-GREEN**
+- M4-030 final governance: **IN PROGRESS — final governance exact head must be dual-green before closure**
 - M4-031+, M4-040+ and M6: **NOT AUTHORIZED**
 
 Live GitHub state overrides this file.
@@ -40,90 +40,27 @@ commit: 47f943859bef60e4160492346772ded9b24f765a
 distribution: distribution-blocked
 ```
 
-Harness behavior MUST NOT define Lease TTL semantics. M4-030 is protocol-first
-and runtime-independent.
+Harness behavior, host clocks and runtime parsing MUST NOT define Lease TTL
+semantics. M4-030 remains protocol-first and runtime-independent.
 
-## M4-025 final governance closure
+## M4-025 closure prerequisite
 
-M4-025 acceptance-record exact head:
-
-```text
-40ba27452f90e06fe4daa3f2a4243986f7d5d0ed
-```
-
-Final-governance exact head:
+M4-025 final-governance exact head:
 
 ```text
 47f918a83c331db1589cb9cb7f332920521ab51d
 ```
 
-The net final-governance delta from the acceptance-record head is exactly:
-
-```text
-docs/handoff/CURRENT.md
-docs/handoff/HISTORY.md   # +62 / -0 append-only
-docs/roadmap.md           # +1 / -1; only M4-025 acceptance marker
-```
-
-Exact-head evidence for `47f918a8...`:
+Exact-head evidence:
 
 - normal CI #511 / run `33469235589`: PASS;
 - exact Harness rc5 source-conformance #453 / run `33469235567`: PASS;
-- frozen install / `pnpm check:all`: PASS;
-- pinned Harness build/install/projection/idempotence/exact-source typecheck/runtime: PASS;
-- PR #3: Open, Draft, mergeable;
-- reviews: none;
-- unresolved review threads: none.
+- PR #3 remained Open, Draft and mergeable with no review/thread blocker.
 
-Therefore:
+Therefore M4-025 governance is CLOSED and M4-030 was authorized to begin
+protocol-first.
 
-```text
-M4-025: GOVERNANCE CLOSED
-M4-030: P0 TTL — AUTHORIZED / PROTOCOL-FIRST
-```
-
-PR #3 merge remains unauthorized without explicit user approval.
-
-## M4-030 authority reconciliation
-
-Existing protocol authority already defines the Lease timestamp fields:
-
-```text
-schemas/v1alpha1/capability-lease.schema.json
-packages/protocol/src/capability.ts
-specs/0001-safe-runtime-core.md §11
-specs/0002-state-machines-and-precedence.md §3
-specs/0033-m4-capability-lease-lookup.md §8
-```
-
-Published `CapabilityLease` already contains:
-
-```text
-issuedAt
-expiresAt
-maxUses
-remainingUses
-authorization
-parentLeaseRef?
-```
-
-M4-022 explicitly returns Lease candidates without evaluating `issuedAt` /
-`expiresAt` and delegates time validity to M4-030.
-
-The roadmap keeps lifecycle responsibilities separate:
-
-```text
-M4-030 TTL
-M4-031 maxUses / usage validity
-M4-032 atomic consume
-M4-033 revoke
-M4-034 parent-child attenuation
-```
-
-M4-030 therefore MUST NOT change the Lease schema or absorb later-Gate
-semantics.
-
-## M4-030 protocol-first draft
+## M4-030 protocol-first closure
 
 Normative specification:
 
@@ -145,7 +82,13 @@ M4-030_LEASE_TTL_V1
 
 Portable cases: `32`, canonical sequential IDs `LTTL-001` through `LTTL-032`.
 
-The authorized protocol-first delta is limited to:
+Protocol-first exact head:
+
+```text
+8cb3a9054cd8a1f0114f3cc5fdd9cf5000548efd
+```
+
+Relative to M4-025 final governance, the protocol-first delta was exactly:
 
 ```text
 docs/handoff/CURRENT.md
@@ -153,16 +96,20 @@ fixtures/lease-ttl/cases.json
 specs/0037-m4-capability-lease-ttl.md
 ```
 
-No production TypeScript, protocol wire type, schema, Shared TCK, dependency,
-lockfile, Adapter/Harness baseline, M4-031+, M4-040+ or M6 file is authorized
-before this protocol-first exact head is dual-green.
+Exact-head evidence:
 
-## M4-030 normative lifetime semantics
+- normal CI #512: PASS;
+- exact Harness rc5 source-conformance #454: PASS;
+- no review/review-thread blocker.
 
-M4-030 evaluates only the existing Lease time window at an explicit logical
-observation time.
+Production TypeScript began only after that same-head dual-green prerequisite.
 
-Portable input:
+## M4-030 accepted semantics
+
+M4-030 evaluates only the time-window validity of an already-materialized
+CapabilityLease at caller-supplied logical observation time.
+
+Portable input is exactly:
 
 ```text
 LeaseTtlEvaluationInput {
@@ -173,9 +120,7 @@ LeaseTtlEvaluationInput {
 }
 ```
 
-The primitive MUST NOT read host wall clock. `observedAt` is explicit.
-
-A coherent lifetime is the half-open interval:
+The authoritative interval is:
 
 ```text
 [issuedAt, expiresAt)
@@ -184,98 +129,160 @@ A coherent lifetime is the half-open interval:
 Therefore:
 
 ```text
-observedAt == issuedAt  -> TIME_ELIGIBLE
+observedAt == issuedAt  -> TIME_ELIGIBLE / LEASE_TTL_ACTIVE
 observedAt <  issuedAt  -> TIME_INELIGIBLE / LEASE_TTL_NOT_YET_ACTIVE
-observedAt == expiresAt -> TIME_INELIGIBLE / LEASE_TTL_EXPIRED
-observedAt >  expiresAt -> TIME_INELIGIBLE / LEASE_TTL_EXPIRED
+observedAt >= expiresAt -> TIME_INELIGIBLE / LEASE_TTL_EXPIRED
+issuedAt >= expiresAt   -> FAIL_CLOSED / TIME / LEASE_TTL_WINDOW_INVALID
 ```
 
-`issuedAt >= expiresAt` is malformed lifecycle data and fails closed with
-`LEASE_TTL_WINDOW_INVALID`.
+Comparison is by deterministic RFC3339 instant rather than timestamp text.
+Offset-equivalent values compare equal; arbitrary fractional precision is
+preserved without floating-point rounding; Gregorian validation includes the
+century rule; deterministic leap-second ordering is explicit and does not rely
+on a host leap table.
 
-Timestamp comparison is by RFC3339 instant, not text. Offset-equivalent values
-compare equal; arbitrary fractional precision is preserved; lowercase `t/z`
-remain accepted under the existing lexical profile; deterministic leap-second
-ordering is specified without delegating to host date parsing.
+`observedAt` is an explicit logical input. The accepted implementation does not
+consult `Date()`, `new Date()`, `Date.now()`, `Date.parse()`, `Date.UTC()` or
+another host wall-clock source.
 
-## Requested TTL boundary
+`requestedLease.ttlMs` / policy `lease.ttlMs` remain issuance-request bounds.
+M4-030 does not reconstruct them from an existing Lease and does not infer a
+24-hour lifetime cap.
 
-`CapabilityRequest.requestedLease.ttlMs` and policy-rule `lease.ttlMs` are
-issuance-request bounds. They are not fields on an existing CapabilityLease.
+`TIME_ELIGIBLE` means only time-window eligibility. It is not authorization and
+does not imply usage availability, non-revocation, valid delegation or PEP
+permission.
 
-M4-030 MUST NOT reconstruct or enforce requested `ttlMs` against an existing
-Lease without authoritative issuance context. In particular, it does not infer
-a global 24-hour lifetime cap from the `leaseRequest.ttlMs` schema maximum.
+## M4-030 accepted implementation
 
-## M4-031+ separation
-
-M4-030 does not inspect or decide:
+Initial implementation head:
 
 ```text
-maxUses
-remainingUses
-atomic consume
-revocation
-parentLeaseRef attenuation
-authorization provenance
-Lease candidate selection
-approval bypass
-PEP execution
+90c3462320b61b8db2ba74b6bc9fd2be4e397245
 ```
 
-`TIME_ELIGIBLE` means only time-window eligibility. It MUST NOT be interpreted
-as a usable or authorizing Lease.
+Acceptance review then added test-only hardening without changing production
+semantics:
 
-## Runtime/security requirements for later implementation
+```text
+4931be505b7e0b138d0d2c47f4e1751fcb8e59ee  Gregorian century regressions
+e7c2832f1263d744e3de6916e01c30db374ce68c  descriptor-trap / no-host-Date regressions
+```
 
-After protocol-first dual-green, the TypeScript reference implementation must:
+Accepted implementation/hardening exact head:
 
-- accept runtime input as `unknown`;
-- inspect exact own data properties only;
-- reject accessors without executing getters;
-- reject inherited/symbol/unexpected fields;
-- fail closed on revoked/unreadable Proxies and meta-operations;
-- avoid implicit string/number coercion;
-- avoid `Date.parse`, locale APIs and host wall clock;
-- compare offsets/fractions deterministically without precision truncation;
-- return detached frozen success/failure objects;
-- never echo attacker-controlled timestamps or host exception text.
+```text
+e7c2832f1263d744e3de6916e01c30db374ce68c
+```
 
-Portable JSON fixtures do not model host-language Proxy/accessor attacks; those
-must be added as production implementation regressions after authorization.
+Net implementation delta from the protocol-first head is exactly:
 
-## Protocol-first Gate
+```text
+packages/capability-broker/src/index.ts
+packages/capability-broker/src/lease-ttl-hardening.test.ts
+packages/capability-broker/src/lease-ttl-types.ts
+packages/capability-broker/src/lease-ttl.test.ts
+packages/capability-broker/src/lease-ttl.ts
+```
 
-The resulting exact head for this three-file protocol-first delta MUST reach:
+No schema, Shared TCK, Adapter/Harness baseline, dependency, lockfile or later
+Lease Gate was changed.
 
-1. normal CI PASS;
+Exact accepted implementation evidence:
+
+- normal CI #515 / run `33554652123`: PASS;
+- exact Harness rc5 source-conformance #457 / run `33554649460`: PASS;
+- frozen install / 124-entry supply-chain policy: PASS;
+- architecture boundaries / 16-schema shape / schema baseline: PASS;
+- strict workspace TypeScript: PASS;
+- 53 test files / 1024 tests: PASS;
+- M4-030 primary suite: 36 PASS;
+- M4-030 hostile-runtime hardening suite: 12 PASS;
+- oxlint: 0 errors and two inherited repository warnings;
+- packed Shared TCK + external non-workspace consumer: 44 assets PASS;
+- pinned Harness build/install/projection/idempotence/exact-source typecheck/runtime: PASS.
+
+## M4-030 acceptance record
+
+Acceptance audit commit:
+
+```text
+fbe7583ae32472d5553590cd1a1c28dd67676586
+```
+
+The audit is:
+
+```text
+docs/acceptance/m4-030-acceptance-audit.md
+```
+
+Audit-only exact-head evidence:
+
+- normal CI #516: PASS;
+- exact Harness rc5 source-conformance #458: PASS.
+
+Package-stage acceptance-record exact head:
+
+```text
+0d2a07a4753bda5f2ebcbbdf50725e2c5413e4b9
+```
+
+That transition changed only the Capability Broker package-stage comment/marker
+to `M4-030-LEASE-TTL-ACCEPTED`.
+
+Exact-head evidence for `0d2a07a4...`:
+
+- normal CI #517 / run `33555584220`: PASS;
+- exact Harness rc5 source-conformance #459 / run `33555584238`: PASS;
+- PR #3: Open, Draft, mergeable;
+- reviews: none;
+- review threads: none.
+
+Therefore the implementation and acceptance record are accepted. Final
+governance bookkeeping is now the only active M4-030 Gate.
+
+## Final governance scope
+
+The final-governance commit may change only:
+
+```text
+docs/handoff/CURRENT.md
+docs/handoff/HISTORY.md   # append-only
+docs/roadmap.md           # only M4-030 acceptance marker
+```
+
+It MUST NOT change production code, Spec/corpus/schema, Shared TCK,
+Adapter/Harness baseline, dependency, lockfile, M4-031+ semantics or PR merge
+state.
+
+The resulting final-governance exact head MUST reach:
+
+1. normal repository CI PASS;
 2. exact pinned Harness rc5 source-conformance PASS;
 3. PR #3 remains Open/Draft/mergeable with no review/review-thread blocker.
 
-Only after that **same exact head** is dual-green may M4-030 production
-TypeScript begin.
-
-If CI fails, inspect the real failing job/step/diagnostic for that exact head.
-Do not weaken schema, validators, strict TypeScript, conformance tests, frozen
-lockfile, security boundaries or Harness source-conformance to obtain green.
+Only after that same exact head is dual-green is M4-030 governance CLOSED and
+M4-031 P0 maxUses authorized to begin protocol-first.
 
 ## Boundaries that remain enforced
 
-- DeepSeek Harness is Adapter compatibility evidence only.
-- M4-030 does not change the published CapabilityLease wire model.
-- M4-030 does not derive authority from host time or locale parsing.
-- M4-031+ remain unauthorized until M4-030 is accepted through its own Gate.
-- M4-040+ PEP work remains unauthorized.
-- M6 remains unauthorized.
+- M4-030 does not inspect `maxUses` or `remainingUses`.
+- M4-030 does not perform atomic consumption.
+- M4-030 does not implement revocation.
+- M4-030 does not validate parent-child attenuation.
+- M4-030 does not rerun policy/approval or construct new authorization.
+- M4-030 does not execute a PEP.
+- DeepSeek Harness remains compatibility evidence only.
+- M4-031+, M4-040+ and M6 remain unauthorized until their own Gate opens.
 - PR #3 remains Draft; no merge without explicit user authorization.
 
 ## Resume instruction
 
 1. refresh PR #3 exact head/base/reviews/threads;
-2. confirm the protocol-first delta against `47f918a8...` is exactly CURRENT +
-   `fixtures/lease-ttl/cases.json` + Spec 0037;
+2. verify the final-governance delta from `0d2a07a4...` is exactly CURRENT +
+   append-only HISTORY + only the M4-030 roadmap marker;
 3. require exact-head normal CI + pinned Harness rc5 source-conformance
    dual-green;
-4. only then authorize production M4-030 implementation;
-5. implement only the accepted TTL profile with hostile-runtime tests;
-6. keep M4-031+, M4-040+, M6 and PR merge unauthorized.
+4. only after that evidence declare M4-030 governance CLOSED;
+5. then authorize M4-031 P0 maxUses as the only next protocol-first Gate;
+6. keep M4-032+, M4-040+, M6 and PR merge unauthorized.
