@@ -1765,3 +1765,62 @@ baseline or M4-031+ behavior changes here. The resulting exact head must itself
 reach normal CI + exact pinned Harness rc5 source-conformance dual-green before
 M4-030 governance is CLOSED and M4-031 P0 maxUses becomes the next protocol-first
 Gate.
+
+## 2026-09-02 — Accept M4-031 deterministic CapabilityLease usage validity
+
+M4-031 protocol-first closed on
+`b7fd6b4b127ec393113de15d35f81ee90738fd42` with Spec 0038 and the 32-case
+portable `LUSE-001` through `LUSE-032` corpus. Normal CI #519 / run
+`33586806719` and exact pinned Harness rc5 source-conformance #461 / run
+`33586807228` passed before production implementation began.
+
+The accepted implementation exact head is
+`4888db9445f807ce2a17f4434371a3d18aaf97bc`. It evaluates only the current
+`maxUses` / `remainingUses` snapshot of an already-materialized CapabilityLease.
+The portable exact-integer domain is the common JSON/IEEE-754 safe-integer range,
+with `maxUses >= 1`, `remainingUses >= 0` and `remainingUses <= maxUses`.
+`remainingUses == 0` is exhausted; any positive coherent remaining count is
+usage-eligible.
+
+The request-time `leaseRequest.maxUses <= 100000` issuance bound is deliberately
+not imported into existing Lease validity. M4-031 performs no coercion, no
+counter mutation, no reservation or decrement, no CAS/transaction/locking, and
+does not solve TOCTOU. Atomic authoritative consume remains M4-032.
+
+Hostile-runtime hardening requires exact own data properties, rejects inherited,
+accessor, unexpected string/symbol and malformed counter values without executing
+getters or coercion hooks, fails closed on revoked/unreadable Proxy
+meta-operations, and returns detached frozen results with stable sanitized
+failures.
+
+Exact accepted implementation evidence at `4888db94...`:
+
+- normal CI #520 / run `33588237365`: PASS;
+- exact Harness rc5 source-conformance #462 / run `33588237362`: PASS;
+- frozen install / 124-entry supply-chain policy: PASS;
+- architecture / 16-schema shape / schema baseline / strict TypeScript: PASS;
+- 55 test files / 1070 tests: PASS;
+- M4-031 primary suite: 35 PASS;
+- hostile-runtime hardening suite: 11 PASS;
+- packed Shared TCK + external non-workspace consumer: 44 assets PASS.
+
+The acceptance audit is
+`docs/acceptance/m4-031-acceptance-audit.md` at
+`61d4226b72a2a2e7cae185b3e7c8c33676edd583`; that audit-only exact head reached
+normal CI #521 / run `33591492448` and exact Harness rc5 source-conformance #463 /
+run `33591492442` PASS.
+
+Acceptance-record exact head is
+`68494d35e2f488f631370b80c6f84ce35a9d1818`, where only the Capability Broker
+package-stage marker/comment changed to `M4-031-LEASE-USAGE-ACCEPTED`. That exact
+head reached normal CI #522 / run `33595106908` PASS and exact Harness rc5
+source-conformance #464 / run `33595106809` PASS with PR #3 still Open, Draft,
+mergeable and without review/thread blockers.
+
+This final governance transition is intentionally limited to CURRENT,
+append-only HISTORY and only the M4-031 roadmap acceptance marker. No production
+code, Spec/corpus/schema, Shared TCK, dependency, lockfile, Adapter/Harness
+baseline or M4-032+ behavior changes here. The resulting exact head must itself
+reach normal CI + exact pinned Harness rc5 source-conformance dual-green before
+M4-031 governance is CLOSED and M4-032 P0 atomic consume becomes the next
+protocol-first Gate.
