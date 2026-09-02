@@ -1,45 +1,26 @@
 import { evaluateCapabilityLeaseUsage } from "./lease-usage.js";
+import type { LeaseUsageFailureReason } from "./lease-usage-types.js";
 import {
   LEASE_CONSUME_PROFILE,
   type LeaseConsumeFailure,
-  type LeaseConsumeFailureReason,
   type LeaseConsumeResult,
   type LeaseUseState,
   type LeaseUseStore,
-  type LeaseUseStoreOutcome,
 } from "./lease-consume-types.js";
 
 const INPUT_KEYS = new Set(["profile", "leaseRef"]);
-
-type PreservedUsageFailureReason = Extract<
-  LeaseConsumeFailureReason,
-  "LEASE_USAGE_MAX_USES_INVALID" | "LEASE_USAGE_REMAINING_USES_INVALID" | "LEASE_USAGE_STATE_INVALID"
->;
 
 function failure(stage: LeaseConsumeFailure["stage"], reasonCode: LeaseConsumeFailure["reasonCode"]): LeaseConsumeFailure {
   return Object.freeze({ status: "FAIL_CLOSED", stage, reasonCode });
 }
 
-function preservedUsageFailure(reasonCode: string): PreservedUsageFailureReason | undefined {
-  switch (reasonCode) {
-    case "LEASE_USAGE_MAX_USES_INVALID":
-    case "LEASE_USAGE_REMAINING_USES_INVALID":
-    case "LEASE_USAGE_STATE_INVALID":
-      return reasonCode;
-    default:
-      return undefined;
-  }
-}
-
-function usageFailureOrInvalidStore(reasonCode: string): LeaseConsumeFailure {
-  const preserved = preservedUsageFailure(reasonCode);
-  return preserved
-    ? failure("USAGE", preserved)
-    : failure("STORE", "LEASE_CONSUME_STORE_RESULT_INVALID");
-}
-
 function isReadableRecord(value: unknown): value is Record<PropertyKey, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+  if (typeof value !== "object" || value === null) return false;
+  try {
+    return !Array.isArray(value);
+  } catch {
+    return false;
+  }
 }
 
 function readOwnData(record: Record<PropertyKey, unknown>, key: PropertyKey): { ok: true; value: unknown } | { ok: false } {
@@ -78,64 +59,103 @@ function usageResult(state: LeaseUseState): ReturnType<typeof evaluateCapability
   });
 }
 
-function validStateLeaseRef(state: LeaseUseState, expectedLeaseRef: string): boolean {
-  return state.leaseRef === expectedLeaseRef;
+function normalizeUsageFailure(reasonCode: LeaseUsageFailureReason): LeaseConsumeFailure {
+  switch (reasonCode) {
+    case "LEASE_USAGE_MAX_USES_INVALID":
+    case "LEASE_USAGE_REMAINING_USES_INVALID":
+    case "LEASE_USAGE_STATE_INVALID":
+      return failure("USAGE", reasonCode);
+    default:
+      return failure("STORE", "LEASE_CONSUME_STORE_RESULT_INVALID");
+  }
 }
 
-function normalizeOutcome(outcome: LeaseUseStoreOutcome, expectedLeaseRef: string): LeaseConsumeResult {
-  if (outcome.status === "NOT_FOUND") {
-    return Object.freeze({ status: "NOT_CONSUMED", reasonCode: "LEASE_CONSUME_NOT_FOUND" });
+function readStoreState(value: unknown): LeaseUseState | undefined {
+  if (!isReadableRecord(value)) return undefined;
+  const leaseRef = readOwnData(value, "leaseRef");
+  const maxUses = readOwnData(value, "maxUses");
+  const remainingUses = readOwnData(value, "remainingUses");
+  if (!leaseRef.ok || !maxUses.ok || !remainingUses.ok || typeof leaseRef.value !== "string") {
+    return undefined;
   }
-  if (outcome.status === "UNAVAILABLE_NOT_APPLIED") {
-    return failure("STORE", "LEASE_CONSUME_STORE_UNAVAILABLE");
-  }
-  if (outcome.status === "OUTCOME_UNKNOWN") {
-    return failure("STORE", "LEASE_CONSUME_OUTCOME_UNKNOWN");
-  }
-
-  if (outcome.status === "EXHAUSTED") {
-    if (!validStateLeaseRef(outcome.state, expectedLeaseRef)) {
-      return failure("STORE", "LEASE_CONSUME_STORE_RESULT_INVALID");
-    }
-    const usage = usageResult(outcome.state);
-    if (usage.status === "FAIL_CLOSED") return usageFailureOrInvalidStore(usage.reasonCode);
-    if (usage.status !== "USAGE_INELIGIBLE") {
-      return failure("STORE", "LEASE_CONSUME_STORE_RESULT_INVALID");
-    }
-    return Object.freeze({ status: "NOT_CONSUMED", reasonCode: "LEASE_USAGE_EXHAUSTED" });
-  }
-
-  if (!validStateLeaseRef(outcome.stateBefore, expectedLeaseRef)
-      || !validStateLeaseRef(outcome.stateAfter, expectedLeaseRef)) {
-    return failure("STORE", "LEASE_CONSUME_STORE_RESULT_INVALID");
-  }
-
-  const before = usageResult(outcome.stateBefore);
-  if (before.status === "FAIL_CLOSED") return usageFailureOrInvalidStore(before.reasonCode);
-  if (before.status !== "USAGE_ELIGIBLE") {
-    return failure("STORE", "LEASE_CONSUME_STORE_RESULT_INVALID");
-  }
-
-  const after = usageResult(outcome.stateAfter);
-  if (after.status === "FAIL_CLOSED") return usageFailureOrInvalidStore(after.reasonCode);
-
-  const beforeRemaining = outcome.stateBefore.remainingUses;
-  const afterRemaining = outcome.stateAfter.remainingUses;
-  if (
-    typeof beforeRemaining !== "number"
-    || typeof afterRemaining !== "number"
-    || outcome.stateBefore.maxUses !== outcome.stateAfter.maxUses
-    || afterRemaining !== beforeRemaining - 1
-  ) {
-    return failure("STORE", "LEASE_CONSUME_STORE_RESULT_INVALID");
-  }
-
   return Object.freeze({
-    status: "CONSUMED",
-    reasonCode: "LEASE_USE_CONSUMED",
-    remainingUsesBefore: beforeRemaining,
-    remainingUsesAfter: afterRemaining,
+    leaseRef: leaseRef.value,
+    maxUses: maxUses.value,
+    remainingUses: remainingUses.value,
   });
+}
+
+function normalizeOutcome(outcome: unknown, expectedLeaseRef: string): LeaseConsumeResult {
+  if (!isReadableRecord(outcome)) {
+    return failure("STORE", "LEASE_CONSUME_STORE_RESULT_INVALID");
+  }
+
+  const statusData = readOwnData(outcome, "status");
+  if (!statusData.ok || typeof statusData.value !== "string") {
+    return failure("STORE", "LEASE_CONSUME_STORE_RESULT_INVALID");
+  }
+
+  switch (statusData.value) {
+    case "NOT_FOUND":
+      return Object.freeze({ status: "NOT_CONSUMED", reasonCode: "LEASE_CONSUME_NOT_FOUND" });
+    case "UNAVAILABLE_NOT_APPLIED":
+      return failure("STORE", "LEASE_CONSUME_STORE_UNAVAILABLE");
+    case "OUTCOME_UNKNOWN":
+      return failure("STORE", "LEASE_CONSUME_OUTCOME_UNKNOWN");
+    case "EXHAUSTED": {
+      const stateData = readOwnData(outcome, "state");
+      const state = stateData.ok ? readStoreState(stateData.value) : undefined;
+      if (!state || state.leaseRef !== expectedLeaseRef) {
+        return failure("STORE", "LEASE_CONSUME_STORE_RESULT_INVALID");
+      }
+      const usage = usageResult(state);
+      if (usage.status === "FAIL_CLOSED") return normalizeUsageFailure(usage.reasonCode);
+      if (usage.status !== "USAGE_INELIGIBLE") {
+        return failure("STORE", "LEASE_CONSUME_STORE_RESULT_INVALID");
+      }
+      return Object.freeze({ status: "NOT_CONSUMED", reasonCode: "LEASE_USAGE_EXHAUSTED" });
+    }
+    case "CONSUMED": {
+      const beforeData = readOwnData(outcome, "stateBefore");
+      const afterData = readOwnData(outcome, "stateAfter");
+      const stateBefore = beforeData.ok ? readStoreState(beforeData.value) : undefined;
+      const stateAfter = afterData.ok ? readStoreState(afterData.value) : undefined;
+      if (!stateBefore || !stateAfter
+          || stateBefore.leaseRef !== expectedLeaseRef
+          || stateAfter.leaseRef !== expectedLeaseRef) {
+        return failure("STORE", "LEASE_CONSUME_STORE_RESULT_INVALID");
+      }
+
+      const before = usageResult(stateBefore);
+      if (before.status === "FAIL_CLOSED") return normalizeUsageFailure(before.reasonCode);
+      if (before.status !== "USAGE_ELIGIBLE") {
+        return failure("STORE", "LEASE_CONSUME_STORE_RESULT_INVALID");
+      }
+
+      const after = usageResult(stateAfter);
+      if (after.status === "FAIL_CLOSED") return normalizeUsageFailure(after.reasonCode);
+
+      const beforeRemaining = stateBefore.remainingUses;
+      const afterRemaining = stateAfter.remainingUses;
+      if (
+        typeof beforeRemaining !== "number"
+        || typeof afterRemaining !== "number"
+        || stateBefore.maxUses !== stateAfter.maxUses
+        || afterRemaining !== beforeRemaining - 1
+      ) {
+        return failure("STORE", "LEASE_CONSUME_STORE_RESULT_INVALID");
+      }
+
+      return Object.freeze({
+        status: "CONSUMED",
+        reasonCode: "LEASE_USE_CONSUMED",
+        remainingUsesBefore: beforeRemaining,
+        remainingUsesAfter: afterRemaining,
+      });
+    }
+    default:
+      return failure("STORE", "LEASE_CONSUME_STORE_RESULT_INVALID");
+  }
 }
 
 /**
@@ -154,15 +174,11 @@ export async function consumeCapabilityLeaseUse(input: unknown, store: LeaseUseS
   if (profile.value !== LEASE_CONSUME_PROFILE) return failure("INPUT", "LEASE_CONSUME_PROFILE_INVALID");
   if (!validLeaseRef(leaseRef.value)) return failure("INPUT", "LEASE_CONSUME_LEASE_REF_INVALID");
 
-  let outcome: LeaseUseStoreOutcome;
+  let outcome: unknown;
   try {
     outcome = await store.consumeOne(leaseRef.value);
   } catch {
     return failure("STORE", "LEASE_CONSUME_OUTCOME_UNKNOWN");
-  }
-
-  if (!outcome || typeof outcome !== "object" || Array.isArray(outcome) || typeof outcome.status !== "string") {
-    return failure("STORE", "LEASE_CONSUME_STORE_RESULT_INVALID");
   }
 
   return normalizeOutcome(outcome, leaseRef.value);

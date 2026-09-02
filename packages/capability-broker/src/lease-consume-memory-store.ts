@@ -7,11 +7,15 @@ interface MutableLeaseUseState {
   remainingUses: unknown;
 }
 
+function canonicalNumericZero(value: unknown): unknown {
+  return typeof value === "number" && Object.is(value, -0) ? 0 : value;
+}
+
 function clone(state: MutableLeaseUseState): LeaseUseState {
   return Object.freeze({
     leaseRef: state.leaseRef,
     maxUses: state.maxUses,
-    remainingUses: state.remainingUses,
+    remainingUses: canonicalNumericZero(state.remainingUses),
   });
 }
 

@@ -107,6 +107,33 @@ describe("M4-032 hostile runtime and store boundary", () => {
     })).toEqual({ status: "FAIL_CLOSED", stage: "STORE", reasonCode: "LEASE_CONSUME_STORE_RESULT_INVALID" });
   });
 
+  test("malformed store results fail closed without invoking accessors", async () => {
+    let statusGetterCalls = 0;
+    const accessorOutcome = Object.create(null) as Record<string, unknown>;
+    Object.defineProperty(accessorOutcome, "status", {
+      enumerable: true,
+      get() {
+        statusGetterCalls += 1;
+        return "NOT_FOUND";
+      },
+    });
+
+    const accessorResult = await consumeCapabilityLeaseUse(validInput, {
+      consumeOne: () => accessorOutcome as never,
+    });
+    expect(accessorResult).toEqual({
+      status: "FAIL_CLOSED", stage: "STORE", reasonCode: "LEASE_CONSUME_STORE_RESULT_INVALID",
+    });
+    expect(statusGetterCalls).toBe(0);
+
+    const malformedConsumed = await consumeCapabilityLeaseUse(validInput, {
+      consumeOne: () => ({ status: "CONSUMED", stateBefore: null, stateAfter: null }) as never,
+    });
+    expect(malformedConsumed).toEqual({
+      status: "FAIL_CLOSED", stage: "STORE", reasonCode: "LEASE_CONSUME_STORE_RESULT_INVALID",
+    });
+  });
+
   test("returns detached frozen results and does not mutate request input", async () => {
     const input = { ...validInput };
     const result = await consumeCapabilityLeaseUse(input, consumedStore());
