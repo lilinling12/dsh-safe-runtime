@@ -112,6 +112,24 @@ describe("M4-033 hostile runtime and store boundary", () => {
     })).toEqual({ status: "FAIL_CLOSED", stage: "STORE", reasonCode: "LEASE_REVOKE_STORE_RESULT_INVALID" });
   });
 
+  test("rejects contradictory already-revoked and non-monotonic success evidence", async () => {
+    expect(await revokeCapabilityLease(validInput, {
+      revokeOne(leaseRef) {
+        return { status: "ALREADY_REVOKED", state: { leaseRef, revoked: false } };
+      },
+    })).toEqual({ status: "FAIL_CLOSED", stage: "STORE", reasonCode: "LEASE_REVOKE_STORE_RESULT_INVALID" });
+
+    expect(await revokeCapabilityLease(validInput, {
+      revokeOne(leaseRef) {
+        return {
+          status: "REVOKED",
+          stateBefore: { leaseRef, revoked: false },
+          stateAfter: { leaseRef, revoked: false },
+        };
+      },
+    })).toEqual({ status: "FAIL_CLOSED", stage: "STORE", reasonCode: "LEASE_REVOKE_STORE_RESULT_INVALID" });
+  });
+
   test("malformed store results fail closed without invoking accessors", async () => {
     let statusGetterCalls = 0;
     const accessorOutcome = Object.create(null) as Record<string, unknown>;
