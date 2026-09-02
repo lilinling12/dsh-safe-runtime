@@ -12,72 +12,18 @@
 - Active pull request: `#3 — feat(policy): begin M4 capability broker`
 - Branch: `feat/m4-capability-broker`
 - Base: `main@57430273e065be8d38807d67b175fa154c801d43`
-- Parent governance-closed head: `89e5f5112c91f061fcb6d5e0f58de1a3e79122a7`
 - M4-001 through M4-014: **GOVERNANCE CLOSED**
 - M4-020 through M4-025: **GOVERNANCE CLOSED**
 - M4-030 TTL: **GOVERNANCE CLOSED**
 - M4-031 usage validity: **GOVERNANCE CLOSED**
 - M4-032 atomic consume: **GOVERNANCE CLOSED**
-- M4-033 revocation: **AUTHORIZED / PROTOCOL-FIRST IN PROGRESS**
-- M4-033 production implementation: **NOT AUTHORIZED until protocol-first exact-head dual-green**
-- M4-034+, M4-040+ and M6: **NOT AUTHORIZED**
+- M4-033 revocation: **IMPLEMENTATION ACCEPTED / ACCEPTANCE AUDIT DUAL-GREEN / PACKAGE ACCEPTANCE DUAL-GREEN / FINAL GOVERNANCE IN PROGRESS**
+- M4-034+, M4-040+ and M6: **NOT AUTHORIZED until M4-033 final-governance exact head is dual-green**
 - PR #3 merge: **NOT AUTHORIZED without explicit user authorization**
 
 Live GitHub state overrides this file.
 
-## M4-032 final governance closure
-
-Final governance exact head:
-
-```text
-89e5f5112c91f061fcb6d5e0f58de1a3e79122a7
-```
-
-Exact-head evidence:
-
-- normal CI #530 / run `33615062606`: PASS;
-- exact Harness rc5 source-conformance #472 / run `33615062600`: PASS;
-- PR #3: Open, Draft, mergeable;
-- reviews: none;
-- review threads: none.
-
-Therefore M4-032 governance is CLOSED and M4-033 is the only newly authorized
-engineering Gate.
-
-## Compatibility baseline
-
-DeepSeek Harness remains Adapter compatibility evidence only:
-
-```text
-version: 0.1.0-rc.5
-commit: 47f943859bef60e4160492346772ded9b24f765a
-distribution: distribution-blocked
-```
-
-Harness behavior does not define Lease revocation semantics.
-
-## M4-033 authority reconciliation
-
-Core §11 requires every CapabilityLease to be revocable, but the published
-v1alpha1 `CapabilityLease` schema/type contains no revocation field. M4-030,
-M4-031 and M4-032 explicitly defer revocation to M4-033.
-
-M4-033 therefore MUST NOT add `revoked`, `revokedAt` or similar fields to the
-CapabilityLease wire model merely for convenience. Revocation is independent,
-authoritative lifecycle state keyed by stable `leaseRef`.
-
-It MUST NOT be simulated by:
-
-```text
-remainingUses := 0
-expiresAt := now
-deleting the Lease
-```
-
-because usage exhaustion, TTL expiry, existence and revocation are distinct
-facts.
-
-## M4-033 protocol-first draft
+## M4-033 accepted authority
 
 Normative specification:
 
@@ -93,114 +39,135 @@ profile: M4-033_LEASE_REVOKE_V1
 cases: 32 (LREV-001 through LREV-032)
 ```
 
-Portable input:
+Protocol-first exact head:
 
 ```text
-LeaseRevokeInput {
-  profile: "M4-033_LEASE_REVOKE_V1"
-  leaseRef: ref
-}
+831e78dbc7724811f2750e7a7271f9df38471517
 ```
 
-Authoritative minimal operational projection:
+Evidence:
+
+- normal CI #531 / run `33616058152`: PASS;
+- exact Harness rc5 source-conformance #473 / run `33616058124`: PASS.
+
+## M4-033 accepted implementation
+
+Final implementation/hardening exact head:
 
 ```text
-LeaseRevocationState {
-  leaseRef: ref
-  revoked: boolean
-}
+76447d4115299ad325e76cb67fea8946f01132ff
 ```
 
-This state is not a second CapabilityLease wire model.
+The accepted primitive revokes one exact stable `leaseRef` through a trusted
+authoritative store port. Revocation state remains the independent operational
+projection `{ leaseRef, revoked }`; the published `CapabilityLease` wire/schema
+is unchanged.
 
-## M4-033 accepted draft semantics
-
-The only legal authoritative mutation is monotonic:
+The only legal mutation is monotonic:
 
 ```text
 revoked: false -> true
 ```
 
-Results:
+Missing Lease, already-revoked Lease, known-not-applied store failure and
+ambiguous outcome remain distinct. The broker invokes the store at most once,
+performs no automatic retry, validates store identity/transition evidence, and
+fails closed on malformed or contradictory provider results.
+
+The reference in-memory store provides per-`leaseRef` process-local
+linearizability only. It does not claim multi-process/database/distributed
+atomicity.
+
+M4-033 does not simulate revocation through TTL expiry, usage exhaustion,
+deletion, authorization rewrite or parent/child traversal. M4-032 remains
+counter-only and separate. Revocation/consume/execution TOCTOU composition stays
+for later PEP/composition work.
+
+Exact implementation evidence:
+
+- normal CI #538 / run `33618834463`: PASS;
+- exact Harness rc5 source-conformance #480 / run `33618834499`: PASS;
+- 59 test files / 1159 tests: PASS;
+- M4-033 portable suite: 33 PASS;
+- M4-033 hostile-runtime/store hardening: 8 PASS;
+- frozen install / 124-entry supply-chain policy: PASS;
+- architecture / 16-schema shape / compatibility baseline / strict TypeScript: PASS;
+- packed Shared TCK external consumer: 44 assets PASS.
+
+## Acceptance stages
+
+Acceptance audit:
 
 ```text
-missing lease
-  -> NOT_REVOKED / LEASE_REVOKE_NOT_FOUND
-
-not revoked
-  -> atomically revoked := true
-  -> REVOKED / LEASE_REVOKED
-
-already revoked
-  -> ALREADY_REVOKED / LEASE_ALREADY_REVOKED
+docs/acceptance/m4-033-acceptance-audit.md
+7718130b413c94399cfeb0842cc54243c49046bc
 ```
 
-There is no portable unrevoke/reactivation operation. Repeated revocation is
-state-idempotent.
+Audit exact-head evidence:
 
-Concurrent revoke operations targeting one Lease must be per-Lease linearizable:
-for N concurrent attempts against one non-revoked Lease with no store failure,
-exactly one returns REVOKED and N-1 return ALREADY_REVOKED.
+- normal CI #539 / run `33619714824`: PASS;
+- exact Harness rc5 source-conformance #481 / run `33619714826`: PASS.
 
-Known-not-applied store failure returns
-`LEASE_REVOKE_STORE_UNAVAILABLE`; ambiguous commit outcome returns
-`LEASE_REVOKE_OUTCOME_UNKNOWN`. The primitive performs no automatic retry and
-invokes the store at most once per invocation.
-
-Because revocation is monotonic set-to-true, a later caller retry after an
-ambiguous outcome cannot restore Lease authority or consume an additional usage
-unit; it may observe ALREADY_REVOKED if the first attempt committed. The original
-ambiguous result itself remains fail-closed.
-
-## Critical composition boundary
-
-M4-032 remains a counter-only atomic consume primitive and does not become
-revocation-aware retroactively.
-
-The sequence:
+Package acceptance record:
 
 ```text
-observe not-revoked
-concurrent revoke commits
-consume usage
-execute
+37d8affdd2e6e281ac914bc4d97283eb7b78d430
+PACKAGE_STAGE = M4-033-LEASE-REVOCATION-ACCEPTED
 ```
 
-is not an execution-safe authorization composition. A stale not-revoked snapshot
-is not a reservation.
+Package-record exact-head evidence:
 
-M4-033 establishes authoritative revocation state only. A later composition/PEP
-Gate must prove that revocation cannot linearize before execution authority is
-irreversibly acquired while the action still proceeds. M4-033 does not invent
-that later orchestration early.
+- normal CI #540 / run `33620346004`: PASS;
+- exact Harness rc5 source-conformance #482 / run `33620346009`: PASS;
+- PR #3 remained Open, Draft and mergeable.
 
-## Parent/child boundary
+## Final governance boundary
 
-M4-033 targets only the exact `leaseRef`. It does not walk `parentLeaseRef`,
-automatically revoke descendants, consume parents or prove attenuation.
-M4-034 remains responsible for parent-child attenuation semantics and any
-accepted propagation rule.
-
-## Protocol-first Gate boundary
-
-The authorized protocol-first delta is exactly:
+The final M4-033 governance transition is restricted to:
 
 ```text
-specs/0040-m4-capability-lease-revocation.md
-fixtures/lease-revocation/cases.json
 docs/handoff/CURRENT.md
+docs/handoff/HISTORY.md
+docs/roadmap.md
 ```
 
-No production TypeScript, CapabilityLease schema/type, Shared TCK registration,
-dependency, lockfile, Adapter/Harness baseline, M4-034+, M4-040+ or M6 behavior
-may change before this protocol-first exact head is dual-green.
+`HISTORY.md` must remain append-only. In `docs/roadmap.md`, only the M4-033
+acceptance checkbox may change; M4-034 remains unchecked.
+
+The resulting final-governance exact head must itself reach normal CI + exact
+pinned Harness rc5 source-conformance dual-green. Only after that evidence is
+M4-033 governance CLOSED and M4-034 P0 parent-child attenuation newly authorized
+for protocol-first work.
+
+## Compatibility baseline
+
+DeepSeek Harness remains Adapter compatibility evidence only:
+
+```text
+version: 0.1.0-rc.5
+commit: 47f943859bef60e4160492346772ded9b24f765a
+distribution: distribution-blocked
+```
+
+Harness behavior does not define Lease revocation or attenuation semantics.
+
+## M4-034 boundary after closure
+
+When M4-033 final governance becomes dual-green, M4-034 is the only newly
+authorized engineering Gate. It must begin protocol-first by reconciling the
+existing Core delegation/attenuation rules, `parentLeaseRef` wire/schema surface,
+M4-030/M4-031/M4-032/M4-033 lifecycle facts, and stable identity constraints.
+
+M4-034 must not infer propagation, parent consumption, cascade revocation,
+execution-time PEP composition or Harness semantics from roadmap wording.
+M4-035+, M4-040+, M6 and PR #3 merge remain unauthorized until their own gates.
 
 ## Resume instruction
 
 1. refresh PR #3 exact head/base/reviews/threads;
-2. verify the protocol-first delta from `89e5f511...` is exactly the three
-   authorized files above;
+2. verify the final-governance delta from package-record head `37d8affd...` is
+   exactly CURRENT + append-only HISTORY + only the M4-033 roadmap checkbox;
 3. require exact-head normal CI + pinned Harness rc5 source-conformance
    dual-green;
-4. only then authorize M4-033 production implementation;
-5. keep M4-034+, M4-040+, M6 and PR merge unauthorized.
+4. only then record M4-033 governance CLOSED and authorize M4-034 protocol-first;
+5. do not merge PR #3 without explicit user authorization.

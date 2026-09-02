@@ -1887,3 +1887,71 @@ Adapter/Harness baseline or M4-033+ behavior changes here. The resulting exact
 head must itself reach normal CI + exact pinned Harness rc5 source-conformance
 dual-green before M4-032 governance is CLOSED and M4-033 P0 revocation becomes
 the next protocol-first Gate.
+
+## 2026-09-03 — Accept M4-033 authoritative CapabilityLease revocation
+
+M4-033 protocol-first closed on
+`831e78dbc7724811f2750e7a7271f9df38471517` with Spec 0040 and the 32-case
+portable `LREV-001` through `LREV-032` corpus. Normal CI #531 / run
+`33616058152` and exact pinned Harness rc5 source-conformance #473 / run
+`33616058124` passed before production implementation began.
+
+The accepted implementation/hardening exact head is
+`76447d4115299ad325e76cb67fea8946f01132ff`. Revocation remains independent
+authoritative operational state keyed by stable `leaseRef`; the published
+CapabilityLease wire type/schema was not expanded with mutable revocation fields.
+The only legal state transition is monotonic `revoked: false -> true`.
+
+Missing Lease, already-revoked Lease, known-not-applied store failure and
+ambiguous commit outcome remain distinct. The primitive performs no automatic
+retry, invokes the store at most once per call, validates exact Lease identity
+and monotonic transition evidence, and fails closed on malformed, accessor-backed
+or contradictory provider results. Repeated revoke is state-idempotent.
+
+The reference in-memory store provides per-`leaseRef` process-local
+linearizability only: concurrent revocation of one initially active Lease yields
+exactly one REVOKED result and later ALREADY_REVOKED results when no store failure
+occurs. It does not claim database, multi-process or distributed atomicity.
+
+M4-033 does not simulate revocation through usage exhaustion, TTL expiry, Lease
+deletion or authorization rewrite. It does not traverse or revoke parent/child
+Leases. M4-032 remains counter-only. The revocation/consume/execution TOCTOU
+composition remains explicitly unresolved for a later PEP/composition Gate.
+
+Acceptance review strengthened store-evidence regressions after the first
+complete implementation was already green, including contradictory
+ALREADY_REVOKED evidence and non-monotonic fabricated REVOKED evidence. No
+protocol, schema, TCK, TypeScript strictness, frozen-lockfile or security
+invariant was weakened.
+
+Exact accepted implementation evidence at `76447d41...`:
+
+- normal CI #538 / run `33618834463`: PASS;
+- exact Harness rc5 source-conformance #480 / run `33618834499`: PASS;
+- 59 test files / 1159 tests: PASS;
+- M4-033 portable suite: 33 PASS;
+- M4-033 hostile-runtime/store hardening: 8 PASS;
+- frozen install / 124-entry supply-chain policy: PASS;
+- architecture / 16-schema shape / schema baseline / strict TypeScript: PASS;
+- packed Shared TCK + external non-workspace consumer: 44 assets PASS.
+
+The acceptance audit is
+`docs/acceptance/m4-033-acceptance-audit.md` at
+`7718130b413c94399cfeb0842cc54243c49046bc`; that audit-only exact head reached
+normal CI #539 / run `33619714824` PASS and exact Harness rc5 source-conformance
+#481 / run `33619714826` PASS.
+
+Acceptance-record exact head is
+`37d8affdd2e6e281ac914bc4d97283eb7b78d430`, where only the Capability Broker
+package-stage marker/comment changed to `M4-033-LEASE-REVOCATION-ACCEPTED`. That
+exact head reached normal CI #540 / run `33620346004` PASS and exact Harness rc5
+source-conformance #482 / run `33620346009` PASS with PR #3 still Open, Draft
+and mergeable.
+
+This final governance transition is intentionally limited to CURRENT,
+append-only HISTORY and only the M4-033 roadmap acceptance marker. No production
+code, Spec/corpus/schema, Shared TCK, dependency, lockfile, Adapter/Harness
+baseline or M4-034+ behavior changes here. The resulting exact head must itself
+reach normal CI + exact pinned Harness rc5 source-conformance dual-green before
+M4-033 governance is CLOSED and M4-034 P0 parent-child attenuation becomes the
+next protocol-first Gate.

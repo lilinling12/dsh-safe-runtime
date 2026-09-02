@@ -300,7 +300,7 @@ Acceptance evidence
 - [x] `M4-030 P0` TTL。 **ACCEPTED：Spec 0037 + 32 portable cases + deterministic explicit-observedAt half-open Lease TTL validity + RFC3339/Gregorian/offset/fraction/leap-second ordering + hostile-runtime/no-host-clock hardening；accepted implementation head `e7c2832f...`，CI #515 / Harness #457 PASS；验收记录 `docs/acceptance/m4-030-acceptance-audit.md`。**
 - [x] `M4-031 P0` maxUses。 **ACCEPTED：Spec 0038 + 32 portable cases + deterministic read-only CapabilityLease usage validity + exact safe-integer/coherence semantics + hostile-runtime/no-coercion/no-consume hardening；accepted implementation head `4888db94...`，CI #520 / Harness #462 PASS；验收记录 `docs/acceptance/m4-031-acceptance-audit.md`。**
 - [x] `M4-032 P0` atomic consume。
-- [ ] `M4-033 P0` revoke。
+- [x] `M4-033 P0` revoke。
 - [ ] `M4-034 P0` parent-child attenuation。
 - [ ] `M4-035 P1` lease listing CLI。
 - [ ] `M4-036 P1` revoke CLI。
