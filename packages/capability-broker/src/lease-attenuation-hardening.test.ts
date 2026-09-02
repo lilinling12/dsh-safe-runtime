@@ -178,6 +178,65 @@ describe("M4-034 hostile-runtime and store-evidence hardening", () => {
     expect(store.snapshot("lease:child")?.remainingUses).toBe(2);
   });
 
+  test("parent and descendant use serialize on the shared ancestor budget", async () => {
+    const store = new InMemoryLeaseAttenuationStore([
+      root({ maxUses: 1, remainingUses: 1 }),
+      child({ maxUses: 1, remainingUses: 1 }),
+    ]);
+
+    const [parentResult, childResult] = await Promise.all([
+      consumeCapabilityLeaseHierarchy({
+        profile: "M4-034_LEASE_ATTENUATION_V1",
+        leaseRef: "lease:root",
+      }, store),
+      consumeCapabilityLeaseHierarchy(input(), store),
+    ]);
+
+    const results = [parentResult, childResult];
+    expect(results.filter(result => result.status === "CONSUMED")).toHaveLength(1);
+    expect(results.filter(result => result.status === "NOT_CONSUMED")).toHaveLength(1);
+    expect(store.snapshot("lease:root")?.remainingUses).toBe(0);
+    expect(store.snapshot("lease:child")?.remainingUses).toBe(
+      childResult.status === "CONSUMED" ? 0 : 1,
+    );
+  });
+
+  test("revoke and descendant consume form one legal shared-state linearization", async () => {
+    const store = new InMemoryLeaseAttenuationStore([
+      root({ maxUses: 1, remainingUses: 1 }),
+      child({ maxUses: 1, remainingUses: 1 }),
+    ]);
+
+    const [revokeResult, consumeResult] = await Promise.all([
+      revokeCapabilityLease({
+        profile: "M4-033_LEASE_REVOKE_V1",
+        leaseRef: "lease:root",
+      }, store),
+      consumeCapabilityLeaseHierarchy(input(), store),
+    ]);
+
+    expect(revokeResult).toEqual({ status: "REVOKED", reasonCode: "LEASE_REVOKED" });
+    expect([
+      "CONSUMED",
+      "NOT_CONSUMED",
+    ]).toContain(consumeResult.status);
+    if (consumeResult.status === "NOT_CONSUMED") {
+      expect(consumeResult.reasonCode).toBe("LEASE_ATTENUATION_ANCESTOR_REVOKED");
+      expect(store.snapshot("lease:root")?.remainingUses).toBe(1);
+      expect(store.snapshot("lease:child")?.remainingUses).toBe(1);
+    } else {
+      expect(consumeResult).toEqual({
+        status: "CONSUMED",
+        reasonCode: "LEASE_ATTENUATED_USE_CONSUMED",
+        remainingUsesBefore: 1,
+        remainingUsesAfter: 0,
+      });
+      expect(store.snapshot("lease:root")?.remainingUses).toBe(0);
+      expect(store.snapshot("lease:child")?.remainingUses).toBe(0);
+    }
+    expect(store.snapshot("lease:root")?.revoked).toBe(true);
+  });
+
   test("successful output is detached and frozen", async () => {
     const store = new InMemoryLeaseAttenuationStore([root(), child()]);
     const result = await consumeCapabilityLeaseHierarchy(input(), store);
