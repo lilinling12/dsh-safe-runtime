@@ -6,8 +6,9 @@
  * M4-030 deterministic CapabilityLease TTL validity is governance-closed.
  * M4-031 deterministic CapabilityLease usage validity is governance-closed.
  * M4-032 atomic one-use consumption is governance-closed.
- * M4-033 authoritative CapabilityLease revocation is implemented and awaiting
- * exact-head implementation acceptance.
+ * M4-033 authoritative CapabilityLease revocation is implementation-accepted
+ * and is now undergoing acceptance-record exact-head verification before final
+ * governance.
  *
  * M4-033 revokes only one exact leaseRef through a trusted atomic store port.
  * It does not mutate TTL/usage, cascade through parent/child leases, compose
@@ -18,7 +19,7 @@
  * `@dsh-safe/protocol`; this package has no concrete DeepSeek Harness runtime
  * dependency.
  */
-export const PACKAGE_STAGE = "M4-033-LEASE-REVOCATION-IMPLEMENTED" as const;
+export const PACKAGE_STAGE = "M4-033-LEASE-REVOCATION-ACCEPTED" as const;
 
 export * from "./builtin-filesystem-tool-classifier.js";
 export * from "./tool-classifier/builtin-shell.js";
