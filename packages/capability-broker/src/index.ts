@@ -4,8 +4,8 @@
  * M4-010 through M4-014 classifier/fallback stages and M4-020 through M4-025
  * PDP / Decision-Receipt / GuaranteeLevel prerequisites are governance-closed.
  * M4-030 deterministic CapabilityLease TTL validity is governance-closed.
- * M4-031 deterministic CapabilityLease usage validity is now implemented for
- * exact-head verification; package-stage acceptance is intentionally unchanged.
+ * M4-031 deterministic CapabilityLease usage validity is implementation-accepted
+ * and now undergoing acceptance-record exact-head verification before final governance.
  *
  * M4-031 evaluates only the current maxUses/remainingUses snapshot. It does not
  * reserve or consume usage, check TTL/revocation/delegation, bypass approval,
@@ -15,7 +15,7 @@
  * `@dsh-safe/protocol`; this package has no concrete DeepSeek Harness runtime
  * dependency.
  */
-export const PACKAGE_STAGE = "M4-030-LEASE-TTL-ACCEPTED" as const;
+export const PACKAGE_STAGE = "M4-031-LEASE-USAGE-ACCEPTED" as const;
 
 export * from "./builtin-filesystem-tool-classifier.js";
 export * from "./tool-classifier/builtin-shell.js";
