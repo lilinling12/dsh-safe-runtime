@@ -11,20 +11,31 @@ import {
 
 const INPUT_KEYS = new Set(["profile", "leaseRef"]);
 const STATE_KEYS = new Set([
-  "leaseRef",
-  "subjectRef",
-  "parentLeaseRef",
-  "capability",
-  "resource",
-  "constraints",
-  "issuedAt",
-  "expiresAt",
-  "maxUses",
-  "remainingUses",
-  "authorization",
-  "revoked",
+  "leaseRef", "subjectRef", "parentLeaseRef", "capability", "resource",
+  "constraints", "issuedAt", "expiresAt", "maxUses", "remainingUses",
+  "authorization", "revoked",
 ]);
 const AUTHORIZATION_KINDS = new Set(["policy", "approval", "lease", "system"]);
+const CHAIN_FAILURES = new Set([
+  "LEASE_ATTENUATION_PARENT_NOT_FOUND",
+  "LEASE_ATTENUATION_CYCLE",
+  "LEASE_ATTENUATION_DEPTH_EXCEEDED",
+  "LEASE_ATTENUATION_STATE_INVALID",
+]);
+const ATTENUATION_FAILURES = new Set([
+  "LEASE_ATTENUATION_AUTHORIZATION_INVALID",
+  "LEASE_ATTENUATION_CAPABILITY_UNPROVABLE",
+  "LEASE_ATTENUATION_RESOURCE_UNPROVABLE",
+  "LEASE_ATTENUATION_CONSTRAINT_PROFILE_UNSUPPORTED",
+  "LEASE_ATTENUATION_TIME_INVALID",
+  "LEASE_ATTENUATION_TIME_BROADENING",
+  "LEASE_ATTENUATION_MAX_USES_BROADENING",
+]);
+const USAGE_FAILURES = new Set([
+  "LEASE_USAGE_MAX_USES_INVALID",
+  "LEASE_USAGE_REMAINING_USES_INVALID",
+  "LEASE_USAGE_STATE_INVALID",
+]);
 
 function failure(
   stage: LeaseAttenuationFailure["stage"],
@@ -35,19 +46,11 @@ function failure(
 
 function isRecord(value: unknown): value is Record<PropertyKey, unknown> {
   if (typeof value !== "object" || value === null) return false;
-  try {
-    return !Array.isArray(value);
-  } catch {
-    return false;
-  }
+  try { return !Array.isArray(value); } catch { return false; }
 }
 
 function ownKeys(value: object): readonly PropertyKey[] | undefined {
-  try {
-    return Reflect.ownKeys(value);
-  } catch {
-    return undefined;
-  }
+  try { return Reflect.ownKeys(value); } catch { return undefined; }
 }
 
 function readOwnData(
@@ -82,23 +85,14 @@ function exactInputKeys(value: object): boolean {
 
 function snapshotArray(value: unknown): readonly unknown[] | undefined {
   if (typeof value !== "object" || value === null) return undefined;
-  try {
-    if (!Array.isArray(value)) return undefined;
-  } catch {
-    return undefined;
-  }
+  try { if (!Array.isArray(value)) return undefined; } catch { return undefined; }
 
   const keys = ownKeys(value);
   const length = readOwnData(value, "length");
   if (
-    keys === undefined
-    || !length.ok
-    || typeof length.value !== "number"
-    || !Number.isSafeInteger(length.value)
-    || length.value < 0
-  ) {
-    return undefined;
-  }
+    keys === undefined || !length.ok || typeof length.value !== "number"
+    || !Number.isSafeInteger(length.value) || length.value < 0
+  ) return undefined;
 
   const expectedLength = length.value;
   let indexCount = 0;
@@ -132,24 +126,15 @@ function isCanonicalIndex(key: string, length: number): boolean {
 function readAuthorization(value: unknown): LeaseAttenuationState["authorization"] | undefined {
   if (!isRecord(value)) return undefined;
   const keys = ownKeys(value);
-  if (
-    keys === undefined
-    || keys.length !== 2
-    || !keys.every(key => key === "kind" || key === "ref")
-  ) {
+  if (keys === undefined || keys.length !== 2 || !keys.every(key => key === "kind" || key === "ref")) {
     return undefined;
   }
   const kind = readOwnData(value, "kind");
   const ref = readOwnData(value, "ref");
   if (
-    !kind.ok
-    || !ref.ok
-    || typeof kind.value !== "string"
-    || !AUTHORIZATION_KINDS.has(kind.value)
-    || !validRef(ref.value)
-  ) {
-    return undefined;
-  }
+    !kind.ok || !ref.ok || typeof kind.value !== "string"
+    || !AUTHORIZATION_KINDS.has(kind.value) || !validRef(ref.value)
+  ) return undefined;
   return Object.freeze({
     kind: kind.value as LeaseAttenuationState["authorization"]["kind"],
     ref: ref.value,
@@ -159,8 +144,7 @@ function readAuthorization(value: unknown): LeaseAttenuationState["authorization
 function readConstraints(value: unknown): Readonly<Record<string, unknown>> | undefined | false {
   if (!isRecord(value)) return false;
   const keys = ownKeys(value);
-  if (keys === undefined || keys.some(key => typeof key !== "string")) return false;
-  if (keys.length !== 0) return false;
+  if (keys === undefined || keys.some(key => typeof key !== "string") || keys.length !== 0) return false;
   return Object.freeze({});
 }
 
@@ -171,20 +155,10 @@ function readState(value: unknown): LeaseAttenuationState | undefined {
     keys === undefined
     || keys.some(key => typeof key !== "string" || !STATE_KEYS.has(key))
     || ![
-      "leaseRef",
-      "subjectRef",
-      "capability",
-      "resource",
-      "issuedAt",
-      "expiresAt",
-      "maxUses",
-      "remainingUses",
-      "authorization",
-      "revoked",
+      "leaseRef", "subjectRef", "capability", "resource", "issuedAt", "expiresAt",
+      "maxUses", "remainingUses", "authorization", "revoked",
     ].every(key => keys.includes(key))
-  ) {
-    return undefined;
-  }
+  ) return undefined;
 
   const leaseRef = readOwnData(value, "leaseRef");
   const subjectRef = readOwnData(value, "subjectRef");
@@ -197,27 +171,13 @@ function readState(value: unknown): LeaseAttenuationState | undefined {
   const authorizationData = readOwnData(value, "authorization");
   const revoked = readOwnData(value, "revoked");
   if (
-    !leaseRef.ok
-    || !subjectRef.ok
-    || !capability.ok
-    || !resource.ok
-    || !issuedAt.ok
-    || !expiresAt.ok
-    || !maxUses.ok
-    || !remainingUses.ok
-    || !authorizationData.ok
-    || !revoked.ok
-    || !validRef(leaseRef.value)
-    || !validRef(subjectRef.value)
-    || typeof capability.value !== "string"
-    || typeof issuedAt.value !== "string"
-    || typeof expiresAt.value !== "string"
-    || typeof maxUses.value !== "number"
-    || typeof remainingUses.value !== "number"
-    || typeof revoked.value !== "boolean"
-  ) {
-    return undefined;
-  }
+    !leaseRef.ok || !subjectRef.ok || !capability.ok || !resource.ok || !issuedAt.ok
+    || !expiresAt.ok || !maxUses.ok || !remainingUses.ok || !authorizationData.ok
+    || !revoked.ok || !validRef(leaseRef.value) || !validRef(subjectRef.value)
+    || typeof capability.value !== "string" || typeof issuedAt.value !== "string"
+    || typeof expiresAt.value !== "string" || typeof maxUses.value !== "number"
+    || typeof remainingUses.value !== "number" || typeof revoked.value !== "boolean"
+  ) return undefined;
 
   const normalizedResource = normalizeCapabilityResource(resource.value);
   const authorization = readAuthorization(authorizationData.value);
@@ -259,9 +219,7 @@ function freezeResource(resource: CanonicalResource): LeaseAttenuationState["res
   return Object.freeze({
     scheme: resource.scheme,
     locator: resource.locator,
-    ...(Object.hasOwn(resource, "providerIdentity")
-      ? { providerIdentity: resource.providerIdentity }
-      : {}),
+    ...(Object.hasOwn(resource, "providerIdentity") ? { providerIdentity: resource.providerIdentity } : {}),
   });
 }
 
@@ -285,10 +243,7 @@ function sameResource(left: LeaseAttenuationState["resource"], right: LeaseAtten
     && left.providerIdentity === right.providerIdentity;
 }
 
-function sameConstraints(
-  left: LeaseAttenuationState["constraints"],
-  right: LeaseAttenuationState["constraints"],
-): boolean {
+function sameConstraints(left: LeaseAttenuationState["constraints"], right: LeaseAttenuationState["constraints"]): boolean {
   return (left === undefined) === (right === undefined);
 }
 
@@ -307,10 +262,7 @@ function sameImmutableState(left: LeaseAttenuationState, right: LeaseAttenuation
     && left.revoked === right.revoked;
 }
 
-function validateConsumedEvidence(
-  outcome: object,
-  expectedTargetRef: string,
-): LeaseAttenuationResult {
+function validateConsumedEvidence(outcome: object, expectedTargetRef: string): LeaseAttenuationResult {
   const beforeData = readOwnData(outcome, "chainBefore");
   const afterData = readOwnData(outcome, "chainAfter");
   const before = beforeData.ok ? readChain(beforeData.value, expectedTargetRef) : undefined;
@@ -323,16 +275,10 @@ function validateConsumedEvidence(
     const previous = before[index];
     const next = after[index];
     if (
-      previous === undefined
-      || next === undefined
-      || !sameImmutableState(previous, next)
-      || !Number.isSafeInteger(previous.remainingUses)
-      || !Number.isSafeInteger(next.remainingUses)
-      || previous.remainingUses < 1
-      || next.remainingUses !== previous.remainingUses - 1
-    ) {
-      return failure("STORE", "LEASE_ATTENUATION_STORE_RESULT_INVALID");
-    }
+      previous === undefined || next === undefined || !sameImmutableState(previous, next)
+      || !Number.isSafeInteger(previous.remainingUses) || !Number.isSafeInteger(next.remainingUses)
+      || previous.remainingUses < 1 || next.remainingUses !== previous.remainingUses - 1
+    ) return failure("STORE", "LEASE_ATTENUATION_STORE_RESULT_INVALID");
   }
 
   const targetBefore = before[0];
@@ -346,6 +292,14 @@ function validateConsumedEvidence(
     remainingUsesBefore: targetBefore.remainingUses,
     remainingUsesAfter: targetAfter.remainingUses,
   });
+}
+
+function validSemanticFailure(stage: unknown, reasonCode: unknown): stage is "CHAIN" | "ATTENUATION" | "USAGE" {
+  if (typeof reasonCode !== "string") return false;
+  if (stage === "CHAIN") return CHAIN_FAILURES.has(reasonCode);
+  if (stage === "ATTENUATION") return ATTENUATION_FAILURES.has(reasonCode);
+  if (stage === "USAGE") return USAGE_FAILURES.has(reasonCode);
+  return false;
 }
 
 function normalizeOutcome(outcome: unknown, expectedTargetRef: string): LeaseAttenuationResult {
@@ -365,12 +319,7 @@ function normalizeOutcome(outcome: unknown, expectedTargetRef: string): LeaseAtt
     case "FAIL_CLOSED": {
       const stage = readOwnData(outcome, "stage");
       const reasonCode = readOwnData(outcome, "reasonCode");
-      if (
-        !stage.ok
-        || !reasonCode.ok
-        || (stage.value !== "CHAIN" && stage.value !== "ATTENUATION" && stage.value !== "USAGE")
-        || typeof reasonCode.value !== "string"
-      ) {
+      if (!stage.ok || !reasonCode.ok || !validSemanticFailure(stage.value, reasonCode.value)) {
         return failure("STORE", "LEASE_ATTENUATION_STORE_RESULT_INVALID");
       }
       return failure(
@@ -412,8 +361,8 @@ function normalizeOutcome(outcome: unknown, expectedTargetRef: string): LeaseAtt
 
 /**
  * Consume one hierarchy-aware Lease use through one trusted authoritative store
- * operation. The broker validates untrusted request shape and returned evidence,
- * but never simulates hierarchy atomicity with split reads/checks/writes.
+ * operation. The broker validates request shape and returned evidence but never
+ * emulates hierarchy atomicity with split reads/checks/writes.
  */
 export async function consumeCapabilityLeaseHierarchy(
   input: unknown,
@@ -426,12 +375,8 @@ export async function consumeCapabilityLeaseHierarchy(
   const profile = readOwnData(input, "profile");
   const leaseRef = readOwnData(input, "leaseRef");
   if (!profile.ok || !leaseRef.ok) return failure("INPUT", "LEASE_ATTENUATION_INPUT_INVALID");
-  if (profile.value !== LEASE_ATTENUATION_PROFILE) {
-    return failure("INPUT", "LEASE_ATTENUATION_PROFILE_INVALID");
-  }
-  if (!validRef(leaseRef.value)) {
-    return failure("INPUT", "LEASE_ATTENUATION_LEASE_REF_INVALID");
-  }
+  if (profile.value !== LEASE_ATTENUATION_PROFILE) return failure("INPUT", "LEASE_ATTENUATION_PROFILE_INVALID");
+  if (!validRef(leaseRef.value)) return failure("INPUT", "LEASE_ATTENUATION_LEASE_REF_INVALID");
 
   let outcome: LeaseAttenuationStoreOutcome | unknown;
   try {
