@@ -9,6 +9,7 @@ import type {} from "@deepseek-ai/dsh-user-approval";
 import { OrderedRuntimeEventDispatcher } from "./dispatcher.js";
 import { dshAdapterError } from "./errors.js";
 import { DSH_RC5_FEATURES, DSH_TESTED_BASELINE } from "./feature-matrix.js";
+import { evaluateToolGuardHandler } from "./monotonic-tool-guard.js";
 import {
   normalizeDurableEvent,
   normalizeFinalToolResult,
@@ -24,7 +25,6 @@ import type {
   HarnessRuntimeAdapter,
   ObservationSubscription,
   ToolExecutionScope,
-  ToolGuardDecision,
   ToolGuardHandler,
   ToolPolicyDecision,
   ToolPolicyHandler,
@@ -214,12 +214,7 @@ export function createDshRc5Adapter(
   const registerMonotonicToolGuard = (handler: ToolGuardHandler): Disposable => {
     const dispose = ctx.tools.guard((exec) => {
       const request = toolPolicyRequest(exec);
-      let decision: ToolGuardDecision;
-      try {
-        decision = handler(request);
-      } catch {
-        decision = { kind: "DENY", reason: "safe-runtime monotonic guard failed closed" };
-      }
+      const decision = evaluateToolGuardHandler(handler, request);
       if (decision.kind === "ALLOW") return undefined;
       if (request.scope.kind === "agent") {
         dispositions.set(callKey(request.scope.sessionRef, request.callRef), "denied");
