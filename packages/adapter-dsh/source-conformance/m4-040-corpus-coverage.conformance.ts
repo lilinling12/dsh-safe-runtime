@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import corpusJson from "../../../fixtures/dsh-pre-execute-registration/cases.json" with { type: "json" };
 import { describe, expect, it } from "vitest";
 
 const PROFILE = "M4-040_DSH_PRE_EXECUTE_REGISTRATION_V1" as const;
@@ -61,13 +61,7 @@ const EVIDENCE: readonly EvidenceRecord[] = Object.freeze([
   { id: "DPER-024", kind: "REAL_RC5_RUNTIME", source: "m4-040-pre-execute-registration.conformance.ts: no GuaranteeLevel synthesis" },
 ]);
 
-async function loadCorpus(): Promise<Corpus> {
-  const url = new URL(
-    "../../../fixtures/dsh-pre-execute-registration/cases.json",
-    import.meta.url,
-  );
-  return JSON.parse(await readFile(url, "utf8")) as Corpus;
-}
+const CORPUS = corpusJson as Corpus;
 
 function expectedIds(): readonly string[] {
   return Array.from(
@@ -77,27 +71,23 @@ function expectedIds(): readonly string[] {
 }
 
 describe("M4-040 portable corpus evidence coverage", () => {
-  it("pins the exact profile and Harness source baseline", async () => {
-    const corpus = await loadCorpus();
-
-    expect(corpus.profile).toBe(PROFILE);
-    expect(corpus.pinnedHarness).toEqual({
+  it("pins the exact profile and Harness source baseline", () => {
+    expect(CORPUS.profile).toBe(PROFILE);
+    expect(CORPUS.pinnedHarness).toEqual({
       version: "0.1.0-rc.5",
       commit: "47f943859bef60e4160492346772ded9b24f765a",
     });
   });
 
-  it("contains exactly DPER-001 through DPER-024 with no duplicate or missing case", async () => {
-    const corpus = await loadCorpus();
-    const ids = corpus.cases.map(({ id }) => id);
+  it("contains exactly DPER-001 through DPER-024 with no duplicate or missing case", () => {
+    const ids = CORPUS.cases.map(({ id }) => id);
 
     expect(ids).toEqual(expectedIds());
     expect(new Set(ids).size).toBe(CASE_COUNT);
   });
 
-  it("binds every portable case exactly once to an explicit evidence class", async () => {
-    const corpus = await loadCorpus();
-    const corpusIds = corpus.cases.map(({ id }) => id);
+  it("binds every portable case exactly once to an explicit evidence class", () => {
+    const corpusIds = CORPUS.cases.map(({ id }) => id);
     const evidenceIds = EVIDENCE.map(({ id }) => id);
 
     expect(evidenceIds).toEqual(corpusIds);
