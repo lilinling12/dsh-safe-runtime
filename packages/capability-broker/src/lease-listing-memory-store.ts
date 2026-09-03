@@ -43,7 +43,7 @@ function cloneState(state: LeaseInventoryState): LeaseInventoryState {
     if (key === "authorization") return cloneNestedRecord;
     if (key === "constraints") return cloneConstraintContainer;
     return undefined;
-  }) as LeaseInventoryState;
+  }) as unknown as LeaseInventoryState;
 }
 
 type ValueClone = (value: unknown) => unknown;
@@ -62,14 +62,14 @@ function cloneRecordPreservingShape(
       const cloneValue = valueCloneForKey(key);
       Object.defineProperty(clone, key, {
         value: cloneValue === undefined ? descriptor.value : cloneValue(descriptor.value),
-        enumerable: descriptor.enumerable,
+        enumerable: descriptor.enumerable === true,
         configurable: false,
         writable: false,
       });
     } else {
       Object.defineProperty(clone, key, {
-        get: descriptor.get,
-        enumerable: descriptor.enumerable,
+        ...(descriptor.get === undefined ? {} : { get: descriptor.get }),
+        enumerable: descriptor.enumerable === true,
         configurable: false,
       });
     }
