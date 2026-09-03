@@ -5,11 +5,13 @@
  * prerequisites, and M4-030 through M4-033 Lease lifecycle gates are
  * governance-closed.
  *
- * M4-034 parent-child attenuation is implemented and awaiting exact-head
- * implementation acceptance. The hierarchy-aware primitive consumes one target
- * use together with every ancestor through a trusted authoritative store port;
- * the reference store provides process-local overlapping-chain linearizability
- * and shares per-Lease serialization with M4-033 revocation.
+ * M4-034 parent-child attenuation implementation and acceptance audit are
+ * accepted. This package-stage record marks the reviewed hierarchy-aware
+ * primitive as accepted while its own exact-head CI/Harness verification is
+ * pending. The primitive consumes one target use together with every ancestor
+ * through a trusted authoritative store port; the reference store provides
+ * process-local overlapping-chain linearizability and shares per-Lease
+ * serialization with M4-033 revocation.
  *
  * This package does not claim database/multi-process atomicity, execute actions,
  * wire a PEP, issue child Leases, or alter the public CapabilityLease wire
@@ -19,7 +21,7 @@
  * `@dsh-safe/protocol`; this package has no concrete DeepSeek Harness runtime
  * dependency.
  */
-export const PACKAGE_STAGE = "M4-034-LEASE-ATTENUATION-IMPLEMENTED" as const;
+export const PACKAGE_STAGE = "M4-034-LEASE-ATTENUATION-ACCEPTED" as const;
 
 export * from "./builtin-filesystem-tool-classifier.js";
 export * from "./tool-classifier/builtin-shell.js";
