@@ -2031,3 +2031,78 @@ baseline, M4-035 implementation, M4-036, M4-040+, M6 or M13 behavior changes
 here. The resulting exact head must itself reach normal CI + exact pinned Harness
 rc5 source-conformance dual-green before M4-034 governance is CLOSED and M4-035
 P1 lease listing CLI becomes the sole newly authorized protocol-first Gate.
+
+## 2026-09-03 — Accept M4-035 deterministic CapabilityLease listing CLI
+
+M4-035 protocol-first closed on
+`943c6a7a6f1aaa9b0e5db9aa9e5b0bf8eb0e4777` with Spec 0042 and the 35-case
+portable `LLST-001` through `LLST-035` corpus. Normal CI #557 / run
+`33708615697` and exact pinned Harness rc5 source-conformance #499 / run
+`33708615763` passed before production implementation began.
+
+The accepted implementation/hardening exact head is
+`959babf2839510b7437a0af331573602e78b1590`. M4-035 adds a bounded read-only
+Lease inventory/listing boundary and a gate-local `lease list` command adapter
+without creating the later M10 integrated CLI framework or widening accepted
+M4-032/M4-033/M4-034 mutation ports.
+
+A successful listing observes one coherent logical inventory snapshot, is bounded
+at 1024 records with no silent truncation, uses one explicit Broker `observedAt`,
+reuses accepted M4-003 Resource, M4-030 TTL and M4-031 usage semantics, and shows
+M4-033 revocation as an independent descriptive fact. It does not synthesize an
+`active`, `usable`, `authorized`, effective-authority, effective-quota or
+attenuation verdict and does not walk `parentLeaseRef`.
+
+Raw arbitrary Lease constraints are minimized to `NONE | NON_EMPTY`; constraint
+values are not emitted or recursively traversed merely for listing. Human terminal
+rendering escapes control/C1/bidi formatting code points, while JSON rendering
+preserves semantic strings after parsing. Exact `leaseRef` presentation ordering
+uses Unicode code-point order only and is never authorization precedence.
+
+Implementation review found and fixed reference-store aliasing and malformed-state
+sanitization risks after earlier candidates had already progressed through CI.
+The final reference inventory preserves hostile runtime own-property shape for
+Broker validation and detaches top-level constraint key shape without executing
+constraint getters. The reference store remains single-process immutable test/
+reference infrastructure and does not claim DB, multi-process or distributed
+snapshot isolation or automatic live-state sharing with the M4-032/033/034
+reference stores.
+
+Exact accepted implementation evidence at `959babf2...`:
+
+- normal CI #564 / run `33713294276`: PASS;
+- exact Harness rc5 source-conformance #506 / run `33713294087`: PASS;
+- frozen install / 124-entry supply-chain policy: PASS;
+- architecture / 16-schema shape / schema baseline / strict TypeScript: PASS;
+- 64 test files / 1250 tests: PASS;
+- M4-035 Broker listing suite: 37 PASS;
+- M4-035 gate-local CLI/rendering suite: 9 PASS;
+- packed Shared TCK + external non-workspace consumer: 44 installed asset checks PASS.
+
+The acceptance audit is
+`docs/acceptance/m4-035-acceptance-audit.md` at
+`fd69c93ad1d447e6d3249b7c41c4754485b045fd`; that audit-only exact head reached
+normal CI #565 / run `33719687550` PASS and exact Harness rc5 source-conformance
+#507 / run `33719687552` PASS.
+
+Acceptance-record exact head is
+`5942e1f6dee23509741c174474b69817a600f1c9`, where only the Capability Broker
+package-stage marker/comment changed to `M4-035-LEASE-LISTING-ACCEPTED`. That exact
+head reached normal CI #566 / run `33721333901` PASS and exact Harness rc5
+source-conformance #508 / run `33721333870` PASS with PR #3 still Open, Draft,
+mergeable and without review/thread blockers.
+
+M4-035 does not alter the public CapabilityLease wire schema/type, authorize an
+Action from a listed row, consume/reserve/revoke/delete/repair a Lease, validate
+M4-034 attenuation during listing, establish tenant/remote-admin authorization,
+define pagination consistency, create M10's integrated product CLI, wire M4-040+
+PEP behavior or import Harness CLI/lineage behavior as protocol authority.
+
+This final governance transition is intentionally limited to CURRENT,
+append-only HISTORY and only the M4-035 roadmap acceptance marker/details. No
+production code, Spec/corpus/schema, Shared TCK, dependency, lockfile,
+Adapter/Harness baseline, M4-036 implementation, M4-040+, M6, M10 implementation,
+M13 or M15 behavior changes here. The resulting exact head must itself reach
+normal CI + exact pinned Harness rc5 source-conformance dual-green before M4-035
+governance is CLOSED and M4-036 P1 revoke CLI becomes the sole newly authorized
+protocol-first Gate.

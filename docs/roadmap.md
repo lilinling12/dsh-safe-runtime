@@ -302,7 +302,7 @@ Acceptance evidence
 - [x] `M4-032 P0` atomic consume。
 - [x] `M4-033 P0` revoke。
 - [x] `M4-034 P0` parent-child attenuation。 **ACCEPTED：Spec 0041 + 28 portable cases + authoritative target-to-root chain validation + exact provenance/capability/resource/constraint/time/maxUses attenuation + all-chain coupled usage decrement + ancestor revocation/exhaustion inheritance + process-local overlapping-chain/revoke-consume linearizability + hostile-runtime/store-evidence/failure-precedence hardening；accepted implementation head `6690dbc5...`，CI #553 / Harness #495 PASS；验收记录 `docs/acceptance/m4-034-acceptance-audit.md`。**
-- [ ] `M4-035 P1` lease listing CLI。
+- [x] `M4-035 P1` lease listing CLI。 **ACCEPTED：Spec 0042 + 35 portable cases + coherent bounded read-only Lease inventory + explicit observedAt + independent TTL/usage/revocation projection + constraints minimization + deterministic Unicode leaseRef ordering + terminal/bidi-safe rendering + gate-local CLI adapter + hostile-runtime/reference-snapshot hardening；accepted implementation head `959babf2...`，CI #564 / Harness #506 PASS；验收记录 `docs/acceptance/m4-035-acceptance-audit.md`。**
 - [ ] `M4-036 P1` revoke CLI。
 
 ## M4.5 DSH Plugin
