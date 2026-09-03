@@ -124,7 +124,9 @@ function assertExpected(result: Awaited<ReturnType<typeof runLeaseRevokeCommand>
   if (result.status === "CLI_USAGE_ERROR") return;
 
   if (expected["format"] !== undefined) expect(result.format).toBe(expected["format"]);
-  if (expected["brokerInput"] !== undefined) expect(result.brokerInput).toEqual(expected["brokerInput"]);
+  if (expected["brokerInput"] !== undefined) {
+    expect("brokerInput" in result ? result.brokerInput : undefined).toEqual(expected["brokerInput"]);
+  }
   if (expected["brokerResult"] !== undefined) expect(result.result).toEqual(expected["brokerResult"]);
   if (expected["output"] !== undefined) expect(result.output).toBe(expected["output"]);
 }
