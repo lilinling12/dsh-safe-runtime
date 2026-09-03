@@ -201,4 +201,48 @@ describe("M4-035 Broker hostile-runtime hardening", () => {
       expect(Object.isFrozen(result.entries[0]?.usage)).toBe(true);
     }
   });
+
+  test("reference inventory detaches constraint key shape without reading values", async () => {
+    let secretGetterCalls = 0;
+    const constraints: Record<string, unknown> = {};
+    Object.defineProperty(constraints, "secret", {
+      enumerable: true,
+      configurable: true,
+      get() { secretGetterCalls += 1; return "DO_NOT_READ"; },
+    });
+    const state = materialize({ leaseRef: "lease:detached-constraints", constraints });
+    const store = new InMemoryLeaseInventoryStore([state]);
+
+    delete constraints.secret;
+    constraints.later = "MUTATED_AFTER_CAPTURE";
+
+    const result = await listCapabilityLeases(
+      { profile: "M4-035_LEASE_LISTING_V1", observedAt: "2026-09-03T02:00:00Z" },
+      store,
+    );
+    expect(result).toMatchObject({
+      status: "LISTED",
+      entries: [{ leaseRef: "lease:detached-constraints", constraintsState: "NON_EMPTY" }],
+    });
+    expect(secretGetterCalls).toBe(0);
+    expect(JSON.stringify(result)).not.toContain("DO_NOT_READ");
+    expect(JSON.stringify(result)).not.toContain("MUTATED_AFTER_CAPTURE");
+  });
+
+  test("reference inventory preserves malformed own-property shape for Broker validation", async () => {
+    const malformed = materialize({ leaseRef: "lease:malformed-shape" }) as unknown as Record<PropertyKey, unknown>;
+    malformed.unexpectedAuthority = "must-not-be-sanitized";
+    const store = new InMemoryLeaseInventoryStore([malformed as unknown as LeaseInventoryState]);
+
+    const result = await listCapabilityLeases(
+      { profile: "M4-035_LEASE_LISTING_V1", observedAt: "2026-09-03T02:00:00Z" },
+      store,
+    );
+    expect(result).toEqual({
+      status: "FAIL_CLOSED",
+      stage: "SNAPSHOT",
+      reasonCode: "LEASE_LIST_SNAPSHOT_INVALID",
+    });
+    expect(JSON.stringify(result)).not.toContain("must-not-be-sanitized");
+  });
 });
