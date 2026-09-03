@@ -308,7 +308,7 @@ Acceptance evidence
 ## M4.5 DSH Plugin
 
 - [x] `M4-040 P0` register `tools/pre-execute`。 **ACCEPTED：Spec 0044 + 24-case DPER source-conformance corpus + existing M2 `registerToolPolicy()` binding proven against exact rc5；final reviewed conformance head `46daba53...`，CI #582 / Harness #524 PASS；验收记录 `docs/acceptance/m4-040-acceptance-audit.md`。Registration alone does not claim `tool-enforced`; M4-041 separately owns the monotonic guard boundary.**
-- [ ] `M4-041 P0` use `ctx.tools.guard()` for hard invariant where required。
+- [x] `M4-041 P0` use `ctx.tools.guard()` for hard invariant where required。 **ACCEPTED：Spec 0045 + 32-case DMGR corpus + package-private malformed-runtime fail-closed materialization + exact rc5 monotonic/body-non-entry conformance；accepted implementation head `9e1372e2...`，CI #586 / Harness #528 PASS；验收记录 `docs/acceptance/m4-041-acceptance-audit.md`。This proves a reached ToolRuntime hard veto, not complete system-wide `tool-enforced` coverage.**
 - [ ] `M4-042 P0` route ask to `ctx.approval`。
 - [ ] `M4-043 P0` observe authoritative `tools/result`。
 - [ ] `M4-044 P0` no duplicate approval subsystem。

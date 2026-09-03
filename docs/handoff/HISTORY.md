@@ -2254,3 +2254,71 @@ Adapter/Harness baseline/workflow or M4-041+ behavior changes here. The resultin
 exact head must itself reach normal CI + exact pinned Harness rc5 source-
 conformance dual-green before M4-040 governance is CLOSED and M4-041 P0
 `ctx.tools.guard()` becomes the sole newly authorized protocol-first Gate.
+
+## 2026-09-03 — Accept M4-041 DeepSeek Harness monotonic tool guard
+
+M4-041 protocol-first closed on
+`4e447a748e8ff8dbeb97a1599e1ce1de87c441cf` with Spec 0045 and the 32-case
+`DMGR-001` through `DMGR-032` corpus. Normal CI #585 / run `33767960425` and
+exact pinned Harness rc5 source-conformance #527 / run `33767960602` passed,
+including exact-source step 10 and real runtime step 11, before production
+hardening began.
+
+Protocol/source review found a concrete fail-open risk in the existing M2 Adapter
+binding: `registerMonotonicToolGuard()` caught synchronous handler throws but then
+read `decision.kind` / `decision.reason` directly. A JavaScript caller bypassing
+static TypeScript could return a Promise/thenable, malformed object, accessor or
+unreadable Proxy; evaluation/materialization failure could escape or collapse
+toward Harness `undefined`, where `undefined` means guard abstention.
+
+The accepted production hardening exact head is
+`9e1372e285f38f3e0e7e69cb61c1c7546b769cca`. It adds one package-private
+`monotonic-tool-guard.ts` runtime materialization boundary and changes
+`binding.ts` only `+2/-7` to call it. The boundary reads only own data-property
+descriptors, never executes decision getters or coercion hooks, never awaits
+thenables, preserves valid DENY reason strings exactly (including empty string),
+and maps malformed/unreadable runtime output to the stable denial
+`safe-runtime monotonic guard failed closed`.
+
+Normal CI regressions cover scalar/function/malformed results, Promise/custom
+thenables, accessor-backed kind/reason, revoked Proxy and descriptor/prototype
+traps. Real pinned rc5 conformance proves exact host/agent/root/arguments
+projection, ALLOW abstention, monotonic DENY after prepended pre-execute ALLOW,
+body non-entry, multiple-guard composition, hostile runtime fail-closed behavior,
+independent disposal and explicit `toolsMonotonicGuard` feature requirement.
+
+Exact accepted implementation evidence at `9e1372e2...`:
+
+- normal CI #586 / run `33773380454`: PASS;
+- exact Harness rc5 source-conformance #528 / run `33773380443`: PASS;
+- Harness step 10 exact rc5 binding/source-conformance typecheck: PASS;
+- Harness step 11 real rc5 runtime conformance: PASS.
+
+Acceptance audit is `docs/acceptance/m4-041-acceptance-audit.md` at audit-only
+head `bbf3983f62504599b96416b4feb75a5e2319cf1d`. That exact head reached:
+
+- normal CI #587 / run `33773802585`: PASS;
+- exact Harness rc5 source-conformance #529 / run `33773802594`: PASS;
+- Harness step 10: PASS;
+- Harness step 11: PASS;
+- PR #3 remained Open, Draft and mergeable with no review/thread blockers.
+
+M4-041 proves only that a reached Harness ToolRuntime monotonic guard can impose a
+pre-dispatch hard veto that reorderable pre-execute listeners cannot reopen. It
+does not prove every host effect traverses ToolRuntime and therefore does not by
+itself establish complete system-wide `tool-enforced` coverage. Direct Node
+filesystem/process/network effects and later M4-050 negative boundaries remain
+explicitly outside this Gate.
+
+M4-041 does not route ASK/approval, own authoritative final-result composition,
+create a duplicate approval subsystem, implement audit redaction, aggregate full
+classifier/PDP requirements, resolve provider/execution-root operands,
+select/consume Leases or construct complete Decision/Receipt state.
+
+This final governance transition is intentionally limited to CURRENT,
+append-only HISTORY and only the M4-041 roadmap acceptance marker/details. No
+production code, Spec/corpus/schema, Shared TCK, dependency, lockfile,
+Adapter/Harness baseline/workflow or M4-042+ behavior changes here. The resulting
+exact head must itself reach normal CI + exact pinned Harness rc5 source-
+conformance dual-green before M4-041 governance is CLOSED and M4-042 P0 route ask
+to `ctx.approval` becomes the sole newly authorized protocol-first Gate.

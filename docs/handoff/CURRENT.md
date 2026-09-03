@@ -15,14 +15,16 @@
 - M4-020..025: **GOVERNANCE CLOSED**
 - M4-030..036: **GOVERNANCE CLOSED**
 - M4-040 P0 `tools/pre-execute`: **GOVERNANCE CLOSED**
-- M4-041 P0 `ctx.tools.guard()`: **AUTHORIZED / PROTOCOL-FIRST IN PROGRESS**
-- M4-041 production/conformance implementation: **NOT AUTHORIZED before protocol-first exact-head dual-green**
-- M4-042+, M4-050+, M5, M6, M10, M13, M15: **NOT AUTHORIZED by the current Gate**
+- M4-041 P0 `ctx.tools.guard()`: **IMPLEMENTATION / CONFORMANCE ACCEPTED**
+- M4-041 acceptance audit: **EXACT-HEAD VERIFIED**
+- M4-041 final governance: **CANDIDATE / EXACT-HEAD VERIFICATION REQUIRED**
+- M4-042+: **NOT AUTHORIZED until the containing final-governance head is dual-green**
+- M4-050+, M5, M6, M10, M13, M15: **NOT AUTHORIZED by the current Gate**
 - PR #3 merge: **NOT AUTHORIZED without explicit user authorization**
 
 Live GitHub state overrides this snapshot.
 
-## M4-040 final governance closure
+## M4-040 predecessor closure
 
 Final M4-040 governance exact head:
 
@@ -30,110 +32,18 @@ Final M4-040 governance exact head:
 df21ba12a4b9dea6eb21243a76cfcd9489eabdb7
 ```
 
-Its governance delta from audit head `694fe273...` was exactly:
-
-```text
-docs/handoff/CURRENT.md
-docs/handoff/HISTORY.md
-docs/roadmap.md
-```
-
-Pre-push compare proved:
-
-```text
-CURRENT: modified
-HISTORY: +67 / -0 (append-only)
-roadmap: +1 / -1 (only M4-040 acceptance line)
-```
-
 Exact-head evidence:
 
 - normal CI #584 / run `33767121207`: PASS;
 - exact pinned Harness rc5 source-conformance #526 / run `33767121228`: PASS;
-- Harness step 10 exact rc5 binding/source-conformance typecheck: PASS;
-- Harness step 11 real rc5 runtime conformance: PASS;
-- PR #3 remained Open, Draft and mergeable;
-- reviews: none;
-- review threads: none.
+- Harness step 10 exact binding/source-conformance typecheck: PASS;
+- Harness step 11 real rc5 runtime conformance: PASS.
 
-Therefore M4-040 governance is CLOSED and M4-041 is the sole newly authorized Gate.
+M4-041 began only after that governance head became dual-green.
 
-## M4-041 roadmap authority
+## M4-041 protocol-first closure
 
-Roadmap Gate:
-
-```text
-M4-041 P0 — use ctx.tools.guard() for hard invariant where required
-```
-
-M2 Spec 0003 already states that a monotonic hard-deny installation MAY use
-`ctx.tools.guard()` when policy must not be reopened by later reorderable listeners.
-M4-041 refines only that already-established Adapter seam.
-
-## Existing runtime-independent Adapter authority
-
-Current Adapter ports already expose:
-
-```text
-ToolGuardDecision =
-  ALLOW
-  | DENY(reason)
-
-ToolGuardHandler = synchronous ToolPolicyRequest -> ToolGuardDecision
-
-HarnessRuntimeAdapter.registerMonotonicToolGuard?(handler)
-```
-
-The request remains the M4-040/M2 shape:
-
-```text
-callRef
-rootCallRef
-toolName
-arguments
-scope = agent(sessionRef, agentRef) | host
-```
-
-The rc5 feature matrix already records:
-
-```text
-toolsMonotonicGuard = true
-```
-
-M4-041 MUST test and harden this existing seam rather than create another Harness
-dependency in core packages.
-
-## Pinned Harness source facts
-
-Pinned compatibility baseline remains:
-
-```text
-version: 0.1.0-rc.5
-commit: 47f943859bef60e4160492346772ded9b24f765a
-```
-
-Exact pinned `dsh-tools` documentation/tests establish:
-
-- execution order is `tools/pre-execute` -> monotonic guards -> `tools/execute` ->
-  `tools/post-execute` -> finalization -> `tools/result`;
-- `ctx.tools.guard()` is synchronous;
-- `ToolGuard` returns `string | undefined`;
-- returned string denies; `undefined` abstains;
-- a later/prepended pre-execute ALLOW cannot reopen a guard denial;
-- arguments are already materialized/frozen before policy/guard execution;
-- a plain-context guard is global;
-- an `agent.ctx` guard applies only to that agent;
-- registration returns an exact disposer and is fiber-owned;
-- duplicate registrations dispose independently;
-- multiple guards compose monotonically when one abstains and another denies;
-- upstream live-registration iteration behavior exists but is not portable
-  safe-runtime semantics and MUST NOT be required for correctness.
-
-Harness remains Adapter evidence only, not protocol authority.
-
-## Protocol-first authority
-
-Normative draft:
+Normative authority:
 
 ```text
 specs/0045-m4-dsh-monotonic-tool-guard.md
@@ -147,59 +57,13 @@ fixtures/dsh-monotonic-tool-guard/cases.json
 32 cases: DMGR-001 through DMGR-032
 ```
 
-## Critical semantic boundary
-
-M4-041 is a hard-deny registration Gate, not complete Capability Broker PEP
-composition.
-
-At the runtime-independent port:
+Protocol-first exact head:
 
 ```text
-ALLOW == no hard veto / Harness guard abstention
-DENY(reason) == monotonic pre-dispatch veto
+4e447a748e8ff8dbeb97a1599e1ce1de87c441cf
 ```
 
-`ALLOW` is not final authorization. `ASK` is intentionally absent from the hard
-guard domain and approval remains M4-042/M4-044 territory.
-
-M4-041 may prove that a reached guard DENY cannot be reopened by reorderable
-pre-execute listeners and prevents the tool body from entering. It MUST NOT infer
-that every host effect traverses ToolRuntime or claim complete system-wide
-`tool-enforced` coverage. M4-050 negative-boundary work remains required.
-
-## Runtime defensive boundary
-
-Static TypeScript typing is not sufficient for a security-critical hard guard.
-
-If JavaScript callers bypass typing, malformed handler results MUST fail closed to:
-
-```text
-safe-runtime monotonic guard failed closed
-```
-
-without becoming Harness `undefined`/abstention.
-
-Protocol-first coverage explicitly includes:
-
-```text
-null/non-object result
-Promise/thenable result
-missing/unknown kind
-accessor-backed/unreadable kind
-revoked Proxy decision
-DENY missing/non-string reason
-accessor-backed/unreadable reason
-```
-
-Validation MUST NOT execute getters or coercion hooks.
-
-This requirement is expected to expose a concrete production hardening gap in the
-current M2 binding if malformed runtime decisions are not yet defensively validated.
-Production code MUST NOT be changed until this protocol-first head is dual-green.
-
-## Authorized protocol-first delta
-
-Exactly:
+Its parent is M4-040 governance head `df21ba12...` and its exact delta is:
 
 ```text
 specs/0045-m4-dsh-monotonic-tool-guard.md
@@ -207,38 +71,198 @@ fixtures/dsh-monotonic-tool-guard/cases.json
 docs/handoff/CURRENT.md
 ```
 
-Not authorized in this protocol-first commit:
+Exact-head evidence:
+
+- normal CI #585 / run `33767960425`: PASS;
+- exact pinned Harness rc5 source-conformance #527 / run `33767960602`: PASS;
+- Harness step 10: PASS;
+- Harness step 11: PASS.
+
+Production/conformance work began only after that exact head became dual-green.
+
+## M4-041 accepted hard-guard semantics
+
+M4-041 reuses the existing runtime-independent M2 Adapter seam:
+
+```text
+HarnessRuntimeAdapter.registerMonotonicToolGuard?(handler)
+
+ToolGuardDecision =
+  ALLOW
+  | DENY(reason)
+```
+
+Pinned rc5 source/runtime evidence establishes the concrete execution boundary:
+
+```text
+tools/pre-execute waterfall
+-> monotonic guards
+-> tools/execute
+-> tools/post-execute
+-> finalization
+-> tools/result
+```
+
+The pinned Harness guard is synchronous and returns `string | undefined`:
+
+```text
+safe-runtime ALLOW       -> Harness undefined / abstention
+safe-runtime DENY(reason)-> exact reason string / monotonic denial
+```
+
+A reached guard denial cannot be reopened by a later or prepended pre-execute
+ALLOW and prevents the tool body from entering.
+
+`ALLOW` is not final Capability authorization. `ASK` is intentionally absent from
+the hard-guard domain. Approval routing remains M4-042/M4-044 territory.
+
+## Concrete production defect and repair
+
+Protocol-first review found a real fail-open risk in the existing M2 binding.
+The old `registerMonotonicToolGuard()` caught a synchronous handler throw but then
+read `decision.kind` / `decision.reason` directly. JavaScript callers bypassing
+static TypeScript could return Promise/thenable, malformed objects, accessors or
+unreadable Proxies; an evaluation/materialization failure could escape or collapse
+toward Harness `undefined`, which means guard abstention.
+
+For a security hard invariant, evaluation failure must not become abstention.
+
+Accepted repair adds one package-private runtime boundary:
+
+```text
+packages/adapter-dsh/src/monotonic-tool-guard.ts
+```
+
+It materializes only own data properties, never executes decision getters or
+coercion hooks, never awaits thenables, and maps malformed/unreadable runtime
+output to the stable denial:
+
+```text
+safe-runtime monotonic guard failed closed
+```
+
+Coverage includes null/non-object/function results, Promise/custom thenables,
+missing/unknown kind, accessor-backed kind/reason, DENY without a string reason,
+revoked Proxy and descriptor/prototype traps. Valid DENY reasons are preserved
+exactly, including the empty string.
+
+## Final reviewed implementation/conformance head
+
+Accepted implementation/conformance exact head:
+
+```text
+9e1372e285f38f3e0e7e69cb61c1c7546b769cca
+```
+
+Its delta from protocol-first head changes exactly:
+
+```text
+packages/adapter-dsh/src/monotonic-tool-guard.ts
+packages/adapter-dsh/src/binding.ts
+packages/adapter-dsh/test/monotonic-tool-guard.test.ts
+packages/adapter-dsh/source-conformance/m4-041-monotonic-tool-guard.conformance.ts
+packages/adapter-dsh/source-conformance/m4-041-corpus-coverage.conformance.ts
+```
+
+`binding.ts` changed only `+2/-7`: import the private evaluator and replace the
+old local try/direct-property decision block.
+
+No public Adapter port, feature matrix, dependency, package manifest, lockfile,
+workflow, public protocol/schema, policy-engine, capability-broker, Shared TCK or
+later Gate changed.
+
+Exact-head evidence:
+
+- normal CI #586 / run `33773380454`: PASS;
+- exact pinned Harness rc5 source-conformance #528 / run `33773380443`: PASS;
+- Harness step 10 exact rc5 typecheck: PASS;
+- Harness step 11 real rc5 runtime conformance: PASS.
+
+## Acceptance audit evidence
+
+Acceptance audit:
+
+```text
+docs/acceptance/m4-041-acceptance-audit.md
+```
+
+Audit-only exact head:
+
+```text
+bbf3983f62504599b96416b4feb75a5e2319cf1d
+```
+
+Exact-head evidence:
+
+- normal CI #587 / run `33773802585`: PASS;
+- exact pinned Harness rc5 source-conformance #529 / run `33773802594`: PASS;
+- Harness step 10: PASS;
+- Harness step 11: PASS;
+- PR #3 remained Open, Draft and mergeable;
+- reviews: none;
+- review threads: none.
+
+## Security / guarantee boundary
+
+M4-041 proves only a reached Harness ToolRuntime monotonic guard can impose a
+pre-dispatch hard veto that reorderable pre-execute listeners cannot reopen.
+
+It does not prove every host effect traverses ToolRuntime and does not govern
+direct Node filesystem/process/network effects. It therefore does not by itself
+establish complete system-wide `tool-enforced` coverage. M4-050 negative-boundary
+work remains required, and GuaranteeLevel must continue to report only the action
+boundary actually evidenced under accepted M4-025 semantics.
+
+M4-041 also does not aggregate classifier/PDP requirements, resolve provider or
+execution-root operands, select/consume Leases, route approval, own authoritative
+final result composition, construct complete Decision/Receipt state or implement
+audit redaction.
+
+## Final governance candidate boundary
+
+This final-governance transition is authorized to change only:
+
+```text
+docs/handoff/CURRENT.md
+docs/handoff/HISTORY.md
+docs/roadmap.md
+```
+
+The roadmap change must mark only M4-041 accepted. M4-042 remains unchecked.
+
+This governance transition must not change:
 
 ```text
 production TypeScript
-adapter-dsh dependency/package changes
-pnpm-lock.yaml
-schema/protocol wire changes
+Spec 0045
+M4-041 corpus
+public protocol/schema wire types
 Shared TCK registration
-HISTORY
-roadmap M4-041 acceptance marker
-Harness baseline/workflow changes
-M4-042+
+package manifests/dependencies
+pnpm-lock.yaml
+Adapter/Harness baseline or workflow
+M4-042 implementation/spec/corpus
+M4-043+
 M4-050+
 M5
 M6
 M10
 M13
 M15
-PR #3 merge
+PR #3 merge state
 ```
 
 ## Resume instruction
 
 1. refresh PR #3 live head/base/Open/Draft/mergeability/reviews/threads;
-2. verify parent `df21ba12...` -> M4-041 protocol-first candidate changes exactly
-   the three authorized files;
-3. require exact-head normal CI + pinned Harness rc5 source-conformance green;
-4. only after dual-green begin M4-041 production/conformance work;
-5. first test the already-existing M2 `registerMonotonicToolGuard` binding against
-   Spec 0045 and the 32-case corpus;
-6. if malformed runtime handler decisions can escape or become abstention, harden
-   the Adapter boundary without weakening TypeScript, tests or fail-closed rules;
-7. do not add ASK/approval, full PDP aggregation, Lease composition or final-result
-   semantics to M4-041;
-8. keep M4-042+, M4-050+, M5, M6, M10, M13, M15 and PR #3 merge unauthorized.
+2. confirm the final-governance candidate is based directly on audit head
+   `bbf3983f62504599b96416b4feb75a5e2319cf1d` and changes only CURRENT,
+   append-only HISTORY and the single M4-041 roadmap marker/details;
+3. require exact-head normal CI + exact pinned Harness rc5 source-conformance green;
+4. inspect Harness step 10 and step 11 and require both to execute successfully;
+5. only after that exact governance head is dual-green declare M4-041 governance
+   CLOSED and authorize M4-042 P0 as the sole next protocol-first Gate;
+6. M4-042 must reconcile accepted M4-023 approval routing, existing Adapter
+   requestApproval semantics and exact pinned `ctx.approval` behavior before any
+   production change; it must not create a duplicate approval subsystem;
+7. keep M4-043+, M4-050+, M5, M6, M10, M13, M15 and PR #3 merge unauthorized.
