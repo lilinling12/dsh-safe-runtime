@@ -2187,3 +2187,70 @@ integrated CLI implementation, M13 or M15 behavior changes here. The resulting
 exact head must itself reach normal CI + exact pinned Harness rc5 source-
 conformance dual-green before M4-036 governance is CLOSED and M4-040 P0 register
 `tools/pre-execute` becomes the sole newly authorized protocol-first Gate.
+
+## 2026-09-03 — Accept M4-040 DeepSeek Harness `tools/pre-execute` registration
+
+M4-040 protocol-first closed on
+`544a8b13cc93729c1ea6178c54cd976e827983c0` with Spec 0044 and the 24-case
+`DPER-001` through `DPER-024` source-conformance corpus. Normal CI #578 / run
+`33742873583` and exact pinned Harness rc5 source-conformance #520 / run
+`33742873592` passed before conformance implementation began.
+
+Spec 0044 required review of the already accepted M2
+`HarnessRuntimeAdapter.registerToolPolicy()` binding before any production
+rewrite. Exact pinned-source/runtime evidence proved that binding already conforms,
+so the accepted M4-040 implementation leaves production Adapter code unchanged.
+The final delta from protocol-first head to reviewed conformance head
+`46daba5306f4773fcc6f2b9a0927f9e67df6a2f1` changes only two dedicated
+source-conformance tests plus the Harness-only tsconfig.
+
+Real rc5 tests prove exact host/agent request projection, exact already-materialized
+frozen argument-reference preservation, ALLOW delegation to later waterfall
+listeners, downstream deny/ask after safe-runtime ALLOW, safe-runtime DENY/ASK
+short-circuiting, stable fail-closed handler rejection, explicit feature detection
+and the fact that an earlier waterfall listener can prevent safe-runtime from
+running. Therefore M4-040 registration alone is explicitly **not** a
+`tool-enforced` guarantee. M4-041 separately owns the monotonic
+`ctx.tools.guard()` hard-deny invariant.
+
+Review continued after the first implementation head `104c9262...` was already
+dual-green. Corpus-evidence coverage introduced a real Harness-only typecheck
+regression at `a0739a82...`; `2405635e...` preserved the same failure. Normal CI
+remained green while Harness #522/#523 failed at exact-source step 10 before
+runtime conformance. The regression came from using `node:fs/promises` only to
+read a checked-in static JSON corpus from the Harness-specific compile graph.
+
+The repair did not weaken strict TypeScript, suppress diagnostics, add `any`,
+change the Harness workflow, remove evidence, add a dependency, touch production
+code or alter the frozen lockfile. The corpus is now imported as a static JSON
+module, with only the dedicated Harness tsconfig enabling `resolveJsonModule`.
+
+Final reviewed conformance evidence at `46daba53...`:
+
+- normal CI #582 / run `33760915397`: PASS;
+- exact Harness rc5 source-conformance #524 / run `33760915449`: PASS;
+- exact rc5 source-conformance typecheck step 10: PASS;
+- real rc5 runtime conformance step 11: PASS.
+
+Acceptance audit is `docs/acceptance/m4-040-acceptance-audit.md` at audit-only
+head `694fe273163699a42eae857989bb379fba3b5c08`. That exact head reached:
+
+- normal CI #583 / run `33763130310`: PASS;
+- exact Harness rc5 source-conformance #525 / run `33763130316`: PASS;
+- Harness step 10: PASS;
+- Harness step 11: PASS;
+- PR #3 remained Open, Draft and mergeable with no review/thread blockers.
+
+M4-040 does not implement the M4-041 monotonic hard guard, M4-042 approval
+routing, M4-043 final-result ownership, M4-044 approval uniqueness, M4-045 audit
+redaction, multi-requirement PDP aggregation, provider/execution-root resolution,
+Lease selection/consume composition or final Decision/Receipt/Guarantee
+construction.
+
+This final governance transition is intentionally limited to CURRENT,
+append-only HISTORY and only the M4-040 roadmap acceptance marker/details. No
+production code, Spec/corpus/schema, Shared TCK, dependency, lockfile,
+Adapter/Harness baseline/workflow or M4-041+ behavior changes here. The resulting
+exact head must itself reach normal CI + exact pinned Harness rc5 source-
+conformance dual-green before M4-040 governance is CLOSED and M4-041 P0
+`ctx.tools.guard()` becomes the sole newly authorized protocol-first Gate.
