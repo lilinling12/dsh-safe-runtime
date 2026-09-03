@@ -11,257 +11,227 @@
 - Active PR: `#3 — feat(policy): begin M4 capability broker`
 - Branch: `feat/m4-capability-broker`
 - Base: `main@57430273e065be8d38807d67b175fa154c801d43`
+- Exact parent governance head: `0bd01855bd71fa39e6a0c9e7437515faaf8c63b2`
 - M4-001..014: **GOVERNANCE CLOSED**
 - M4-020..025: **GOVERNANCE CLOSED**
 - M4-030..036: **GOVERNANCE CLOSED**
 - M4-040: **GOVERNANCE CLOSED**
 - M4-041: **GOVERNANCE CLOSED**
-- M4-042 native approval routing: **IMPLEMENTATION / CONFORMANCE ACCEPTED**
-- M4-042 acceptance audit: **EXACT-HEAD VERIFIED**
-- M4-042 final governance: **CANDIDATE / EXACT-HEAD VERIFICATION REQUIRED**
-- M4-043+: **NOT AUTHORIZED until the containing governance head is dual-green**
+- M4-042: **GOVERNANCE CLOSED**
+- M4-043 authoritative `tools/result`: **PROTOCOL-FIRST CANDIDATE / EXACT-HEAD VERIFICATION REQUIRED**
+- M4-044+: **NOT AUTHORIZED until M4-043 governance closure**
 - M4-050+, M5, M6, M10, M13, M15: **NOT AUTHORIZED by the current Gate**
 - PR #3 merge: **NOT AUTHORIZED without explicit user authorization**
 
 Live GitHub state overrides this snapshot.
 
-## M4-042 protocol-first closure
+## M4-042 final closure
 
-Normative authority:
+M4-042 final governance exact head:
 
 ```text
-specs/0046-m4-dsh-native-approval-routing.md
-profile: M4-042_DSH_NATIVE_APPROVAL_ROUTING_V1
+0bd01855bd71fa39e6a0c9e7437515faaf8c63b2
+```
+
+Its governance delta was exactly:
+
+```text
+docs/handoff/CURRENT.md
+docs/handoff/HISTORY.md   # append-only
+docs/roadmap.md           # M4-042 marker only
+```
+
+Exact-head evidence:
+
+- CI #592 / run `33784947948`: PASS;
+- exact pinned Harness rc5 source-conformance #534 / run `33784947972`: PASS;
+- Harness step 10 exact rc5 binding/source-conformance typecheck: PASS;
+- Harness step 11 real rc5 runtime conformance: PASS.
+
+Therefore M4-042 governance is CLOSED and M4-043 is the sole newly authorized
+protocol-first Gate.
+
+## M4-043 normative authority candidate
+
+New normative specification:
+
+```text
+specs/0047-m4-dsh-authoritative-tool-result.md
+profile: M4-043_DSH_AUTHORITATIVE_TOOL_RESULT_V1
 ```
 
 Portable/source-conformance corpus:
 
 ```text
-fixtures/dsh-approval-routing/cases.json
-32 cases: DAPR-001 through DAPR-032
+fixtures/dsh-authoritative-tool-result/cases.json
+32 cases: DATR-001 through DATR-032
 ```
 
-Protocol-first exact head:
+M4-043 reuses rather than redefines accepted M3-013 authority:
 
 ```text
-3f4a3b8fe2e22ec287d0be9295406d2bc18be34b
+tool.requested = request intent only
+tool.completed = observed final outcome
+tools/result   = final authoritative live tool outcome for Adapter DSH
 ```
 
-Its parent is M4-041 final governance head
-`bd4c6719356d2133c42d0e58c9843807ffcedaeb`.
+## Existing production binding under review
 
-Protocol-first exact-head evidence:
-
-- CI #589 / run `33781086991`: PASS;
-- exact pinned Harness rc5 source-conformance #531 / run `33781086966`: PASS;
-- Harness step 10: PASS;
-- Harness step 11: PASS.
-
-Only after that head became dual-green did M4-042 conformance implementation
-begin.
-
-## Accepted architecture
-
-M4-042 reuses the existing M2/M4-040 Adapter binding:
+The existing Adapter already observes:
 
 ```text
-registerToolPolicy(handler)
+ctx.on("tools/result", (exec, result) => ...)
 ```
 
-Safe-runtime ASK remains only a projection into Harness pre-execute:
+For an agent-backed result it:
+
+1. derives `sessionRef` from `exec.agent.session.id`;
+2. correlates exact `exec.callId` / `exec.name`;
+3. reads only process-local policy/cancellation disposition as classification aid;
+4. computes `options.digest(result)` from the exact observed result;
+5. passes the same final source fact to `normalizeFinalToolResult()`;
+6. emits through the existing ordered observation dispatcher.
+
+Agent-less results are not synthesized into session-scoped `tool.completed`.
+
+M4-043 MUST begin by proving this existing binding. No production change is
+authorized before exact-source conformance demonstrates a concrete gap.
+
+## Pinned rc5 final-result facts
+
+Exact pinned Harness baseline remains:
 
 ```text
-ASK          -> { kind: "ask" }
-ASK(reason)  -> { kind: "ask", reason }
+0.1.0-rc.5
+47f943859bef60e4160492346772ded9b24f765a
 ```
 
-Pinned rc5 ToolRuntime owns the native approval call:
+Exact ToolRuntime source establishes:
 
 ```text
-final tools/pre-execute ASK
--> ToolRuntime.serviceAsk()
--> ctx.approval.request(...)
--> approval outcome
--> monotonic guards
--> dispatch only if still permitted
+body / tools/execute
+-> tools/post-execute
+-> materialize candidate
+-> apply definition-owned final content
+-> materialize again
+-> notifyResult(exec, finalResult)
+-> return finalResult
 ```
 
-The separate Adapter `requestApproval()` port remains available for independent
-explicit callers but is not called again from `registerToolPolicy()` for the same
-ToolRuntime ASK.
+`notifyResult()` freezes the live execution object, dispatches the emit-style
+`tools/result` notification with that exact `finalResult`, and contains both
+synchronous observer throws and asynchronous observer rejections so observers do
+not acquire a mutation/error channel back into the already-final result.
 
-Therefore M4-042 is accepted as a **proof-of-existing-binding** Gate; no production
-Adapter rewrite was required.
+## M3-013 evidence reused
 
-## Accepted native routing semantics
+Existing `packages/adapter-dsh/source-conformance/tool-result.conformance.ts`
+already proves against real rc5:
 
-Real pinned rc5 conformance proves:
+- body return can differ from final post-execute content;
+- ToolRuntime returns the post-processed materialized final result;
+- a real `tools/result` observer sees that final result;
+- Adapter emits exactly one correlated `tool.completed`;
+- Adapter `resultDigest` equals the digest of the final result, not body return;
+- a real body throw maps from authoritative final error to normalized error.
+
+M4-043 will not duplicate this portable mapping. It adds ownership-specific
+evidence for exact final-object authority, observer failure containment,
+agent-less boundary, durable/live non-duplication, disposition-as-classification
+only, and explicit non-claims.
+
+## M4-043 required ownership rules
+
+The protocol-first contract freezes these boundaries:
 
 ```text
-ALLOW -> no approval originated by the safe-runtime listener
-DENY  -> no approval; body does not enter
-ASK   -> one reached native ApprovalService request
+body return                         != final authority
+post-execute pre-final candidate    != final authority
+policy/guard/approval intent        != final authority
+final materialized tools/result     == Adapter DSH live final authority
 ```
 
-For a reached agent-backed ASK, Harness uses the execution's exact:
+Required digest ownership:
 
 ```text
-agent
-toolName = exec.name
-callId   = exec.callId
-reason?  = ASK reason when present
-signal   = exec.signal
+resultDigest = digest(exact tools/result result)
 ```
 
-Approval outcomes remain:
+The digest algorithm itself is not standardized by M4-043.
+
+Existing process-local `denied` / `cancelled` disposition state may classify the
+normalized final event only after the authoritative result arrives. It MUST NOT
+replace or synthesize the final result or digest source.
+
+## Durable/live separation
+
+M4-043 keeps live notification ownership separate from durable replay:
+
+- native live `tools/result` may produce one normalized `tool.completed` for an
+  active agent-backed observation subscription;
+- the later durable session `tool/result` must not produce a second live
+  completion;
+- M3-017 remains authority for replay reconciliation;
+- M4-043 does not define durable exactly-once delivery or storage.
+
+## Security / non-claim boundary
+
+M4-043 does not prove:
 
 ```text
-allowed-once -> may proceed to monotonic guards
-rejected     -> deny before dispatch
-cancelled    -> no dispatch
-unavailable  -> deny before dispatch
+every host effect traverses ToolRuntime
+successful result means every claimed external effect happened
+failed result means external effects were absent or rolled back
+provider/process isolation
+complete system-wide tool-enforced coverage
+raw-result persistence is safe
 ```
 
-`allowed-once` does not bypass M4-041. Real conformance proves a subsequent
-monotonic guard denial still prevents body entry.
+M4-045 remains owner of audit redaction. M4-044 remains owner of repository-wide
+approval-subsystem uniqueness. M4-050+ remains owner of negative enforcement
+boundaries.
 
-## Approval-service and audit evidence
+## Protocol-first candidate boundary
 
-Real conformance also proves:
-
-- service absent -> fail closed with no fabricated approval audit pair;
-- service present/no answerer -> one asked/decided pair with `unavailable`;
-- throwing/rejected/malformed answerer -> contained to `unavailable`;
-- policy `never` -> rejected before answerer dispatch;
-- agent-less ASK -> fail closed without synthesized agent/session/Subject;
-- open-turn precondition failure -> no answerer and no body dispatch;
-- one actual ApprovalService request produces one correlated
-  `approval/asked` / `approval/decided` pair using Harness-generated identity;
-- existing Adapter normalized `approval.decided` evidence correlates to that
-  Harness-generated approval id and call id.
-
-Portable `actionRef` is not inferred to equal Harness `callId` or Adapter
-`callRef`.
-
-## Reorderable-waterfall limitation
-
-M4-042 preserves the M4-040 limitation that `tools/pre-execute` is a reorderable
-waterfall.
-
-Therefore the accepted claim is only:
+This transition is authorized to change exactly:
 
 ```text
-when ASK is the final decision delivered to ToolRuntime,
-Harness owns one native approval resolution path
-```
-
-It is not claimed that every intermediate ASK ever returned by safe-runtime must
-reach approval. Real conformance proves both an earlier terminating listener and
-an outer listener that replaces a downstream ASK before ToolRuntime sees it.
-
-## Final reviewed conformance evidence
-
-Final reviewed conformance exact head:
-
-```text
-72f88c3c4720a3a4a1deff88d07086047a996b31
-```
-
-Its exact delta from protocol-first head contains only:
-
-```text
-packages/adapter-dsh/source-conformance/m4-042-native-approval-routing.conformance.ts
-packages/adapter-dsh/source-conformance/m4-042-corpus-coverage.conformance.ts
-```
-
-No production code changed.
-
-Exact-head evidence:
-
-- CI #590 / run `33782296648`: PASS;
-- exact pinned Harness rc5 source-conformance #532 / run `33782296682`: PASS;
-- Harness step 10 exact rc5 binding/source-conformance typecheck: PASS;
-- Harness step 11 real rc5 runtime conformance: PASS.
-
-## Acceptance audit evidence
-
-Acceptance audit:
-
-```text
-docs/acceptance/m4-042-acceptance-audit.md
-```
-
-Audit-only exact head:
-
-```text
-baba4c82e1c5105af3e7d477941289bdee17254b
-```
-
-Exact-head evidence:
-
-- CI #591 / run `33783637088`: PASS;
-- exact pinned Harness rc5 source-conformance #533 / run `33783637242`: PASS;
-- Harness step 10: PASS;
-- Harness step 11: PASS;
-- PR #3 remained Open, Draft and mergeable;
-- reviews: none;
-- review threads: none.
-
-## Security / ownership boundaries
-
-M4-042 does not:
-
-```text
-create a second approval subsystem
-let approval override policy DENY
-cache/remember allowed-once
-infer actionRef == callRef
-fabricate approval identity
-own authoritative tools/result composition
-complete the M4-044 repository-wide duplicate-approval audit
-implement M4-045 audit redaction
-aggregate full classifier/PDP requirements
-resolve provider/execution-root operands
-select/consume Leases
-construct complete Decision/Receipt state
-assign final GuaranteeLevel
-claim every host effect traverses ToolRuntime
-claim complete system-wide tool-enforced coverage
-```
-
-M4-043 separately owns authoritative `tools/result` observation. M4-044 owns the
-repository-wide duplicate approval-subsystem audit. M4-045 owns raw-secret audit
-redaction.
-
-## Final governance candidate boundary
-
-This final-governance transition is authorized to change only:
-
-```text
+specs/0047-m4-dsh-authoritative-tool-result.md
+fixtures/dsh-authoritative-tool-result/cases.json
 docs/handoff/CURRENT.md
-docs/handoff/HISTORY.md
-docs/roadmap.md
 ```
 
-HISTORY must be append-only. Roadmap must mark only M4-042 accepted; M4-043 stays
-unchecked.
+It MUST NOT change:
 
-The transition must not change production TypeScript, Spec 0046, the DAPR corpus,
-source-conformance tests, public protocol/schema, Shared TCK, dependencies,
-`pnpm-lock.yaml`, Harness baseline/workflow or later-Gate implementation.
+```text
+production TypeScript
+existing M3-013 implementation/tests
+HISTORY
+roadmap M4-043 marker
+public protocol/schema
+Shared TCK registration
+package manifests/dependencies
+pnpm-lock.yaml
+Harness baseline/workflow
+M4-044+
+M4-050+
+M5
+M6
+M10
+M13
+M15
+PR #3 merge state
+```
 
 ## Resume instruction
 
-1. refresh PR #3 live state and require the final-governance candidate to be based
-   directly on audit head `baba4c82e1c5105af3e7d477941289bdee17254b`;
-2. verify candidate diff contains exactly CURRENT, append-only HISTORY and the
-   single M4-042 roadmap marker/details;
-3. require HISTORY deletions = 0 and roadmap only M4-042 changed;
-4. require exact-head normal CI + exact pinned Harness rc5 source-conformance
-   green, including Harness steps 10 and 11;
-5. only after that exact governance head is dual-green declare M4-042 governance
-   CLOSED and authorize M4-043 P0 as the sole next protocol-first Gate;
-6. M4-043 must begin by reconciling existing Adapter `tools/result` observation,
-   M3-013 final-result mapping and exact pinned ToolRuntime finalization/order;
-7. do not pull M4-044 approval-subsystem uniqueness or M4-045 redaction forward;
-8. keep M4-050+, M5, M6, M10, M13, M15 and PR #3 merge unauthorized.
+1. refresh PR #3 and require the protocol-first candidate to be based directly on
+   M4-042 governance head `0bd01855bd71fa39e6a0c9e7437515faaf8c63b2`;
+2. verify the candidate diff contains exactly Spec 0047, DATR corpus and CURRENT;
+3. require exact-head normal CI + exact pinned Harness rc5 source-conformance
+   green, including steps 10 and 11;
+4. only then authorize M4-043 source-conformance/production review;
+5. source-conformance must test the existing production binding before any code
+   rewrite and reuse M3-013 evidence rather than fork its semantics;
+6. do not begin M4-044 approval uniqueness or M4-045 redaction early;
+7. keep M4-050+, M5, M6, M10, M13, M15 and PR #3 merge unauthorized.
