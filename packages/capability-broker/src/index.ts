@@ -2,26 +2,24 @@
  * Capability Broker public package surface.
  *
  * M4-010 through M4-014 classifier/fallback stages, M4-020 through M4-025 PDP
- * prerequisites, and M4-030 through M4-033 Lease lifecycle gates are
- * governance-closed.
+ * prerequisites, and M4-030 through M4-034 Lease lifecycle/attenuation gates
+ * are governance-closed.
  *
- * M4-034 parent-child attenuation implementation and acceptance audit are
- * accepted. This package-stage record marks the reviewed hierarchy-aware
- * primitive as accepted while its own exact-head CI/Harness verification is
- * pending. The primitive consumes one target use together with every ancestor
- * through a trusted authoritative store port; the reference store provides
- * process-local overlapping-chain linearizability and shares per-Lease
- * serialization with M4-033 revocation.
+ * M4-035 deterministic Lease listing is implemented behind a read-only
+ * authoritative inventory port and is awaiting exact-head implementation
+ * acceptance. Listing describes independent TTL, usage and revocation facts;
+ * it does not synthesize an allow/usable verdict, traverse parent authority or
+ * mutate Lease state.
  *
- * This package does not claim database/multi-process atomicity, execute actions,
- * wire a PEP, issue child Leases, or alter the public CapabilityLease wire
- * schema. M4-035+ and M4-040+ remain separate Gates.
+ * This package does not claim database/multi-process snapshot isolation,
+ * execute actions, wire a PEP, revoke from the listing surface, or alter the
+ * public CapabilityLease wire schema. M4-036 and M4-040+ remain separate Gates.
  *
  * Protocol capability/Decision/Receipt/Lease types remain owned by
  * `@dsh-safe/protocol`; this package has no concrete DeepSeek Harness runtime
  * dependency.
  */
-export const PACKAGE_STAGE = "M4-034-LEASE-ATTENUATION-ACCEPTED" as const;
+export const PACKAGE_STAGE = "M4-035-LEASE-LISTING-IMPLEMENTED" as const;
 
 export * from "./builtin-filesystem-tool-classifier.js";
 export * from "./tool-classifier/builtin-shell.js";
@@ -156,3 +154,34 @@ export {
   type LeaseAttenuationStoreSemanticFailureReason,
   type LeaseAttenuationStoreSemanticStage,
 } from "./lease-attenuation-types.js";
+export { listCapabilityLeases } from "./lease-listing.js";
+export { InMemoryLeaseInventoryStore } from "./lease-listing-memory-store.js";
+export {
+  LEASE_LISTING_PROFILE,
+  MAX_LEASE_LIST_ENTRIES,
+  type LeaseInventoryState,
+  type LeaseInventoryStore,
+  type LeaseInventoryStoreOutcome,
+  type LeaseListed,
+  type LeaseListingConstraintsState,
+  type LeaseListingEntry,
+  type LeaseListingFailure,
+  type LeaseListingFailureReason,
+  type LeaseListingInput,
+  type LeaseListingOwnedFailureReason,
+  type LeaseListingResult,
+  type LeaseListingStage,
+  type LeaseListingTimeFailureReason,
+  type LeaseListingTtl,
+  type LeaseListingUsage,
+  type LeaseListingUsageFailureReason,
+} from "./lease-listing-types.js";
+export {
+  escapeTerminalText,
+  renderLeaseListHuman,
+  renderLeaseListJson,
+  runLeaseListCommand,
+  type LeaseListClock,
+  type LeaseListCommandResult,
+  type LeaseListOutputFormat,
+} from "./lease-list-cli.js";
