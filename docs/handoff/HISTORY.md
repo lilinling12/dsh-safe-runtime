@@ -2106,3 +2106,84 @@ M13 or M15 behavior changes here. The resulting exact head must itself reach
 normal CI + exact pinned Harness rc5 source-conformance dual-green before M4-035
 governance is CLOSED and M4-036 P1 revoke CLI becomes the sole newly authorized
 protocol-first Gate.
+
+## 2026-09-03 — Accept M4-036 deterministic CapabilityLease revoke CLI
+
+M4-036 protocol-first closed on
+`4ba51a16ef6d40ba51ea21ac920e590e9702f6cc` with Spec 0043 and the 34-case
+portable `LRCL-001` through `LRCL-034` corpus. Normal CI #568 / run
+`33728290773` and exact pinned Harness rc5 source-conformance #510 / run
+`33728290780` passed before production implementation began.
+
+The final accepted implementation/hardening exact head is
+`b997dc882eff26487c8d399467c60cba3f0b01d9`. M4-036 adds only a gate-local
+logical revoke command projection and reuses the existing authoritative M4-033
+`M4-033_LEASE_REVOKE_V1` primitive unchanged. It does not create a second revoke
+state machine, store port, mutation profile or CapabilityLease wire field.
+
+The accepted command is exactly
+`lease revoke --lease-ref <exact-ref> [--json]`. The ref remains an opaque
+1..512 Unicode-code-point identity with no trim, case folding, normalization,
+coercion, prefix/fuzzy lookup or aliasing. The value after `--lease-ref` is
+consumed unconditionally as data so legal option-looking refs remain representable.
+There is no positional target grammar.
+
+One valid invocation targets exactly one Lease and calls the accepted M4-033
+primitive once. The adapter does not pre-list inventory, expand targets, traverse
+parents/children, bulk/cascade revoke, apply `--force`, or automatically retry
+known-not-applied/ambiguous/malformed store outcomes. A later explicit invocation
+is a separate operator action and may observe `ALREADY_REVOKED` under M4-033
+monotonic idempotency.
+
+TTL and usage are not revoke preconditions. M4-036 does not read or mutate
+`issuedAt`, `expiresAt`, `maxUses`, or `remainingUses`. Portable reason/ticket/
+comment/actor metadata is also excluded until M5 defines a durable audit binding.
+The Gate does not create M10's integrated binary/config/exit-code framework and
+does not establish remote-admin, tenant or RBAC authorization.
+
+Source review continued after an earlier implementation head had already become
+CI/Harness dual-green. It found that although human/JSON output strings did not
+echo the target ref, the public `NOT_FOUND` and `RUNTIME_FAILURE` command envelopes
+still retained `brokerInput.leaseRef`. The accepted hardening removed that failed-
+command reflection path and added regressions proving serialized failure envelopes
+contain no target ref. Dedicated hardening also covers sparse argv, revoked Proxy
+argv and one-store-call semantics.
+
+Exact accepted implementation evidence at `b997dc88...`:
+
+- normal CI #574 / run `33736147193`: PASS;
+- exact Harness rc5 source-conformance #516 / run `33736147220`: PASS;
+- frozen install / 124-entry supply-chain policy: PASS;
+- architecture / 16-schema shape / schema baseline / strict TypeScript: PASS;
+- 66 test files / 1296 tests: PASS;
+- M4-036 portable/command suite: 41 PASS;
+- M4-036 dedicated hardening suite: 5 PASS;
+- oxlint: 0 errors, 2 existing repository warnings;
+- packed Shared TCK + external non-workspace consumer: 44 installed asset checks PASS.
+
+The acceptance audit is
+`docs/acceptance/m4-036-acceptance-audit.md` at
+`4881d72dfeb5c4fa884aa8a134a783b151b22ddc`; that audit-only exact head reached
+normal CI #575 / run `33737446149` PASS and exact Harness rc5 source-conformance
+#517 / run `33737446099` PASS.
+
+Acceptance-record exact head is
+`6f205a9437dadc723ff5cf80f6ce55df4b4d7048`, where only the Capability Broker
+package-stage marker/comment changed to `M4-036-LEASE-REVOKE-ACCEPTED`. That exact
+head reached normal CI #576 / run `33737949527` PASS and exact Harness rc5
+source-conformance #518 / run `33737949363` PASS.
+
+M4-036 does not alter M4-033 state/store semantics, implement unrevoke, list/search
+before revoke, perform bulk/recursive/cascade mutation, stop already-running
+Actions, roll back external effects, define durable audit metadata, create M10's
+integrated product CLI, wire M4-040+ PEP behavior or import Harness command
+semantics as protocol authority.
+
+This final governance transition is intentionally limited to CURRENT,
+append-only HISTORY and only the M4-036 roadmap acceptance marker/details. No
+production code, Spec/corpus/schema, Shared TCK, dependency, lockfile,
+Adapter/Harness baseline, M4-040 implementation, M4-041+, M4-050+, M5, M6, M10
+integrated CLI implementation, M13 or M15 behavior changes here. The resulting
+exact head must itself reach normal CI + exact pinned Harness rc5 source-
+conformance dual-green before M4-036 governance is CLOSED and M4-040 P0 register
+`tools/pre-execute` becomes the sole newly authorized protocol-first Gate.

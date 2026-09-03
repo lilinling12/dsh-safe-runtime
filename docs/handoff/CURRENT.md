@@ -15,82 +15,21 @@
 - M4-001..014: **GOVERNANCE CLOSED**
 - M4-020..025: **GOVERNANCE CLOSED**
 - M4-030..035: **GOVERNANCE CLOSED**
-- M4-036 P1 revoke CLI: **AUTHORIZED / PROTOCOL-FIRST IN PROGRESS**
-- M4-036 production implementation: **NOT AUTHORIZED before protocol-first exact-head dual-green**
-- M4-040+, M5, M6, M10 integrated CLI implementation, M13, M15: **NOT AUTHORIZED by the current Gate**
+- M4-036 P1 revoke CLI: **IMPLEMENTATION/AUDIT/PACKAGE ACCEPTED; FINAL GOVERNANCE EXACT-HEAD VERIFICATION REQUIRED**
+- M4-040 P0 `tools/pre-execute`: **NOT AUTHORIZED until M4-036 final-governance exact head is dual-green**
+- M4-041+, M4-050+, M5, M6, M10 integrated CLI implementation, M13, M15: **NOT AUTHORIZED by the current Gate**
 - PR #3 merge: **NOT AUTHORIZED without explicit user authorization**
 
 Live GitHub state overrides this snapshot.
 
-## M4-035 final closure
+## M4-036 accepted authority
 
-Final governance exact head:
-
-```text
-ebf6510fb8e802157ac0d133379c98244022eb49
-```
-
-Exact-head evidence:
-
-- normal CI #567 / run `33726849153`: PASS;
-- exact pinned Harness rc5 source-conformance #509 / run `33726849164`: PASS;
-- PR #3 remained Open, Draft and mergeable;
-- base remained `main@57430273e065be8d38807d67b175fa154c801d43`;
-- reviews: none;
-- review threads: none.
-
-Therefore M4-035 governance is CLOSED and M4-036 P1 revoke CLI is the sole newly
-authorized engineering Gate.
-
-## M4-036 authority reconciliation
-
-Roadmap names:
-
-```text
-M4-036 P1 — revoke CLI
-```
-
-M4-033 already owns the authoritative mutation:
-
-```text
-profile: M4-033_LEASE_REVOKE_V1
-
-LeaseRevokeInput {
-  profile
-  leaseRef
-}
-```
-
-and the accepted state transition is only:
-
-```text
-revoked: false -> true
-```
-
-with exact outcomes:
-
-```text
-REVOKED / LEASE_REVOKED
-ALREADY_REVOKED / LEASE_ALREADY_REVOKED
-NOT_REVOKED / LEASE_REVOKE_NOT_FOUND
-FAIL_CLOSED / INPUT|STORE / <stable M4-033 reason>
-```
-
-M4-036 MUST NOT define a second mutation profile, widen `LeaseRevocationStore`,
-add public Lease fields, invent unrevoke, or reinterpret M4-033 failure semantics.
-
-M4-035 established a gate-local CLI adapter precedent without creating a product
-binary, parser dependency, global configuration model or M10 exit-code policy.
-M4-036 reuses only that architecture precedent.
-
-## Protocol-first authority
-
-Normative draft:
+Normative specification:
 
 ```text
 specs/0043-m4-capability-lease-revoke-cli.md
 CLI conformance profile: M4-036_LEASE_REVOKE_CLI_V1
-mutation profile reused unchanged: M4-033_LEASE_REVOKE_V1
+underlying mutation profile: M4-033_LEASE_REVOKE_V1
 ```
 
 Portable corpus:
@@ -100,164 +39,164 @@ fixtures/lease-revoke-cli/cases.json
 34 cases: LRCL-001 through LRCL-034
 ```
 
-M4-036 is a CLI projection Gate, not a new Broker mutation Gate.
-
-## Command grammar
-
-Portable logical command:
+Protocol-first exact head:
 
 ```text
-lease revoke --lease-ref <exact-ref> [--json]
+4ba51a16ef6d40ba51ea21ac920e590e9702f6cc
 ```
 
-`--lease-ref` is required exactly once and `--json` is optional at most once.
+Protocol-first exact-head evidence:
 
-The token immediately following `--lease-ref` is consumed unconditionally as the
-ref value, even if it begins with `--`. This preserves the full existing opaque
-`defs.ref` domain instead of making option-looking refs impossible.
+- normal CI #568 / run `33728290773`: PASS;
+- exact pinned Harness rc5 source-conformance #510 / run `33728290780`: PASS.
 
-No positional target syntax is portable M4-036 semantics.
+M4-036 remains a CLI projection Gate. The authoritative state transition remains
+M4-033 `M4-033_LEASE_REVOKE_V1`; no second revoke profile/store/wire model was
+created.
 
-## Exact identity and parser boundary
+## Final accepted implementation/hardening
 
-The CLI validates the existing `defs.ref` domain:
+Accepted implementation/hardening exact head:
 
 ```text
-1..512 Unicode code points
+b997dc882eff26487c8d399467c60cba3f0b01d9
 ```
 
-with no trim, case folding, Unicode normalization, prefix/fuzzy lookup, alias
-resolution or coercion.
+Accepted behavior:
 
-Invalid argv/option/ref shape maps to:
+- gate-local logical command `lease revoke --lease-ref <exact-ref> [--json]`;
+- one exact opaque `leaseRef`, preserving the existing 1..512 Unicode-code-point
+  ref domain without trim, case folding, Unicode normalization, coercion, prefix,
+  fuzzy or alias matching;
+- the token after `--lease-ref` is consumed unconditionally as data, so legal refs
+  beginning with `--` remain representable;
+- no positional target grammar, bulk target expansion, `--all`, recursive/cascade,
+  descendant traversal, `--force`, or parent/child mutation fabrication;
+- no M4-035 pre-list/read-before-write race; one valid command constructs one exact
+  M4-033 request and invokes the accepted primitive once;
+- no automatic retry after known-not-applied, ambiguous, malformed or thrown store
+  failure; a later explicit CLI invocation remains a new operator action;
+- expiry/exhaustion are not revoke preconditions and M4-036 does not read/mutate
+  `issuedAt`, `expiresAt`, `maxUses`, or `remainingUses`;
+- no `--reason`/ticket/comment/actor metadata before a durable M5 audit contract;
+- `REVOKED` and `ALREADY_REVOKED` map to command `SUCCESS`, `NOT_REVOKED` remains
+  `NOT_FOUND`, M4-033 fail-closed remains `RUNTIME_FAILURE`, and parse/ref failure
+  remains `CLI_USAGE_ERROR`;
+- human and JSON renderers expose only fixed accepted M4-033 result vocabulary and
+  do not echo the target ref, store diagnostics, exception text or stack traces;
+- hostile argv is validated as a bounded dense ordinary string array; sparse,
+  accessor, named/symbol, non-string and revoked/unreadable Proxy shapes fail before
+  store access;
+- post-green source review removed `brokerInput.leaseRef` from NOT_FOUND and
+  RUNTIME_FAILURE public envelopes so serializing a failed command cannot reflect
+  attacker-controlled exact identity;
+- command outputs are detached/frozen and successful positive projection evidence
+  may retain a frozen exact Broker input.
+
+M4-036 does not create the M10 product-wide executable/parser/config/exit-code
+framework and does not establish remote-admin, tenant or RBAC authorization.
+
+Exact final implementation evidence:
+
+- normal CI #574 / run `33736147193`: PASS;
+- exact Harness rc5 source-conformance #516 / run `33736147220`: PASS;
+- frozen install / 124-entry supply-chain policy: PASS;
+- architecture boundaries: PASS;
+- 16-schema shape / compatibility baseline: PASS;
+- strict workspace TypeScript: PASS;
+- 66 test files / 1296 tests: PASS;
+- `lease-revoke-cli.test.ts`: 41 PASS;
+- `lease-revoke-cli-hardening.test.ts`: 5 PASS;
+- oxlint: 0 errors, 2 existing repository warnings;
+- packed Shared TCK + external non-workspace consumer: 44 installed asset checks PASS.
+
+## Acceptance audit
+
+Acceptance audit:
 
 ```text
-CLI_USAGE_ERROR / LEASE_REVOKE_CLI_ARGUMENT_INVALID
+docs/acceptance/m4-036-acceptance-audit.md
+commit: 4881d72dfeb5c4fa884aa8a134a783b151b22ddc
 ```
 
-before Broker/store invocation.
+Audit exact-head evidence:
 
-The TypeScript implementation later must reject sparse/accessor/named/symbol/
-unreadable argv shapes without invoking getters and without weakening hostile
-JavaScript boundaries.
+- normal CI #575 / run `33737446149`: PASS;
+- exact Harness rc5 source-conformance #517 / run `33737446099`: PASS.
 
-## One target only
+The audit records the real implementation/hardening history, including the
+failure-envelope privacy defect found after an earlier implementation head had
+already become dual-green.
 
-M4-036 revokes one exact supplied identity.
+## Package-stage acceptance record
 
-Explicitly unsupported:
+Package-stage exact head:
 
 ```text
---all
---filter
---subject
---capability
---recursive
---cascade
---descendants
---parent
---force
---reason
---ticket
---comment
+6f205a9437dadc723ff5cf80f6ce55df4b4d7048
 ```
 
-The command does not pre-list inventory, search by prefix, discover descendants,
-or fabricate child revocation.
-
-A parent target revokes only the exact parent record. M4-034 hierarchy composition
-may make descendant use ineligible because of ancestor revocation without writing
-child `revoked` state.
-
-## No stale pre-read
-
-Valid command flow is exactly:
+Only `packages/capability-broker/src/index.ts` changed from the audit head, moving:
 
 ```text
-parse argv
--> validate exact leaseRef
--> construct M4-033 input
--> invoke M4-033 once
--> map command class
--> render output
+M4-036-LEASE-REVOKE-IMPLEMENTED
+-> M4-036-LEASE-REVOKE-ACCEPTED
 ```
 
-The CLI MUST NOT call M4-035 listing or another read path before revoke. A stale
-read would not strengthen M4-033 authority and would create unnecessary TOCTOU.
+Package-stage exact-head evidence:
 
-## Command result mapping
+- normal CI #576 / run `33737949527`: PASS;
+- exact Harness rc5 source-conformance #518 / run `33737949363`: PASS.
 
-Logical command classes:
+## Final governance gate
+
+This governance transition is authorized only because the package-stage exact head
+is dual-green.
+
+The final governance delta is restricted to exactly:
 
 ```text
-M4-033 REVOKED          -> SUCCESS
-M4-033 ALREADY_REVOKED  -> SUCCESS
-M4-033 NOT_REVOKED      -> NOT_FOUND
-M4-033 FAIL_CLOSED      -> RUNTIME_FAILURE
-parser/ref failure      -> CLI_USAGE_ERROR
+docs/handoff/CURRENT.md
+docs/handoff/HISTORY.md   # append-only
+docs/roadmap.md           # only M4-036 acceptance marker/details
 ```
 
-`ALREADY_REVOKED` is successful idempotent desired state, while the exact Broker
-result remains visible.
+It must not change production code, Spec 0043, the portable corpus, M4-033
+primitive/store, public CapabilityLease schema/type, Shared TCK, dependency/
+lockfile state, Adapter/Harness baseline, M4-040 implementation, M4-041+, M4-050+,
+M5, M6, M10 integrated CLI implementation, M13 or M15.
 
-`NOT_FOUND` remains distinct from success.
+The final governance commit containing this snapshot is **not itself accepted until
+its exact head reaches normal CI + exact pinned Harness rc5 source-conformance
+dual-green**.
 
-M10 later owns numeric process exit codes.
-
-## Store/retry boundary
-
-M4-036 invokes M4-033 at most once per operator invocation and adds no store calls
-of its own.
-
-No automatic retry occurs after:
+Only after that evidence may repository state be interpreted as:
 
 ```text
-LEASE_REVOKE_STORE_UNAVAILABLE
-LEASE_REVOKE_OUTCOME_UNKNOWN
-LEASE_REVOKE_STORE_RESULT_INVALID
+M4-036 governance: CLOSED
+M4-040 P0 register tools/pre-execute: sole newly authorized protocol-first Gate
 ```
 
-A later explicit second CLI invocation is allowed under M4-033 monotonic revocation
-semantics and may observe `ALREADY_REVOKED` if an earlier ambiguous call committed.
-The original ambiguous invocation remains `RUNTIME_FAILURE`.
+## Explicit non-claims
 
-## Output and terminal safety
+M4-036 does not:
 
-Default human output is fixed stable Broker status/reason text only:
+- define a second Lease revocation mutation profile;
+- alter M4-033 state/store semantics;
+- add fields to the public CapabilityLease schema/type;
+- implement unrevoke/reactivation;
+- list/search before revoke;
+- perform bulk, recursive or cascade revocation;
+- use TTL/usage as revoke preconditions;
+- consume/reserve a Lease use;
+- stop an already-running action or roll back external effects;
+- establish remote-admin/tenant authorization;
+- define durable audit reason metadata;
+- create M10's integrated product CLI or numeric exit-code policy;
+- wire M4-040+ PEP behavior;
+- import DeepSeek Harness CLI/lineage behavior as protocol authority.
 
-```text
-REVOKED<TAB>LEASE_REVOKED
-ALREADY_REVOKED<TAB>LEASE_ALREADY_REVOKED
-NOT_REVOKED<TAB>LEASE_REVOKE_NOT_FOUND
-FAIL_CLOSED<TAB><stage><TAB><reasonCode>
-```
-
-The target `leaseRef` is deliberately not echoed.
-
-`--json` serializes only the M4-033 result object. No target ref, store value,
-exception text, stack trace or free-text reason is added.
-
-This avoids reflecting control/bidi content from an opaque ref and avoids creating
-another identity-rendering contract.
-
-## TTL / usage / audit boundaries
-
-Expiry and exhaustion are not revoke preconditions. M4-036 does not read or mutate:
-
-```text
-issuedAt
-expiresAt
-maxUses
-remainingUses
-```
-
-M4-036 also does not accept portable `--reason`/ticket/comment metadata because M5
-has not yet defined the durable audit ledger contract. The CLI must not accept
-operator metadata that it cannot bind to accepted durable evidence.
-
-## DeepSeek Harness boundary
-
-DeepSeek Harness remains Adapter compatibility evidence only:
+DeepSeek Harness remains compatibility evidence only:
 
 ```text
 version: 0.1.0-rc.5
@@ -265,51 +204,17 @@ commit: 47f943859bef60e4160492346772ded9b24f765a
 distribution: distribution-blocked
 ```
 
-Harness CLI conventions, session lineage or internal command behavior are not
-protocol authority.
-
-## Authorized protocol-first delta
-
-Exactly:
-
-```text
-specs/0043-m4-capability-lease-revoke-cli.md
-fixtures/lease-revoke-cli/cases.json
-docs/handoff/CURRENT.md
-```
-
-Not authorized in this protocol-first commit:
-
-```text
-production TypeScript
-package.json or dependency changes
-pnpm-lock.yaml
-public CapabilityLease schema/type changes
-M4-033 primitive/store changes
-Shared TCK registration
-docs/handoff/HISTORY.md
-docs/roadmap.md
-Adapter/Harness baseline
-M4-040+
-M5
-M6
-M10 integrated CLI implementation
-M13
-M15
-PR #3 merge
-```
-
-Production implementation may begin only after the resulting exact protocol-first
-head reaches normal CI + exact pinned Harness rc5 source-conformance dual-green
-with PR #3 still Open/Draft/mergeable and no review/thread blocker.
-
 ## Resume instruction
 
 1. refresh PR #3 exact head/base/Open/Draft/mergeability/reviews/threads;
-2. verify parent `ebf6510f...` -> M4-036 protocol-first candidate is exactly the
-   three authorized files;
+2. verify the M4-036 final-governance commit is exactly one commit ahead of
+   `6f205a94...` and changes only CURRENT + append-only HISTORY + the M4-036
+   roadmap marker/details;
 3. require exact-head normal CI + pinned Harness rc5 source-conformance green;
-4. only after dual-green authorize M4-036 production implementation;
-5. if implementation reveals semantic ambiguity, correct Spec 0043/corpus first;
-6. keep M4-040+, M5, M6, M10 integrated CLI implementation, M13, M15 and PR #3
-   merge unauthorized.
+4. only after dual-green mark M4-036 governance CLOSED;
+5. then and only then authorize `M4-040 P0 — register tools/pre-execute` as the
+   next protocol-first Gate, beginning with exact pinned Harness source recovery of
+   the `tools/pre-execute` hook and existing M4 classifier/PDP/Lease/guarantee
+   boundaries rather than guessing integration semantics;
+6. keep M4-041+, M4-050+, M5, M6, M10 integrated CLI implementation, M13, M15 and
+   PR #3 merge unauthorized unless separately authorized by governance/user action.
