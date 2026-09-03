@@ -2322,3 +2322,75 @@ Adapter/Harness baseline/workflow or M4-042+ behavior changes here. The resultin
 exact head must itself reach normal CI + exact pinned Harness rc5 source-
 conformance dual-green before M4-041 governance is CLOSED and M4-042 P0 route ask
 to `ctx.approval` becomes the sole newly authorized protocol-first Gate.
+
+## 2026-09-04 — Accept M4-042 DeepSeek Harness native approval routing
+
+M4-042 protocol-first closed on
+`3f4a3b8fe2e22ec287d0be9295406d2bc18be34b` with Spec 0046 and the 32-case
+portable/source-conformance `DAPR-001` through `DAPR-032` corpus. Normal CI #589 /
+run `33781086991` and exact pinned Harness rc5 source-conformance #531 / run
+`33781086966` passed, including exact-source step 10 and real runtime step 11,
+before source-conformance implementation began.
+
+Pinned ToolRuntime source confirms that a final `tools/pre-execute` ASK is
+resolved by ToolRuntime's native `serviceAsk()` path, which calls the optional
+`ctx.approval` service once with the exact execution agent, tool name, call id,
+optional ASK reason and execution signal. The existing Adapter
+`registerToolPolicy()` already projects safe-runtime ASK to Harness
+`{ kind: "ask", reason? }`; it does not call the standalone Adapter
+`requestApproval()` port for the same ASK. Therefore no production Adapter rewrite
+was required and no duplicate approval orchestration was introduced.
+
+Final reviewed conformance exact head is
+`72f88c3c4720a3a4a1deff88d07086047a996b31`. Its exact delta from protocol-first
+head consists only of:
+
+- `packages/adapter-dsh/source-conformance/m4-042-native-approval-routing.conformance.ts`;
+- `packages/adapter-dsh/source-conformance/m4-042-corpus-coverage.conformance.ts`.
+
+Real pinned rc5 conformance proves that ALLOW/DENY do not originate approval,
+one reached ASK owns one native ApprovalService request, exact agent/tool/call/
+reason/signal correlation is preserved, `allowed-once` can proceed only to the
+later monotonic-guard stage, rejected/cancelled/unavailable do not enter the
+tool body, missing service and agent-less ASK fail closed without fabricated
+audit identity, no-answer/throw/malformed answerer paths fail closed, `never`
+policy rejects before answerer dispatch, and the native asked/decided pair uses
+Harness-generated approval identity.
+
+The Gate also preserves the M4-040 reorderable-waterfall limitation: an earlier
+listener may terminate before safe-runtime runs and an outer listener may replace a
+downstream ASK before ToolRuntime sees it. M4-042 therefore guarantees native
+approval only for a final/reached ASK and does not claim every intermediate ASK
+necessarily prompts approval. Portable `actionRef` is not inferred to equal
+Harness call identity.
+
+Exact accepted conformance evidence at `72f88c3c...`:
+
+- normal CI #590 / run `33782296648`: PASS;
+- exact Harness rc5 source-conformance #532 / run `33782296682`: PASS;
+- Harness step 10 exact rc5 typecheck: PASS;
+- Harness step 11 real rc5 runtime conformance: PASS.
+
+Acceptance audit is
+`docs/acceptance/m4-042-acceptance-audit.md` at audit-only exact head
+`baba4c82e1c5105af3e7d477941289bdee17254b`. That exact head reached:
+
+- normal CI #591 / run `33783637088`: PASS;
+- exact Harness rc5 source-conformance #533 / run `33783637242`: PASS;
+- Harness step 10: PASS;
+- Harness step 11: PASS;
+- PR #3 remained Open, Draft and mergeable without review/thread blockers.
+
+M4-042 does not own authoritative final `tools/result` composition (M4-043),
+formal repository-wide duplicate approval-subsystem audit (M4-044), audit
+redaction (M4-045), full classifier/PDP aggregation, provider/execution-root
+resolution, Lease selection/consume, complete Decision/Receipt construction,
+final GuaranteeLevel assignment or complete system-wide `tool-enforced`
+coverage.
+
+This final governance transition is intentionally limited to CURRENT,
+append-only HISTORY and only the M4-042 roadmap acceptance marker/details. The
+resulting exact head must itself reach normal CI + exact pinned Harness rc5
+source-conformance dual-green before M4-042 governance is CLOSED and M4-043 P0
+authoritative `tools/result` observation becomes the sole newly authorized
+protocol-first Gate.
