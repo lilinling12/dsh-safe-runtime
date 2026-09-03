@@ -25,7 +25,6 @@ export type LeaseRevokeCommandResult =
   | {
       readonly status: "NOT_FOUND";
       readonly format: LeaseRevokeOutputFormat;
-      readonly brokerInput: LeaseRevokeInput;
       readonly result: LeaseNotRevoked;
       readonly output: string;
     }
@@ -36,7 +35,6 @@ export type LeaseRevokeCommandResult =
   | {
       readonly status: "RUNTIME_FAILURE";
       readonly format: LeaseRevokeOutputFormat;
-      readonly brokerInput: LeaseRevokeInput;
       readonly result: LeaseRevokeFailure;
       readonly output: string;
     };
@@ -86,7 +84,6 @@ export async function runLeaseRevokeCommand(
       return Object.freeze({
         status: "NOT_FOUND",
         format: parsed.format,
-        brokerInput,
         result,
         output,
       });
@@ -94,7 +91,6 @@ export async function runLeaseRevokeCommand(
       return Object.freeze({
         status: "RUNTIME_FAILURE",
         format: parsed.format,
-        brokerInput,
         result,
         output,
       });
