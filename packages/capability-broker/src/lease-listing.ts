@@ -18,7 +18,6 @@ import {
   type LeaseListingStage,
 } from "./lease-listing-types.js";
 
-const INPUT_KEYS = new Set(["profile", "observedAt"]);
 const STATE_KEYS = new Set([
   "leaseRef", "subjectRef", "parentLeaseRef", "capability", "resource",
   "constraints", "issuedAt", "expiresAt", "maxUses", "remainingUses",
@@ -30,8 +29,16 @@ type DataRead =
   | { readonly status: "DATA"; readonly value: unknown }
   | { readonly status: "MISSING" | "ACCESSOR" | "UNREADABLE" };
 
+type StateReadResult =
+  | { readonly ok: true; readonly entry: LeaseListingEntry }
+  | { readonly ok: false; readonly failure: LeaseListingFailure };
+
 function fail(stage: LeaseListingStage, reasonCode: LeaseListingFailureReason): LeaseListingFailure {
   return Object.freeze({ status: "FAIL_CLOSED", stage, reasonCode });
+}
+
+function stateFail(stage: LeaseListingStage, reasonCode: LeaseListingFailureReason): StateReadResult {
+  return Object.freeze({ ok: false, failure: fail(stage, reasonCode) });
 }
 
 function isRecord(value: unknown): value is Readonly<Record<PropertyKey, unknown>> {
@@ -151,8 +158,8 @@ function freezeResource(resource: CanonicalResource): LeaseInventoryState["resou
   });
 }
 
-function readState(value: unknown, observedAt: string): LeaseListingEntry | LeaseListingFailure {
-  if (!isRecord(value)) return fail("SNAPSHOT", "LEASE_LIST_SNAPSHOT_INVALID");
+function readState(value: unknown, observedAt: string): StateReadResult {
+  if (!isRecord(value)) return stateFail("SNAPSHOT", "LEASE_LIST_SNAPSHOT_INVALID");
   const keys = ownKeys(value);
   if (
     keys === undefined
@@ -161,43 +168,43 @@ function readState(value: unknown, observedAt: string): LeaseListingEntry | Leas
       "leaseRef", "subjectRef", "capability", "resource", "issuedAt", "expiresAt",
       "maxUses", "remainingUses", "authorization", "revoked",
     ].every(key => keys.includes(key))
-  ) return fail("SNAPSHOT", "LEASE_LIST_SNAPSHOT_INVALID");
+  ) return stateFail("SNAPSHOT", "LEASE_LIST_SNAPSHOT_INVALID");
 
   const leaseRef = readData(value, "leaseRef");
   if (leaseRef.status !== "DATA" || !validRef(leaseRef.value)) {
-    return fail("SNAPSHOT", "LEASE_LIST_LEASE_REF_INVALID");
+    return stateFail("SNAPSHOT", "LEASE_LIST_LEASE_REF_INVALID");
   }
 
   const subjectRef = readData(value, "subjectRef");
   if (subjectRef.status !== "DATA" || !validRef(subjectRef.value)) {
-    return fail("SNAPSHOT", "LEASE_LIST_SUBJECT_REF_INVALID");
+    return stateFail("SNAPSHOT", "LEASE_LIST_SUBJECT_REF_INVALID");
   }
 
   let parentLeaseRef: string | undefined;
   if (keys.includes("parentLeaseRef")) {
     const parent = readData(value, "parentLeaseRef");
     if (parent.status !== "DATA" || !validRef(parent.value)) {
-      return fail("SNAPSHOT", "LEASE_LIST_PARENT_LEASE_REF_INVALID");
+      return stateFail("SNAPSHOT", "LEASE_LIST_PARENT_LEASE_REF_INVALID");
     }
     parentLeaseRef = parent.value;
   }
 
   const capability = readData(value, "capability");
   if (capability.status !== "DATA" || !validLeaseCapability(capability.value)) {
-    return fail("SNAPSHOT", "LEASE_LIST_CAPABILITY_INVALID");
+    return stateFail("SNAPSHOT", "LEASE_LIST_CAPABILITY_INVALID");
   }
 
   const resourceData = readData(value, "resource");
-  if (resourceData.status !== "DATA") return fail("SNAPSHOT", "LEASE_LIST_SNAPSHOT_INVALID");
+  if (resourceData.status !== "DATA") return stateFail("SNAPSHOT", "LEASE_LIST_SNAPSHOT_INVALID");
   const resource = normalizeCapabilityResource(resourceData.value);
-  if (!resource.ok) return fail("RESOURCE", resource.reason);
+  if (!resource.ok) return stateFail("RESOURCE", resource.reason);
 
   let constraintsState: "NONE" | "NON_EMPTY" = "NONE";
   if (keys.includes("constraints")) {
     const constraints = readData(value, "constraints");
-    if (constraints.status !== "DATA") return fail("SNAPSHOT", "LEASE_LIST_CONSTRAINTS_INVALID");
+    if (constraints.status !== "DATA") return stateFail("SNAPSHOT", "LEASE_LIST_CONSTRAINTS_INVALID");
     const classified = classifyConstraints(constraints.value);
-    if (classified === undefined) return fail("SNAPSHOT", "LEASE_LIST_CONSTRAINTS_INVALID");
+    if (classified === undefined) return stateFail("SNAPSHOT", "LEASE_LIST_CONSTRAINTS_INVALID");
     constraintsState = classified;
   }
 
@@ -205,11 +212,11 @@ function readState(value: unknown, observedAt: string): LeaseListingEntry | Leas
   const authorization = authorizationData.status === "DATA"
     ? readAuthorization(authorizationData.value)
     : undefined;
-  if (authorization === undefined) return fail("SNAPSHOT", "LEASE_LIST_AUTHORIZATION_INVALID");
+  if (authorization === undefined) return stateFail("SNAPSHOT", "LEASE_LIST_AUTHORIZATION_INVALID");
 
   const revoked = readData(value, "revoked");
   if (revoked.status !== "DATA" || typeof revoked.value !== "boolean") {
-    return fail("SNAPSHOT", "LEASE_LIST_REVOKED_STATE_INVALID");
+    return stateFail("SNAPSHOT", "LEASE_LIST_REVOKED_STATE_INVALID");
   }
 
   const issuedAt = readData(value, "issuedAt");
@@ -219,7 +226,7 @@ function readState(value: unknown, observedAt: string): LeaseListingEntry | Leas
   if (
     issuedAt.status !== "DATA" || expiresAt.status !== "DATA"
     || maxUses.status !== "DATA" || remainingUses.status !== "DATA"
-  ) return fail("SNAPSHOT", "LEASE_LIST_SNAPSHOT_INVALID");
+  ) return stateFail("SNAPSHOT", "LEASE_LIST_SNAPSHOT_INVALID");
 
   const ttl = evaluateCapabilityLeaseTtl({
     profile: "M4-030_LEASE_TTL_V1",
@@ -232,11 +239,11 @@ function readState(value: unknown, observedAt: string): LeaseListingEntry | Leas
       case "LEASE_TTL_ISSUED_AT_INVALID":
       case "LEASE_TTL_EXPIRES_AT_INVALID":
       case "LEASE_TTL_WINDOW_INVALID":
-        return fail("TIME", ttl.reasonCode);
+        return stateFail("TIME", ttl.reasonCode);
       case "LEASE_TTL_INPUT_INVALID":
       case "LEASE_TTL_PROFILE_INVALID":
       case "LEASE_TTL_OBSERVED_AT_INVALID":
-        return fail("SNAPSHOT", "LEASE_LIST_SNAPSHOT_INVALID");
+        return stateFail("SNAPSHOT", "LEASE_LIST_SNAPSHOT_INVALID");
     }
   }
 
@@ -250,14 +257,14 @@ function readState(value: unknown, observedAt: string): LeaseListingEntry | Leas
       case "LEASE_USAGE_MAX_USES_INVALID":
       case "LEASE_USAGE_REMAINING_USES_INVALID":
       case "LEASE_USAGE_STATE_INVALID":
-        return fail("USAGE", usage.reasonCode);
+        return stateFail("USAGE", usage.reasonCode);
       case "LEASE_USAGE_INPUT_INVALID":
       case "LEASE_USAGE_PROFILE_INVALID":
-        return fail("SNAPSHOT", "LEASE_LIST_SNAPSHOT_INVALID");
+        return stateFail("SNAPSHOT", "LEASE_LIST_SNAPSHOT_INVALID");
     }
   }
 
-  return Object.freeze({
+  const entry: LeaseListingEntry = Object.freeze({
     leaseRef: leaseRef.value,
     subjectRef: subjectRef.value,
     ...(parentLeaseRef === undefined ? {} : { parentLeaseRef }),
@@ -273,6 +280,7 @@ function readState(value: unknown, observedAt: string): LeaseListingEntry | Leas
     ttl,
     usage,
   });
+  return Object.freeze({ ok: true, entry });
 }
 
 function normalizeStoreOutcome(outcome: unknown, observedAt: string): LeaseListingResult {
@@ -304,9 +312,9 @@ function normalizeStoreOutcome(outcome: unknown, observedAt: string): LeaseListi
   const entries: LeaseListingEntry[] = [];
   const seen = new Set<string>();
   for (const state of states) {
-    const entry = readState(state, observedAt);
-    if (entry.status === "FAIL_CLOSED") return entry;
-    entries.push(entry);
+    const parsed = readState(state, observedAt);
+    if (!parsed.ok) return parsed.failure;
+    entries.push(parsed.entry);
   }
   for (const entry of entries) {
     if (seen.has(entry.leaseRef)) return fail("SNAPSHOT", "LEASE_LIST_DUPLICATE_LEASE_REF");
