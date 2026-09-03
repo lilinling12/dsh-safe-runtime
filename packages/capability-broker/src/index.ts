@@ -2,25 +2,25 @@
  * Capability Broker public package surface.
  *
  * M4-010 through M4-014 classifier/fallback stages, M4-020 through M4-025 PDP
- * prerequisites, and M4-030 through M4-034 Lease lifecycle/attenuation gates
- * are governance-closed.
+ * prerequisites, and M4-030 through M4-035 Lease lifecycle/listing gates are
+ * governance-closed.
  *
- * M4-035 deterministic Lease listing implementation and acceptance audit are
- * accepted. This package-stage record marks the reviewed read-only listing
- * primitive and gate-local command projection as accepted while its own
- * exact-head CI/Harness verification is pending. Listing describes independent
- * TTL, usage and revocation facts; it does not synthesize an allow/usable
- * verdict, traverse parent authority or mutate Lease state.
+ * M4-036 deterministic Lease revoke CLI production implementation is present and
+ * awaiting implementation exact-head CI/Harness verification and later acceptance
+ * audit. The gate-local adapter projects one exact `leaseRef` into the already
+ * accepted M4-033 revocation primitive; it does not define a second mutation
+ * profile, pre-list state, retry ambiguous outcomes, bulk/cascade revoke, or create
+ * the integrated M10 CLI framework.
  *
- * This package does not claim database/multi-process snapshot isolation,
- * execute actions, wire a PEP, revoke from the listing surface, or alter the
- * public CapabilityLease wire schema. M4-036 and M4-040+ remain separate Gates.
+ * This package does not claim database/multi-process atomicity, remote-admin
+ * authorization, action cancellation/rollback, PEP enforcement, or a public
+ * CapabilityLease wire-schema change.
  *
  * Protocol capability/Decision/Receipt/Lease types remain owned by
  * `@dsh-safe/protocol`; this package has no concrete DeepSeek Harness runtime
  * dependency.
  */
-export const PACKAGE_STAGE = "M4-035-LEASE-LISTING-ACCEPTED" as const;
+export const PACKAGE_STAGE = "M4-036-LEASE-REVOKE-IMPLEMENTED" as const;
 
 export * from "./builtin-filesystem-tool-classifier.js";
 export * from "./tool-classifier/builtin-shell.js";
@@ -137,6 +137,14 @@ export {
   type LeaseRevokeStage,
   type LeaseRevoked,
 } from "./lease-revoke-types.js";
+export {
+  LEASE_REVOKE_CLI_PROFILE,
+  renderLeaseRevokeHuman,
+  renderLeaseRevokeJson,
+  runLeaseRevokeCommand,
+  type LeaseRevokeCommandResult,
+  type LeaseRevokeOutputFormat,
+} from "./lease-revoke-cli.js";
 export { consumeCapabilityLeaseHierarchy } from "./lease-attenuation.js";
 export { InMemoryLeaseAttenuationStore } from "./lease-attenuation-memory-store.js";
 export {
