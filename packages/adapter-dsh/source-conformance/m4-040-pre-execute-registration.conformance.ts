@@ -147,6 +147,30 @@ describe("M4-040 pinned rc5 tools/pre-execute registration", () => {
     expect("guaranteeLevel" in (request ?? {})).toBe(false);
   });
 
+  it("delegates ALLOW through a downstream ALLOW and reaches the tool body", async () => {
+    const { ctx, adapter } = await setupTools(harness);
+    let bodyCalls = 0;
+    let downstreamCalls = 0;
+    registerStringTool(ctx, "m4_040_allow_allow", () => { bodyCalls += 1; });
+
+    adapter.registerToolPolicy(() => ({ kind: "ALLOW" }));
+    ctx.on("tools/pre-execute", () => {
+      downstreamCalls += 1;
+      return Promise.resolve({ kind: "allow" });
+    });
+
+    const result = await ctx.tools.execute({
+      signal,
+      callId: CallId("m4-040-allow-allow"),
+      name: "m4_040_allow_allow",
+      arguments: {},
+    });
+
+    expect(result.isError).toBe(false);
+    expect(downstreamCalls).toBe(1);
+    expect(bodyCalls).toBe(1);
+  });
+
   it("treats safe-runtime ALLOW as delegation so a downstream listener can still deny", async () => {
     const { ctx, adapter } = await setupTools(harness);
     let bodyCalls = 0;
@@ -163,6 +187,30 @@ describe("M4-040 pinned rc5 tools/pre-execute registration", () => {
       signal,
       callId: CallId("m4-040-allow-delegate"),
       name: "m4_040_allow_delegate",
+      arguments: {},
+    });
+
+    expect(result.isError).toBe(true);
+    expect(downstreamCalls).toBe(1);
+    expect(bodyCalls).toBe(0);
+  });
+
+  it("delegates ALLOW to a downstream ASK and does not reach the tool body", async () => {
+    const { ctx, adapter } = await setupTools(harness);
+    let bodyCalls = 0;
+    let downstreamCalls = 0;
+    registerStringTool(ctx, "m4_040_allow_ask", () => { bodyCalls += 1; });
+
+    adapter.registerToolPolicy(() => ({ kind: "ALLOW" }));
+    ctx.on("tools/pre-execute", () => {
+      downstreamCalls += 1;
+      return Promise.resolve({ kind: "ask", reason: "downstream approval required" });
+    });
+
+    const result = await ctx.tools.execute({
+      signal,
+      callId: CallId("m4-040-allow-ask"),
+      name: "m4_040_allow_ask",
       arguments: {},
     });
 
@@ -216,6 +264,24 @@ describe("M4-040 pinned rc5 tools/pre-execute registration", () => {
 
     expect(result.isError).toBe(true);
     expect(downstreamCalls).toBe(0);
+    expect(bodyCalls).toBe(0);
+  });
+
+  it("preserves ASK without requiring a safe-runtime reason and remains fail closed without approval", async () => {
+    const { ctx, adapter } = await setupTools(harness);
+    let bodyCalls = 0;
+    registerStringTool(ctx, "m4_040_ask_without_reason", () => { bodyCalls += 1; });
+
+    adapter.registerToolPolicy(() => ({ kind: "ASK" }));
+
+    const result = await ctx.tools.execute({
+      signal,
+      callId: CallId("m4-040-ask-without-reason"),
+      name: "m4_040_ask_without_reason",
+      arguments: {},
+    });
+
+    expect(result.isError).toBe(true);
     expect(bodyCalls).toBe(0);
   });
 
