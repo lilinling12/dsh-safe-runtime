@@ -301,7 +301,7 @@ Acceptance evidence
 - [x] `M4-031 P0` maxUses。 **ACCEPTED：Spec 0038 + 32 portable cases + deterministic read-only CapabilityLease usage validity + exact safe-integer/coherence semantics + hostile-runtime/no-coercion/no-consume hardening；accepted implementation head `4888db94...`，CI #520 / Harness #462 PASS；验收记录 `docs/acceptance/m4-031-acceptance-audit.md`。**
 - [x] `M4-032 P0` atomic consume。
 - [x] `M4-033 P0` revoke。
-- [ ] `M4-034 P0` parent-child attenuation。
+- [x] `M4-034 P0` parent-child attenuation。 **ACCEPTED：Spec 0041 + 28 portable cases + authoritative target-to-root chain validation + exact provenance/capability/resource/constraint/time/maxUses attenuation + all-chain coupled usage decrement + ancestor revocation/exhaustion inheritance + process-local overlapping-chain/revoke-consume linearizability + hostile-runtime/store-evidence/failure-precedence hardening；accepted implementation head `6690dbc5...`，CI #553 / Harness #495 PASS；验收记录 `docs/acceptance/m4-034-acceptance-audit.md`。**
 - [ ] `M4-035 P1` lease listing CLI。
 - [ ] `M4-036 P1` revoke CLI。
 

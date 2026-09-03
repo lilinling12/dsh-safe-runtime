@@ -1955,3 +1955,79 @@ baseline or M4-034+ behavior changes here. The resulting exact head must itself
 reach normal CI + exact pinned Harness rc5 source-conformance dual-green before
 M4-033 governance is CLOSED and M4-034 P0 parent-child attenuation becomes the
 next protocol-first Gate.
+
+## 2026-09-03 — Accept M4-034 parent-child CapabilityLease attenuation
+
+M4-034 protocol-first closed on
+`e712a599d143a30ca69103d6a0f931f903cd63a8` with Spec 0041 and the 28-case
+portable `LATT-001` through `LATT-028` corpus. Normal CI #542 / run
+`33672611292` and exact pinned Harness rc5 source-conformance #484 / run
+`33672611311` passed before production implementation began.
+
+The accepted implementation/hardening exact head is
+`6690dbc5a96f1cfb384147d20928f184922ba192`. M4-034 resolves the authoritative
+target-to-root Lease chain and prevents portable authority amplification by
+coupling hierarchy-aware usage: one successful descendant use decrements exactly
+one usage unit from the target and every ancestor as one all-or-none logical
+transition.
+
+Direct-edge attenuation requires exact parent provenance, exact capability
+equality, exact M4-003 canonical Resource equality, omitted/empty constraints,
+contained lifetime intervals, coherent M4-031 usage state and
+`child.maxUses <= parent.maxUses`. `child.remainingUses <= parent.remainingUses`
+is intentionally not required because prior ancestor or sibling consumption may
+legitimately reduce the ancestor's current budget; shared ancestor consumption is
+the authoritative non-amplification mechanism.
+
+The portable chain is exact, cycle-detecting and bounded at 32 Lease identities.
+Target or ancestor revocation/exhaustion makes hierarchy use ineligible without
+fabricating descendant revocation records. The reference in-memory store shares
+per-Lease process-local serialization with M4-033 revocation, and hardening covers
+sibling overlap, parent/descendant final-budget races and ancestor-revoke versus
+descendant-consume races.
+
+Store outcomes distinguish known-not-applied, ambiguous and malformed evidence.
+The broker invokes the store at most once, performs no automatic retry after an
+ambiguous use, validates exact all-chain before/after decrement evidence and
+preserves deterministic observable failure precedence. Hostile-runtime handling
+rejects inherited/accessor/symbol/unreadable/Proxy-backed authority and returns
+sanitized detached frozen results.
+
+Exact accepted implementation evidence at `6690dbc5...`:
+
+- normal CI #553 / run `33674755323`: PASS;
+- exact Harness rc5 source-conformance #495 / run `33674755269`: PASS;
+- 62 test files / 1204 tests: PASS;
+- M4-034 portable suite: 29 PASS;
+- hostile/store/concurrency hardening: 10 PASS;
+- multi-defect precedence suite: 6 PASS;
+- frozen install / 124-entry supply-chain policy: PASS;
+- architecture / 16-schema shape / schema baseline / strict TypeScript: PASS;
+- packed Shared TCK + external non-workspace consumer: 44 assets PASS.
+
+The acceptance audit is
+`docs/acceptance/m4-034-acceptance-audit.md` at
+`7f6542e345b51e985a0f55c253881b3c4de093bb`; that audit-only exact head reached
+normal CI #554 / run `33702524911` PASS and exact Harness rc5 source-conformance
+#496 / run `33702524917` PASS.
+
+Acceptance-record exact head is
+`b85ac81b8858a199259c0794975e3349e3bb9de2`, where only the Capability Broker
+package-stage marker/comment changed to `M4-034-LEASE-ATTENUATION-ACCEPTED`. That
+exact head reached normal CI #555 / run `33704248709` PASS and exact Harness rc5
+source-conformance #497 / run `33704248711` PASS with all Harness source-
+conformance stages green.
+
+M4-034 does not issue/mint child Leases, reserve delegated quota, prove runtime
+Subject lineage, import Harness parent/delegation metadata as protocol authority,
+read host time, construct Decision/Receipt/GuaranteeLevel, execute Actions, solve
+the post-consume execution race, modify the public CapabilityLease wire shape or
+claim database/multi-process/distributed atomicity from its reference store.
+
+This final governance transition is intentionally limited to CURRENT,
+append-only HISTORY and only the M4-034 roadmap acceptance marker. No production
+code, Spec/corpus/schema, Shared TCK, dependency, lockfile, Adapter/Harness
+baseline, M4-035 implementation, M4-036, M4-040+, M6 or M13 behavior changes
+here. The resulting exact head must itself reach normal CI + exact pinned Harness
+rc5 source-conformance dual-green before M4-034 governance is CLOSED and M4-035
+P1 lease listing CLI becomes the sole newly authorized protocol-first Gate.

@@ -14,103 +14,16 @@
 - Parent governance-closed head: `797252bcd26291ad99433c1cccf0dcce99550f15`
 - M4-001..014: **GOVERNANCE CLOSED**
 - M4-020..025: **GOVERNANCE CLOSED**
-- M4-030..033: **GOVERNANCE CLOSED**
-- M4-034 parent-child attenuation: **AUTHORIZED / PROTOCOL-FIRST IN PROGRESS**
-- M4-034 production implementation: **NOT AUTHORIZED before protocol-first exact-head dual-green**
-- M4-035+, M4-040+, M6, M13 runtime-lineage integration: **NOT AUTHORIZED**
+- M4-030..034: **GOVERNANCE CLOSED after this final-governance exact head is dual-green**
+- M4-035 P1 lease listing CLI: **NEXT AUTHORIZED GATE / PROTOCOL-FIRST ONLY after final-governance dual-green**
+- M4-036, M4-040+, M6, M13 runtime-lineage integration: **NOT AUTHORIZED**
 - PR #3 merge: **NOT AUTHORIZED without explicit user authorization**
 
 Live GitHub state overrides this snapshot.
 
-## M4-033 final closure
+## M4-034 accepted authority
 
-Final governance exact head:
-
-```text
-797252bcd26291ad99433c1cccf0dcce99550f15
-```
-
-Evidence:
-
-- CI #541 / run `33667518261`: PASS;
-- Harness rc5 source-conformance #483 / run `33667518173`: PASS;
-- PR #3 remained Open, Draft, mergeable;
-- reviews: none;
-- review threads: none.
-
-Therefore M4-033 governance is CLOSED and M4-034 is the sole newly authorized
-engineering Gate.
-
-## M4-034 authority reconciliation
-
-Core §5 requires attenuating delegation; Core §11 requires a child Lease not to
-broaden authority. The published v1alpha1 Lease already has
-`parentLeaseRef?`, capability, Resource, constraints, lifetime, counters and
-authorization provenance.
-
-Core §11 also contains an older illustrative JSON fragment with
-`authorizationRef` / `delegation`, which are not published v1alpha1 Lease wire
-fields. M4-034 does not treat those names as authority and does not change the
-public Lease schema/type.
-
-M4-022 explicitly deferred parent existence/scope; M4-030 time, M4-031 usage,
-M4-032 single-Lease consume and M4-033 exact-target revocation remain separate
-accepted primitives.
-
-## Critical non-amplification rule
-
-`child.maxUses <= parent.maxUses` alone is insufficient. Independent parent and
-child counters can amplify aggregate use.
-
-M4-034 therefore requires a hierarchy-aware successful use to atomically
-decrement one usage unit from the target and **every ancestor through the root**.
-Sibling and parent/descendant operations share ancestor budgets. Overlapping
-chains must be linearizable over shared Lease identities; disjoint chains need
-no global ordering.
-
-A deployment must route hierarchy-aware use through shared state or prove that
-any M4-032 direct-consume path uses the same authoritative counters and
-serialization mechanism.
-
-## Portable direct-edge attenuation
-
-For each child -> parent edge:
-
-```text
-parent exists
-child.parentLeaseRef == parent.leaseRef
-child.authorization.kind == lease
-child.authorization.ref == parent.leaseRef
-child.capability == parent.capability
-child.resource == parent.resource after M4-003 canonicalization
-parent.issuedAt <= child.issuedAt
-child.expiresAt <= parent.expiresAt
-child.maxUses <= parent.maxUses
-```
-
-Only omitted/empty constraints are supported because no generic constraint
-implication algebra exists.
-
-`child.remainingUses <= parent.remainingUses` is intentionally not required;
-effective quota is enforced by the atomic ancestor-coupled operation.
-
-Chain identity is exact, cycles fail closed, and portable depth is bounded at 32
-Lease identities including target/root.
-
-## Revocation inheritance
-
-M4-033 remains exact-target storage semantics.
-
-M4-034 hierarchy use treats target or any revoked ancestor as ineligible, but
-does **not** fabricate child revocation records.
-
-M4-033 and M4-034 adapters must share authoritative revocation state and
-linearization for overlapping identities before a deployment claims this
-inheritance.
-
-## Protocol-first artifacts
-
-Normative draft:
+Normative specification:
 
 ```text
 specs/0041-m4-capability-lease-parent-child-attenuation.md
@@ -124,27 +37,123 @@ fixtures/lease-attenuation/cases.json
 28 cases: LATT-001 through LATT-028
 ```
 
-Coverage includes root/child/grandchild coupled use, sibling shared budgets,
-overlap/disjoint concurrency, scope/time/max-use bounds, provenance, missing
-parent/cycle, target/ancestor revocation, exhaustion, invalid usage, caller
-authority rejection, store faults and depth limit.
-
-## Authorized protocol-first delta
-
-Exactly:
+Protocol-first exact head:
 
 ```text
-specs/0041-m4-capability-lease-parent-child-attenuation.md
-fixtures/lease-attenuation/cases.json
-docs/handoff/CURRENT.md
+e712a599d143a30ca69103d6a0f931f903cd63a8
 ```
 
-No production TypeScript, CapabilityLease schema/type, Core rewrite, Shared TCK
-registration, dependency, lockfile, HISTORY, roadmap acceptance marker,
-Adapter/Harness baseline, M4-035+, M4-040+, M6 or M13 behavior is authorized
-before this protocol-first exact head is dual-green.
+Protocol evidence:
 
-## Compatibility baseline
+- CI #542 / run `33672611292`: PASS;
+- Harness rc5 source-conformance #484 / run `33672611311`: PASS.
+
+Accepted implementation/hardening exact head:
+
+```text
+6690dbc5a96f1cfb384147d20928f184922ba192
+```
+
+Implementation evidence:
+
+- CI #553 / run `33674755323`: PASS;
+- Harness rc5 source-conformance #495 / run `33674755269`: PASS;
+- 62 test files / 1204 tests PASS;
+- M4-034 portable suite: 29 PASS;
+- hostile/store/concurrency hardening: 10 PASS;
+- multi-defect precedence suite: 6 PASS;
+- frozen install / 124-entry supply-chain policy: PASS;
+- architecture / 16-schema shape / schema baseline / strict TypeScript: PASS;
+- packed Shared TCK + external non-workspace consumer: 44 assets PASS.
+
+Acceptance audit:
+
+```text
+docs/acceptance/m4-034-acceptance-audit.md
+7f6542e345b51e985a0f55c253881b3c4de093bb
+```
+
+Audit exact-head evidence:
+
+- CI #554 / run `33702524911`: PASS;
+- Harness rc5 source-conformance #496 / run `33702524917`: PASS.
+
+Package acceptance record:
+
+```text
+b85ac81b8858a199259c0794975e3349e3bb9de2
+PACKAGE_STAGE = M4-034-LEASE-ATTENUATION-ACCEPTED
+```
+
+Package-record exact-head evidence:
+
+- CI #555 / run `33704248709`: PASS;
+- Harness rc5 source-conformance #497 / run `33704248711`: PASS;
+- every source-conformance step passed, including exact pinned source checkout,
+  type-surface build, reproducible install, projection/idempotence, binding
+  typecheck and runtime conformance.
+
+## Accepted M4-034 security semantics
+
+A static `child.maxUses <= parent.maxUses` comparison is insufficient because
+independent counters can amplify aggregate authority. M4-034 therefore resolves
+the authoritative target-to-root Lease chain and, on successful hierarchy-aware
+use, decrements exactly one usage unit from the target and every ancestor as one
+all-or-none logical transition.
+
+Portable direct-edge attenuation requires exact parent provenance, exact
+capability equality, exact M4-003 canonical Resource equality, omitted/empty
+constraints only, contained lifetime intervals and `child.maxUses <=
+parent.maxUses`. `child.remainingUses <= parent.remainingUses` is intentionally
+not required because prior parent/sibling consumption may legitimately lower the
+ancestor's current counter; coupled consumption enforces the effective budget.
+
+Target/ancestor revocation and exhaustion block hierarchy use without fabricating
+child revocation history. The reference store shares operational state and
+per-Lease serialization with M4-033 revocation, and hardening covers sibling,
+parent/descendant and revoke/consume overlap.
+
+The reference in-memory store proves process-local linearizability only.
+Database, multi-process or distributed adapters require backend-specific
+transaction/isolation/locking evidence before claiming the same guarantee.
+
+## Observable precedence and hostile-runtime boundary
+
+The accepted failure order is:
+
+```text
+input shape
+-> profile
+-> leaseRef
+-> one store invocation
+-> chain missing/cycle/depth
+-> state identity/shape
+-> authorization
+-> capability
+-> Resource
+-> constraints
+-> lifetime
+-> usage coherence
+-> maxUses attenuation
+-> target/ancestor revocation
+-> target/ancestor exhaustion
+-> all-chain decrement
+-> store-evidence validation
+```
+
+The implementation uses stage-specific reason allowlists, rejects accessor,
+inherited, symbol, Proxy/unreadable or coercion-dependent authority, performs no
+automatic retry after ambiguous store outcome, validates successful all-chain
+decrement evidence and returns detached frozen public results.
+
+## Explicit non-claims
+
+M4-034 does not issue child Leases, reserve delegated quota, prove runtime
+Subject lineage, import Harness `parentSession`/workflow/delegationDepth as
+protocol authority, evaluate current TTL without `observedAt`, construct
+Decision/Receipt/GuaranteeLevel, execute/cancel/rollback Actions, solve the
+post-consume execution race, alter the public CapabilityLease schema/type or
+claim distributed atomicity from the process-local reference store.
 
 DeepSeek Harness remains Adapter compatibility evidence only:
 
@@ -154,13 +163,31 @@ commit: 47f943859bef60e4160492346772ded9b24f765a
 distribution: distribution-blocked
 ```
 
-Harness behavior does not define attenuation semantics.
+## Final-governance gate
+
+This final governance transition is restricted to:
+
+```text
+docs/handoff/CURRENT.md
+docs/handoff/HISTORY.md   # append-only
+docs/roadmap.md           # M4-034 marker only
+```
+
+No production implementation, Spec/corpus/schema, Shared TCK, dependency,
+lockfile, Adapter/Harness baseline, M4-035 implementation, M4-036, M4-040+, M6
+or M13 behavior is authorized in this commit.
+
+The resulting final-governance exact head must itself reach normal CI + exact
+pinned Harness rc5 source-conformance dual-green. Only then is M4-034 governance
+CLOSED and M4-035 P1 lease listing CLI the sole newly authorized protocol-first
+Gate.
 
 ## Resume instruction
 
-1. refresh PR #3 exact head/base/reviews/threads;
-2. verify parent `797252bc...` -> protocol-first candidate changes exactly the
-   three authorized files;
+1. refresh PR #3 exact head/base/Open/Draft/mergeability/reviews/threads;
+2. confirm final-governance delta from `b85ac81b...` is exactly CURRENT,
+   append-only HISTORY and the M4-034 roadmap marker;
 3. require exact-head normal CI + pinned Harness rc5 source-conformance green;
-4. only then authorize M4-034 production implementation;
-5. keep M4-035+, M4-040+, M6, M13 integration and PR merge unauthorized.
+4. only after dual-green mark M4-034 governance CLOSED and begin M4-035
+   protocol-first reconnaissance;
+5. keep M4-036, M4-040+, M6, M13 integration and PR #3 merge unauthorized.
