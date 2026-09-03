@@ -5,11 +5,12 @@
  * prerequisites, and M4-030 through M4-034 Lease lifecycle/attenuation gates
  * are governance-closed.
  *
- * M4-035 deterministic Lease listing is implemented behind a read-only
- * authoritative inventory port and is awaiting exact-head implementation
- * acceptance. Listing describes independent TTL, usage and revocation facts;
- * it does not synthesize an allow/usable verdict, traverse parent authority or
- * mutate Lease state.
+ * M4-035 deterministic Lease listing implementation and acceptance audit are
+ * accepted. This package-stage record marks the reviewed read-only listing
+ * primitive and gate-local command projection as accepted while its own
+ * exact-head CI/Harness verification is pending. Listing describes independent
+ * TTL, usage and revocation facts; it does not synthesize an allow/usable
+ * verdict, traverse parent authority or mutate Lease state.
  *
  * This package does not claim database/multi-process snapshot isolation,
  * execute actions, wire a PEP, revoke from the listing surface, or alter the
@@ -19,7 +20,7 @@
  * `@dsh-safe/protocol`; this package has no concrete DeepSeek Harness runtime
  * dependency.
  */
-export const PACKAGE_STAGE = "M4-035-LEASE-LISTING-IMPLEMENTED" as const;
+export const PACKAGE_STAGE = "M4-035-LEASE-LISTING-ACCEPTED" as const;
 
 export * from "./builtin-filesystem-tool-classifier.js";
 export * from "./tool-classifier/builtin-shell.js";
