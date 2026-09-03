@@ -2000,7 +2000,7 @@ Exact accepted implementation evidence at `6690dbc5...`:
 - 62 test files / 1204 tests: PASS;
 - M4-034 portable suite: 29 PASS;
 - hostile/store/concurrency hardening: 10 PASS;
-- multi-defect failure-precedence suite: 6 PASS;
+- multi-defect precedence suite: 6 PASS;
 - frozen install / 124-entry supply-chain policy: PASS;
 - architecture / 16-schema shape / schema baseline / strict TypeScript: PASS;
 - packed Shared TCK + external non-workspace consumer: 44 assets PASS.
