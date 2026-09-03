@@ -5,12 +5,13 @@
  * prerequisites, and M4-030 through M4-035 Lease lifecycle/listing gates are
  * governance-closed.
  *
- * M4-036 deterministic Lease revoke CLI production implementation is present and
- * awaiting implementation exact-head CI/Harness verification and later acceptance
- * audit. The gate-local adapter projects one exact `leaseRef` into the already
- * accepted M4-033 revocation primitive; it does not define a second mutation
- * profile, pre-list state, retry ambiguous outcomes, bulk/cascade revoke, or create
- * the integrated M10 CLI framework.
+ * M4-036 deterministic Lease revoke CLI implementation and acceptance audit are
+ * accepted. This package-stage record marks the reviewed gate-local revoke
+ * projection as accepted while its own exact-head CI/Harness verification is
+ * pending. The adapter projects one exact `leaseRef` into the accepted M4-033
+ * revocation primitive; it does not define a second mutation profile, pre-list
+ * state, retry ambiguous outcomes, bulk/cascade revoke, or create the integrated
+ * M10 CLI framework.
  *
  * This package does not claim database/multi-process atomicity, remote-admin
  * authorization, action cancellation/rollback, PEP enforcement, or a public
@@ -20,7 +21,7 @@
  * `@dsh-safe/protocol`; this package has no concrete DeepSeek Harness runtime
  * dependency.
  */
-export const PACKAGE_STAGE = "M4-036-LEASE-REVOKE-IMPLEMENTED" as const;
+export const PACKAGE_STAGE = "M4-036-LEASE-REVOKE-ACCEPTED" as const;
 
 export * from "./builtin-filesystem-tool-classifier.js";
 export * from "./tool-classifier/builtin-shell.js";
