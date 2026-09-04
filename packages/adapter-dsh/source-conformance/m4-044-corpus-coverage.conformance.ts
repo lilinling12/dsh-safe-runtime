@@ -45,18 +45,18 @@ const EVIDENCE: readonly EvidenceRecord[] = Object.freeze([
   { id: "DAU-009", kind: "REAL_RC5_RUNTIME", source: "m4-044-approval-subsystem-uniqueness.conformance.ts: native ASK leaves shared ApprovalService count at one" },
   { id: "DAU-010", kind: "REAL_RC5_RUNTIME", source: "m4-044-approval-subsystem-uniqueness.conformance.ts: same native ASK creates one service-owned audit pair" },
   { id: "DAU-011", kind: "REAL_RC5_RUNTIME", source: "m4-044-approval-subsystem-uniqueness.conformance.ts: one execution proves exactly-one native ownership before explicit standalone invocation" },
-  { id: "DAU-012", kind: "REAL_RC5_RUNTIME", source: "m4-044-approval-subsystem-uniqueness.conformance.ts: explicit requestApproval adds exactly one second call/pair without tool execution" },
-  { id: "DAU-013", kind: "REPOSITORY_SOURCE", source: "adapter-dsh binding.ts: registerToolPolicy ASK projection and requestApproval are separate closures" },
-  { id: "DAU-014", kind: "REAL_RC5_RUNTIME", source: "M4-042 + M4-044 runtime audit pairs preserve Harness-owned approval ids" },
-  { id: "DAU-015", kind: "STATIC_ARCHITECTURE", source: "Spec 0048 + accepted M4-023 correlation boundary" },
-  { id: "DAU-016", kind: "EXISTING_CONFORMANCE", source: "M4-023/M4-042 rejection, cancellation and unavailable tests: no secondary provider retry" },
-  { id: "DAU-017", kind: "STATIC_ARCHITECTURE", source: "Spec 0048: ALLOWED_ONCE is not cached or promoted" },
-  { id: "DAU-018", kind: "REPOSITORY_SOURCE", source: "testkit package boundary: fake approval is test-only and has no production reverse dependency" },
-  { id: "DAU-019", kind: "REPOSITORY_SOURCE", source: "adapter-dsh package/import surface: no @dsh-safe/testkit production dependency" },
-  { id: "DAU-020", kind: "REPOSITORY_SOURCE", source: "binding.ts/capability-broker approval-routing source audit: no second approval cache, queue, fallback or durable lifecycle" },
-  { id: "DAU-021", kind: "GATE_PROCESS", source: "Spec 0048 protocol-first rule and exact-head dual-green prerequisite" },
-  { id: "DAU-022", kind: "PINNED_RC5_SOURCE", source: "feature-matrix.ts and Harness workflow pin 0.1.0-rc.5@47f943859bef60e4160492346772ded9b24f765a" },
-  { id: "DAU-023", kind: "STATIC_ARCHITECTURE", source: "Spec 0048 non-claims: no complete mediation/effect/rollback/isolation/tool-enforced claim" },
+  { id: "DAU-012", kind: "REPOSITORY_SOURCE", source: "adapter-dsh binding.ts: explicit requestApproval resolves ctx.get(approval) and invokes that same service" },
+  { id: "DAU-013", kind: "REAL_RC5_RUNTIME", source: "m4-044-approval-subsystem-uniqueness.conformance.ts: explicit requestApproval adds exactly one second call/pair without ToolRuntime pre-execute or body entry" },
+  { id: "DAU-014", kind: "EXISTING_CONFORMANCE", source: "approval.conformance.ts: absent approval service returns UNAVAILABLE without fabricating audit" },
+  { id: "DAU-015", kind: "REAL_RC5_RUNTIME", source: "M4-044 correlated audit pairs and distinct approval ids; pinned ApprovalService.request owns identity and lifecycle" },
+  { id: "DAU-016", kind: "STATIC_ARCHITECTURE", source: "Spec 0048 section 9 + accepted M4-023 opaque requestRef/actionRef correlation boundary" },
+  { id: "DAU-017", kind: "EXISTING_CONFORMANCE", source: "M4-023/M4-042 rejection, cancellation and unavailable tests: no secondary provider retry" },
+  { id: "DAU-018", kind: "REPOSITORY_SOURCE", source: "approval-routing.ts and binding.ts: ALLOWED_ONCE is returned without a remembered grant or approval-decision cache" },
+  { id: "DAU-019", kind: "REPOSITORY_SOURCE", source: "testkit fake-approval.ts and production import graph: fake approval remains test infrastructure" },
+  { id: "DAU-020", kind: "REPOSITORY_SOURCE", source: "adapter-dsh package/import surface: no @dsh-safe/testkit production dependency" },
+  { id: "DAU-021", kind: "REPOSITORY_SOURCE", source: "binding.ts/capability-broker approval-routing source audit: no second approval decision cache, queue, fallback or durable lifecycle" },
+  { id: "DAU-022", kind: "GATE_PROCESS", source: "Spec 0048 protocol-first rule and exact-head dual-green prerequisite" },
+  { id: "DAU-023", kind: "PINNED_RC5_SOURCE", source: "feature-matrix.ts and Harness workflow pin 0.1.0-rc.5@47f943859bef60e4160492346772ded9b24f765a" },
   { id: "DAU-024", kind: "STATIC_ARCHITECTURE", source: "Spec 0048 Gate separation: M4-045/M4-050+/M5/PR merge remain untouched" },
 ]);
 
@@ -94,6 +94,6 @@ describe("M4-044 approval subsystem uniqueness corpus coverage", () => {
 
   it("keeps repository/source claims separate from executable runtime ownership proof", () => {
     expect(EVIDENCE.filter(({ kind }) => kind === "REAL_RC5_RUNTIME").map(({ id }) => id))
-      .toEqual(["DAU-007", "DAU-009", "DAU-010", "DAU-011", "DAU-012", "DAU-014"]);
+      .toEqual(["DAU-007", "DAU-009", "DAU-010", "DAU-011", "DAU-013", "DAU-015"]);
   });
 });
