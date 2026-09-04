@@ -669,7 +669,7 @@ Exact-head evidence at `7b87c812...`:
 - M4-001 loader regressions: 18 PASS;
 - JSON parser regressions: 9 PASS;
 - oxlint: 0 warnings / 0 errors;
-- Shared TCK packed artifact/external consumer boundary: PASS;
+- Shared TCK packed artifact + external consumer: 44 assets PASS;
 - exact Harness rc5 source-conformance #204 / run `32603117850`: PASS;
 - Harness steps 6–11 all PASS.
 
@@ -2394,3 +2394,66 @@ resulting exact head must itself reach normal CI + exact pinned Harness rc5
 source-conformance dual-green before M4-042 governance is CLOSED and M4-043 P0
 authoritative `tools/result` observation becomes the sole newly authorized
 protocol-first Gate.
+
+## 2026-09-04 — Accept M4-043 DeepSeek Harness authoritative tool result
+
+M4-043 protocol-first closed on
+`48259967bcae767cf292a7934c23c29a2274658e` with Spec 0047 and the 32-case
+`DATR-001` through `DATR-032` source-conformance corpus. Normal CI #593 / run
+`33788981150` and exact pinned Harness rc5 source-conformance #535 / run
+`33788981153` passed before source-conformance implementation began.
+
+Pinned rc5 ToolRuntime source establishes the final-result chain as body execution,
+post-execute processing, candidate materialization, definition finalization, final
+materialization, `notifyResult(exec, finalResult)`, then return of that same final
+result. The existing Adapter `ctx.on("tools/result", ...)` binding already derives
+session/call/tool correlation and computes `resultDigest` from the exact observed
+final result. Exact-source review found no production defect requiring a rewrite.
+
+Final reviewed conformance exact head is
+`f681138030626c1be73810b788052a7306bd80ab`. Its net delta from protocol-first is
+exactly two source-conformance files and no production code. Real pinned rc5
+conformance proves final-object identity, post-execute and definition-finalization
+failure authority, exact digest ownership, disposition-as-classification-only,
+agent-less fail-closed attribution, frozen execution evidence, synchronous and
+asynchronous observer-failure containment, Adapter observation/digest failure
+containment and subscription disposal.
+
+Exact accepted conformance evidence at `f6811380...`:
+
+- normal CI #597 / run `33857013262`: PASS;
+- exact Harness rc5 source-conformance #539 / run `33857013278`: PASS;
+- Harness step 10 exact rc5 typecheck: PASS;
+- Harness step 11 real rc5 runtime conformance: PASS.
+
+Exact-source remediation remained test-only. The conformance helper aligned the
+tool body callback with rc5's Promise-returning execute contract, used the public
+raw event-service seam only for DATR-023's real thenable-containment path, and
+replaced brittle recursive `Parameters<typeof defineTool>` reflection with the
+public `ToolExecution`, `ToolExecutionResult` and `ContentBlock[] | undefined`
+finalizer signature after exact-head TS2321 proved compiler recursion. No `any`,
+unsafe cast, TypeScript weakening, validator/schema/TCK relaxation, production
+rewrite, dependency or lockfile change was used.
+
+Acceptance audit is
+`docs/acceptance/m4-043-acceptance-audit.md` at audit-only exact head
+`5455ce99c7de06b209af616f43a544bf2e6eec3b`. That exact head reached:
+
+- normal CI #598 / run `33857346910`: PASS;
+- exact Harness rc5 source-conformance #540 / run `33857346900`: PASS;
+- Harness step 10: PASS;
+- Harness step 11: PASS;
+- PR #3 remained Open, Draft and mergeable without review/thread blockers.
+
+M4-043 does not prove that every host effect traverses ToolRuntime, that success
+proves every claimed external effect happened, that failure implies rollback or
+absence of side effects, provider/process isolation, complete system-wide
+tool-enforced coverage, durable exactly-once delivery, or raw-result safety for
+audit persistence. M4-044 owns the repository-wide duplicate approval-subsystem
+audit; M4-045 owns audit redaction.
+
+This final governance transition is intentionally limited to CURRENT,
+append-only HISTORY and only the M4-043 roadmap acceptance marker/details. The
+resulting exact head must itself reach normal CI + exact pinned Harness rc5
+source-conformance dual-green before M4-043 governance is CLOSED and M4-044 P0
+no duplicate approval subsystem becomes the sole newly authorized Gate.
