@@ -1,0 +1,129 @@
+{
+  "profile": "M4-044_APPROVAL_SUBSYSTEM_UNIQUENESS_V1",
+  "pinnedHarness": {
+    "version": "0.1.0-rc.5",
+    "commit": "47f943859bef60e4160492346772ded9b24f765a"
+  },
+  "cases": [
+    {
+      "id": "DAU-001",
+      "requirement": "M4-044 preserves M4-023 as the portable approval-routing authority and M4-042 as the Adapter DSH native ToolRuntime approval authority; Harness remains compatibility evidence only.",
+      "evidence": "ARCHITECTURE"
+    },
+    {
+      "id": "DAU-002",
+      "requirement": "The existence of multiple approval-named ports, types, observers, fixtures, or test fakes is not by itself a duplicate subsystem; duplicate ownership requires competing orchestration for the same logical approval attempt.",
+      "evidence": "ARCHITECTURE"
+    },
+    {
+      "id": "DAU-003",
+      "requirement": "M4-023 policy allow and deny paths do not invoke ApprovalInvocationPort.",
+      "evidence": "REUSED_M4_023_RUNTIME"
+    },
+    {
+      "id": "DAU-004",
+      "requirement": "M4-023 invokes exactly one supplied ApprovalInvocationPort for an accepted ask path after accepted Lease-result validation.",
+      "evidence": "REUSED_M4_023_RUNTIME"
+    },
+    {
+      "id": "DAU-005",
+      "requirement": "M4-023 has no automatic retry, remembered approval, permanent grant, approval queue, approval cache, or fallback provider.",
+      "evidence": "SOURCE_AND_REUSED_RUNTIME"
+    },
+    {
+      "id": "DAU-006",
+      "requirement": "Capability Broker production code does not import concrete Adapter DSH or DeepSeek Harness approval orchestration types.",
+      "evidence": "REPOSITORY_ARCHITECTURE"
+    },
+    {
+      "id": "DAU-007",
+      "requirement": "Adapter registerToolPolicy projects safe-runtime ASK into Harness pre-execute ask and does not invoke Adapter requestApproval for the same ASK.",
+      "evidence": "SOURCE_AND_REAL_RUNTIME"
+    },
+    {
+      "id": "DAU-008",
+      "requirement": "One final/reached ToolRuntime ASK is owned by the pinned native ToolRuntime serviceAsk -> ctx.approval.request path.",
+      "evidence": "PINNED_SOURCE_AND_REAL_RUNTIME"
+    },
+    {
+      "id": "DAU-009",
+      "requirement": "With a standalone Adapter ApprovalPort configured, one real final/reached ToolRuntime ASK invokes that standalone port zero times.",
+      "evidence": "REAL_RUNTIME"
+    },
+    {
+      "id": "DAU-010",
+      "requirement": "The same real ToolRuntime ASK invokes the native ApprovalService request exactly once.",
+      "evidence": "REAL_RUNTIME"
+    },
+    {
+      "id": "DAU-011",
+      "requirement": "The zero standalone calls and one native call are proven in one execution so the uniqueness claim is not assembled from unrelated tests or commits.",
+      "evidence": "REAL_RUNTIME"
+    },
+    {
+      "id": "DAU-012",
+      "requirement": "An explicit standalone Adapter requestApproval invocation calls only the configured standalone ApprovalPort and does not originate a ToolRuntime ASK or native ApprovalService request.",
+      "evidence": "ADAPTER_RUNTIME"
+    },
+    {
+      "id": "DAU-013",
+      "requirement": "Adapter requestApproval remains an explicit caller-selected port rather than an automatically composed second step of registerToolPolicy.",
+      "evidence": "SOURCE_CONTRACT"
+    },
+    {
+      "id": "DAU-014",
+      "requirement": "Native Harness ApprovalService owns the ApprovalRequestId and approval/asked -> approval/decided lifecycle for a ToolRuntime ASK; Adapter observation does not create a second native approval identity.",
+      "evidence": "PINNED_SOURCE_AND_REAL_RUNTIME"
+    },
+    {
+      "id": "DAU-015",
+      "requirement": "Portable requestRef/actionRef remain opaque and are not inferred to equal Harness callId or ApprovalRequestId in order to join independent approval subsystems.",
+      "evidence": "ARCHITECTURE_NON_CLAIM"
+    },
+    {
+      "id": "DAU-016",
+      "requirement": "REJECTED, CANCELLED and UNAVAILABLE are not automatically retried through a second approval provider.",
+      "evidence": "SOURCE_AND_REUSED_RUNTIME"
+    },
+    {
+      "id": "DAU-017",
+      "requirement": "ALLOWED_ONCE is not remembered, cached, promoted to ALLOWED_ALWAYS or converted into a durable grant by M4-044.",
+      "evidence": "ARCHITECTURE_AND_RUNTIME"
+    },
+    {
+      "id": "DAU-018",
+      "requirement": "The M3 fake approval service remains test-only infrastructure and is not imported or wired as a production approval owner.",
+      "evidence": "REPOSITORY_ARCHITECTURE"
+    },
+    {
+      "id": "DAU-019",
+      "requirement": "Adapter DSH production code does not import testkit approval fakes as a fallback or alternate approval service.",
+      "evidence": "REPOSITORY_ARCHITECTURE"
+    },
+    {
+      "id": "DAU-020",
+      "requirement": "No production approval cache, remembered-grant store, automatic fallback provider, second queue, or second asked/decided lifecycle is introduced by M4-044.",
+      "evidence": "REPOSITORY_SOURCE_AUDIT"
+    },
+    {
+      "id": "DAU-021",
+      "requirement": "A concrete production duplicate discovered by the audit must be fixed minimally only after the protocol-first exact head is dual-green; absence of a duplicate requires no speculative production rewrite.",
+      "evidence": "GATE_PROCESS"
+    },
+    {
+      "id": "DAU-022",
+      "requirement": "All Harness runtime claims are proven against exact 0.1.0-rc.5 commit 47f943859bef60e4160492346772ded9b24f765a rather than newer/default-branch behavior.",
+      "evidence": "PINNED_SOURCE_CONTRACT"
+    },
+    {
+      "id": "DAU-023",
+      "requirement": "M4-044 does not claim complete ToolRuntime mediation, external-effect success, rollback, provider/process isolation, or system-wide tool-enforced coverage.",
+      "evidence": "ARCHITECTURE_NON_CLAIM"
+    },
+    {
+      "id": "DAU-024",
+      "requirement": "M4-044 does not implement M4-045 audit redaction, M4-050+ negative boundaries, M5 ledger behavior, or PR #3 merge.",
+      "evidence": "ARCHITECTURE_NON_CLAIM"
+    }
+  ]
+}
