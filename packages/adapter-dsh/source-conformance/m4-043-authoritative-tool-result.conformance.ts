@@ -355,7 +355,9 @@ describe("M4-043 pinned rc5 authoritative tools/result ownership", () => {
       {
         suffix: "async",
         install: (ctx) => {
-          ctx.on("tools/result", async () => {
+          // The typed ctx.on() contract keeps tools/result observers synchronous.
+          // DATR-023 targets ToolRuntime's raw thenable-containment path instead.
+          ctx.events.on("tools/result", async () => {
             throw new Error("async observer failure");
           });
         },
