@@ -398,7 +398,7 @@ Portable fixtures added and registered:
 
 The first implementation head `78f04e2ea1dee5e62d02a6ee8e840c948ecd70cf`
 passed CI #85 and all 81 tests, but oxlint reported one unused-type warning. The
-warning was treated as a quality defect rather than accepted because the gate
+warning was treated as a defect and removed before acceptance because the gate
 requires a clean implementation. Follow-up head `de5d4e0c...` removed only that
 unused declaration.
 
@@ -669,7 +669,7 @@ Exact-head evidence at `7b87c812...`:
 - M4-001 loader regressions: 18 PASS;
 - JSON parser regressions: 9 PASS;
 - oxlint: 0 warnings / 0 errors;
-- Shared TCK packed artifact + external consumer: 44 assets PASS;
+- Shared TCK packed artifact/external consumer boundary: PASS;
 - exact Harness rc5 source-conformance #204 / run `32603117850`: PASS;
 - Harness steps 6–11 all PASS.
 
