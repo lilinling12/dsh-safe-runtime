@@ -61,6 +61,11 @@ describe("M4-044 approval subsystem uniqueness", () => {
 
     let approvalServiceCalls = 0;
     let bodyCalls = 0;
+    let preExecuteCalls = 0;
+    ctx.on("tools/pre-execute", (_exec, next) => {
+      preExecuteCalls += 1;
+      return next();
+    });
     ctx.on("approval/request", () => {
       approvalServiceCalls += 1;
       return Promise.resolve<ApprovalOutcome>("allowed-once");
@@ -94,6 +99,7 @@ describe("M4-044 approval subsystem uniqueness", () => {
 
     expect(nativeResult.isError).toBe(false);
     expect(bodyCalls).toBe(1);
+    expect(preExecuteCalls).toBe(1);
     expect(approvalServiceCalls).toBe(1);
     const nativeAudit = session.events.filter((event) => event.type.startsWith("approval/"));
     expect(nativeAudit).toHaveLength(2);
@@ -101,6 +107,11 @@ describe("M4-044 approval subsystem uniqueness", () => {
       "approval/asked",
       "approval/decided",
     ]);
+    const [nativeAsked, nativeDecided] = nativeAudit;
+    if (nativeAsked?.type !== "approval/asked" || nativeDecided?.type !== "approval/decided") {
+      throw new Error("expected one native approval audit pair");
+    }
+    expect(nativeDecided.data.id).toBe(nativeAsked.data.id);
 
     // Both public entry points target the same native ApprovalService. The count
     // must advance only when the caller explicitly chooses requestApproval();
@@ -114,6 +125,7 @@ describe("M4-044 approval subsystem uniqueness", () => {
 
     expect(approvalServiceCalls).toBe(2);
     expect(bodyCalls).toBe(1);
+    expect(preExecuteCalls).toBe(1);
     const combinedAudit = session.events.filter((event) => event.type.startsWith("approval/"));
     expect(combinedAudit).toHaveLength(4);
     expect(combinedAudit.map(({ type }) => type)).toEqual([
@@ -132,5 +144,10 @@ describe("M4-044 approval subsystem uniqueness", () => {
     expect(firstAsked.data.callId).toBe(CallId("m4-044-native-call"));
     expect(secondAsked.data.callId).toBe(CallId("m4-044-standalone-call"));
     expect(firstAsked.data.id).not.toBe(secondAsked.data.id);
+    const standaloneDecided = combinedAudit[3];
+    if (standaloneDecided?.type !== "approval/decided") {
+      throw new Error("expected the explicit approval decision");
+    }
+    expect(standaloneDecided.data.id).toBe(secondAsked.data.id);
   });
 });
