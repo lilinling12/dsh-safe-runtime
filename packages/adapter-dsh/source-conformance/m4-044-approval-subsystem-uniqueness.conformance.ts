@@ -22,10 +22,6 @@ function digest(value: unknown): string {
   return `m4-044:${JSON.stringify(value)}`;
 }
 
-function approvalAudit(sessionEvents: readonly { readonly type: string }[]) {
-  return sessionEvents.filter((event) => event.type.startsWith("approval/"));
-}
-
 describe("M4-044 approval subsystem uniqueness", () => {
   let harness: HarnessTestScope;
 
@@ -99,7 +95,7 @@ describe("M4-044 approval subsystem uniqueness", () => {
     expect(nativeResult.isError).toBe(false);
     expect(bodyCalls).toBe(1);
     expect(approvalServiceCalls).toBe(1);
-    const nativeAudit = approvalAudit(session.events);
+    const nativeAudit = session.events.filter((event) => event.type.startsWith("approval/"));
     expect(nativeAudit).toHaveLength(2);
     expect(nativeAudit.map(({ type }) => type)).toEqual([
       "approval/asked",
@@ -118,7 +114,7 @@ describe("M4-044 approval subsystem uniqueness", () => {
 
     expect(approvalServiceCalls).toBe(2);
     expect(bodyCalls).toBe(1);
-    const combinedAudit = approvalAudit(session.events);
+    const combinedAudit = session.events.filter((event) => event.type.startsWith("approval/"));
     expect(combinedAudit).toHaveLength(4);
     expect(combinedAudit.map(({ type }) => type)).toEqual([
       "approval/asked",
