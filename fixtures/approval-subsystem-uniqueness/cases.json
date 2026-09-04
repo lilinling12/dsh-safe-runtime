@@ -12,7 +12,7 @@
     },
     {
       "id": "DAU-002",
-      "requirement": "The existence of multiple approval-named ports, types, observers, fixtures, or test fakes is not by itself a duplicate subsystem; duplicate ownership requires competing orchestration for the same logical approval attempt.",
+      "requirement": "Multiple approval-named ports, entry points, observers, fixtures, or test fakes are not by themselves duplicate subsystems; duplicate ownership requires competing automatic orchestration/state for the same logical approval attempt.",
       "evidence": "ARCHITECTURE"
     },
     {
@@ -47,82 +47,82 @@
     },
     {
       "id": "DAU-009",
-      "requirement": "With a standalone Adapter ApprovalPort configured, one real final/reached ToolRuntime ASK invokes that standalone port zero times.",
+      "requirement": "One real final/reached ToolRuntime ASK produces exactly one native ApprovalService request.",
       "evidence": "REAL_RUNTIME"
     },
     {
       "id": "DAU-010",
-      "requirement": "The same real ToolRuntime ASK invokes the native ApprovalService request exactly once.",
+      "requirement": "The same ToolRuntime ASK produces exactly one native approval/asked record and one approval/decided record with the same service-owned approval identity.",
       "evidence": "REAL_RUNTIME"
     },
     {
       "id": "DAU-011",
-      "requirement": "The zero standalone calls and one native call are proven in one execution so the uniqueness claim is not assembled from unrelated tests or commits.",
+      "requirement": "The exactly-one ToolRuntime request and asked/decided pair are proven in one execution so uniqueness is not assembled from unrelated tests or commits.",
       "evidence": "REAL_RUNTIME"
     },
     {
       "id": "DAU-012",
-      "requirement": "An explicit standalone Adapter requestApproval invocation calls only the configured standalone ApprovalPort and does not originate a ToolRuntime ASK or native ApprovalService request.",
-      "evidence": "ADAPTER_RUNTIME"
-    },
-    {
-      "id": "DAU-013",
-      "requirement": "Adapter requestApproval remains an explicit caller-selected port rather than an automatically composed second step of registerToolPolicy.",
+      "requirement": "Adapter requestApproval is an explicit caller-selected entry point into the same ctx.approval Harness ApprovalService rather than a separately configured approval provider.",
       "evidence": "SOURCE_CONTRACT"
     },
     {
+      "id": "DAU-013",
+      "requirement": "One explicit Adapter requestApproval invocation reaches ctx.approval.request exactly once and does not originate ToolRuntime execution or a tools/pre-execute ASK.",
+      "evidence": "REAL_RUNTIME"
+    },
+    {
       "id": "DAU-014",
-      "requirement": "Native Harness ApprovalService owns the ApprovalRequestId and approval/asked -> approval/decided lifecycle for a ToolRuntime ASK; Adapter observation does not create a second native approval identity.",
-      "evidence": "PINNED_SOURCE_AND_REAL_RUNTIME"
+      "requirement": "If ctx.approval is absent, explicit Adapter requestApproval returns UNAVAILABLE without inventing a second provider or approval state.",
+      "evidence": "ADAPTER_RUNTIME"
     },
     {
       "id": "DAU-015",
+      "requirement": "Native Harness ApprovalService owns ApprovalRequestId and approval/asked -> approval/decided lifecycle; Adapter observation does not create a second native approval identity store.",
+      "evidence": "PINNED_SOURCE_AND_REAL_RUNTIME"
+    },
+    {
+      "id": "DAU-016",
       "requirement": "Portable requestRef/actionRef remain opaque and are not inferred to equal Harness callId or ApprovalRequestId in order to join independent approval subsystems.",
       "evidence": "ARCHITECTURE_NON_CLAIM"
     },
     {
-      "id": "DAU-016",
+      "id": "DAU-017",
       "requirement": "REJECTED, CANCELLED and UNAVAILABLE are not automatically retried through a second approval provider.",
       "evidence": "SOURCE_AND_REUSED_RUNTIME"
     },
     {
-      "id": "DAU-017",
+      "id": "DAU-018",
       "requirement": "ALLOWED_ONCE is not remembered, cached, promoted to ALLOWED_ALWAYS or converted into a durable grant by M4-044.",
       "evidence": "ARCHITECTURE_AND_RUNTIME"
     },
     {
-      "id": "DAU-018",
+      "id": "DAU-019",
       "requirement": "The M3 fake approval service remains test-only infrastructure and is not imported or wired as a production approval owner.",
       "evidence": "REPOSITORY_ARCHITECTURE"
     },
     {
-      "id": "DAU-019",
+      "id": "DAU-020",
       "requirement": "Adapter DSH production code does not import testkit approval fakes as a fallback or alternate approval service.",
       "evidence": "REPOSITORY_ARCHITECTURE"
     },
     {
-      "id": "DAU-020",
+      "id": "DAU-021",
       "requirement": "No production approval cache, remembered-grant store, automatic fallback provider, second queue, or second asked/decided lifecycle is introduced by M4-044.",
       "evidence": "REPOSITORY_SOURCE_AUDIT"
     },
     {
-      "id": "DAU-021",
+      "id": "DAU-022",
       "requirement": "A concrete production duplicate discovered by the audit must be fixed minimally only after the protocol-first exact head is dual-green; absence of a duplicate requires no speculative production rewrite.",
       "evidence": "GATE_PROCESS"
     },
     {
-      "id": "DAU-022",
+      "id": "DAU-023",
       "requirement": "All Harness runtime claims are proven against exact 0.1.0-rc.5 commit 47f943859bef60e4160492346772ded9b24f765a rather than newer/default-branch behavior.",
       "evidence": "PINNED_SOURCE_CONTRACT"
     },
     {
-      "id": "DAU-023",
-      "requirement": "M4-044 does not claim complete ToolRuntime mediation, external-effect success, rollback, provider/process isolation, or system-wide tool-enforced coverage.",
-      "evidence": "ARCHITECTURE_NON_CLAIM"
-    },
-    {
       "id": "DAU-024",
-      "requirement": "M4-044 does not implement M4-045 audit redaction, M4-050+ negative boundaries, M5 ledger behavior, or PR #3 merge.",
+      "requirement": "M4-044 neither claims arbitrary callers cannot deliberately double-invoke approval APIs nor implements M4-045 audit redaction, M4-050+ negative boundaries, M5 ledger behavior, or PR #3 merge.",
       "evidence": "ARCHITECTURE_NON_CLAIM"
     }
   ]
