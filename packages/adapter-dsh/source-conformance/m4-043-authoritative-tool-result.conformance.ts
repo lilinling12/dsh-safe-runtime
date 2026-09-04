@@ -1,8 +1,12 @@
 import type { Context } from "@deepseek-ai/cordis";
-import { CallId } from "@deepseek-ai/dsh-llm";
+import { CallId, type ContentBlock } from "@deepseek-ai/dsh-llm";
 import SessionStore, { SessionId } from "@deepseek-ai/dsh-session";
 import SystemPrompt from "@deepseek-ai/dsh-system-prompt";
-import ToolRuntime, { defineTool } from "@deepseek-ai/dsh-tools";
+import ToolRuntime, {
+  defineTool,
+  type ToolExecution,
+  type ToolExecutionResult,
+} from "@deepseek-ai/dsh-tools";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { createDshRc5Adapter } from "../src/binding.js";
@@ -57,9 +61,9 @@ function registerStringTool(
     readonly name: string;
     readonly execute: () => string | Promise<string>;
     readonly finalizeContent?: (
-      exec: Readonly<Parameters<NonNullable<Parameters<typeof defineTool>[0]["finalizeContent"]>>[0]>,
-      result: Readonly<Parameters<NonNullable<Parameters<typeof defineTool>[0]["finalizeContent"]>>[1]>,
-    ) => ReturnType<NonNullable<Parameters<typeof defineTool>[0]["finalizeContent"]>>;
+      exec: Readonly<ToolExecution>,
+      result: Readonly<ToolExecutionResult>,
+    ) => ContentBlock[] | undefined;
   },
 ): void {
   ctx.tools.register(defineTool({
