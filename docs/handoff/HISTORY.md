@@ -398,7 +398,7 @@ Portable fixtures added and registered:
 
 The first implementation head `78f04e2ea1dee5e62d02a6ee8e840c948ecd70cf`
 passed CI #85 and all 81 tests, but oxlint reported one unused-type warning. The
-warning was treated as a defect and removed before acceptance because the gate
+warning was treated as a quality defect rather than accepted because the gate
 requires a clean implementation. Follow-up head `de5d4e0c...` removed only that
 unused declaration.
 
