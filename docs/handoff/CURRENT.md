@@ -11,17 +11,16 @@
 - Active PR: `#3 — feat(policy): begin M4 capability broker`
 - Branch: `feat/m4-capability-broker`
 - Base: `main@57430273e065be8d38807d67b175fa154c801d43`
-- Exact parent governance head: `0bd01855bd71fa39e6a0c9e7437515faaf8c63b2`
+- Exact parent governance head: `6be76b80e5e462cd66c8743e1cf142b4e52b2d68`
 - M4-001..014: **GOVERNANCE CLOSED**
 - M4-020..025: **GOVERNANCE CLOSED**
 - M4-030..036: **GOVERNANCE CLOSED**
 - M4-040: **GOVERNANCE CLOSED**
 - M4-041: **GOVERNANCE CLOSED**
 - M4-042: **GOVERNANCE CLOSED**
-- M4-043 authoritative `tools/result`: **IMPLEMENTATION / CONFORMANCE ACCEPTED**
-- M4-043 acceptance audit: **EXACT-HEAD VERIFIED**
-- M4-043 final governance: **CANDIDATE / EXACT-HEAD VERIFICATION REQUIRED**
-- M4-044+: **NOT AUTHORIZED until the containing M4-043 governance head is dual-green**
+- M4-043 authoritative `tools/result`: **GOVERNANCE CLOSED**
+- M4-044 no duplicate approval subsystem: **ACTIVE / EVIDENCE RECOVERY**
+- M4-045+: **NOT AUTHORIZED until M4-044 governance closure**
 - M4-050+, M5, M6, M10, M13, M15: **NOT AUTHORIZED by the current Gate**
 - PR #3 merge: **NOT AUTHORIZED without explicit user authorization**
 
@@ -229,9 +228,30 @@ Audit exact-head evidence:
 - reviews: none;
 - review threads: none.
 
-The audit accepts M4-043 implementation/source-conformance at `f681138...` but
-correctly requires this final governance transition to obtain its own exact-head
-dual-green evidence before M4-043 governance is CLOSED.
+The audit accepts M4-043 implementation/source-conformance at `f681138...`.
+
+## M4-043 governance closure
+
+Final governance evidence head:
+
+```text
+6be76b80e5e462cd66c8743e1cf142b4e52b2d68
+```
+
+The exact diff from audit head `5455ce99c7de06b209af616f43a544bf2e6eec3b`
+is restricted to the authorized governance files. `docs/handoff/HISTORY.md` is
+append-only in the resulting state (`+63/-0` from the audit head); no production,
+Spec/corpus/schema, dependency, lockfile or Harness workflow behavior changed.
+
+Exact-head closure evidence:
+
+- normal CI #603 / run `33881990790`: PASS;
+- exact pinned Harness rc5 source-conformance #545 / run `33881990595`: PASS;
+- Harness step 10 exact rc5 binding/source-conformance typecheck: PASS;
+- Harness step 11 real rc5 runtime conformance: PASS.
+
+Therefore M4-043 governance is CLOSED. M4-044 P0 `no duplicate approval
+subsystem` is the sole newly authorized Gate.
 
 ## Security / non-claim boundary
 
@@ -247,57 +267,45 @@ durable exactly-once delivery or storage
 raw tool results are safe for audit persistence
 ```
 
-M4-044 remains owner of formal repository-wide duplicate approval-subsystem
-audit. M4-045 remains owner of raw-secret/audit redaction. M4-050+ remains owner
-of negative enforcement boundaries.
+M4-044 owns formal repository-wide duplicate approval-subsystem audit. M4-045
+owns raw-secret/audit redaction. M4-050+ owns negative enforcement boundaries.
 
-## Final governance candidate boundary
+## M4-044 active Gate boundary
 
-The final M4-043 governance transition may change only:
+M4-044 must begin from existing approval ownership and repository evidence. It
+must prove that the accepted portable approval-routing seam and the Adapter DSH
+native ToolRuntime approval path do not create competing approval orchestration
+for one action.
 
-```text
-docs/handoff/CURRENT.md
-docs/handoff/HISTORY.md   # append-only
-docs/roadmap.md           # M4-043 acceptance marker/details only
-```
-
-It MUST NOT change:
+M4-044 MUST NOT:
 
 ```text
-production TypeScript
-Spec 0047 / DATR corpus
-acceptance audit semantics
-public protocol/schema
-Shared TCK registration
-package manifests/dependencies
-pnpm-lock.yaml
-Harness baseline/workflow
-M4-044 implementation
-M4-045 implementation
-M4-050+
-M5
-M6
-M10
-M13
-M15
-PR #3 merge state
+invent a second approval service or state machine
+change M4-023 approval semantics without a concrete authority conflict
+replace Harness native ApprovalService ownership with Adapter-local orchestration
+start M4-045 audit redaction
+start M4-050+ negative boundary work
+change public protocol/schema without normative authority
+merge PR #3
 ```
 
-The containing governance exact head must pass normal CI and exact pinned Harness
-rc5 source-conformance on the same SHA before M4-043 is governance-closed.
+Production changes are allowed only if repository-wide evidence identifies a
+concrete duplicate-subsystem defect. Otherwise this Gate should close by audit and
+conformance evidence rather than speculative refactoring.
 
 ## Resume instruction
 
-1. refresh PR #3 and the current exact head;
-2. verify the final governance diff from audit head
-   `5455ce99c7de06b209af616f43a544bf2e6eec3b` contains only CURRENT,
-   append-only HISTORY and the M4-043 roadmap marker/details;
-3. require exact-head normal CI + exact pinned Harness rc5 source-conformance
-   green, including Harness steps 10 and 11;
-4. only then treat M4-043 governance as CLOSED;
-5. after closure, M4-044 P0 `no duplicate approval subsystem` becomes the sole
-   newly authorized Gate and must begin by recovering existing approval ownership
-   and repository evidence rather than inventing a parallel subsystem;
-6. do not begin M4-045 or M4-050+ early;
-7. keep M5, M6, M10, M13, M15 and PR #3 merge unauthorized;
-8. never merge PR #3 without explicit user authorization.
+1. refresh PR #3 and current exact head before any M4-044 modification;
+2. recover approval ownership from M4-023, M4-042, Adapter production binding and
+   exact pinned Harness rc5 source/tests;
+3. inspect repository approval-related entry points, ports, services, tests and
+   integration wiring for duplicate orchestration or independent decision state;
+4. distinguish portable approval routing from Harness compatibility binding;
+5. if a concrete duplicate path exists, make the smallest authority-consistent
+   fix and prove it; otherwise produce a repository-wide uniqueness audit with
+   executable/source evidence and no production rewrite;
+6. require exact-head normal CI + exact pinned Harness rc5 source-conformance for
+   M4-044 acceptance/governance;
+7. do not begin M4-045 or M4-050+ before M4-044 governance closure;
+8. keep M5, M6, M10, M13, M15 and PR #3 merge unauthorized;
+9. never merge PR #3 without explicit user authorization.
