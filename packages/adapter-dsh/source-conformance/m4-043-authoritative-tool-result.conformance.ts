@@ -70,7 +70,7 @@ function registerStringTool(
       schema: { type: "string" },
       render: (_args, value) => [{ type: "text", text: value }],
     },
-    execute: options.execute,
+    execute: async () => options.execute(),
     ...(options.finalizeContent === undefined
       ? {}
       : { finalizeContent: options.finalizeContent }),
