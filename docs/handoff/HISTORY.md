@@ -2526,3 +2526,10 @@ protocol-first contract. No production, Spec/corpus/schema, TCK, dependency,
 workflow or roadmap acceptance change is made. This review head requires
 exact-head dual-green; M4-045 acceptance and later-Gate implementation remain
 unauthorized by this evidence-recovery step.
+
+## 2026-09-05 — Verify M4-045 evidence-recovery baseline
+
+Evidence-recovery head `f10fc5176d49d8b7bb5c2bacc02cc678f408ea17` passes
+CI #617 / 33975036165 and Harness #559 / 33975036169. Harness job 101330128317
+passes pinned-source step 10 and real rc5 runtime step 11. Only protocol-first
+design is next; this records no M4-045 implementation or acceptance.

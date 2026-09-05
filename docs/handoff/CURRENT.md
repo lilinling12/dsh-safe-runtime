@@ -20,7 +20,7 @@
 - M4-042: **GOVERNANCE CLOSED**
 - M4-043 authoritative `tools/result`: **GOVERNANCE CLOSED**
 - M4-044 no duplicate approval subsystem: **GOVERNANCE CLOSED**
-- M4-045 audit redaction: **ACTIVE / EVIDENCE RECOVERED / REVIEW HEAD VERIFICATION PENDING**
+- M4-045 audit redaction: **ACTIVE / EVIDENCE RECOVERED / PROTOCOL-FIRST DESIGN**
 - M4-046+: **NOT AUTHORIZED by this Gate**
 - M4-050+, M5, M6, M10, M13, M15: **NOT AUTHORIZED by the current Gate**
 - PR #3 merge: **NOT AUTHORIZED without explicit user authorization**
@@ -52,8 +52,10 @@ record construction and M4-043 final-result observation do not authorize
 persistence. Preserve digest domains and exact final-result authority; do not
 change runtime policy inputs or build a detector/ledger to skip protocol design.
 
-This review/handoff commit requires its own exact-head normal CI and pinned
-Harness verification before further modifications. M4-045 is not accepted;
+Reviewed evidence-recovery head: `f10fc5176d49d8b7bb5c2bacc02cc678f408ea17`.
+CI #617 / `33975036165` and Harness #559 / `33975036169` PASS on that same SHA;
+Harness job `101330128317` passes steps 10 and 11. The evidence-recovery
+baseline is verified; continue protocol-first design. M4-045 is not accepted;
 roadmap remains unchecked. No production, Spec/corpus/schema, TCK, dependency,
 lockfile or workflow change is part of evidence recovery.
 
