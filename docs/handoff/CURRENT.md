@@ -20,12 +20,50 @@
 - M4-042: **GOVERNANCE CLOSED**
 - M4-043 authoritative `tools/result`: **GOVERNANCE CLOSED**
 - M4-044 no duplicate approval subsystem: **GOVERNANCE CLOSED**
-- M4-045 audit redaction: **AUTHORIZED / PROTOCOL-FIRST EVIDENCE RECOVERY ONLY**
+- M4-045 audit redaction: **ACTIVE / EVIDENCE RECOVERED / REVIEW HEAD VERIFICATION PENDING**
 - M4-046+: **NOT AUTHORIZED by this Gate**
 - M4-050+, M5, M6, M10, M13, M15: **NOT AUTHORIZED by the current Gate**
 - PR #3 merge: **NOT AUTHORIZED without explicit user authorization**
 
 Live GitHub state overrides this snapshot.
+
+## M4-045 current evidence recovery
+
+Review: `docs/review-notes-m4-045-audit-privacy.md` (non-normative; not acceptance).
+
+Recovered baseline: `0c47080b509a762e22461eea0ab9a785bb19d30c`.
+
+- CI #616 / `33974251591`: PASS.
+- Harness #558 / `33974251606`: PASS.
+- Job `101328043285`, steps 10 and 11: PASS.
+- PR #3 remains Open / Draft / mergeable; base unchanged; no reviews or threads.
+
+The existing Adapter structurally omits raw argument/result bodies and approval
+reasons, but ordinary RuntimeEvent observation is not an audit admission boundary.
+Digest callbacks, opaque metadata and diagnostic errors still require explicit
+privacy ownership. Four synthetic local helper probes confirm body omission
+with a cryptographic digest and canary propagation through an unsafe digest,
+opaque metadata and the supported snapshot error-code field. These are
+helper-level demonstrations, not real rc5 runtime privacy acceptance or a
+reported real-credential leak.
+
+Existing retention schema fixes secrets/environment/rawPrompt false. M4-024
+record construction and M4-043 final-result observation do not authorize
+persistence. Preserve digest domains and exact final-result authority; do not
+change runtime policy inputs or build a detector/ledger to skip protocol design.
+
+This review/handoff commit requires its own exact-head normal CI and pinned
+Harness verification before further modifications. M4-045 is not accepted;
+roadmap remains unchecked. No production, Spec/corpus/schema, TCK, dependency,
+lockfile or workflow change is part of evidence recovery.
+
+Next: prepare a Spec 0049 candidate and requirement corpus that name the owned
+audit egress, explicit string/digest/diagnostic trust boundaries, fail-closed
+admission and correlation rules, with M5 detector/storage/retention work excluded.
+Do not claim that field omission or digest syntax alone proves no raw secret.
+
+The following M4-044 and predecessor evidence is preserved; this M4-045 section
+is the current operational continuation point.
 
 ## Current authority and pinned baseline
 

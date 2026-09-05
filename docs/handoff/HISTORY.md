@@ -2508,3 +2508,21 @@ retains predecessor CURRENT evidence and changes only the M4-044 roadmap marker.
 M4-044 is GOVERNANCE CLOSED. Only M4-045 protocol-first evidence recovery is newly
 authorized; production implementation and later Gates remain unstarted.
 PR #3 remains Open / Draft and merge remains unauthorized.
+
+## 2026-09-05 — Recover M4-045 audit privacy ownership before protocol design
+
+Reviewed M4-044 closure head 0c47080b with CI #616 / 33974251591 and Harness
+#558 / 33974251606 dual-green, including pinned-source typecheck and runtime.
+PR #3 remains Open / Draft and its base has not drifted.
+
+Non-normative review `docs/review-notes-m4-045-audit-privacy.md` records Core,
+retention Schema, TCK, M4-024/M4-043 and pinned rc5 source boundaries. Four
+synthetic local normalization probes distinguish raw-body omission from unsafe
+digest/metadata/snapshot-error-code propagation. No real secrets were used;
+these probes do not establish real-runtime privacy acceptance or a durable leak.
+
+M4-045 now has a concrete data-flow and trust-boundary inventory for its
+protocol-first contract. No production, Spec/corpus/schema, TCK, dependency,
+workflow or roadmap acceptance change is made. This review head requires
+exact-head dual-green; M4-045 acceptance and later-Gate implementation remain
+unauthorized by this evidence-recovery step.
