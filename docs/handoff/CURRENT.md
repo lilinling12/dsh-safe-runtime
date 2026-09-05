@@ -19,8 +19,9 @@
 - M4-041: **GOVERNANCE CLOSED**
 - M4-042: **GOVERNANCE CLOSED**
 - M4-043 authoritative `tools/result`: **GOVERNANCE CLOSED**
-- M4-044 no duplicate approval subsystem: **ACCEPTED / GOVERNANCE EXACT-HEAD VERIFICATION PENDING**
-- M4-045+: **NOT AUTHORIZED until M4-044 governance closure**
+- M4-044 no duplicate approval subsystem: **GOVERNANCE CLOSED**
+- M4-045 audit redaction: **AUTHORIZED / PROTOCOL-FIRST EVIDENCE RECOVERY ONLY**
+- M4-046+: **NOT AUTHORIZED by this Gate**
 - M4-050+, M5, M6, M10, M13, M15: **NOT AUTHORIZED by the current Gate**
 - PR #3 merge: **NOT AUTHORIZED without explicit user authorization**
 
@@ -103,10 +104,22 @@ Audit-only head: `ab00b2be8aac3201ab4d20fe686173089d663155`.
 - Harness #556 / `33930612213`: PASS.
 - Harness steps 10 and 11: PASS.
 
-The governance update is restricted to CURRENT, append-only HISTORY and the
-M4-044 roadmap acceptance marker. Its final exact head must independently pass
-normal CI plus pinned Harness steps 10/11 before M4-044 governance is closed.
-M4-045 remains locked until then.
+## M4-044 governance closure
+
+Final governance evidence head: `934d6c33e56aa292c92f8d6dd70e07ddcc4eb779`.
+
+- CI #615 / `33974016446`: PASS.
+- Harness #557 / `33974016445`: PASS.
+- Job `101327428853`, step 10 pinned-source typecheck: PASS.
+- Same job, step 11 real rc5 runtime: PASS.
+
+The exact diff from audit head changes only CURRENT, append-only HISTORY
+(+39/-0, original prefix preserved byte-for-byte) and one M4-044 roadmap line.
+Original CURRENT evidence is retained. No production or later-Gate behavior changed.
+
+M4-044 governance is CLOSED. M4-045 is the sole newly authorized protocol-first
+Gate; its implementation has not started. This closure-record commit must also
+be checked on its own exact head before further modifications.
 
 ## Non-claims and resume
 
@@ -116,10 +129,12 @@ provider/process/kernel isolation, durable exactly-once approval, raw audit-data
 secrecy, or M5 ledger semantics.
 
 1. Refresh PR #3 metadata, exact head, base, reviews and review threads.
-2. Verify the final governance head itself has normal CI and Harness dual-green.
+2. Verify this closure-record head has normal CI and Harness dual-green.
 3. If failing, read the current failed job/step/diagnostic before any edit.
-4. After governance passes, record closure and authorize only M4-045 protocol-first
-   evidence recovery. Do not silently begin its implementation.
+4. Recover M4-045 authority from existing audit/redaction Specs, Adapter
+   normalization/digest boundaries, accepted TCK and exact pinned source before
+   drafting its protocol-first contract/corpus. Do not infer raw-data secrecy
+   from M4-043/M4-044 or begin production implementation without that Gate.
 5. Keep PR #3 Open / Draft. Never merge, force-push or rewrite accepted ancestry.
 6. Preserve HISTORY append-only and avoid unrelated production or dependency work.
 

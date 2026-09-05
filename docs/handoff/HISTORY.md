@@ -2496,3 +2496,15 @@ before governance closure and M4-045 protocol-first authorization.
 No complete mediation, effect success/rollback, isolation, durable exactly-once
 approval, raw audit-data secrecy or arbitrary-caller deduplication is claimed.
 M4-045 implementation, later Gates and PR merge remain outside this change.
+
+## 2026-09-05 — Close M4-044 governance
+
+Governance head `934d6c33e56aa292c92f8d6dd70e07ddcc4eb779` passed normal
+CI #615 / 33974016446 and Harness #557 / 33974016445. Harness job 101327428853
+passed step 10 pinned-source typecheck and step 11 real rc5 runtime.
+Its three-file governance diff preserves prior HISTORY bytes, appends 39 lines,
+retains predecessor CURRENT evidence and changes only the M4-044 roadmap marker.
+
+M4-044 is GOVERNANCE CLOSED. Only M4-045 protocol-first evidence recovery is newly
+authorized; production implementation and later Gates remain unstarted.
+PR #3 remains Open / Draft and merge remains unauthorized.
