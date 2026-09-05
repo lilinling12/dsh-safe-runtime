@@ -1,0 +1,216 @@
+{
+  "profile": "M4-004",
+  "kind": "RuleOrderingCases",
+  "description": "Language-independent deterministic structural precedence cases for Spec 0020. Effects are intentionally absent.",
+  "cases": [
+    {
+      "id": "exact-outranks-wildcard",
+      "resource": { "scheme": "workspace", "locator": "src/file.ts" },
+      "candidates": [
+        { "id": "broad", "resources": ["workspace://src/*.ts"] },
+        { "id": "exact", "resources": ["workspace://src/file.ts"] }
+      ],
+      "expect": {
+        "status": "PASS",
+        "bands": [
+          { "specificity": { "literalCodePoints": 11, "globstarCount": 0, "starCount": 0 }, "effectivePriority": 0, "ruleIds": ["exact"] },
+          { "specificity": { "literalCodePoints": 7, "globstarCount": 0, "starCount": 1 }, "effectivePriority": 0, "ruleIds": ["broad"] }
+        ]
+      }
+    },
+    {
+      "id": "specificity-outranks-higher-priority",
+      "resource": { "scheme": "workspace", "locator": "src/file.ts" },
+      "candidates": [
+        { "id": "broad-high-priority", "resources": ["workspace://src/*.ts"], "priority": 1000000 },
+        { "id": "exact-low-priority", "resources": ["workspace://src/file.ts"], "priority": -1000000 }
+      ],
+      "expect": {
+        "status": "PASS",
+        "bands": [
+          { "specificity": { "literalCodePoints": 11, "globstarCount": 0, "starCount": 0 }, "effectivePriority": -1000000, "ruleIds": ["exact-low-priority"] },
+          { "specificity": { "literalCodePoints": 7, "globstarCount": 0, "starCount": 1 }, "effectivePriority": 1000000, "ruleIds": ["broad-high-priority"] }
+        ]
+      }
+    },
+    {
+      "id": "fewer-globstars-break-literal-tie",
+      "resource": { "scheme": "workspace", "locator": "src/x" },
+      "candidates": [
+        { "id": "globstar", "resources": ["workspace://src/**"] },
+        { "id": "star", "resources": ["workspace://src/*"] }
+      ],
+      "expect": {
+        "status": "PASS",
+        "bands": [
+          { "specificity": { "literalCodePoints": 4, "globstarCount": 0, "starCount": 1 }, "effectivePriority": 0, "ruleIds": ["star"] },
+          { "specificity": { "literalCodePoints": 4, "globstarCount": 1, "starCount": 0 }, "effectivePriority": 0, "ruleIds": ["globstar"] }
+        ]
+      }
+    },
+    {
+      "id": "fewer-stars-break-remaining-tie",
+      "resource": { "scheme": "external", "locator": "ab" },
+      "candidates": [
+        { "id": "two-stars", "resources": ["external://a*b*"] },
+        { "id": "one-star", "resources": ["external://ab*"] }
+      ],
+      "expect": {
+        "status": "PASS",
+        "bands": [
+          { "specificity": { "literalCodePoints": 2, "globstarCount": 0, "starCount": 1 }, "effectivePriority": 0, "ruleIds": ["one-star"] },
+          { "specificity": { "literalCodePoints": 2, "globstarCount": 0, "starCount": 2 }, "effectivePriority": 0, "ruleIds": ["two-stars"] }
+        ]
+      }
+    },
+    {
+      "id": "priority-positive-zero-absent-negative",
+      "resource": { "scheme": "workspace", "locator": "src/a.ts" },
+      "candidates": [
+        { "id": "negative", "resources": ["workspace://src/*.ts"], "priority": -1 },
+        { "id": "absent", "resources": ["workspace://src/*.ts"] },
+        { "id": "zero", "resources": ["workspace://src/*.ts"], "priority": 0 },
+        { "id": "positive", "resources": ["workspace://src/*.ts"], "priority": 1 }
+      ],
+      "expect": {
+        "status": "PASS",
+        "bands": [
+          { "specificity": { "literalCodePoints": 7, "globstarCount": 0, "starCount": 1 }, "effectivePriority": 1, "ruleIds": ["positive"] },
+          { "specificity": { "literalCodePoints": 7, "globstarCount": 0, "starCount": 1 }, "effectivePriority": 0, "ruleIds": ["absent", "zero"] },
+          { "specificity": { "literalCodePoints": 7, "globstarCount": 0, "starCount": 1 }, "effectivePriority": -1, "ruleIds": ["negative"] }
+        ]
+      }
+    },
+    {
+      "id": "multiple-selectors-use-most-specific-match",
+      "resource": { "scheme": "workspace", "locator": "src/file.ts" },
+      "candidates": [
+        { "id": "multi", "resources": ["workspace://**", "workspace://src/file.ts", "workspace://src/*.ts"] },
+        { "id": "wildcard", "resources": ["workspace://src/*.ts"], "priority": 100 }
+      ],
+      "expect": {
+        "status": "PASS",
+        "bands": [
+          { "specificity": { "literalCodePoints": 11, "globstarCount": 0, "starCount": 0 }, "effectivePriority": 0, "ruleIds": ["multi"] },
+          { "specificity": { "literalCodePoints": 7, "globstarCount": 0, "starCount": 1 }, "effectivePriority": 100, "ruleIds": ["wildcard"] }
+        ]
+      }
+    },
+    {
+      "id": "equal-precedence-is-one-band",
+      "resource": { "scheme": "workspace", "locator": "src/a.ts" },
+      "candidates": [
+        { "id": "rule-z", "resources": ["workspace://src/*.ts"] },
+        { "id": "rule-a", "resources": ["workspace://src/*.ts"] }
+      ],
+      "expect": {
+        "status": "PASS",
+        "bands": [
+          { "specificity": { "literalCodePoints": 7, "globstarCount": 0, "starCount": 1 }, "effectivePriority": 0, "ruleIds": ["rule-a", "rule-z"] }
+        ]
+      }
+    },
+    {
+      "id": "rule-id-order-is-unicode-code-point-lexicographic",
+      "resource": { "scheme": "workspace", "locator": "src/a.ts" },
+      "candidates": [
+        { "id": "rule-😀", "resources": ["workspace://src/*.ts"] },
+        { "id": "rule-", "resources": ["workspace://src/*.ts"] }
+      ],
+      "expect": {
+        "status": "PASS",
+        "bands": [
+          { "specificity": { "literalCodePoints": 7, "globstarCount": 0, "starCount": 1 }, "effectivePriority": 0, "ruleIds": ["rule-", "rule-😀"] }
+        ]
+      }
+    },
+    {
+      "id": "candidate-permutation-does-not-change-bands",
+      "resource": { "scheme": "workspace", "locator": "src/file.ts" },
+      "candidates": [
+        { "id": "c", "resources": ["workspace://**"] },
+        { "id": "a", "resources": ["workspace://src/file.ts"] },
+        { "id": "b", "resources": ["workspace://src/*.ts"] }
+      ],
+      "permutations": [
+        ["a", "b", "c"],
+        ["c", "b", "a"],
+        ["b", "a", "c"]
+      ],
+      "expect": {
+        "status": "PASS",
+        "bands": [
+          { "specificity": { "literalCodePoints": 11, "globstarCount": 0, "starCount": 0 }, "effectivePriority": 0, "ruleIds": ["a"] },
+          { "specificity": { "literalCodePoints": 7, "globstarCount": 0, "starCount": 1 }, "effectivePriority": 0, "ruleIds": ["b"] },
+          { "specificity": { "literalCodePoints": 0, "globstarCount": 1, "starCount": 0 }, "effectivePriority": 0, "ruleIds": ["c"] }
+        ]
+      }
+    },
+    {
+      "id": "selector-permutation-does-not-change-rule-rank",
+      "resource": { "scheme": "workspace", "locator": "src/file.ts" },
+      "candidates": [
+        { "id": "multi", "resources": ["workspace://**", "workspace://src/file.ts", "workspace://src/*.ts"] }
+      ],
+      "resourcePermutations": [
+        ["workspace://src/file.ts", "workspace://src/*.ts", "workspace://**"],
+        ["workspace://src/*.ts", "workspace://**", "workspace://src/file.ts"]
+      ],
+      "expect": {
+        "status": "PASS",
+        "bands": [
+          { "specificity": { "literalCodePoints": 11, "globstarCount": 0, "starCount": 0 }, "effectivePriority": 0, "ruleIds": ["multi"] }
+        ]
+      }
+    },
+    {
+      "id": "nonmatching-rules-are-absent",
+      "resource": { "scheme": "workspace", "locator": "src/a.ts" },
+      "candidates": [
+        { "id": "host", "resources": ["hostfs://src/*.ts"] },
+        { "id": "other", "resources": ["workspace://test/*.ts"] },
+        { "id": "match", "resources": ["workspace://src/*.ts"] }
+      ],
+      "expect": {
+        "status": "PASS",
+        "bands": [
+          { "specificity": { "literalCodePoints": 7, "globstarCount": 0, "starCount": 1 }, "effectivePriority": 0, "ruleIds": ["match"] }
+        ]
+      }
+    },
+    {
+      "id": "no-match-is-successful-empty-bands",
+      "resource": { "scheme": "workspace", "locator": "src/a.ts" },
+      "candidates": [
+        { "id": "host", "resources": ["hostfs://**"] },
+        { "id": "other", "resources": ["workspace://test/**"] }
+      ],
+      "expect": { "status": "PASS", "bands": [] }
+    },
+    {
+      "id": "duplicate-rule-id-fails-closed",
+      "resource": { "scheme": "workspace", "locator": "src/a.ts" },
+      "candidates": [
+        { "id": "duplicate", "resources": ["workspace://src/*.ts"] },
+        { "id": "duplicate", "resources": ["workspace://**"] }
+      ],
+      "expect": { "status": "ERROR", "reason": "RULE_ORDERING_DUPLICATE_RULE_ID" }
+    },
+    {
+      "id": "duplicate-resource-selector-fails-closed",
+      "resource": { "scheme": "workspace", "locator": "src/a.ts" },
+      "candidates": [
+        { "id": "duplicate-resource", "resources": ["workspace://src/*.ts", "workspace://src/*.ts"] }
+      ],
+      "expect": { "status": "ERROR", "reason": "RULE_ORDERING_INPUT_INVALID" }
+    },
+    {
+      "id": "invalid-pattern-fails-ordering",
+      "resource": { "scheme": "workspace", "locator": "src/a.ts" },
+      "candidates": [
+        { "id": "invalid", "resources": ["workspace://foo/**bar"] }
+      ],
+      "expect": { "status": "ERROR", "reason": "RESOURCE_PATTERN_SYNTAX_INVALID" }
+    }
+  ]
+}

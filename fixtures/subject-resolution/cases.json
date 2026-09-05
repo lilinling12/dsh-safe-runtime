@@ -1,0 +1,234 @@
+{
+  "profile": {
+    "id": "m4-subject-resolution-v1",
+    "spec": "specs/0031-m4-subject-resolution.md",
+    "protocolVersion": "safe-runtime.dev/v1alpha1"
+  },
+  "cases": [
+    {
+      "id": "SUBJECT-RES-001",
+      "description": "agent inherits authoritative request session when subject sessionRef is omitted",
+      "subject": { "kind": "agent", "id": "agent/root" },
+      "requestSessionRef": "session:abc",
+      "expected": {
+        "status": "RESOLVED",
+        "subject": { "kind": "agent", "id": "agent/root", "sessionRef": "session:abc" }
+      }
+    },
+    {
+      "id": "SUBJECT-RES-002",
+      "description": "equal subject-local session reference is preserved semantically",
+      "subject": { "kind": "agent", "id": "agent/root", "sessionRef": "session:abc" },
+      "requestSessionRef": "session:abc",
+      "expected": {
+        "status": "RESOLVED",
+        "subject": { "kind": "agent", "id": "agent/root", "sessionRef": "session:abc" }
+      }
+    },
+    {
+      "id": "SUBJECT-RES-003",
+      "description": "subagent resolves only with a non-null parent reference",
+      "subject": { "kind": "subagent", "id": "subagent:child", "parent": "agent/root" },
+      "requestSessionRef": "session:abc",
+      "expected": {
+        "status": "RESOLVED",
+        "subject": { "kind": "subagent", "id": "subagent:child", "parent": "agent/root", "sessionRef": "session:abc" }
+      }
+    },
+    {
+      "id": "SUBJECT-RES-004",
+      "description": "non-subagent explicit null parent remains explicit null",
+      "subject": { "kind": "agent", "id": "agent/root", "parent": null },
+      "requestSessionRef": "session:abc",
+      "expected": {
+        "status": "RESOLVED",
+        "subject": { "kind": "agent", "id": "agent/root", "parent": null, "sessionRef": "session:abc" }
+      }
+    },
+    {
+      "id": "SUBJECT-RES-005",
+      "description": "non-subagent string parent is preserved without proving lineage",
+      "subject": { "kind": "tool", "id": "tool:child", "parent": "agent/root" },
+      "requestSessionRef": "session:abc",
+      "expected": {
+        "status": "RESOLVED",
+        "subject": { "kind": "tool", "id": "tool:child", "parent": "agent/root", "sessionRef": "session:abc" }
+      }
+    },
+    {
+      "id": "SUBJECT-RES-006",
+      "description": "tool kind is accepted exactly",
+      "subject": { "kind": "tool", "id": "tool:1" },
+      "requestSessionRef": "session:1",
+      "expected": { "status": "RESOLVED", "subject": { "kind": "tool", "id": "tool:1", "sessionRef": "session:1" } }
+    },
+    {
+      "id": "SUBJECT-RES-007",
+      "description": "plugin kind is accepted exactly",
+      "subject": { "kind": "plugin", "id": "plugin:1" },
+      "requestSessionRef": "session:1",
+      "expected": { "status": "RESOLVED", "subject": { "kind": "plugin", "id": "plugin:1", "sessionRef": "session:1" } }
+    },
+    {
+      "id": "SUBJECT-RES-008",
+      "description": "system kind is accepted exactly",
+      "subject": { "kind": "system", "id": "system:broker" },
+      "requestSessionRef": "session:1",
+      "expected": { "status": "RESOLVED", "subject": { "kind": "system", "id": "system:broker", "sessionRef": "session:1" } }
+    },
+    {
+      "id": "SUBJECT-RES-009",
+      "description": "verifier kind is accepted exactly",
+      "subject": { "kind": "verifier", "id": "verifier:test" },
+      "requestSessionRef": "session:1",
+      "expected": { "status": "RESOLVED", "subject": { "kind": "verifier", "id": "verifier:test", "sessionRef": "session:1" } }
+    },
+    {
+      "id": "SUBJECT-RES-010",
+      "description": "human kind is accepted exactly",
+      "subject": { "kind": "human", "id": "human:reviewer" },
+      "requestSessionRef": "session:1",
+      "expected": { "status": "RESOLVED", "subject": { "kind": "human", "id": "human:reviewer", "sessionRef": "session:1" } }
+    },
+    {
+      "id": "SUBJECT-RES-011",
+      "description": "service kind is accepted exactly",
+      "subject": { "kind": "service", "id": "service:ci" },
+      "requestSessionRef": "session:1",
+      "expected": { "status": "RESOLVED", "subject": { "kind": "service", "id": "service:ci", "sessionRef": "session:1" } }
+    },
+    {
+      "id": "SUBJECT-RES-012",
+      "description": "case-changed subject kind is invalid",
+      "subject": { "kind": "Agent", "id": "agent/root" },
+      "requestSessionRef": "session:abc",
+      "expected": { "status": "ERROR", "reason": "SUBJECT_KIND_INVALID" }
+    },
+    {
+      "id": "SUBJECT-RES-013",
+      "description": "unknown subject kind is invalid",
+      "subject": { "kind": "worker", "id": "worker:1" },
+      "requestSessionRef": "session:abc",
+      "expected": { "status": "ERROR", "reason": "SUBJECT_KIND_INVALID" }
+    },
+    {
+      "id": "SUBJECT-RES-014",
+      "description": "empty subject id is invalid",
+      "subject": { "kind": "agent", "id": "" },
+      "requestSessionRef": "session:abc",
+      "expected": { "status": "ERROR", "reason": "SUBJECT_ID_INVALID" }
+    },
+    {
+      "id": "SUBJECT-RES-015",
+      "description": "subagent missing parent fails closed",
+      "subject": { "kind": "subagent", "id": "subagent:child" },
+      "requestSessionRef": "session:abc",
+      "expected": { "status": "ERROR", "reason": "SUBJECT_PARENT_INVALID" }
+    },
+    {
+      "id": "SUBJECT-RES-016",
+      "description": "subagent null parent fails closed",
+      "subject": { "kind": "subagent", "id": "subagent:child", "parent": null },
+      "requestSessionRef": "session:abc",
+      "expected": { "status": "ERROR", "reason": "SUBJECT_PARENT_INVALID" }
+    },
+    {
+      "id": "SUBJECT-RES-017",
+      "description": "empty parent string fails closed",
+      "subject": { "kind": "subagent", "id": "subagent:child", "parent": "" },
+      "requestSessionRef": "session:abc",
+      "expected": { "status": "ERROR", "reason": "SUBJECT_PARENT_INVALID" }
+    },
+    {
+      "id": "SUBJECT-RES-018",
+      "description": "invalid empty authoritative request session fails before subject processing",
+      "subject": { "kind": "agent", "id": "agent/root" },
+      "requestSessionRef": "",
+      "expected": { "status": "ERROR", "reason": "SUBJECT_REQUEST_SESSION_INVALID" }
+    },
+    {
+      "id": "SUBJECT-RES-019",
+      "description": "present empty subject session reference is invalid",
+      "subject": { "kind": "agent", "id": "agent/root", "sessionRef": "" },
+      "requestSessionRef": "session:abc",
+      "expected": { "status": "ERROR", "reason": "SUBJECT_SESSION_REF_INVALID" }
+    },
+    {
+      "id": "SUBJECT-RES-020",
+      "description": "different valid session references fail closed",
+      "subject": { "kind": "agent", "id": "agent/root", "sessionRef": "session:def" },
+      "requestSessionRef": "session:abc",
+      "expected": { "status": "ERROR", "reason": "SUBJECT_SESSION_MISMATCH" }
+    },
+    {
+      "id": "SUBJECT-RES-021",
+      "description": "session equality is exact and case-sensitive",
+      "subject": { "kind": "agent", "id": "agent/root", "sessionRef": "Session:abc" },
+      "requestSessionRef": "session:abc",
+      "expected": { "status": "ERROR", "reason": "SUBJECT_SESSION_MISMATCH" }
+    },
+    {
+      "id": "SUBJECT-RES-022",
+      "description": "whitespace-only refs remain accepted under existing v0.1 ref lexical rules",
+      "subject": { "kind": "agent", "id": "   " },
+      "requestSessionRef": "   ",
+      "expected": { "status": "RESOLVED", "subject": { "kind": "agent", "id": "   ", "sessionRef": "   " } }
+    },
+    {
+      "id": "SUBJECT-RES-023",
+      "description": "unexpected own field fails closed",
+      "subject": { "kind": "agent", "id": "agent/root", "role": "admin" },
+      "requestSessionRef": "session:abc",
+      "expected": { "status": "ERROR", "reason": "SUBJECT_FIELDS_INVALID" }
+    },
+    {
+      "id": "SUBJECT-RES-024",
+      "description": "non-object subject fails closed",
+      "subject": "agent/root",
+      "requestSessionRef": "session:abc",
+      "expected": { "status": "ERROR", "reason": "SUBJECT_INPUT_INVALID" }
+    },
+    {
+      "id": "SUBJECT-RES-025",
+      "description": "array subject fails closed",
+      "subject": ["agent", "agent/root"],
+      "requestSessionRef": "session:abc",
+      "expected": { "status": "ERROR", "reason": "SUBJECT_INPUT_INVALID" }
+    },
+    {
+      "id": "SUBJECT-RES-026",
+      "description": "maximum-length id is accepted",
+      "subject": { "kind": "agent", "id": { "$fixtureString": { "repeat": "a", "count": 512 } } },
+      "requestSessionRef": "session:abc",
+      "expected": { "status": "RESOLVED", "subject": { "kind": "agent", "id": { "$fixtureString": { "repeat": "a", "count": 512 } }, "sessionRef": "session:abc" } }
+    },
+    {
+      "id": "SUBJECT-RES-027",
+      "description": "oversized id is invalid",
+      "subject": { "kind": "agent", "id": { "$fixtureString": { "repeat": "a", "count": 513 } } },
+      "requestSessionRef": "session:abc",
+      "expected": { "status": "ERROR", "reason": "SUBJECT_ID_INVALID" }
+    },
+    {
+      "id": "SUBJECT-RES-028",
+      "description": "oversized parent is invalid",
+      "subject": { "kind": "subagent", "id": "subagent:child", "parent": { "$fixtureString": { "repeat": "p", "count": 513 } } },
+      "requestSessionRef": "session:abc",
+      "expected": { "status": "ERROR", "reason": "SUBJECT_PARENT_INVALID" }
+    },
+    {
+      "id": "SUBJECT-RES-029",
+      "description": "oversized authoritative request session is invalid",
+      "subject": { "kind": "agent", "id": "agent/root" },
+      "requestSessionRef": { "$fixtureString": { "repeat": "s", "count": 513 } },
+      "expected": { "status": "ERROR", "reason": "SUBJECT_REQUEST_SESSION_INVALID" }
+    },
+    {
+      "id": "SUBJECT-RES-030",
+      "description": "oversized subject session reference is invalid",
+      "subject": { "kind": "agent", "id": "agent/root", "sessionRef": { "$fixtureString": { "repeat": "s", "count": 513 } } },
+      "requestSessionRef": "session:abc",
+      "expected": { "status": "ERROR", "reason": "SUBJECT_SESSION_REF_INVALID" }
+    }
+  ]
+}

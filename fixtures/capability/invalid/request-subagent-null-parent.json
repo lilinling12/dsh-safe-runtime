@@ -1,0 +1,17 @@
+{
+  "apiVersion": "safe-runtime.dev/v1alpha1",
+  "kind": "CapabilityRequest",
+  "requestId": "capreq-subagent-null-parent",
+  "subject": {
+    "kind": "subagent",
+    "id": "subagent:child",
+    "parent": null
+  },
+  "sessionRef": "session:abc",
+  "actionRef": "tool:1",
+  "capability": "fs.read",
+  "resource": {
+    "scheme": "workspace",
+    "locator": "/README.md"
+  }
+}

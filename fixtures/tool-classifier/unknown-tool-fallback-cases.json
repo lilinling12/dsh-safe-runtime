@@ -1,0 +1,332 @@
+{
+  "profile": {
+    "id": "m4-unknown-tool-fallback-v1",
+    "fallbackProfile": "STRICT_DENY_V1",
+    "harnessVersion": "0.1.0-rc.5",
+    "harnessCommit": "47f943859bef60e4160492346772ded9b24f765a",
+    "spec": "specs/0029-m4-unknown-tool-fallback-resolution.md"
+  },
+  "cases": [
+    {
+      "id": "TOOL-FALLBACK-001",
+      "description": "recognized filesystem classification is preserved",
+      "fallbackProfile": "STRICT_DENY_V1",
+      "toolName": "read",
+      "arguments": {
+        "file_path": "docs/README.md"
+      },
+      "expected": {
+        "status": "CLASSIFIED",
+        "requirements": [
+          {
+            "capability": "fs.stat",
+            "operand": {
+              "source": "ARGUMENT_PATH",
+              "argumentName": "file_path",
+              "rawPath": "docs/README.md",
+              "reach": "EXACT"
+            }
+          },
+          {
+            "capability": "fs.read",
+            "operand": {
+              "source": "ARGUMENT_PATH",
+              "argumentName": "file_path",
+              "rawPath": "docs/README.md",
+              "reach": "EXACT"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "TOOL-FALLBACK-002",
+      "description": "recognized shell classification is preserved",
+      "fallbackProfile": "STRICT_DENY_V1",
+      "toolName": "bash",
+      "arguments": {
+        "command": "git status"
+      },
+      "expected": {
+        "status": "CLASSIFIED",
+        "requirements": [
+          {
+            "capability": "process.exec",
+            "operand": {
+              "source": "SHELL_COMMAND",
+              "dialect": "BASH",
+              "rawCommand": "git status",
+              "executionMode": "FOREGROUND",
+              "workdir": {
+                "source": "EXECUTION_ROOT"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "TOOL-FALLBACK-003",
+      "description": "recognized filesystem malformed input preserves filesystem error",
+      "fallbackProfile": "STRICT_DENY_V1",
+      "toolName": "read",
+      "arguments": {},
+      "expected": {
+        "status": "ERROR",
+        "reason": "FS_TOOL_PATH_INVALID"
+      }
+    },
+    {
+      "id": "TOOL-FALLBACK-004",
+      "description": "recognized shell malformed input preserves shell error",
+      "fallbackProfile": "STRICT_DENY_V1",
+      "toolName": "pwsh",
+      "arguments": {
+        "command": "   "
+      },
+      "expected": {
+        "status": "ERROR",
+        "reason": "SHELL_TOOL_COMMAND_INVALID"
+      }
+    },
+    {
+      "id": "TOOL-FALLBACK-005",
+      "description": "ordinary unknown tool is blocked by strict fallback",
+      "fallbackProfile": "STRICT_DENY_V1",
+      "toolName": "custom_tool",
+      "arguments": {
+        "value": "ignored"
+      },
+      "expected": {
+        "status": "UNCLASSIFIED",
+        "profile": "STRICT_DENY_V1",
+        "disposition": "BLOCK",
+        "reason": "NO_APPLICABLE_CLASSIFIER"
+      }
+    },
+    {
+      "id": "TOOL-FALLBACK-006",
+      "description": "shell alias is not inferred and remains blocked",
+      "fallbackProfile": "STRICT_DENY_V1",
+      "toolName": "sh",
+      "arguments": {
+        "command": "echo x"
+      },
+      "expected": {
+        "status": "UNCLASSIFIED",
+        "profile": "STRICT_DENY_V1",
+        "disposition": "BLOCK",
+        "reason": "NO_APPLICABLE_CLASSIFIER"
+      }
+    },
+    {
+      "id": "TOOL-FALLBACK-007",
+      "description": "known-name case variant is not normalized",
+      "fallbackProfile": "STRICT_DENY_V1",
+      "toolName": "Bash",
+      "arguments": {
+        "command": "echo x"
+      },
+      "expected": {
+        "status": "UNCLASSIFIED",
+        "profile": "STRICT_DENY_V1",
+        "disposition": "BLOCK",
+        "reason": "NO_APPLICABLE_CLASSIFIER"
+      }
+    },
+    {
+      "id": "TOOL-FALLBACK-008",
+      "description": "filesystem case variant is not normalized",
+      "fallbackProfile": "STRICT_DENY_V1",
+      "toolName": "Read",
+      "arguments": {
+        "file_path": "docs/README.md"
+      },
+      "expected": {
+        "status": "UNCLASSIFIED",
+        "profile": "STRICT_DENY_V1",
+        "disposition": "BLOCK",
+        "reason": "NO_APPLICABLE_CLASSIFIER"
+      }
+    },
+    {
+      "id": "TOOL-FALLBACK-009",
+      "description": "MCP public-name-looking tool is opaque and blocked",
+      "fallbackProfile": "STRICT_DENY_V1",
+      "toolName": "mcp__weather__forecast",
+      "arguments": {
+        "annotations": {
+          "readOnlyHint": true,
+          "destructiveHint": false
+        }
+      },
+      "expected": {
+        "status": "UNCLASSIFIED",
+        "profile": "STRICT_DENY_V1",
+        "disposition": "BLOCK",
+        "reason": "NO_APPLICABLE_CLASSIFIER"
+      }
+    },
+    {
+      "id": "TOOL-FALLBACK-010",
+      "description": "unknown tool with null arguments still uses fallback",
+      "fallbackProfile": "STRICT_DENY_V1",
+      "toolName": "custom_null",
+      "arguments": null,
+      "expected": {
+        "status": "UNCLASSIFIED",
+        "profile": "STRICT_DENY_V1",
+        "disposition": "BLOCK",
+        "reason": "NO_APPLICABLE_CLASSIFIER"
+      }
+    },
+    {
+      "id": "TOOL-FALLBACK-011",
+      "description": "unknown tool with array arguments still uses fallback",
+      "fallbackProfile": "STRICT_DENY_V1",
+      "toolName": "custom_array",
+      "arguments": ["ignored"],
+      "expected": {
+        "status": "UNCLASSIFIED",
+        "profile": "STRICT_DENY_V1",
+        "disposition": "BLOCK",
+        "reason": "NO_APPLICABLE_CLASSIFIER"
+      }
+    },
+    {
+      "id": "TOOL-FALLBACK-012",
+      "description": "unknown tool with nested arguments still uses fallback",
+      "fallbackProfile": "STRICT_DENY_V1",
+      "toolName": "custom_nested",
+      "arguments": {
+        "nested": {
+          "secretLooking": "must-not-be-retained"
+        }
+      },
+      "expected": {
+        "status": "UNCLASSIFIED",
+        "profile": "STRICT_DENY_V1",
+        "disposition": "BLOCK",
+        "reason": "NO_APPLICABLE_CLASSIFIER"
+      }
+    },
+    {
+      "id": "TOOL-FALLBACK-013",
+      "description": "null fallback profile is invalid",
+      "fallbackProfile": null,
+      "toolName": "bash",
+      "arguments": {
+        "command": "echo x"
+      },
+      "expected": {
+        "status": "ERROR",
+        "reason": "UNKNOWN_TOOL_PROFILE_INVALID"
+      }
+    },
+    {
+      "id": "TOOL-FALLBACK-014",
+      "description": "allow fallback profile is forbidden",
+      "fallbackProfile": "allow",
+      "toolName": "custom_tool",
+      "arguments": {},
+      "expected": {
+        "status": "ERROR",
+        "reason": "UNKNOWN_TOOL_PROFILE_INVALID"
+      }
+    },
+    {
+      "id": "TOOL-FALLBACK-015",
+      "description": "ask fallback profile is forbidden",
+      "fallbackProfile": "ask",
+      "toolName": "custom_tool",
+      "arguments": {},
+      "expected": {
+        "status": "ERROR",
+        "reason": "UNKNOWN_TOOL_PROFILE_INVALID"
+      }
+    },
+    {
+      "id": "TOOL-FALLBACK-016",
+      "description": "case-changed strict profile is invalid",
+      "fallbackProfile": "strict_deny_v1",
+      "toolName": "custom_tool",
+      "arguments": {},
+      "expected": {
+        "status": "ERROR",
+        "reason": "UNKNOWN_TOOL_PROFILE_INVALID"
+      }
+    },
+    {
+      "id": "TOOL-FALLBACK-017",
+      "description": "object fallback profile is invalid",
+      "fallbackProfile": {
+        "mode": "STRICT_DENY_V1"
+      },
+      "toolName": "custom_tool",
+      "arguments": {},
+      "expected": {
+        "status": "ERROR",
+        "reason": "UNKNOWN_TOOL_PROFILE_INVALID"
+      }
+    },
+    {
+      "id": "TOOL-FALLBACK-018",
+      "description": "array fallback profile is invalid",
+      "fallbackProfile": ["STRICT_DENY_V1"],
+      "toolName": "custom_tool",
+      "arguments": {},
+      "expected": {
+        "status": "ERROR",
+        "reason": "UNKNOWN_TOOL_PROFILE_INVALID"
+      }
+    },
+    {
+      "id": "TOOL-FALLBACK-019",
+      "description": "numeric tool name is invalid",
+      "fallbackProfile": "STRICT_DENY_V1",
+      "toolName": 42,
+      "arguments": {},
+      "expected": {
+        "status": "ERROR",
+        "reason": "TOOL_NAME_INVALID"
+      }
+    },
+    {
+      "id": "TOOL-FALLBACK-020",
+      "description": "empty tool name is invalid",
+      "fallbackProfile": "STRICT_DENY_V1",
+      "toolName": "",
+      "arguments": {},
+      "expected": {
+        "status": "ERROR",
+        "reason": "TOOL_NAME_INVALID"
+      }
+    },
+    {
+      "id": "TOOL-FALLBACK-021",
+      "description": "whitespace-only non-empty tool name is not trimmed and is blocked",
+      "fallbackProfile": "STRICT_DENY_V1",
+      "toolName": "   ",
+      "arguments": {
+        "command": "ignored"
+      },
+      "expected": {
+        "status": "UNCLASSIFIED",
+        "profile": "STRICT_DENY_V1",
+        "disposition": "BLOCK",
+        "reason": "NO_APPLICABLE_CLASSIFIER"
+      }
+    },
+    {
+      "id": "TOOL-FALLBACK-022",
+      "description": "invalid profile wins before recognized-tool argument validation",
+      "fallbackProfile": "ALLOW",
+      "toolName": "bash",
+      "arguments": null,
+      "expected": {
+        "status": "ERROR",
+        "reason": "UNKNOWN_TOOL_PROFILE_INVALID"
+      }
+    }
+  ]
+}

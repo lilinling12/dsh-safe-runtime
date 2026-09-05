@@ -1,0 +1,269 @@
+{
+  "apiVersion": "safe-runtime.dev/test-fixtures/v1alpha1",
+  "kind": "ResourceNormalizationCases",
+  "fixtureEncoding": {
+    "literalInput": "When input is present, pass it to the selected operation unchanged.",
+    "templateInput": "When inputTemplate is present, recursively materialize it before invoking the operation.",
+    "repeatCodePoint": "An object exactly shaped as {\"$repeatCodePoint\":{\"value\":<one Unicode code point>,\"count\":<positive integer>}} materializes to value repeated count times. This is fixture encoding only, not protocol syntax."
+  },
+  "cases": [
+    {
+      "id": "exact-workspace-leading-slash",
+      "operation": "EXACT_RESOURCE",
+      "input": { "scheme": "workspace", "locator": "/src/auth.ts" },
+      "expect": {
+        "status": "PASS",
+        "resource": { "scheme": "workspace", "locator": "/src/auth.ts" }
+      }
+    },
+    {
+      "id": "exact-unicode-preserved",
+      "operation": "EXACT_RESOURCE",
+      "input": { "scheme": "workspace", "locator": "/资料/认证-é.ts" },
+      "expect": {
+        "status": "PASS",
+        "resource": { "scheme": "workspace", "locator": "/资料/认证-é.ts" }
+      }
+    },
+    {
+      "id": "exact-spaces-preserved",
+      "operation": "EXACT_RESOURCE",
+      "input": { "scheme": "workspace", "locator": " /folder name/file name.txt " },
+      "expect": {
+        "status": "PASS",
+        "resource": { "scheme": "workspace", "locator": " /folder name/file name.txt " }
+      }
+    },
+    {
+      "id": "exact-dot-segments-not-resolved",
+      "operation": "EXACT_RESOURCE",
+      "input": { "scheme": "workspace", "locator": "/src/../secrets.txt" },
+      "expect": {
+        "status": "PASS",
+        "resource": { "scheme": "workspace", "locator": "/src/../secrets.txt" }
+      }
+    },
+    {
+      "id": "exact-provider-identity-preserved",
+      "operation": "EXACT_RESOURCE",
+      "input": {
+        "scheme": "workspace",
+        "locator": "/src/auth.ts",
+        "providerIdentity": "opaque:Target/α"
+      },
+      "expect": {
+        "status": "PASS",
+        "resource": {
+          "scheme": "workspace",
+          "locator": "/src/auth.ts",
+          "providerIdentity": "opaque:Target/α"
+        }
+      }
+    },
+    {
+      "id": "exact-locator-at-limit",
+      "operation": "EXACT_RESOURCE",
+      "inputTemplate": {
+        "scheme": "external",
+        "locator": { "$repeatCodePoint": { "value": "a", "count": 4096 } }
+      },
+      "expectTemplate": {
+        "status": "PASS",
+        "resource": {
+          "scheme": "external",
+          "locator": { "$repeatCodePoint": { "value": "a", "count": 4096 } }
+        }
+      }
+    },
+    {
+      "id": "exact-input-not-object",
+      "operation": "EXACT_RESOURCE",
+      "input": "workspace:///src/auth.ts",
+      "expect": { "status": "ERROR", "reason": "RESOURCE_INPUT_INVALID", "field": "resource" }
+    },
+    {
+      "id": "exact-unknown-scheme",
+      "operation": "EXACT_RESOURCE",
+      "input": { "scheme": "file", "locator": "/src/auth.ts" },
+      "expect": { "status": "ERROR", "reason": "RESOURCE_SCHEME_UNSUPPORTED", "field": "scheme" }
+    },
+    {
+      "id": "exact-uppercase-scheme",
+      "operation": "EXACT_RESOURCE",
+      "input": { "scheme": "Workspace", "locator": "/src/auth.ts" },
+      "expect": { "status": "ERROR", "reason": "RESOURCE_SCHEME_UNSUPPORTED", "field": "scheme" }
+    },
+    {
+      "id": "exact-empty-locator",
+      "operation": "EXACT_RESOURCE",
+      "input": { "scheme": "workspace", "locator": "" },
+      "expect": { "status": "ERROR", "reason": "RESOURCE_LOCATOR_INVALID", "field": "locator" }
+    },
+    {
+      "id": "exact-non-string-locator",
+      "operation": "EXACT_RESOURCE",
+      "input": { "scheme": "workspace", "locator": 7 },
+      "expect": { "status": "ERROR", "reason": "RESOURCE_LOCATOR_INVALID", "field": "locator" }
+    },
+    {
+      "id": "exact-newline-locator",
+      "operation": "EXACT_RESOURCE",
+      "input": { "scheme": "workspace", "locator": "/src/line\nbreak" },
+      "expect": { "status": "ERROR", "reason": "RESOURCE_LOCATOR_INVALID", "field": "locator" }
+    },
+    {
+      "id": "exact-nul-locator",
+      "operation": "EXACT_RESOURCE",
+      "input": { "scheme": "workspace", "locator": "/src/\u0000break" },
+      "expect": { "status": "ERROR", "reason": "RESOURCE_LOCATOR_INVALID", "field": "locator" }
+    },
+    {
+      "id": "exact-locator-over-limit",
+      "operation": "EXACT_RESOURCE",
+      "inputTemplate": {
+        "scheme": "external",
+        "locator": { "$repeatCodePoint": { "value": "a", "count": 4097 } }
+      },
+      "expect": { "status": "ERROR", "reason": "RESOURCE_LIMIT_EXCEEDED", "field": "locator" }
+    },
+    {
+      "id": "exact-empty-provider-identity",
+      "operation": "EXACT_RESOURCE",
+      "input": { "scheme": "workspace", "locator": "/src/auth.ts", "providerIdentity": "" },
+      "expect": { "status": "ERROR", "reason": "RESOURCE_PROVIDER_IDENTITY_INVALID", "field": "providerIdentity" }
+    },
+    {
+      "id": "exact-non-string-provider-identity",
+      "operation": "EXACT_RESOURCE",
+      "input": { "scheme": "workspace", "locator": "/src/auth.ts", "providerIdentity": 7 },
+      "expect": { "status": "ERROR", "reason": "RESOURCE_PROVIDER_IDENTITY_INVALID", "field": "providerIdentity" }
+    },
+    {
+      "id": "exact-control-provider-identity",
+      "operation": "EXACT_RESOURCE",
+      "input": { "scheme": "workspace", "locator": "/src/auth.ts", "providerIdentity": "opaque\tidentity" },
+      "expect": { "status": "ERROR", "reason": "RESOURCE_PROVIDER_IDENTITY_INVALID", "field": "providerIdentity" }
+    },
+    {
+      "id": "exact-provider-identity-over-limit",
+      "operation": "EXACT_RESOURCE",
+      "inputTemplate": {
+        "scheme": "workspace",
+        "locator": "/src/auth.ts",
+        "providerIdentity": { "$repeatCodePoint": { "value": "a", "count": 4097 } }
+      },
+      "expect": { "status": "ERROR", "reason": "RESOURCE_LIMIT_EXCEEDED", "field": "providerIdentity" }
+    },
+    {
+      "id": "selector-workspace-wildcard",
+      "operation": "POLICY_SELECTOR",
+      "input": "workspace://**",
+      "expect": { "status": "PASS", "selector": { "scheme": "workspace", "locatorPattern": "**" } }
+    },
+    {
+      "id": "selector-hostfs-example",
+      "operation": "POLICY_SELECTOR",
+      "input": "hostfs://~/.ssh/**",
+      "expect": { "status": "PASS", "selector": { "scheme": "hostfs", "locatorPattern": "~/.ssh/**" } }
+    },
+    {
+      "id": "selector-first-delimiter-only",
+      "operation": "POLICY_SELECTOR",
+      "input": "network://https://example.invalid/api",
+      "expect": {
+        "status": "PASS",
+        "selector": { "scheme": "network", "locatorPattern": "https://example.invalid/api" }
+      }
+    },
+    {
+      "id": "selector-unicode-preserved",
+      "operation": "POLICY_SELECTOR",
+      "input": "external://资料/é/**",
+      "expect": { "status": "PASS", "selector": { "scheme": "external", "locatorPattern": "资料/é/**" } }
+    },
+    {
+      "id": "selector-spaces-preserved",
+      "operation": "POLICY_SELECTOR",
+      "input": "external:// target with spaces ",
+      "expect": {
+        "status": "PASS",
+        "selector": { "scheme": "external", "locatorPattern": " target with spaces " }
+      }
+    },
+    {
+      "id": "selector-pattern-at-limit",
+      "operation": "POLICY_SELECTOR",
+      "inputTemplate": {
+        "$concat": [
+          "external://",
+          { "$repeatCodePoint": { "value": "a", "count": 4096 } }
+        ]
+      },
+      "expectTemplate": {
+        "status": "PASS",
+        "selector": {
+          "scheme": "external",
+          "locatorPattern": { "$repeatCodePoint": { "value": "a", "count": 4096 } }
+        }
+      }
+    },
+    {
+      "id": "selector-input-not-string",
+      "operation": "POLICY_SELECTOR",
+      "input": { "scheme": "workspace", "locatorPattern": "**" },
+      "expect": { "status": "ERROR", "reason": "RESOURCE_INPUT_INVALID", "field": "selector" }
+    },
+    {
+      "id": "selector-missing-delimiter",
+      "operation": "POLICY_SELECTOR",
+      "input": "workspace:**",
+      "expect": { "status": "ERROR", "reason": "RESOURCE_SELECTOR_SYNTAX_INVALID", "field": "selector" }
+    },
+    {
+      "id": "selector-empty-scheme",
+      "operation": "POLICY_SELECTOR",
+      "input": "://**",
+      "expect": { "status": "ERROR", "reason": "RESOURCE_SCHEME_UNSUPPORTED", "field": "scheme" }
+    },
+    {
+      "id": "selector-unknown-scheme",
+      "operation": "POLICY_SELECTOR",
+      "input": "file://**",
+      "expect": { "status": "ERROR", "reason": "RESOURCE_SCHEME_UNSUPPORTED", "field": "scheme" }
+    },
+    {
+      "id": "selector-uppercase-scheme",
+      "operation": "POLICY_SELECTOR",
+      "input": "Workspace://**",
+      "expect": { "status": "ERROR", "reason": "RESOURCE_SCHEME_UNSUPPORTED", "field": "scheme" }
+    },
+    {
+      "id": "selector-empty-pattern",
+      "operation": "POLICY_SELECTOR",
+      "input": "workspace://",
+      "expect": { "status": "ERROR", "reason": "RESOURCE_LOCATOR_INVALID", "field": "locatorPattern" }
+    },
+    {
+      "id": "selector-control-pattern",
+      "operation": "POLICY_SELECTOR",
+      "input": "workspace://line\nbreak",
+      "expect": { "status": "ERROR", "reason": "RESOURCE_LOCATOR_INVALID", "field": "locatorPattern" }
+    },
+    {
+      "id": "selector-pattern-over-limit",
+      "operation": "POLICY_SELECTOR",
+      "inputTemplate": {
+        "$concat": [
+          "external://",
+          { "$repeatCodePoint": { "value": "a", "count": 4097 } }
+        ]
+      },
+      "expect": { "status": "ERROR", "reason": "RESOURCE_LIMIT_EXCEEDED", "field": "locatorPattern" }
+    }
+  ],
+  "materialization": {
+    "repeatCodePoint": "Recursively replace an object whose only key is $repeatCodePoint with value repeated count times; value MUST contain exactly one Unicode code point.",
+    "concat": "Recursively replace an object whose only key is $concat with the concatenation of its materialized array elements; each materialized element MUST be a string.",
+    "scope": "Materialization belongs only to this test-fixture document. The resulting value, never the template vocabulary, is passed to the protocol operation."
+  }
+}

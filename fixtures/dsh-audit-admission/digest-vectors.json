@@ -1,0 +1,84 @@
+{
+  "profile": "M4-045_DSH_AUDIT_ADMISSION_V1",
+  "provenance": "Canonical envelope bytes are authored explicitly; SHA-256 expected values use Node crypto independently of the future audit encoder. These vectors are fixtures, not executed production conformance.",
+  "vectors": [
+    {
+      "id": "DAV-001",
+      "domain": "arguments/raw-string",
+      "input": "{\"token\":\"M4_045_SYNTHETIC_SECRET_CANARY\"}",
+      "canonicalEnvelope": "[\"M4-045_DSH_AUDIT_ADMISSION_V1\",\"arguments/raw-string\",\"{\\\"token\\\":\\\"M4_045_SYNTHETIC_SECRET_CANARY\\\"}\"]",
+      "expectedDigest": "sha256:62c76bef5ffa4b248264a188bf5404fb5f08d9205440e326961b66206260da87"
+    },
+    {
+      "id": "DAV-002",
+      "domain": "arguments/raw-string",
+      "input": "{ \"token\": \"M4_045_SYNTHETIC_SECRET_CANARY\" }",
+      "canonicalEnvelope": "[\"M4-045_DSH_AUDIT_ADMISSION_V1\",\"arguments/raw-string\",\"{ \\\"token\\\": \\\"M4_045_SYNTHETIC_SECRET_CANARY\\\" }\"]",
+      "expectedDigest": "sha256:3c4ff1e8e0c74bee3215454cb24a309884474e5916d859cbef62f685489f8b6e"
+    },
+    {
+      "id": "DAV-003",
+      "domain": "result/final-json",
+      "input": {
+        "z": "M4_045_SYNTHETIC_SECRET_CANARY",
+        "a": [
+          1,
+          true,
+          null
+        ]
+      },
+      "canonicalEnvelope": "[\"M4-045_DSH_AUDIT_ADMISSION_V1\",\"result/final-json\",{\"a\":[1,true,null],\"z\":\"M4_045_SYNTHETIC_SECRET_CANARY\"}]",
+      "expectedDigest": "sha256:404865b3e197e16e1a7392ebd46425db3bf05c1275b416d5c1e718d9c7c599a9"
+    },
+    {
+      "id": "DAV-004",
+      "domain": "identity/call",
+      "input": [
+        "session-a",
+        "same-ref"
+      ],
+      "canonicalEnvelope": "[\"M4-045_DSH_AUDIT_ADMISSION_V1\",\"identity/call\",[\"session-a\",\"same-ref\"]]",
+      "expectedDigest": "sha256:24d802ea1b15ddbeed60d903d44c0611b6321b213eab3ccd5840553515033eec"
+    },
+    {
+      "id": "DAV-005",
+      "domain": "identity/approval",
+      "input": [
+        "session-a",
+        "same-ref"
+      ],
+      "canonicalEnvelope": "[\"M4-045_DSH_AUDIT_ADMISSION_V1\",\"identity/approval\",[\"session-a\",\"same-ref\"]]",
+      "expectedDigest": "sha256:90ad1f5b066318628ea2521f1ea0b5cef677835a901180520f5c1c0758cce0e5"
+    },
+    {
+      "id": "DAV-006",
+      "domain": "identity/call",
+      "input": [
+        "session-b",
+        "same-ref"
+      ],
+      "canonicalEnvelope": "[\"M4-045_DSH_AUDIT_ADMISSION_V1\",\"identity/call\",[\"session-b\",\"same-ref\"]]",
+      "expectedDigest": "sha256:32678df0a6b64fbbe702cf8d2215b6f24f1b60d0844181a893dde8f93faec818"
+    },
+    {
+      "id": "DAV-007",
+      "domain": "metadata/tool-name",
+      "input": "工具/😀\n",
+      "canonicalEnvelope": "[\"M4-045_DSH_AUDIT_ADMISSION_V1\",\"metadata/tool-name\",\"工具/😀\\n\"]",
+      "expectedDigest": "sha256:f5a27e5a6e9d6cea62b90aaa7a74202fb7750e2a579c5d2831ef0ac79b809643"
+    },
+    {
+      "id": "DAV-008",
+      "domain": "failure/source-json",
+      "input": {
+        "code": "SYNTHETIC",
+        "data": {
+          "n": 0,
+          "ratio": 1e-7
+        }
+      },
+      "canonicalEnvelope": "[\"M4-045_DSH_AUDIT_ADMISSION_V1\",\"failure/source-json\",{\"code\":\"SYNTHETIC\",\"data\":{\"n\":0,\"ratio\":1e-7}}]",
+      "expectedDigest": "sha256:87eff1a385baf96b5fcb13ed27c8b7f98b04176280740d3d8af987a1bf82dfbc"
+    }
+  ]
+}

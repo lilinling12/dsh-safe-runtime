@@ -1,0 +1,299 @@
+{
+  "cases": [
+    {
+      "id": "initial-state-empty",
+      "operations": [
+        {
+          "op": "read",
+          "expect": { "status": "EMPTY", "epoch": 0 }
+        }
+      ]
+    },
+    {
+      "id": "first-valid-json-activation",
+      "operations": [
+        {
+          "op": "reload",
+          "request": {
+            "format": "JSON",
+            "source": "{\"apiVersion\":\"safe-runtime.dev/v1alpha1\",\"kind\":\"CapabilityPolicy\",\"metadata\":{\"name\":\"json-v1\"},\"spec\":{\"defaultEffect\":\"deny\",\"rules\":[{\"id\":\"read\",\"effect\":\"allow\",\"capabilities\":[\"fs.read\"],\"resources\":[\"workspace://src/**\"]}]}}"
+          },
+          "expect": { "status": "SWAPPED", "epoch": 1 }
+        },
+        {
+          "op": "read",
+          "expect": { "status": "ACTIVE", "epoch": 1, "activePolicyName": "json-v1" }
+        }
+      ]
+    },
+    {
+      "id": "first-valid-yaml-activation",
+      "operations": [
+        {
+          "op": "reload",
+          "request": {
+            "format": "YAML",
+            "source": "apiVersion: safe-runtime.dev/v1alpha1\nkind: CapabilityPolicy\nmetadata:\n  name: yaml-v1\nspec:\n  defaultEffect: deny\n  rules:\n    - id: read\n      effect: allow\n      capabilities: [fs.read]\n      resources: [workspace://src/**]\n"
+          },
+          "expect": { "status": "SWAPPED", "epoch": 1 }
+        },
+        {
+          "op": "read",
+          "expect": { "status": "ACTIVE", "epoch": 1, "activePolicyName": "yaml-v1" }
+        }
+      ]
+    },
+    {
+      "id": "second-valid-activation-swaps-epoch",
+      "operations": [
+        {
+          "op": "reload",
+          "request": {
+            "format": "JSON",
+            "source": "{\"apiVersion\":\"safe-runtime.dev/v1alpha1\",\"kind\":\"CapabilityPolicy\",\"metadata\":{\"name\":\"v1\"},\"spec\":{\"defaultEffect\":\"deny\",\"rules\":[]}}"
+          },
+          "expect": { "status": "SWAPPED", "epoch": 1 }
+        },
+        { "op": "capture", "handle": "old" },
+        {
+          "op": "reload",
+          "request": {
+            "format": "JSON",
+            "source": "{\"apiVersion\":\"safe-runtime.dev/v1alpha1\",\"kind\":\"CapabilityPolicy\",\"metadata\":{\"name\":\"v2\"},\"spec\":{\"defaultEffect\":\"deny\",\"rules\":[]}}"
+          },
+          "expect": { "status": "SWAPPED", "epoch": 2 }
+        },
+        {
+          "op": "read",
+          "expect": { "status": "ACTIVE", "epoch": 2, "activePolicyName": "v2" }
+        },
+        {
+          "op": "readCaptured",
+          "handle": "old",
+          "expect": { "status": "ACTIVE", "epoch": 1, "activePolicyName": "v1" }
+        }
+      ]
+    },
+    {
+      "id": "invalid-json-retains-last-known-good",
+      "operations": [
+        {
+          "op": "reload",
+          "request": {
+            "format": "JSON",
+            "source": "{\"apiVersion\":\"safe-runtime.dev/v1alpha1\",\"kind\":\"CapabilityPolicy\",\"metadata\":{\"name\":\"good\"},\"spec\":{\"defaultEffect\":\"deny\",\"rules\":[]}}"
+          },
+          "expect": { "status": "SWAPPED", "epoch": 1 }
+        },
+        {
+          "op": "reload",
+          "request": { "format": "JSON", "source": "{\"broken\":" },
+          "expect": {
+            "status": "RELOAD_REJECTED",
+            "stage": "LOAD",
+            "reasonCode": "POLICY_DOCUMENT_SYNTAX_INVALID"
+          }
+        },
+        {
+          "op": "read",
+          "expect": { "status": "ACTIVE", "epoch": 1, "activePolicyName": "good" }
+        }
+      ]
+    },
+    {
+      "id": "invalid-first-reload-keeps-empty",
+      "operations": [
+        {
+          "op": "reload",
+          "request": { "format": "JSON", "source": "not-json" },
+          "expect": {
+            "status": "RELOAD_REJECTED",
+            "stage": "LOAD",
+            "reasonCode": "POLICY_DOCUMENT_SYNTAX_INVALID"
+          }
+        },
+        {
+          "op": "read",
+          "expect": { "status": "EMPTY", "epoch": 0 }
+        }
+      ]
+    },
+    {
+      "id": "unsupported-format-preserves-loader-reason",
+      "operations": [
+        {
+          "op": "reload",
+          "request": { "format": "TOML", "source": "x = 1" },
+          "expect": {
+            "status": "RELOAD_REJECTED",
+            "stage": "LOAD",
+            "reasonCode": "POLICY_DOCUMENT_FORMAT_UNSUPPORTED"
+          }
+        },
+        { "op": "read", "expect": { "status": "EMPTY", "epoch": 0 } }
+      ]
+    },
+    {
+      "id": "schema-invalid-retains-active",
+      "operations": [
+        {
+          "op": "reload",
+          "request": {
+            "format": "JSON",
+            "source": "{\"apiVersion\":\"safe-runtime.dev/v1alpha1\",\"kind\":\"CapabilityPolicy\",\"metadata\":{\"name\":\"good\"},\"spec\":{\"defaultEffect\":\"deny\",\"rules\":[]}}"
+          },
+          "expect": { "status": "SWAPPED", "epoch": 1 }
+        },
+        {
+          "op": "reload",
+          "request": {
+            "format": "JSON",
+            "source": "{\"apiVersion\":\"safe-runtime.dev/v1alpha1\",\"kind\":\"CapabilityPolicy\",\"metadata\":{\"name\":\"bad\"},\"spec\":{\"rules\":[]}}"
+          },
+          "expect": {
+            "status": "RELOAD_REJECTED",
+            "stage": "SCHEMA",
+            "reasonCode": "POLICY_SCHEMA_INVALID",
+            "issueInstancePathIncludes": "/spec/defaultEffect"
+          }
+        },
+        {
+          "op": "read",
+          "expect": { "status": "ACTIVE", "epoch": 1, "activePolicyName": "good" }
+        }
+      ]
+    },
+    {
+      "id": "unsupported-resource-scheme-rejected-before-swap",
+      "operations": [
+        {
+          "op": "reload",
+          "request": {
+            "format": "JSON",
+            "source": "{\"apiVersion\":\"safe-runtime.dev/v1alpha1\",\"kind\":\"CapabilityPolicy\",\"metadata\":{\"name\":\"bad-resource\"},\"spec\":{\"defaultEffect\":\"deny\",\"rules\":[{\"id\":\"r\",\"effect\":\"allow\",\"capabilities\":[\"fs.read\"],\"resources\":[\"file://src/**\"]}]}}"
+          },
+          "expect": {
+            "status": "RELOAD_REJECTED",
+            "stage": "RESOURCE",
+            "reasonCode": "RESOURCE_SCHEME_UNSUPPORTED",
+            "instancePath": "/spec/rules/0/resources/0"
+          }
+        },
+        { "op": "read", "expect": { "status": "EMPTY", "epoch": 0 } }
+      ]
+    },
+    {
+      "id": "invalid-globstar-rejected-before-swap",
+      "operations": [
+        {
+          "op": "reload",
+          "request": {
+            "format": "JSON",
+            "source": "{\"apiVersion\":\"safe-runtime.dev/v1alpha1\",\"kind\":\"CapabilityPolicy\",\"metadata\":{\"name\":\"bad-pattern\"},\"spec\":{\"defaultEffect\":\"deny\",\"rules\":[{\"id\":\"r\",\"effect\":\"allow\",\"capabilities\":[\"fs.read\"],\"resources\":[\"workspace://foo/**bar\"]}]}}"
+          },
+          "expect": {
+            "status": "RELOAD_REJECTED",
+            "stage": "RESOURCE",
+            "reasonCode": "RESOURCE_PATTERN_SYNTAX_INVALID",
+            "instancePath": "/spec/rules/0/resources/0"
+          }
+        }
+      ]
+    },
+    {
+      "id": "first-source-order-resource-failure-wins",
+      "operations": [
+        {
+          "op": "reload",
+          "request": {
+            "format": "JSON",
+            "source": "{\"apiVersion\":\"safe-runtime.dev/v1alpha1\",\"kind\":\"CapabilityPolicy\",\"metadata\":{\"name\":\"two-bad\"},\"spec\":{\"defaultEffect\":\"deny\",\"rules\":[{\"id\":\"r0\",\"effect\":\"allow\",\"capabilities\":[\"fs.read\"],\"resources\":[\"Workspace://first\",\"workspace://foo/**bar\"]},{\"id\":\"r1\",\"effect\":\"allow\",\"capabilities\":[\"fs.read\"],\"resources\":[\"file://later\"]}]}}"
+          },
+          "expect": {
+            "status": "RELOAD_REJECTED",
+            "stage": "RESOURCE",
+            "reasonCode": "RESOURCE_SCHEME_UNSUPPORTED",
+            "instancePath": "/spec/rules/0/resources/0"
+          }
+        }
+      ]
+    },
+    {
+      "id": "duplicate-rule-id-warning-does-not-block-activation",
+      "operations": [
+        {
+          "op": "reload",
+          "request": {
+            "format": "JSON",
+            "source": "{\"apiVersion\":\"safe-runtime.dev/v1alpha1\",\"kind\":\"CapabilityPolicy\",\"metadata\":{\"name\":\"duplicate-warning\"},\"spec\":{\"defaultEffect\":\"deny\",\"rules\":[{\"id\":\"same\",\"effect\":\"allow\",\"capabilities\":[\"fs.read\"],\"resources\":[\"workspace://a\"]},{\"id\":\"same\",\"effect\":\"ask\",\"capabilities\":[\"fs.write\"],\"resources\":[\"workspace://b\"]}]}}"
+          },
+          "expect": { "status": "SWAPPED", "epoch": 1 }
+        }
+      ]
+    },
+    {
+      "id": "redundant-priority-warning-does-not-block-activation",
+      "operations": [
+        {
+          "op": "reload",
+          "request": {
+            "format": "JSON",
+            "source": "{\"apiVersion\":\"safe-runtime.dev/v1alpha1\",\"kind\":\"CapabilityPolicy\",\"metadata\":{\"name\":\"priority-warning\"},\"spec\":{\"defaultEffect\":\"deny\",\"rules\":[{\"id\":\"d\",\"effect\":\"deny\",\"capabilities\":[\"fs.write\"],\"resources\":[\"workspace://**\"],\"priority\":9}]}}"
+          },
+          "expect": { "status": "SWAPPED", "epoch": 1 }
+        }
+      ]
+    },
+    {
+      "id": "empty-rules-policy-can-activate",
+      "operations": [
+        {
+          "op": "reload",
+          "request": {
+            "format": "JSON",
+            "source": "{\"apiVersion\":\"safe-runtime.dev/v1alpha1\",\"kind\":\"CapabilityPolicy\",\"metadata\":{\"name\":\"empty\"},\"spec\":{\"defaultEffect\":\"deny\",\"rules\":[]}}"
+          },
+          "expect": { "status": "SWAPPED", "epoch": 1 }
+        }
+      ]
+    },
+    {
+      "id": "identical-content-explicit-reload-increments-epoch",
+      "operations": [
+        {
+          "op": "reload",
+          "request": {
+            "format": "JSON",
+            "source": "{\"apiVersion\":\"safe-runtime.dev/v1alpha1\",\"kind\":\"CapabilityPolicy\",\"metadata\":{\"name\":\"same-content\"},\"spec\":{\"defaultEffect\":\"deny\",\"rules\":[]}}"
+          },
+          "expect": { "status": "SWAPPED", "epoch": 1 }
+        },
+        {
+          "op": "reload",
+          "request": {
+            "format": "JSON",
+            "source": "{\"apiVersion\":\"safe-runtime.dev/v1alpha1\",\"kind\":\"CapabilityPolicy\",\"metadata\":{\"name\":\"same-content\"},\"spec\":{\"defaultEffect\":\"deny\",\"rules\":[]}}"
+          },
+          "expect": { "status": "SWAPPED", "epoch": 2 }
+        }
+      ]
+    },
+    {
+      "id": "future-pdp-fields-are-not-interpreted-during-reload",
+      "operations": [
+        {
+          "op": "reload",
+          "request": {
+            "format": "JSON",
+            "source": "{\"apiVersion\":\"safe-runtime.dev/v1alpha1\",\"kind\":\"CapabilityPolicy\",\"metadata\":{\"name\":\"future-fields\"},\"spec\":{\"defaultEffect\":\"deny\",\"rules\":[{\"id\":\"r\",\"effect\":\"allow\",\"capabilities\":[\"fs.read\"],\"resources\":[\"workspace://src/**\"],\"subjects\":[\"agent:example\"],\"constraints\":{\"future\":true},\"lease\":{\"ttlMs\":60000,\"maxUses\":1}}]}}"
+          },
+          "expect": { "status": "SWAPPED", "epoch": 1 }
+        },
+        {
+          "op": "read",
+          "expect": { "status": "ACTIVE", "epoch": 1, "activePolicyName": "future-fields" }
+        }
+      ]
+    }
+  ]
+}

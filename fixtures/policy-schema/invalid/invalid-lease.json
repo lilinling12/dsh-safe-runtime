@@ -1,0 +1,17 @@
+{
+  "apiVersion": "safe-runtime.dev/v1alpha1",
+  "kind": "CapabilityPolicy",
+  "metadata": { "name": "invalid-lease" },
+  "spec": {
+    "defaultEffect": "deny",
+    "rules": [
+      {
+        "id": "write",
+        "effect": "ask",
+        "capabilities": ["fs.write"],
+        "resources": ["workspace://src/**"],
+        "lease": { "ttlMs": 0 }
+      }
+    ]
+  }
+}

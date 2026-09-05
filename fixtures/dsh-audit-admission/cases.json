@@ -1,0 +1,300 @@
+{
+  "profile": "M4-045_DSH_AUDIT_ADMISSION_V1",
+  "status": "REQUIREMENT_CORPUS_NOT_EXECUTABLE_ACCEPTANCE",
+  "specification": "specs/0049-m4-dsh-audit-admission.md",
+  "pinnedHarness": {
+    "version": "0.1.0-rc.5",
+    "commit": "47f943859bef60e4160492346772ded9b24f765a"
+  },
+  "syntheticCanary": "M4_045_SYNTHETIC_SECRET_CANARY",
+  "cases": [
+    {
+      "id": "DAP-001",
+      "title": "Authority and channel ownership",
+      "requirement": "Core privacy rules remain authority; ordinary observe and native Harness logs are not audit-safe by construction.",
+      "evidence": "SOURCE_ARCHITECTURE",
+      "scenario": "Existing observer with synthetic raw metadata",
+      "expected": "No persistence-safety claim and no implicit audit forwarding"
+    },
+    {
+      "id": "DAP-002",
+      "title": "Owned egress",
+      "requirement": "The concrete observeAudit extension delivers only closed DshAuditEvent projections from accepted source seams; no raw RuntimeEvent/Receipt/sidecar import port.",
+      "evidence": "SOURCE_AND_PROJECTION",
+      "scenario": "Audit subscription receives a supported source lifecycle fact",
+      "expected": "Exactly one profile-tagged closed projection"
+    },
+    {
+      "id": "DAP-003",
+      "title": "Host digest isolation",
+      "requirement": "Audit never calls or trusts DshRc5AdapterOptions.digest, including digest-shaped canary output.",
+      "evidence": "REAL_RUNTIME",
+      "scenario": "Coexisting ordinary observer returns a synthetic canary digest; audit-only subscription is separately tested with a configured throwing ordinary digest",
+      "expected": "Audit computation remains owned; ordinary callback output never enters audit"
+    },
+    {
+      "id": "DAP-004",
+      "title": "All nine events",
+      "requirement": "Each of the nine event types has only the required/optional fields in Spec 0049 section 3.",
+      "evidence": "PROJECTION",
+      "scenario": "One valid source fixture per event type",
+      "expected": "Closed immutable projections; no unexpected keys"
+    },
+    {
+      "id": "DAP-005",
+      "title": "Raw arguments",
+      "requirement": "argumentsDigest covers the exact durable tool/call arguments string with the arguments/raw-string domain, without parsing it.",
+      "evidence": "PROJECTION_AND_REAL_RUNTIME",
+      "scenario": "Canary-bearing JSON text with alternative whitespace",
+      "expected": "No raw body; independent envelope digest matches; whitespace changes digest"
+    },
+    {
+      "id": "DAP-006",
+      "title": "Final authority",
+      "requirement": "resultDigest covers the whole final materialized tools/result value after all rewrites.",
+      "evidence": "REAL_RUNTIME",
+      "scenario": "Real agent-backed ToolRuntime with two result rewrites and canary final payload",
+      "expected": "Digest matches final value, differs from earlier candidates, and no raw payload"
+    },
+    {
+      "id": "DAP-007",
+      "title": "No digest substitution",
+      "requirement": "Earlier candidates, normalized events and precomputed digests cannot substitute for source result evidence.",
+      "evidence": "SOURCE_AND_PROJECTION",
+      "scenario": "Host supplies a valid-looking sha256 value unrelated to final result",
+      "expected": "Never reuse or hash it as result/final-json evidence"
+    },
+    {
+      "id": "DAP-008",
+      "title": "Failure source",
+      "requirement": "failureDigest covers the entire supported failure value; unsupported failures reject rather than produce a partial source digest.",
+      "evidence": "PROJECTION_AND_REAL_RUNTIME",
+      "scenario": "Supported canary-bearing pinned failure plus unsupported Error helper fixture",
+      "expected": "Supported complete source digest or atomic rejection; distinguish helper/runtime witnesses"
+    },
+    {
+      "id": "DAP-009",
+      "title": "Metadata strings",
+      "requirement": "All tool names, optional error codes and failure classes use their distinct owned metadata domains.",
+      "evidence": "PROJECTION",
+      "scenario": "Synthetic canary in every free-form metadata field",
+      "expected": "Only owned digests; no raw name/code/class"
+    },
+    {
+      "id": "DAP-010",
+      "title": "Identity strings",
+      "requirement": "Every event/session/turn/step/call/root-call/approval identity is substituted according to section 5.",
+      "evidence": "PROJECTION",
+      "scenario": "Synthetic canary in each source ref independently",
+      "expected": "No raw refs; independent identity-envelope digests"
+    },
+    {
+      "id": "DAP-011",
+      "title": "Preserve joins",
+      "requirement": "Within-session request/completion/approval correlation uses the same callKey and a root call uses the call identity domain.",
+      "evidence": "PROJECTION_AND_REAL_RUNTIME",
+      "scenario": "One requested/completed/approval sequence and explicit root-call source fixture",
+      "expected": "Actual shared identities join; absent root identity is not invented"
+    },
+    {
+      "id": "DAP-012",
+      "title": "Separate identity domains",
+      "requirement": "Different sessions and different identity domains are distinguished, without string-concatenation ambiguity.",
+      "evidence": "PROJECTION",
+      "scenario": "Same raw call ID across two sessions; same string as call and approval; delimiter-containing IDs",
+      "expected": "Distinct expected domain/session digests"
+    },
+    {
+      "id": "DAP-013",
+      "title": "Optional correlation",
+      "requirement": "Optional fields remain absent when missing; required identity cannot be fabricated to salvage a fact.",
+      "evidence": "PROJECTION",
+      "scenario": "Approval without callId and invalid required empty session/call reference",
+      "expected": "First is admitted without callKey; second is rejected"
+    },
+    {
+      "id": "DAP-014",
+      "title": "Control compatibility",
+      "requirement": "Policy/guard/approval raw inputs and ordinary RuntimeEvent meanings remain unchanged.",
+      "evidence": "REUSED_RUNTIME_AND_REAL_RUNTIME",
+      "scenario": "Canary in arguments needed by policy alongside audit observation",
+      "expected": "Original control value observed and accepted enforcement/approval outcomes preserved"
+    },
+    {
+      "id": "DAP-015",
+      "title": "Coexisting subscriptions",
+      "requirement": "Ordinary and multiple audit subscriptions preserve final classification without twice-consuming disposition state.",
+      "evidence": "REAL_RUNTIME",
+      "scenario": "Ordinary plus two audit subscribers on denied, cancelled and successful executions",
+      "expected": "All see consistent outcome and one final fact per subscription"
+    },
+    {
+      "id": "DAP-016",
+      "title": "Closed enums and time",
+      "requirement": "Enums are runtime checked and timestamps are reconstructed, never arbitrary source text.",
+      "evidence": "PROJECTION",
+      "scenario": "Unknown outcome/source, malformed clock string, valid epoch time",
+      "expected": "Invalid facts reject; valid UTC timestamp reconstructed"
+    },
+    {
+      "id": "DAP-017",
+      "title": "Unknown sensitive fields",
+      "requirement": "Bodies, environment, prompt, source, stdout/stderr, reason, stack/cause and extension properties are never forwarded.",
+      "evidence": "PROJECTION",
+      "scenario": "Canaries in extra source properties including nested bodies",
+      "expected": "Closed output keys only; required source evidence still digested exactly"
+    },
+    {
+      "id": "DAP-018",
+      "title": "Canonical vectors",
+      "requirement": "Owned SHA-256 uses the documented UTF-8 JCS domain envelope, including sorted object keys and exact array order.",
+      "evidence": "PROJECTION",
+      "scenario": "Independent vectors plus reordered object properties",
+      "expected": "Expected digests match; source is not mutated"
+    },
+    {
+      "id": "DAP-019",
+      "title": "Unicode and numeric encoding",
+      "requirement": "JCS preserves Unicode and ECMAScript numeric meaning; invalid Unicode and non-finite numbers reject.",
+      "evidence": "PROJECTION",
+      "scenario": "Non-ASCII names, control escapes, negative zero, exponent numbers, lone surrogate, NaN and Infinity",
+      "expected": "Independent valid vectors; invalid values rejected without coercion"
+    },
+    {
+      "id": "DAP-020",
+      "title": "Accessor and coercion rejection",
+      "requirement": "Own accessors, unsupported prototypes and source toJSON/toString are not invoked to make input admissible.",
+      "evidence": "PROJECTION",
+      "scenario": "Throwing/canary getter, Error/Date/class instance and toJSON function",
+      "expected": "Atomic unsupported rejection; accessor/coercion side-effect counters remain zero"
+    },
+    {
+      "id": "DAP-021",
+      "title": "Structural invalidity",
+      "requirement": "Cycles, symbols, sparse/extended arrays, undefined, bigint and functions cannot be silently omitted or converted.",
+      "evidence": "PROJECTION",
+      "scenario": "Each unsupported shape separately, including revoked/throwing Proxy inspection",
+      "expected": "Fixed unsupported diagnostic with no raw thrown payload"
+    },
+    {
+      "id": "DAP-022",
+      "title": "Encoding limits",
+      "requirement": "Inclusive depth 64, values 65536 and encoded bytes 1048576 apply per D invocation with no caller override or truncation.",
+      "evidence": "PROJECTION",
+      "scenario": "Boundary and boundary-plus-one fixtures for each limit",
+      "expected": "Boundary accepted when otherwise valid; overflow rejects whole event"
+    },
+    {
+      "id": "DAP-023",
+      "title": "Atomic projection",
+      "requirement": "Projection failure delivers no partially constructed record, raw fallback or misleading source digest.",
+      "evidence": "PROJECTION",
+      "scenario": "A later required digest fails after earlier metadata digests succeeded",
+      "expected": "Zero sink calls for the failed fact; rejection count increments"
+    },
+    {
+      "id": "DAP-024",
+      "title": "Safe diagnostics",
+      "requirement": "Audit diagnostics are fixed codes only and never inspect/serialize caught errors or use raw onObservationFailure.",
+      "evidence": "PROJECTION_AND_REAL_RUNTIME",
+      "scenario": "Canary string/Error/hostile toString thrown at projection/hash/sink boundaries",
+      "expected": "No canary/raw error callback; fixed closed diagnostic and INCOMPLETE"
+    },
+    {
+      "id": "DAP-025",
+      "title": "Ordered delivery",
+      "requirement": "Audit delivery is ordered per subscription without automatic retry, and later success cannot erase prior failure.",
+      "evidence": "PROJECTION",
+      "scenario": "Delayed accept, one rejection, then a successful fact",
+      "expected": "Ordered single attempts; correct delivered/failed counts; sticky INCOMPLETE"
+    },
+    {
+      "id": "DAP-026",
+      "title": "Drain and dispose",
+      "requirement": "Drain covers prior capture; dispose detaches then drains and is idempotent, returning immutable safe summaries.",
+      "evidence": "PROJECTION",
+      "scenario": "Pending sink delivery, drain, repeated dispose and later source fact",
+      "expected": "Prior work settles once; no post-dispose capture; safe stable snapshots"
+    },
+    {
+      "id": "DAP-027",
+      "title": "Capacity and counter limits",
+      "requirement": "Outstanding events are bounded to 1024; counters saturate safely and exhaustion stops capture with explicit inexact status.",
+      "evidence": "PROJECTION",
+      "scenario": "1024 outstanding plus one; internal counter boundary fixture near MAX_SAFE_INTEGER",
+      "expected": "Explicit limit rejection; no wrap or silent loss; countsExact=false on saturation"
+    },
+    {
+      "id": "DAP-028",
+      "title": "Unsupported input is not success",
+      "requirement": "Unsupported required source representation yields INCOMPLETE without altering execution policy or final tool success.",
+      "evidence": "REAL_RUNTIME_AND_PROJECTION",
+      "scenario": "Successful tool with an audit projection fault; separate supported normal path",
+      "expected": "Tool outcome preserved; failed audit not reported COMPLETE"
+    },
+    {
+      "id": "DAP-029",
+      "title": "No replay or sidecar laundering",
+      "requirement": "Replay and sidecar construction remain distinct privileged channels without a new audit ingress or persistence permission.",
+      "evidence": "SOURCE_AND_REUSED_RUNTIME",
+      "scenario": "Existing replay and sidecar with opaque canary refs/digest and process-local token",
+      "expected": "Accepted existing correlation/token-omission contract unchanged; no automatic audit-safe forwarding"
+    },
+    {
+      "id": "DAP-030",
+      "title": "Receipt boundary",
+      "requirement": "Decision/Receipt construction remains construction-only and schema validity cannot authorize persistence.",
+      "evidence": "SOURCE_AND_REUSED_RUNTIME",
+      "scenario": "Existing record constructor receives a bounded canary-bearing ref",
+      "expected": "No automatic persistence or audit-safety classification; Core redaction requirement remains"
+    },
+    {
+      "id": "DAP-031",
+      "title": "Retention boundary",
+      "requirement": "No secrets/rawPrompt/environment opt-in, general detector or M5 ledger/storage/TTL/export capability is added.",
+      "evidence": "SOURCE_ARCHITECTURE",
+      "scenario": "Compare dependencies, schema baselines and production entry points",
+      "expected": "Owning milestones and existing false retention flags unchanged"
+    },
+    {
+      "id": "DAP-032",
+      "title": "Native raw history",
+      "requirement": "The profile does not redact or relabel native Harness session history and does not claim host isolation.",
+      "evidence": "PINNED_SOURCE_AND_REAL_RUNTIME",
+      "scenario": "Native canary tool/call record and its separate audit projection",
+      "expected": "Native history remains identified as privileged source; emitted audit is minimized"
+    },
+    {
+      "id": "DAP-033",
+      "title": "Cryptographic trust limits",
+      "requirement": "Digest syntax, field omission and canary absence alone do not prove privacy; privileged host and low-entropy guessing limits are explicit.",
+      "evidence": "SOURCE_ARCHITECTURE",
+      "scenario": "Review product-facing claims and trust premises",
+      "expected": "Only bounded owned-egress guarantee; no sandbox/encryption/confidentiality overclaim"
+    },
+    {
+      "id": "DAP-034",
+      "title": "Schema and API compatibility",
+      "requirement": "Adapter-only audit type does not alter existing portable schemas, RuntimeEvent refs or observation subscription signatures.",
+      "evidence": "SOURCE_AND_TYPECHECK",
+      "scenario": "Compile existing ordinary consumers and new extension contract; compare schema hashes",
+      "expected": "Existing consumers compile unchanged; no portable persisted-record claim"
+    },
+    {
+      "id": "DAP-035",
+      "title": "Evidence quality",
+      "requirement": "Every corpus case maps to executable or reviewed source evidence, and real pinned tests cannot be replaced by helper mocks.",
+      "evidence": "ACCEPTANCE_AUDIT",
+      "scenario": "Trace DAP IDs through final tests/source witnesses and exact Harness SHA",
+      "expected": "No unmapped cases, fabricated runtime shapes or canary-only universal proof"
+    },
+    {
+      "id": "DAP-036",
+      "title": "Gate sequence",
+      "requirement": "Protocol/TCK precedes production; final conformance, acceptance and governance require exact-head dual-green before closing M4-045.",
+      "evidence": "GOVERNANCE",
+      "scenario": "Check commit ancestry, Actions step 10/11 evidence, roadmap and Draft PR state",
+      "expected": "Gate remains unchecked until accepted; no M4-050/M5 implementation or merge in candidate"
+    }
+  ]
+}
