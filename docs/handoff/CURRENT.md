@@ -5,7 +5,7 @@
 
 ## Snapshot
 
-- Recorded at: `2026-09-05`
+- Recorded at: `2026-09-06`
 - Repository: `lilinling12/dsh-safe-runtime`
 - Phase: `M4 — Capability Broker v0.1`
 - Active PR: `#3 — feat(policy): begin M4 capability broker`
@@ -20,12 +20,41 @@
 - M4-042: **GOVERNANCE CLOSED**
 - M4-043 authoritative `tools/result`: **GOVERNANCE CLOSED**
 - M4-044 no duplicate approval subsystem: **GOVERNANCE CLOSED**
-- M4-045 audit redaction: **ACTIVE / EVIDENCE RECOVERED / PROTOCOL-FIRST DESIGN**
+- M4-045 audit redaction: **ACTIVE / PROTOCOL-FIRST CANDIDATE / NOT IMPLEMENTED**
 - M4-046+: **NOT AUTHORIZED by this Gate**
 - M4-050+, M5, M6, M10, M13, M15: **NOT AUTHORIZED by the current Gate**
 - PR #3 merge: **NOT AUTHORIZED without explicit user authorization**
 
 Live GitHub state overrides this snapshot.
+
+## M4-045 current protocol-first candidate
+
+- Rationale: `rfcs/0002-adapter-audit-admission.md` (PROPOSED).
+- Candidate: `specs/0049-m4-dsh-audit-admission.md`.
+- Corpus: `fixtures/dsh-audit-admission/cases.json`, DAP-001..036.
+- Independent authored digest vectors: `fixtures/dsh-audit-admission/digest-vectors.json`, DAV-001..008.
+- Profile: `M4-045_DSH_AUDIT_ADMISSION_V1`.
+- Reviewed parent: `26c8db7762e9dea4b4670958e2ac1e4869c38964`.
+- Parent CI #618 / `33990474050`: PASS.
+- Parent Harness #560 / `33990474039`: PASS; job `101371683219`, steps 10/11 PASS.
+- PR #3 remains Open / Draft / mergeable; base unchanged; reviews/threads empty.
+
+The candidate specifies a separate concrete Adapter observeAudit extension with
+owned source digests, closed output fields, session-scoped identity digests,
+fixed safe diagnostics and explicit incomplete delivery. Ordinary RuntimeEvent,
+policy/approval/replay and portable Schema semantics remain unchanged. No caller
+Digest callback, digest-shaped value or Receipt constructor grants audit admission.
+RFC 0002 records alternatives and the limits of hash substitution and host trust.
+
+This is a requirement corpus, not executable privacy acceptance. No production,
+executable TCK, schema, dependency, lockfile, workflow or roadmap acceptance change
+is included. This candidate head needs its own exact-head dual-green before
+proceeding. Next: executable projection/canonical-vector and pinned runtime TCK
+for this contract before the minimum implementation, then acceptance/governance.
+M4-045 stays unchecked. M4-050+, M5 implementation and PR merge remain unauthorized.
+
+The evidence-recovery section below is preserved as predecessor context; this
+candidate section is now the operational continuation point.
 
 ## M4-045 current evidence recovery
 

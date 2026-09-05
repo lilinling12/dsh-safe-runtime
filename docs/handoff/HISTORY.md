@@ -2533,3 +2533,22 @@ Evidence-recovery head `f10fc5176d49d8b7bb5c2bacc02cc678f408ea17` passes
 CI #617 / 33975036165 and Harness #559 / 33975036169. Harness job 101330128317
 passes pinned-source step 10 and real rc5 runtime step 11. Only protocol-first
 design is next; this records no M4-045 implementation or acceptance.
+
+## 2026-09-06 — Propose M4-045 owned Adapter audit admission
+
+Reviewed parent `26c8db7762e9dea4b4670958e2ac1e4869c38964` passes CI #618 /
+33990474050 and Harness #560 / 33990474039. Harness job 101371683219 passes
+steps 10/11. PR #3 remains Open / Draft / mergeable on the unchanged main base;
+reviews and review threads are empty at recovery.
+
+RFC 0002 and candidate Spec 0049 define separate concrete observeAudit delivery,
+owned source-domain hashing, closed field projection, identity substitution,
+explicit limits and fail-closed admission with safe incomplete-delivery summaries.
+Requirement corpus DAP-001..036 and authored digest vectors DAV-001..008 distinguish
+projection, source review and real pinned-runtime witnesses. Ordinary APIs and portable
+schemas remain unchanged. M5 detector, ledger/storage and retention work is excluded.
+
+This protocol-first candidate is not implemented or accepted. Its own exact-head
+CI and pinned Harness results must be checked before executable TCK/implementation
+work. No roadmap marker or PR merge authorization changes. Prior HISTORY bytes
+are preserved; this entry records the candidate deliverable only.
