@@ -2552,3 +2552,13 @@ This protocol-first candidate is not implemented or accepted. Its own exact-head
 CI and pinned Harness results must be checked before executable TCK/implementation
 work. No roadmap marker or PR merge authorization changes. Prior HISTORY bytes
 are preserved; this entry records the candidate deliverable only.
+
+## 2026-09-06 — Verify M4-045 protocol-first candidate
+
+Candidate `d2cbba3e5b09a4fa326f8e5b386c3bae5a448180` passes CI #619 /
+33992185188 and Harness #561 / 33992185156. Harness job 101376265061 passes
+steps 10/11. Local checks validate 36 requirement IDs, eight authored digest
+vectors and the exact prior HISTORY byte prefix. The six-file candidate changes
+no production, executable TCK, schema, dependency, workflow or roadmap marker.
+This verifies the candidate baseline, not implementation or privacy acceptance.
+Next work is executable contract/TCK coverage before the minimum owned audit path.

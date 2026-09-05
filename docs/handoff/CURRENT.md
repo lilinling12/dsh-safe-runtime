@@ -20,7 +20,7 @@
 - M4-042: **GOVERNANCE CLOSED**
 - M4-043 authoritative `tools/result`: **GOVERNANCE CLOSED**
 - M4-044 no duplicate approval subsystem: **GOVERNANCE CLOSED**
-- M4-045 audit redaction: **ACTIVE / PROTOCOL-FIRST CANDIDATE / NOT IMPLEMENTED**
+- M4-045 audit redaction: **ACTIVE / CANDIDATE DUAL-GREEN / NOT IMPLEMENTED**
 - M4-046+: **NOT AUTHORIZED by this Gate**
 - M4-050+, M5, M6, M10, M13, M15: **NOT AUTHORIZED by the current Gate**
 - PR #3 merge: **NOT AUTHORIZED without explicit user authorization**
@@ -48,8 +48,11 @@ RFC 0002 records alternatives and the limits of hash substitution and host trust
 
 This is a requirement corpus, not executable privacy acceptance. No production,
 executable TCK, schema, dependency, lockfile, workflow or roadmap acceptance change
-is included. This candidate head needs its own exact-head dual-green before
-proceeding. Next: executable projection/canonical-vector and pinned runtime TCK
+is included. Candidate head `d2cbba3e5b09a4fa326f8e5b386c3bae5a448180` passes
+CI #619 / `33992185188` and Harness #561 / `33992185156`; Harness job
+`101376265061` passes step 10 pinned-source typecheck and step 11 real runtime.
+This verifies predecessor regression compatibility, not new privacy conformance.
+Next: executable projection/canonical-vector and pinned runtime TCK
 for this contract before the minimum implementation, then acceptance/governance.
 M4-045 stays unchecked. M4-050+, M5 implementation and PR merge remain unauthorized.
 
