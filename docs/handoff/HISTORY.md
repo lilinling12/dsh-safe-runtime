@@ -2457,3 +2457,42 @@ append-only HISTORY and only the M4-043 roadmap acceptance marker/details. The
 resulting exact head must itself reach normal CI + exact pinned Harness rc5
 source-conformance dual-green before M4-043 governance is CLOSED and M4-044 P0
 no duplicate approval subsystem becomes the sole newly authorized Gate.
+
+## 2026-09-05 — Accept M4-044 approval subsystem uniqueness
+
+Protocol-first head `ff7bb64e9bf51c9687598476f52414dd0d964a39` passed
+CI #609 / 33883718218 and Harness #551 / 33883718205 before conformance work.
+
+Harness #552 at 869151d failed pinned-source typecheck with four TS2339
+diagnostics: a conformance helper erased SessionEvent payload typing.
+The test-only correction a18d446 preserved native event discrimination and all
+assertions; CI #611 / Harness #553 passed. Review then corrected DAU-012..023
+evidence labels and added same-request ID pairing plus explicit-approval
+no-second-pre-execute assertions. No production lifecycle defect was found.
+
+Reviewed conformance head `333ac1213c4e4b5f416b7c60497900fe2c2f7a9a`
+passed CI #613 / 33930456673 and Harness #555 / 33930456658, including step 10
+pinned-source typecheck and step 11 real rc5 runtime (21 files / 105 tests).
+Its net delta from protocol-first contains exactly two conformance files,
++252/-0, with no production, Spec/corpus, schema, dependency or workflow change.
+
+The ownership audit finds no second production approval orchestrator.
+Capability Broker calls one supplied port; Adapter native ASK and its explicit
+requestApproval entry point use the same Harness ApprovalService. One native
+execution yields one request and one correlated pair; only a deliberate later
+explicit invocation adds a second request/pair without another ToolRuntime entry.
+Native IDs remain service-owned; observation maps only correlate evidence.
+Testkit approval state remains test-only.
+
+Acceptance audit `docs/acceptance/m4-044-acceptance-audit.md` was published at
+`ab00b2be8aac3201ab4d20fe686173089d663155`. That audit-only head passed
+CI #614 / 33930612203 and Harness #556 / 33930612213, including steps 10 and 11.
+PR #3 remains Open / Draft / mergeable, base unchanged, with no reviews or
+review threads at reconciliation.
+
+This governance change is restricted to CURRENT, append-only HISTORY and only
+the M4-044 roadmap marker. Its final exact head requires its own dual-green
+before governance closure and M4-045 protocol-first authorization.
+No complete mediation, effect success/rollback, isolation, durable exactly-once
+approval, raw audit-data secrecy or arbitrary-caller deduplication is claimed.
+M4-045 implementation, later Gates and PR merge remain outside this change.
