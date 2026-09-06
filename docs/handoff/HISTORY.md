@@ -2591,3 +2591,21 @@ lint reports three warnings in unchanged existing tests; added files have none.
 The eight-file delta contains only test infrastructure and review/handoff records.
 M4-045 remains unimplemented/unaccepted; owned-encoder and audit integration
 tests must be bound before their production changes. No later Gate or merge is granted.
+
+## 2026-09-06 — Implement the M4-045 owned bounded source encoder
+
+Baseline 039b556c passes CI #622 / 34028811994 and Harness #564 / 34028812006.
+Production-bound tests first failed because the encoder module was absent. The
+new private module now passes 18 producer tests with the existing DAV/DAL/DAI
+fixtures, additional canonical/Unicode assertions and safe hash-failure tests.
+The prior oracle suite adds 27 passing tests; the pinned-config encoder/corpus
+suites add 13 local passes. Strict production/new-test checks, focused lint and
+pinned frozen installation pass. No behavioral red-test count is inferred from
+the initial missing-module load failure.
+
+Node crypto is the owned hash implementation. Fixed development-only Node types
+and their transitive type package are added without upgrading existing versions
+or changing strict flags. Spec status now records implementation in progress;
+no normative behavior, portable Schema, workflow or roadmap marker changes.
+This exact head still needs CI and pinned Harness verification. Audit projection,
+source provenance, delivery and Gate acceptance remain pending; PR stays Draft.

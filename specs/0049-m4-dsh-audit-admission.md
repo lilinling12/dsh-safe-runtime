@@ -1,6 +1,6 @@
 # M4-045 — Adapter Audit Admission Contract
 
-Status: **DRAFT NORMATIVE CANDIDATE — NOT IMPLEMENTED OR ACCEPTED**  
+Status: **DRAFT NORMATIVE SPECIFICATION — IMPLEMENTATION IN PROGRESS / NOT ACCEPTED**
 Milestone: `M4 — Capability Broker v0.1`  
 Gate: `M4-045 P0 — no raw secret in audit`  
 Profile: `M4-045_DSH_AUDIT_ADMISSION_V1`  

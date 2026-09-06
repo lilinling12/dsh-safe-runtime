@@ -20,12 +20,35 @@
 - M4-042: **GOVERNANCE CLOSED**
 - M4-043 authoritative `tools/result`: **GOVERNANCE CLOSED**
 - M4-044 no duplicate approval subsystem: **GOVERNANCE CLOSED**
-- M4-045 audit redaction: **ACTIVE / TCK PREPARATION DUAL-GREEN / NOT IMPLEMENTED**
+- M4-045 audit redaction: **ACTIVE / OWNED ENCODER IMPLEMENTED / AUDIT EGRESS PENDING**
 - M4-046+: **NOT AUTHORIZED by this Gate**
 - M4-050+, M5, M6, M10, M13, M15: **NOT AUTHORIZED by the current Gate**
 - PR #3 merge: **NOT AUTHORIZED without explicit user authorization**
 
 Live GitHub state overrides this snapshot.
+
+## M4-045 current owned encoder implementation
+
+Review: `docs/review-notes-m4-045-audit-digest.md` (partial implementation).
+Baseline `039b556ce95db25a96afecab6794828cb1958ba4` passed CI #622 /
+`34028811994` and Harness #564 / `34028812006`, including step 10/11.
+
+The private audit-digest module synchronously canonicalizes the specified source
+domain under fixed depth/value/UTF-8 byte bounds and invokes Node built-in SHA-256.
+Unsupported input, limit and hash failures return fixed codes with no raw fallback.
+Source provenance and safe audit event delivery are still unimplemented.
+
+New production-bound tests first failed on the missing module, then pass against
+the implementation. Local: 18 producer tests plus 27 prior oracle tests PASS;
+10 new encoder conformance tests plus three corpus tests PASS. Production and
+new-test strict typechecks, focused lint and pinned frozen installation PASS.
+Development-only @types/node@22.19.0 and transitive undici-types@6.21.0 are added;
+no runtime dependency or existing package-version upgrade. Strict flags stay intact.
+
+This implementation head requires its own normal CI and pinned-source/runtime
+verification. Next: event projection and observeAudit delivery tests before their
+implementation. M4-045 remains unaccepted; no roadmap marker, later Gate or merge
+authorization changes. Predecessor sections below describe earlier states.
 
 ## M4-045 current executable TCK preparation
 
