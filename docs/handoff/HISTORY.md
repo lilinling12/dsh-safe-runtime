@@ -2580,3 +2580,14 @@ Its remote strict source typecheck/runtime still requires exact-head verificatio
 This is test preparation, not an implemented audit producer or privacy acceptance.
 No skipped producer tests, fake producer, production source, Schema, dependency,
 workflow or roadmap acceptance changes. Prior HISTORY bytes remain intact.
+
+## 2026-09-06 — Verify executable M4-045 TCK preparation
+
+Preparation head `b434813a06588028af6650715cf4932bdddf1045` passes CI #621 /
+34028600048 (68 files / 1,337 tests) and Harness #563 / 34028600142 (23 files /
+109 tests). Harness job 101473928632 passes step 10 strict source typecheck and
+step 11 real runtime, including the new source-prerequisite test. Full-repository
+lint reports three warnings in unchanged existing tests; added files have none.
+The eight-file delta contains only test infrastructure and review/handoff records.
+M4-045 remains unimplemented/unaccepted; owned-encoder and audit integration
+tests must be bound before their production changes. No later Gate or merge is granted.

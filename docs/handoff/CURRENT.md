@@ -20,7 +20,7 @@
 - M4-042: **GOVERNANCE CLOSED**
 - M4-043 authoritative `tools/result`: **GOVERNANCE CLOSED**
 - M4-044 no duplicate approval subsystem: **GOVERNANCE CLOSED**
-- M4-045 audit redaction: **ACTIVE / EXECUTABLE TCK PREPARATION / NOT IMPLEMENTED**
+- M4-045 audit redaction: **ACTIVE / TCK PREPARATION DUAL-GREEN / NOT IMPLEMENTED**
 - M4-046+: **NOT AUTHORIZED by this Gate**
 - M4-050+, M5, M6, M10, M13, M15: **NOT AUTHORIZED by the current Gate**
 - PR #3 merge: **NOT AUTHORIZED without explicit user authorization**
@@ -43,8 +43,12 @@ the exact native request and final materialized result while demonstrating that
 ordinary observation remains a privileged channel. No fake audit producer is used.
 
 Local: 27 oracle tests and three corpus traceability tests PASS; strict TypeScript
-for the runtime-independent support/tests and focused lint PASS. Real source
-typecheck/runtime must be verified remotely on this exact preparation head.
+for the runtime-independent support/tests and focused lint PASS. Preparation head
+`b434813a06588028af6650715cf4932bdddf1045` passes CI #621 / `34028600048`
+(68 files / 1,337 tests) and Harness #563 / `34028600142` (23 files / 109 tests).
+Harness job `101473928632` passes strict source typecheck step 10 and real runtime
+step 11, including the new source-prerequisite test. The three full-repository
+lint warnings are in unchanged predecessor tests; the added files have none.
 These checks do not establish production privacy or close any DAP requirement.
 
 Next: bind executable failing tests to the owned encoder/projection, implement
