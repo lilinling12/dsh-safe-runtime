@@ -2562,3 +2562,21 @@ vectors and the exact prior HISTORY byte prefix. The six-file candidate changes
 no production, executable TCK, schema, dependency, workflow or roadmap marker.
 This verifies the candidate baseline, not implementation or privacy acceptance.
 Next work is executable contract/TCK coverage before the minimum owned audit path.
+
+## 2026-09-06 — Prepare executable M4-045 contract oracles and source prerequisites
+
+Parent e8b85751 passes CI #620 / 33992362846 and Harness #562 / 33992362836,
+including job 101376734316 steps 10/11. The new test-only output oracles compare
+closed immutable observations and safe delivery summaries with independent
+expectations. Tests deliberately reject raw-field leaks, incorrect digest-shaped
+values, invalid diagnostics and false COMPLETE. DAL/DAI generators freeze encoder
+boundaries and unsupported input cases; DAV hashes are independently rechecked.
+
+Local oracle tests 27 PASS, corpus traceability tests 3 PASS, strict independent
+support/test typecheck and focused lint PASS. A new genuine pinned ToolRuntime
+test captures raw request/control input and the exact final result after rewriting.
+Its remote strict source typecheck/runtime still requires exact-head verification.
+
+This is test preparation, not an implemented audit producer or privacy acceptance.
+No skipped producer tests, fake producer, production source, Schema, dependency,
+workflow or roadmap acceptance changes. Prior HISTORY bytes remain intact.

@@ -20,12 +20,39 @@
 - M4-042: **GOVERNANCE CLOSED**
 - M4-043 authoritative `tools/result`: **GOVERNANCE CLOSED**
 - M4-044 no duplicate approval subsystem: **GOVERNANCE CLOSED**
-- M4-045 audit redaction: **ACTIVE / CANDIDATE DUAL-GREEN / NOT IMPLEMENTED**
+- M4-045 audit redaction: **ACTIVE / EXECUTABLE TCK PREPARATION / NOT IMPLEMENTED**
 - M4-046+: **NOT AUTHORIZED by this Gate**
 - M4-050+, M5, M6, M10, M13, M15: **NOT AUTHORIZED by the current Gate**
 - PR #3 merge: **NOT AUTHORIZED without explicit user authorization**
 
 Live GitHub state overrides this snapshot.
+
+## M4-045 current executable TCK preparation
+
+Review: `docs/review-notes-m4-045-tck-preparation.md` (not acceptance).
+Baseline `e8b85751a4fe2333248f03f9afc44e4b094faf76` passes CI #620 /
+`33992362846` and Harness #562 / `33992362836`; job `101376734316`,
+steps 10/11 PASS. PR #3 is still Open / Draft / mergeable with unchanged base
+and no reviews/review threads at recovery.
+
+New test-only audit event/summary assertions reject malformed output, extra raw
+fields, wrong expected digests and false success. DAV vectors are checked using
+Web Crypto against previously authored hashes. DAL boundary cases and DAI invalid
+input cases are ready for the future encoder. The real pinned source test captures
+the exact native request and final materialized result while demonstrating that
+ordinary observation remains a privileged channel. No fake audit producer is used.
+
+Local: 27 oracle tests and three corpus traceability tests PASS; strict TypeScript
+for the runtime-independent support/tests and focused lint PASS. Real source
+typecheck/runtime must be verified remotely on this exact preparation head.
+These checks do not establish production privacy or close any DAP requirement.
+
+Next: bind executable failing tests to the owned encoder/projection, implement
+the minimum path, then add actual observeAudit integration/delivery witnesses.
+No production, portable Schema, dependency, workflow or roadmap marker change.
+M4-045 is not accepted; later Gates and PR merge remain outside this step.
+
+The following candidate and evidence-recovery sections are predecessor context.
 
 ## M4-045 current protocol-first candidate
 
