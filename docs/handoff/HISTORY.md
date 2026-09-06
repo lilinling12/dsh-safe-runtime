@@ -2609,3 +2609,14 @@ or changing strict flags. Spec status now records implementation in progress;
 no normative behavior, portable Schema, workflow or roadmap marker changes.
 This exact head still needs CI and pinned Harness verification. Audit projection,
 source provenance, delivery and Gate acceptance remain pending; PR stays Draft.
+
+## 2026-09-06 — Verify the M4-045 owned encoder implementation
+
+Encoder `2ef4e81e289d9fc7f538067096311816498e668c` passes CI #623 /
+34035204227 (69 files / 1,355 tests) and Harness #565 / 34035204228 (24 files /
+119 tests). Harness job 101491886479 passes strict pinned-source step 10 and real
+runtime step 11, including 10 owned encoder conformance tests. Schema shape,
+compatibility baseline and architecture remain green. The ordinary CI includes
+18 new production encoder tests; its three lint warnings are in prior tests.
+The verified module is a private digest primitive. Audit projection/observeAudit,
+source provenance, delivery and M4-045 acceptance remain pending.

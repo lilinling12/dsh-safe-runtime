@@ -20,7 +20,7 @@
 - M4-042: **GOVERNANCE CLOSED**
 - M4-043 authoritative `tools/result`: **GOVERNANCE CLOSED**
 - M4-044 no duplicate approval subsystem: **GOVERNANCE CLOSED**
-- M4-045 audit redaction: **ACTIVE / OWNED ENCODER IMPLEMENTED / AUDIT EGRESS PENDING**
+- M4-045 audit redaction: **ACTIVE / OWNED ENCODER DUAL-GREEN / AUDIT EGRESS PENDING**
 - M4-046+: **NOT AUTHORIZED by this Gate**
 - M4-050+, M5, M6, M10, M13, M15: **NOT AUTHORIZED by the current Gate**
 - PR #3 merge: **NOT AUTHORIZED without explicit user authorization**
@@ -45,8 +45,12 @@ new-test strict typechecks, focused lint and pinned frozen installation PASS.
 Development-only @types/node@22.19.0 and transitive undici-types@6.21.0 are added;
 no runtime dependency or existing package-version upgrade. Strict flags stay intact.
 
-This implementation head requires its own normal CI and pinned-source/runtime
-verification. Next: event projection and observeAudit delivery tests before their
+Encoder head `2ef4e81e289d9fc7f538067096311816498e668c` passes CI #623 /
+`34035204227` (69 files / 1,355 tests) and Harness #565 / `34035204228`
+(24 files / 119 tests). Harness job `101491886479` passes steps 10/11, including
+10 new encoder conformance tests. Existing Schema/architecture checks remain green.
+This establishes encoder conformance, not completed audit egress or Gate acceptance.
+Next: event projection and observeAudit delivery tests before their
 implementation. M4-045 remains unaccepted; no roadmap marker, later Gate or merge
 authorization changes. Predecessor sections below describe earlier states.
 
