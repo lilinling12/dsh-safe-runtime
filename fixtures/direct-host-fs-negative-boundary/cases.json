@@ -1,0 +1,129 @@
+{
+  "profile": "M4-050_DIRECT_HOST_FS_NEGATIVE_BOUNDARY_V1",
+  "pinnedHarness": {
+    "version": "0.1.0-rc.5",
+    "commit": "47f943859bef60e4160492346772ded9b24f765a"
+  },
+  "cases": [
+    {
+      "id": "DHFS-001",
+      "requirement": "M4-050 preserves the accepted M4-041 non-claim that a reached ToolRuntime hard guard does not prove complete mediation and does not govern direct Node filesystem access.",
+      "evidence": "REUSED_M4_041_AUTHORITY"
+    },
+    {
+      "id": "DHFS-002",
+      "requirement": "The measured actor is host-privileged in-process code using a direct host filesystem API outside Harness ToolRuntime rather than a Harness tool, Adapter filesystem port, shell or subprocess.",
+      "evidence": "SOURCE_CONTRACT_AND_REAL_RUNTIME"
+    },
+    {
+      "id": "DHFS-003",
+      "requirement": "The measured target is an isolated test-owned disposable temporary path and the sentinel file is absent before the measured mutation.",
+      "evidence": "REAL_RUNTIME"
+    },
+    {
+      "id": "DHFS-004",
+      "requirement": "The measured payload is fixed synthetic non-secret data; M4-050 does not require reading or modifying real credentials, user secrets or production files.",
+      "evidence": "SECURITY_FIXTURE_CONTRACT"
+    },
+    {
+      "id": "DHFS-005",
+      "requirement": "In a supported reference environment, the direct host filesystem mutation succeeds and the sentinel contains the exact expected bytes after the same measured operation.",
+      "evidence": "REAL_RUNTIME"
+    },
+    {
+      "id": "DHFS-006",
+      "requirement": "The same measured direct-host mutation originates zero Harness ToolRuntime executions.",
+      "evidence": "PINNED_SOURCE_AND_REAL_RUNTIME"
+    },
+    {
+      "id": "DHFS-007",
+      "requirement": "The same measured direct-host mutation invokes zero safe-runtime tools/pre-execute policy handlers as its mutation path.",
+      "evidence": "PINNED_SOURCE_AND_REAL_RUNTIME"
+    },
+    {
+      "id": "DHFS-008",
+      "requirement": "The same measured direct-host mutation invokes zero safe-runtime monotonic tool guards as its mutation path.",
+      "evidence": "PINNED_SOURCE_AND_REAL_RUNTIME"
+    },
+    {
+      "id": "DHFS-009",
+      "requirement": "M4-050 does not fabricate a Harness tool body execution or tools/result fact for the direct host mutation.",
+      "evidence": "REAL_RUNTIME_AND_ARCHITECTURE"
+    },
+    {
+      "id": "DHFS-010",
+      "requirement": "When DHFS-003 through DHFS-009 are proven coherently for one supported measured operation, the exact boundary classification is EXPECTED_UNGOVERNED.",
+      "evidence": "REAL_RUNTIME"
+    },
+    {
+      "id": "DHFS-011",
+      "requirement": "EXPECTED_UNGOVERNED is a negative test/evidence classification and must not be relabeled as CapabilityDecision ALLOW, DENY, SANDBOXED, TOOL_ENFORCED, PROVIDER_ENFORCED or PROCESS_ISOLATED.",
+      "evidence": "ARCHITECTURE_NON_CLAIM"
+    },
+    {
+      "id": "DHFS-012",
+      "requirement": "A successful direct host write must not be retroactively represented as an authorized CapabilityRequest, CapabilityDecision, Receipt, Lease consumption or approval event.",
+      "evidence": "ARCHITECTURE_NON_CLAIM"
+    },
+    {
+      "id": "DHFS-013",
+      "requirement": "If an external OS, container, read-only-filesystem or CI restriction prevents establishment of a writable test-owned target, the result is ENVIRONMENT_UNSUPPORTED rather than safe-runtime DENIED.",
+      "evidence": "BOUNDARY_CLASSIFICATION"
+    },
+    {
+      "id": "DHFS-014",
+      "requirement": "An ENVIRONMENT_UNSUPPORTED-only matrix cannot accept M4-050; at least one exact-head supported environment must produce EXPECTED_UNGOVERNED.",
+      "evidence": "ACCEPTANCE_PROCESS"
+    },
+    {
+      "id": "DHFS-015",
+      "requirement": "Contradictory or incomplete evidence, pre-existing sentinel state, mismatched bytes or accidental ToolRuntime traversal is INVALID_EVIDENCE and fails conformance.",
+      "evidence": "EVIDENCE_VALIDATION"
+    },
+    {
+      "id": "DHFS-016",
+      "requirement": "M4-050 production work must not intercept or monkey-patch node:fs, module loading, syscalls, process sandboxing or filesystem virtualization merely to change the expected negative result.",
+      "evidence": "REPOSITORY_ARCHITECTURE"
+    },
+    {
+      "id": "DHFS-017",
+      "requirement": "Absent a concrete existing false-claim or misclassification defect, M4-050 requires no speculative production rewrite; executable evidence and truthful boundary classification are sufficient.",
+      "evidence": "GATE_PROCESS"
+    },
+    {
+      "id": "DHFS-018",
+      "requirement": "The direct-host witness intentionally bypasses Adapter filesystem ports; using those ports would test provider mediation rather than the M4-050 negative boundary.",
+      "evidence": "ARCHITECTURE_AND_REAL_RUNTIME"
+    },
+    {
+      "id": "DHFS-019",
+      "requirement": "M4-050 does not claim equivalent shell spelling, subprocess redirection or child-process filesystem effects; those remain outside this Gate.",
+      "evidence": "ARCHITECTURE_NON_CLAIM"
+    },
+    {
+      "id": "DHFS-020",
+      "requirement": "M4-050 proves that M4 tool controls alone cannot justify complete filesystem tool-enforced, provider-enforced or process-isolated coverage for direct host filesystem effects.",
+      "evidence": "SECURITY_BOUNDARY"
+    },
+    {
+      "id": "DHFS-021",
+      "requirement": "Repository evidence confirms no accepted M4 process-isolated plugin host forces arbitrary in-process code through safe-runtime filesystem mediation; M14 remains the planned stronger isolation milestone.",
+      "evidence": "REPOSITORY_ARCHITECTURE"
+    },
+    {
+      "id": "DHFS-022",
+      "requirement": "M4-045 audit egress does not fabricate an audit-safe source fact for an out-of-pipeline direct host filesystem mutation.",
+      "evidence": "REUSED_M4_045_AUTHORITY"
+    },
+    {
+      "id": "DHFS-023",
+      "requirement": "All assertions about Harness pre-execute, guard or ToolRuntime behavior use the exact pinned 0.1.0-rc.5 commit 47f943859bef60e4160492346772ded9b24f765a rather than default-branch behavior.",
+      "evidence": "PINNED_SOURCE_CONTRACT"
+    },
+    {
+      "id": "DHFS-024",
+      "requirement": "The protocol-first M4-050 delta contains no production TypeScript, executable source-conformance tests, dependency/lockfile changes, schema/protocol wire changes, workflow changes, HISTORY rewrite, roadmap acceptance marker, M4-051+ implementation or PR merge.",
+      "evidence": "GATE_PROCESS"
+    }
+  ]
+}
