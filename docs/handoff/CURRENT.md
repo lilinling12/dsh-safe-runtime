@@ -5,13 +5,13 @@
 
 ## Snapshot
 
-- Recorded at: `2026-09-06`
+- Recorded at: `2026-09-08`
 - Repository: `lilinling12/dsh-safe-runtime`
 - Phase: `M4 — Capability Broker v0.1`
 - Active PR: `#3 — feat(policy): begin M4 capability broker`
 - Branch: `feat/m4-capability-broker`
 - Base: `main@57430273e065be8d38807d67b175fa154c801d43`
-- Exact parent governance head: `6be76b80e5e462cd66c8743e1cf142b4e52b2d68`
+- Exact parent governance head: `934d6c33e56aa292c92f8d6dd70e07ddcc4eb779`
 - M4-001..014: **GOVERNANCE CLOSED**
 - M4-020..025: **GOVERNANCE CLOSED**
 - M4-030..036: **GOVERNANCE CLOSED**
@@ -20,12 +20,43 @@
 - M4-042: **GOVERNANCE CLOSED**
 - M4-043 authoritative `tools/result`: **GOVERNANCE CLOSED**
 - M4-044 no duplicate approval subsystem: **GOVERNANCE CLOSED**
-- M4-045 audit redaction: **ACTIVE / OWNED ENCODER DUAL-GREEN / AUDIT EGRESS PENDING**
+- M4-045 audit redaction: **ACCEPTANCE DUAL-GREEN / GOVERNANCE CLOSURE IN PROGRESS**
 - M4-046+: **NOT AUTHORIZED by this Gate**
-- M4-050+, M5, M6, M10, M13, M15: **NOT AUTHORIZED by the current Gate**
+- M4-050+, M5, M6, M10, M13, M15: **NOT AUTHORIZED until M4-045 governance exact-head verification completes**
 - PR #3 merge: **NOT AUTHORIZED without explicit user authorization**
 
 Live GitHub state overrides this snapshot.
+
+## M4-045 audit egress acceptance and governance closure
+
+Implementation/conformance exact head:
+`19fe2261fd7982edad6643390974207382e87a28`.
+
+- CI #625 / run `34145630754`: PASS.
+- Harness #567 / run `34145630728`: PASS.
+- Harness job `101816949714`, step 10 pinned-source typecheck: PASS.
+- Same job, step 11 real rc5 runtime conformance: PASS.
+
+Acceptance audit: `docs/acceptance/m4-045-acceptance-audit.md`.
+Audit-only exact head: `33ecd98c9361996cbdfb057b0c624201757db682`.
+
+- CI #626 / run `34145898570`: PASS.
+- Harness #568 / run `34145898568`: PASS.
+- Harness job `101817753211`, steps 10 and 11: PASS.
+
+The accepted Adapter-only path projects directly from authoritative source facts,
+uses the owned bounded JCS/SHA-256 digest profile, substitutes session-scoped
+identity keys and delivers closed immutable audit events through an ordered,
+bounded per-subscription dispatcher with explicit incomplete diagnostics.
+Ordinary RuntimeEvent observation, `onObservationFailure` and native Harness
+session history remain privileged/non-audit-safe channels. M5 detector, durable
+ledger/storage, retention, encryption, spool and reconciliation are not implemented.
+
+This governance transition is restricted to CURRENT, append-only HISTORY and only
+the M4-045 roadmap marker. The resulting governance exact head must itself pass
+normal CI plus exact pinned Harness rc5 source-conformance before M4-045 governance
+is CLOSED and M4-050 can become the sole newly authorized Gate. PR #3 remains
+Open / Draft and merge remains unauthorized.
 
 ## M4-045 current owned encoder implementation
 
