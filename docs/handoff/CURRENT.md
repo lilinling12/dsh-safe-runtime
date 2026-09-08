@@ -16,9 +16,9 @@
 - M4-001..014: **GOVERNANCE CLOSED**
 - M4-020..025: **GOVERNANCE CLOSED**
 - M4-030..036: **GOVERNANCE CLOSED**
-- M4-040..050: **GOVERNANCE CLOSED**
-- M4-051 equivalent shell spelling bypass string matcher test: **PROTOCOL-FIRST CANDIDATE; EXECUTABLE WORK NOT AUTHORIZED UNTIL THIS EXACT HEAD IS DUAL-GREEN**
-- M4-052+: **NOT AUTHORIZED by the current Gate**
+- M4-040..051: **GOVERNANCE CLOSED**
+- M4-052 P0 document that v0.1 is not plugin sandbox: **AUTHORIZED / PROTOCOL-FIRST NOT YET IMPLEMENTED**
+- M4-053+: **NOT AUTHORIZED by the current Gate**
 - M5, M6, M10, M13, M14 implementation, M15: **NOT AUTHORIZED by the current Gate**
 - PR #3 merge: **NOT AUTHORIZED without explicit user authorization**
 
@@ -195,29 +195,58 @@ M6 workspace transactions
 M14 process-isolated plugin hosting
 ```
 
-## Current governance boundary
+## M4-051 governance closure
 
-M4-051 implementation/conformance is **ACCEPTED** and this commit is the
-governance transition candidate. It is restricted to exactly:
+Governance transition head:
+
+```text
+33d33c71f754f9ac6042a72169382e9b15f21b0f
+```
+
+Exact transition evidence:
+
+- CI #638 / run `34212084370`: PASS;
+- Harness #580 / run `34212084357`: PASS;
+- Harness job `102015196009`, step 10 exact pinned-source typecheck: PASS;
+- same job, step 11 real rc5 runtime conformance: PASS;
+- exact diff from `91b9dcef...`: CURRENT `+77/-43`, HISTORY `+50/-0`,
+  roadmap `+1/-1`; no other files changed.
+
+M4-051 is therefore **GOVERNANCE CLOSED**. Its accepted negative boundary remains
+narrow: raw shell command spelling cannot be the sole authority for inferred
+nested effects; recognized shell calls remain M4-011 `process.exec`, and no
+production matcher/parser, sandbox or isolation guarantee was introduced.
+
+## Current Gate — M4-052 protocol-first authorization
+
+Roadmap Gate:
+
+```text
+M4-052 P0 — document that v0.1 is not plugin sandbox
+```
+
+M4-052 is now the sole newly authorized protocol-first Gate. Before any repository
+modification, recover the existing architecture/security/product-boundary
+authority for in-process plugins, direct host APIs, ToolRuntime mediation,
+provider/process isolation and M14 process-isolated plugin hosting. Do not invent
+new sandbox semantics from the roadmap wording.
+
+This closure-record commit is restricted to exactly:
 
 ```text
 docs/handoff/CURRENT.md
 docs/handoff/HISTORY.md    # append-only; prior byte prefix unchanged
-docs/roadmap.md            # only M4-051 marker/details
 ```
 
-M4-051 governance is **NOT CLOSED** until this exact governance-transition head
-passes normal CI plus exact pinned Harness rc5 source-conformance, including
-steps 10 and 11.
+This closure-record head must itself pass normal CI plus exact pinned Harness rc5
+source-conformance, including steps 10 and 11, before any M4-052 repository
+modification begins.
 
-Until then:
+Until that exact-head dual-green boundary is reached:
 
 ```text
-M4-052+: NOT AUTHORIZED
+M4-052 repository work: NOT YET AUTHORIZED TO START
+M4-053+: NOT AUTHORIZED
 M5/M6/M10/M13/M14 implementation/M15: NOT AUTHORIZED
 PR #3 merge: NOT AUTHORIZED without explicit user authorization
 ```
-
-After this governance head becomes dual-green, a separate closure-record commit
-limited to CURRENT plus append-only HISTORY must record that exact evidence. Only
-a dual-green closure-record head may authorize M4-052 as the sole next Gate.
