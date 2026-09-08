@@ -1,10 +1,12 @@
 import { readFile } from "node:fs/promises";
+import { resolve } from "node:path";
 
 import corpusJson from "../../../fixtures/plugin-sandbox-documentation-boundary/cases.json" with { type: "json" };
 import { describe, expect, it } from "vitest";
 
 const PROFILE = "M4-052_PLUGIN_SANDBOX_DOCUMENTATION_BOUNDARY_V1" as const;
 const CASE_COUNT = 24;
+const ROOT = process.cwd();
 
 interface CorpusCase {
   readonly id: string;
@@ -22,7 +24,10 @@ interface Corpus {
 }
 
 const CORPUS = corpusJson as Corpus;
-const ROOT = new URL("../../../", import.meta.url);
+
+function repositoryPath(path: string): string {
+  return resolve(ROOT, path);
+}
 
 function expectedIds(): readonly string[] {
   return Array.from(
@@ -49,7 +54,7 @@ describe("M4-052 plugin-sandbox documentation boundary", () => {
   });
 
   it("makes the v0.1 non-sandbox boundary discoverable from README", async () => {
-    const readme = await readFile(new URL("README.md", ROOT), "utf8");
+    const readme = await readFile(repositoryPath("README.md"), "utf8");
 
     expect(readme).toContain(
       "DSH Safe Runtime v0.1 is not a sandbox for arbitrary in-process plugins.",
@@ -62,10 +67,7 @@ describe("M4-052 plugin-sandbox documentation boundary", () => {
   });
 
   it("keeps the technical non-claim explicit in architecture", async () => {
-    const architecture = await readFile(
-      new URL("docs/architecture.md", ROOT),
-      "utf8",
-    );
+    const architecture = await readFile(repositoryPath("docs/architecture.md"), "utf8");
 
     expect(architecture).toContain("### 7.2.1 v0.1 Plugin Sandbox Non-Claim");
     expect(architecture).toContain("不是 arbitrary in-process Plugin 的 sandbox");
@@ -76,11 +78,8 @@ describe("M4-052 plugin-sandbox documentation boundary", () => {
   });
 
   it("preserves the existing PEP-TOOL and future-M14 authority boundaries", async () => {
-    const architecture = await readFile(
-      new URL("docs/architecture.md", ROOT),
-      "utf8",
-    );
-    const roadmap = await readFile(new URL("docs/roadmap.md", ROOT), "utf8");
+    const architecture = await readFile(repositoryPath("docs/architecture.md"), "utf8");
+    const roadmap = await readFile(repositoryPath("docs/roadmap.md"), "utf8");
 
     expect(architecture).toContain("只治理进入 Tool Pipeline 的行为");
     expect(architecture).toContain("宿主 Plugin 直接调用 Node API 不受此边界约束");
