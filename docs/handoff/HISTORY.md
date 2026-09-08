@@ -2620,3 +2620,34 @@ compatibility baseline and architecture remain green. The ordinary CI includes
 18 new production encoder tests; its three lint warnings are in prior tests.
 The verified module is a private digest primitive. Audit projection/observeAudit,
 source provenance, delivery and M4-045 acceptance remain pending.
+
+## 2026-09-08 — Accept M4-045 owned Adapter audit admission
+
+Implementation/conformance head `19fe2261fd7982edad6643390974207382e87a28`
+adds the concrete Adapter-only `observeAudit` path, closed `DshAuditEvent`
+projection, owned bounded JCS/SHA-256 source digests, session-scoped identity
+substitution, ordered bounded per-subscriber delivery and explicit incomplete
+summaries. Its exact delta is limited to Adapter DSH production, tests and
+source-conformance: eight files; no protocol/schema/dependency/lockfile/workflow
+or governance change.
+
+Exact implementation evidence:
+
+- CI #625 / run `34145630754`: PASS;
+- Harness #567 / run `34145630728`: PASS;
+- job `101816949714`, step 10 pinned-source typecheck: PASS;
+- same job, step 11 real rc5 runtime conformance: PASS.
+
+Acceptance audit `docs/acceptance/m4-045-acceptance-audit.md` is at
+`33ecd98c9361996cbdfb057b0c624201757db682`. That audit-only exact head passed
+CI #626 / run `34145898570` and Harness #568 / run `34145898568`; job
+`101817753211` passed steps 10 and 11.
+
+The accepted boundary does not relabel ordinary `RuntimeEvent`,
+`onObservationFailure` or native Harness session history as audit-safe and does
+not implement persistence, general secret detection, retention, encryption or
+M5 ledger semantics. This governance transition is restricted to CURRENT, this
+append-only HISTORY entry and only the M4-045 roadmap marker. The resulting
+governance exact head must itself become dual-green before M4-045 governance is
+CLOSED and M4-050 P0 is newly authorized. PR #3 remains Open / Draft; merge is
+not authorized.
