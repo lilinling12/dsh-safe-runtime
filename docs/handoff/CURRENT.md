@@ -11,7 +11,7 @@
 - Active PR: `#3 — feat(policy): begin M4 capability broker`
 - Branch: `feat/m4-capability-broker`
 - Base: `main@57430273e065be8d38807d67b175fa154c801d43`
-- Exact parent governance head: `b6a2df594f3d58eeadd1b8be67850893792b03c2`
+- Exact parent governance head: `4124fbfbcc8186b972f4f61646a42b012ce1977f`
 - M4-001..014: **GOVERNANCE CLOSED**
 - M4-020..025: **GOVERNANCE CLOSED**
 - M4-030..036: **GOVERNANCE CLOSED**
@@ -21,11 +21,53 @@
 - M4-043 authoritative `tools/result`: **GOVERNANCE CLOSED**
 - M4-044 no duplicate approval subsystem: **GOVERNANCE CLOSED**
 - M4-045 audit redaction: **GOVERNANCE CLOSED**
-- M4-050 direct Node fs bypass → `EXPECTED_UNGOVERNED`: **AUTHORIZED / PROTOCOL-FIRST NOT STARTED**
-- M4-051+, M5, M6, M10, M13, M15: **NOT AUTHORIZED by the current Gate**
+- M4-050 direct Node fs bypass → `EXPECTED_UNGOVERNED`: **PROTOCOL-FIRST CANDIDATE / EXECUTABLE WORK PENDING EXACT-HEAD DUAL-GREEN**
+- M4-051+, M5, M6, M10, M13, M14 implementation, M15: **NOT AUTHORIZED by the current Gate**
 - PR #3 merge: **NOT AUTHORIZED without explicit user authorization**
 
 Live GitHub state overrides this snapshot.
+
+## M4-050 current protocol-first candidate
+
+Normative candidate:
+`specs/0050-m4-direct-host-fs-negative-boundary.md`.
+
+Requirement corpus:
+`fixtures/direct-host-fs-negative-boundary/cases.json`, DHFS-001..024.
+
+Profile:
+`M4-050_DIRECT_HOST_FS_NEGATIVE_BOUNDARY_V1`.
+
+Verified predecessor closure head:
+`4124fbfbcc8186b972f4f61646a42b012ce1977f`.
+
+- CI #628 / run `34193010886`: PASS.
+- Harness #570 / run `34193010872`: PASS.
+- Harness job `101954759178`, step 10 pinned-source typecheck: PASS.
+- Same job, step 11 real rc5 runtime conformance: PASS.
+
+The candidate turns the accepted M4-041 complete-coverage non-claim and the
+existing Security Negative TCK into a narrow executable-boundary contract. In a
+supported reference environment, one test-owned direct host filesystem mutation
+that bypasses ToolRuntime must be classified exactly `EXPECTED_UNGOVERNED` when
+the same measured operation proves the sentinel mutation and zero ToolRuntime,
+pre-execute and monotonic-guard participation. External OS/container inability to
+establish a writable test target is `ENVIRONMENT_UNSUPPORTED`, never evidence of
+safe-runtime `DENIED`; contradictory provenance is `INVALID_EVIDENCE`.
+
+This Gate deliberately requires benign synthetic bytes and a disposable test-owned
+target. It does not read secrets, does not retrofit `node:fs` interception, does
+not create process isolation, does not fabricate CapabilityDecision/Receipt/audit
+facts for an out-of-pipeline effect and does not claim shell/subprocess equivalence.
+M14 remains the planned stronger process-isolation milestone; M4-052 remains the
+broader product-documentation Gate.
+
+Protocol-first delta is limited to Spec 0050, the 24-case corpus and this CURRENT
+handoff update. No production TypeScript, executable/source-conformance test,
+dependency/lockfile, schema/protocol wire, workflow, HISTORY or roadmap acceptance
+change is authorized in this candidate. The exact protocol-first head must reach
+normal CI plus exact pinned Harness rc5 source-conformance dual-green before the
+smallest real M4-050 witness may be added. M4-051+ and PR merge remain unauthorized.
 
 ## M4-045 governance closure
 
