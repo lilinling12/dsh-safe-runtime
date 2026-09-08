@@ -1,0 +1,130 @@
+{
+  "profile": "M4-052_PLUGIN_SANDBOX_DOCUMENTATION_BOUNDARY_V1",
+  "gate": "M4-052 P0 — document that v0.1 is not plugin sandbox",
+  "pinnedHarness": {
+    "version": "0.1.0-rc.5",
+    "commit": "47f943859bef60e4160492346772ded9b24f765a"
+  },
+  "cases": [
+    {
+      "id": "PSDB-001",
+      "requirement": "The public v0.1 documentation explicitly states that DSH Safe Runtime is not a sandbox for arbitrary in-process plugins.",
+      "evidence": "README discoverability plus Spec 0052 section 3."
+    },
+    {
+      "id": "PSDB-002",
+      "requirement": "The non-sandbox statement is scoped to current v0.1/in-process plugin execution rather than future isolated-host designs.",
+      "evidence": "Spec 0052 sections 3 and 5."
+    },
+    {
+      "id": "PSDB-003",
+      "requirement": "Documentation distinguishes behavior that reaches ToolRuntime/tool PEP seams from arbitrary same-process host API calls.",
+      "evidence": "Architecture PEP-TOOL plus Spec 0052 section 4."
+    },
+    {
+      "id": "PSDB-004",
+      "requirement": "Documentation preserves the existing rule that ToolRuntime policy is not arbitrary in-process plugin isolation.",
+      "evidence": "Existing README non-negotiable boundary plus Spec 0052 section 2.1."
+    },
+    {
+      "id": "PSDB-005",
+      "requirement": "Documentation preserves the distinction between tool-enforced and process-isolated guarantees.",
+      "evidence": "Architecture section 7.2 plus Spec 0052 section 6."
+    },
+    {
+      "id": "PSDB-006",
+      "requirement": "Documentation does not describe the current plugin execution model as process-isolated, filesystem-isolated, host-isolated, or sandboxed.",
+      "evidence": "Spec 0052 sections 2.3 and 6."
+    },
+    {
+      "id": "PSDB-007",
+      "requirement": "M4-050 direct-host filesystem evidence remains the authority for the accepted EXPECTED_UNGOVERNED host-API witness.",
+      "evidence": "Accepted Spec 0050/audit and Spec 0052 section 2.3."
+    },
+    {
+      "id": "PSDB-008",
+      "requirement": "M4-052 does not relabel the M4-050 negative witness as ALLOW, DENY, SANDBOXED, or process-isolated.",
+      "evidence": "Spec 0052 sections 2.3 and 6."
+    },
+    {
+      "id": "PSDB-009",
+      "requirement": "M4-051 remains authority only for shell-string nested-effect matcher incompleteness while recognized shell calls remain process.exec.",
+      "evidence": "Accepted Spec 0051/audit and Spec 0052 section 2.4."
+    },
+    {
+      "id": "PSDB-010",
+      "requirement": "The plugin-sandbox non-claim is not rewritten into the false claim that every shell call is ungoverned.",
+      "evidence": "Spec 0052 sections 2.4 and 6."
+    },
+    {
+      "id": "PSDB-011",
+      "requirement": "The top-level README carries a concise discoverable non-sandbox statement.",
+      "evidence": "Spec 0052 section 7 required documentation surfaces."
+    },
+    {
+      "id": "PSDB-012",
+      "requirement": "The architecture documentation provides the precise technical boundary behind the README non-claim.",
+      "evidence": "Spec 0052 sections 4 and 7."
+    },
+    {
+      "id": "PSDB-013",
+      "requirement": "M14 remains the explicit future owner of process-isolated plugin hosting.",
+      "evidence": "Roadmap M14 plus Spec 0052 sections 2.5 and 13."
+    },
+    {
+      "id": "PSDB-014",
+      "requirement": "Documentation does not claim that any M14 worker, RPC, supervisor, OS backend, or security milestone is already implemented.",
+      "evidence": "Spec 0052 sections 2.5, 9, and 13."
+    },
+    {
+      "id": "PSDB-015",
+      "requirement": "M4-052 makes no production runtime enforcement change.",
+      "evidence": "Spec 0052 section 9 and executable-delta audit."
+    },
+    {
+      "id": "PSDB-016",
+      "requirement": "M4-052 adds no new Capability protocol wire type, Schema vocabulary, policy effect, or GuaranteeLevel.",
+      "evidence": "Spec 0052 sections 6, 9, and 18."
+    },
+    {
+      "id": "PSDB-017",
+      "requirement": "Documentation does not present tool-name allowlists, raw shell string matching, coding conventions, or prose promises as substitutes for process isolation.",
+      "evidence": "Spec 0052 section 10."
+    },
+    {
+      "id": "PSDB-018",
+      "requirement": "M6 workspace transactionality is not described as equivalent to arbitrary plugin sandboxing.",
+      "evidence": "Spec 0052 section 11."
+    },
+    {
+      "id": "PSDB-019",
+      "requirement": "M12 brokered/provider network enforcement is not prematurely described as complete same-process plugin isolation.",
+      "evidence": "Spec 0052 section 12."
+    },
+    {
+      "id": "PSDB-020",
+      "requirement": "Future architecture intent is distinguishable from current accepted security guarantees.",
+      "evidence": "Spec 0052 sections 8 and 13."
+    },
+    {
+      "id": "PSDB-021",
+      "requirement": "Documentation does not claim that documentation changes runtime security or converts an ungoverned effect into a governed one.",
+      "evidence": "Spec 0052 sections 1 and 9."
+    },
+    {
+      "id": "PSDB-022",
+      "requirement": "M4-052 does not prematurely create or claim completion of the later M17 security review or M19 Security Model/Known Limitations program.",
+      "evidence": "Spec 0052 sections 7 and 18."
+    },
+    {
+      "id": "PSDB-023",
+      "requirement": "Harness-specific ToolRuntime claims remain pinned to rc5 source/runtime evidence and do not become process-isolation claims.",
+      "evidence": "Spec 0052 section 15 and pinned Harness workflow."
+    },
+    {
+      "id": "PSDB-024",
+      "requirement": "Protocol-first, later-Gate separation, roadmap state, and PR #3 merge authorization remain governed independently of documentation wording.",
+      "evidence": "Spec 0052 sections 17-19 and CURRENT."
+    }
+  ]
+}
