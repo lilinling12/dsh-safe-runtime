@@ -2797,3 +2797,28 @@ exact governance head must itself become normal-CI + exact pinned Harness
 dual-green before M4-051 governance can be closed and M4-052 can become
 the sole newly authorized Gate. PR #3 remains Open / Draft and merge
 remains unauthorized without explicit user approval.
+
+## 2026-09-08 — Close M4-051 governance and authorize M4-052 protocol-first
+
+M4-051 governance transition head
+`33d33c71f754f9ac6042a72169382e9b15f21b0f` passed normal CI #638 / run
+`34212084370` and exact Harness rc5 source-conformance #580 / run
+`34212084357`. Harness job `102015196009` passed step 10 pinned-source
+TypeScript and step 11 real rc5 runtime conformance on that same exact SHA.
+
+The exact governance delta from audit head
+`91b9dcef1c092ab0968ff198d6342a8cc9c7bb81` is restricted to CURRENT
+`+77/-43`, HISTORY `+50/-0`, and only the M4-051 roadmap marker/details
+`+1/-1`. The prior HISTORY byte prefix is preserved; no production code,
+Spec/corpus/schema, Shared TCK, dependency, lockfile, Adapter/Harness
+baseline/workflow or later-Gate implementation changed.
+
+M4-051 is GOVERNANCE CLOSED. M4-052 P0 documentation that v0.1 is not a
+plugin sandbox becomes the sole newly authorized protocol-first Gate.
+M5, M6, M10, M13, M14 implementation and M15 remain unauthorized by this
+closure. PR #3 remains Open / Draft and merge remains unauthorized without
+explicit user approval.
+
+This closure-record head must itself reach exact-head normal CI plus exact
+pinned Harness rc5 source-conformance, including step 10 and step 11,
+before any M4-052 repository modification begins.
