@@ -2651,3 +2651,24 @@ append-only HISTORY entry and only the M4-045 roadmap marker. The resulting
 governance exact head must itself become dual-green before M4-045 governance is
 CLOSED and M4-050 P0 is newly authorized. PR #3 remains Open / Draft; merge is
 not authorized.
+
+## 2026-09-08 — Close M4-045 governance and authorize M4-050
+
+Governance head `b6a2df594f3d58eeadd1b8be67850893792b03c2` passed normal
+CI #627 / run `34179575503` and exact Harness rc5 source-conformance #569 /
+run `34179575485`. Harness job `101915729796` passed step 10 pinned-source
+TypeScript and step 11 real rc5 runtime on that same SHA.
+
+The exact diff from audit head `33ecd98c9361996cbdfb057b0c624201757db682`
+is restricted to the authorized governance files: CURRENT `+35/-4`, HISTORY
+`+31/-0`, and only the M4-045 roadmap marker `+1/-1`. HISTORY therefore preserves
+the prior byte prefix; no production, Spec/corpus/schema, dependency, lockfile or
+workflow behavior changed in the governance transition.
+
+M4-045 is GOVERNANCE CLOSED. M4-050 P0 direct Node fs bypass →
+`EXPECTED_UNGOVERNED` is the sole newly authorized negative-boundary Gate.
+M4-051+, M5, M6, M10, M13 and M15 remain unauthorized by this closure. PR #3
+remains Open / Draft and merge remains unauthorized without explicit user approval.
+
+This closure-record head must itself reach exact-head normal CI plus exact pinned
+Harness rc5 source-conformance before any M4-050 repository modification begins.
