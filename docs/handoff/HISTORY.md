@@ -2672,3 +2672,52 @@ remains Open / Draft and merge remains unauthorized without explicit user approv
 
 This closure-record head must itself reach exact-head normal CI plus exact pinned
 Harness rc5 source-conformance before any M4-050 repository modification begins.
+
+## 2026-09-08 — Accept M4-050 direct host filesystem negative boundary
+
+M4-050 protocol-first closed on
+`302ec43ee48937f13859079c2e00891131ecd9ad` with Spec 0050 and the 24-case
+`DHFS-001` through `DHFS-024` corpus. Normal CI #629 / run `34193629081` and
+exact pinned Harness rc5 source-conformance #571 / run `34193629078` passed,
+including step 10 exact pinned-source typecheck and step 11 real rc5 runtime,
+before executable/source-conformance work began.
+
+The reviewed executable/source-conformance exact head is
+`a92a0fcf1b20ec460d85de2e1338c8139c370cc1`. Its delta from the protocol-first
+head is exactly two Adapter source-conformance files and no production code.
+The real supported witness performs one direct `node:fs/promises.writeFile`
+against a disposable test-owned sentinel using fixed benign bytes and proves the
+same measured mutation succeeds with zero raw `tools/pre-execute`, safe-runtime
+policy, monotonic guard, registered tool body and `tools/result` participation.
+The only truthful classification is `EXPECTED_UNGOVERNED`; contradictory
+provenance or mediation evidence is `INVALID_EVIDENCE`.
+
+Exact executable evidence at `a92a0fcf...`:
+
+- normal CI #630 / run `34194046009`: PASS;
+- exact Harness rc5 source-conformance #572 / run `34194046036`: PASS;
+- Harness job `101957818163`, step 10: PASS;
+- same job, step 11: PASS.
+
+Acceptance audit `docs/acceptance/m4-050-acceptance-audit.md` is at audit-only
+head `44e3ce2d3b23f455628979535f275123ad605af6`. That exact head reached normal
+CI #631 / run `34200436950` PASS and exact Harness rc5 source-conformance #573 /
+run `34200436977` PASS; Harness job `101977743221` passed steps 10 and 11.
+Handoff synchronization head `8365a1c131a971a00334640364c0bc3bff9aaf89`
+then reached CI #632 / run `34201022150` PASS and Harness #574 / run
+`34201022021` PASS, including job `101979568740` steps 10 and 11.
+
+M4-050 is a negative-boundary evidence Gate only. It does not implement Node fs
+interception, complete host-effect mediation, process/provider/kernel isolation,
+plugin sandboxing, filesystem rollback/transactionality, shell equivalence,
+synthetic CapabilityRequest/Decision/Receipt/Lease facts, M6 workspace
+transactions or M14 process-isolated plugin hosting.
+
+This governance transition is restricted to CURRENT, this append-only HISTORY
+entry and only the M4-050 roadmap marker/details. No production code,
+Spec/corpus/schema, Shared TCK, dependency, lockfile, Adapter/Harness baseline or
+workflow, M4-051 implementation or later-Gate behavior changes here. The
+resulting governance exact head must itself reach normal CI + exact pinned
+Harness rc5 source-conformance dual-green before M4-050 governance is CLOSED and
+M4-051 becomes the sole newly authorized protocol-first Gate. PR #3 remains Open /
+Draft and merge remains unauthorized without explicit user approval.

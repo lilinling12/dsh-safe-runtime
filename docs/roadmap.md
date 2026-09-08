@@ -316,7 +316,7 @@ Acceptance evidence
 
 ## M4.6 Negative Boundary Tests
 
-- [ ] `M4-050 P0` direct Node fs bypass → `EXPECTED_UNGOVERNED`。
+- [x] `M4-050 P0` direct Node fs bypass → `EXPECTED_UNGOVERNED`。 **ACCEPTED：Spec 0050 + DHFS-001..024；reviewed conformance `a92a0fcf...`, CI #630 / Harness #572 PASS；audit `docs/acceptance/m4-050-acceptance-audit.md` at `44e3ce2d...`, CI #631 / Harness #573 PASS。This is truthful negative-boundary evidence only; it does not claim Node fs interception, complete mediation, plugin sandboxing or process isolation.**
 - [ ] `M4-051 P0` equivalent shell spelling bypass string matcher test。
 - [ ] `M4-052 P0` document that v0.1 is not plugin sandbox。
 

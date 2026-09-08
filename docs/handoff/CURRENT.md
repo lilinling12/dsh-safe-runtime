@@ -16,8 +16,8 @@
 - M4-020..025: **GOVERNANCE CLOSED**
 - M4-030..036: **GOVERNANCE CLOSED**
 - M4-040..045: **GOVERNANCE CLOSED**
-- M4-050 direct Node fs bypass → `EXPECTED_UNGOVERNED`: **IMPLEMENTATION / CONFORMANCE ACCEPTED; GOVERNANCE UPDATE PENDING**
-- M4-051+: **NOT AUTHORIZED until M4-050 governance closure reaches its own exact-head dual-green**
+- M4-050 direct Node fs bypass → `EXPECTED_UNGOVERNED`: **IMPLEMENTATION / CONFORMANCE ACCEPTED; GOVERNANCE TRANSITION PENDING EXACT-HEAD DUAL-GREEN**
+- M4-051+: **NOT AUTHORIZED until the M4-050 governance exact head is dual-green and closure is recorded**
 - M5, M6, M10, M13, M14 implementation, M15: **NOT AUTHORIZED by the current Gate**
 - PR #3 merge: **NOT AUTHORIZED without explicit user authorization**
 
@@ -140,7 +140,9 @@ protocol authority.
 
 ## Current governance boundary
 
-The next repository transition is M4-050 governance bookkeeping only. It is
+Verified governance-transition parent `8365a1c131a971a00334640364c0bc3bff9aaf89` reached CI #632 / run `34201022150` PASS and Harness #574 / run `34201022021` PASS, including pinned-source step 10 and real rc5 step 11.
+
+The current repository transition is M4-050 governance bookkeeping only. It is
 restricted to the governance records required by repository process:
 
 ```text
