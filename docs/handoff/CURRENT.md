@@ -11,647 +11,153 @@
 - Active PR: `#3 — feat(policy): begin M4 capability broker`
 - Branch: `feat/m4-capability-broker`
 - Base: `main@57430273e065be8d38807d67b175fa154c801d43`
-- Exact parent governance head: `4124fbfbcc8186b972f4f61646a42b012ce1977f`
+- Accepted predecessor governance head: `4124fbfbcc8186b972f4f61646a42b012ce1977f`
 - M4-001..014: **GOVERNANCE CLOSED**
 - M4-020..025: **GOVERNANCE CLOSED**
 - M4-030..036: **GOVERNANCE CLOSED**
-- M4-040: **GOVERNANCE CLOSED**
-- M4-041: **GOVERNANCE CLOSED**
-- M4-042: **GOVERNANCE CLOSED**
-- M4-043 authoritative `tools/result`: **GOVERNANCE CLOSED**
-- M4-044 no duplicate approval subsystem: **GOVERNANCE CLOSED**
-- M4-045 audit redaction: **GOVERNANCE CLOSED**
-- M4-050 direct Node fs bypass → `EXPECTED_UNGOVERNED`: **PROTOCOL-FIRST CANDIDATE / EXECUTABLE WORK PENDING EXACT-HEAD DUAL-GREEN**
-- M4-051+, M5, M6, M10, M13, M14 implementation, M15: **NOT AUTHORIZED by the current Gate**
+- M4-040..045: **GOVERNANCE CLOSED**
+- M4-050 direct Node fs bypass → `EXPECTED_UNGOVERNED`: **IMPLEMENTATION / CONFORMANCE ACCEPTED; GOVERNANCE UPDATE PENDING**
+- M4-051+: **NOT AUTHORIZED until M4-050 governance closure reaches its own exact-head dual-green**
+- M5, M6, M10, M13, M14 implementation, M15: **NOT AUTHORIZED by the current Gate**
 - PR #3 merge: **NOT AUTHORIZED without explicit user authorization**
 
 Live GitHub state overrides this snapshot.
 
-## M4-050 current protocol-first candidate
-
-Normative candidate:
-`specs/0050-m4-direct-host-fs-negative-boundary.md`.
-
-Requirement corpus:
-`fixtures/direct-host-fs-negative-boundary/cases.json`, DHFS-001..024.
-
-Profile:
-`M4-050_DIRECT_HOST_FS_NEGATIVE_BOUNDARY_V1`.
-
-Verified predecessor closure head:
-`4124fbfbcc8186b972f4f61646a42b012ce1977f`.
-
-- CI #628 / run `34193010886`: PASS.
-- Harness #570 / run `34193010872`: PASS.
-- Harness job `101954759178`, step 10 pinned-source typecheck: PASS.
-- Same job, step 11 real rc5 runtime conformance: PASS.
-
-The candidate turns the accepted M4-041 complete-coverage non-claim and the
-existing Security Negative TCK into a narrow executable-boundary contract. In a
-supported reference environment, one test-owned direct host filesystem mutation
-that bypasses ToolRuntime must be classified exactly `EXPECTED_UNGOVERNED` when
-the same measured operation proves the sentinel mutation and zero ToolRuntime,
-pre-execute and monotonic-guard participation. External OS/container inability to
-establish a writable test target is `ENVIRONMENT_UNSUPPORTED`, never evidence of
-safe-runtime `DENIED`; contradictory provenance is `INVALID_EVIDENCE`.
-
-This Gate deliberately requires benign synthetic bytes and a disposable test-owned
-target. It does not read secrets, does not retrofit `node:fs` interception, does
-not create process isolation, does not fabricate CapabilityDecision/Receipt/audit
-facts for an out-of-pipeline effect and does not claim shell/subprocess equivalence.
-M14 remains the planned stronger process-isolation milestone; M4-052 remains the
-broader product-documentation Gate.
-
-Protocol-first delta is limited to Spec 0050, the 24-case corpus and this CURRENT
-handoff update. No production TypeScript, executable/source-conformance test,
-dependency/lockfile, schema/protocol wire, workflow, HISTORY or roadmap acceptance
-change is authorized in this candidate. The exact protocol-first head must reach
-normal CI plus exact pinned Harness rc5 source-conformance dual-green before the
-smallest real M4-050 witness may be added. M4-051+ and PR merge remain unauthorized.
-
-## M4-045 governance closure
-
-Final governance evidence head:
-`b6a2df594f3d58eeadd1b8be67850893792b03c2`.
-
-- CI #627 / run `34179575503`: PASS.
-- Harness #569 / run `34179575485`: PASS.
-- Harness job `101915729796`, step 10 pinned-source typecheck: PASS.
-- Same job, step 11 real rc5 runtime conformance: PASS.
-
-The exact diff from audit head `33ecd98c9361996cbdfb057b0c624201757db682`
-is restricted to authorized governance files: CURRENT `+35/-4`, HISTORY
-`+31/-0`, and only the M4-045 roadmap marker `+1/-1`. No production,
-Spec/corpus/schema, dependency, lockfile or workflow behavior changed.
-
-M4-045 governance is CLOSED. M4-050 P0 direct Node fs bypass →
-`EXPECTED_UNGOVERNED` is the sole newly authorized Gate. It must begin
-protocol-first from the accepted M4-041 tool-guard non-claim, M4-043 final-result
-boundary, current Adapter/provider seams and exact pinned Harness source. M4-051+
-and later milestones remain unauthorized. PR #3 remains Open / Draft and merge
-remains unauthorized.
-
-This closure-record commit changes only CURRENT and append-only HISTORY. Its own
-exact head must pass normal CI plus exact pinned Harness rc5 source-conformance
-before any M4-050 repository modification begins.
-
-## M4-045 audit egress acceptance and governance closure
-
-Implementation/conformance exact head:
-`19fe2261fd7982edad6643390974207382e87a28`.
-
-- CI #625 / run `34145630754`: PASS.
-- Harness #567 / run `34145630728`: PASS.
-- Harness job `101816949714`, step 10 pinned-source typecheck: PASS.
-- Same job, step 11 real rc5 runtime conformance: PASS.
-
-Acceptance audit: `docs/acceptance/m4-045-acceptance-audit.md`.
-Audit-only exact head: `33ecd98c9361996cbdfb057b0c624201757db682`.
-
-- CI #626 / run `34145898570`: PASS.
-- Harness #568 / run `34145898568`: PASS.
-- Harness job `101817753211`, steps 10 and 11: PASS.
-
-The accepted Adapter-only path projects directly from authoritative source facts,
-uses the owned bounded JCS/SHA-256 digest profile, substitutes session-scoped
-identity keys and delivers closed immutable audit events through an ordered,
-bounded per-subscription dispatcher with explicit incomplete diagnostics.
-Ordinary RuntimeEvent observation, `onObservationFailure` and native Harness
-session history remain privileged/non-audit-safe channels. M5 detector, durable
-ledger/storage, retention, encryption, spool and reconciliation are not implemented.
-
-This governance transition is restricted to CURRENT, append-only HISTORY and only
-the M4-045 roadmap marker. The resulting governance exact head must itself pass
-normal CI plus exact pinned Harness rc5 source-conformance before M4-045 governance
-is CLOSED and M4-050 can become the sole newly authorized Gate. PR #3 remains
-Open / Draft and merge remains unauthorized.
-
-## M4-045 current owned encoder implementation
-
-Review: `docs/review-notes-m4-045-audit-digest.md` (partial implementation).
-Baseline `039b556ce95db25a96afecab6794828cb1958ba4` passed CI #622 /
-`34028811994` and Harness #564 / `34028812006`, including step 10/11.
-
-The private audit-digest module synchronously canonicalizes the specified source
-domain under fixed depth/value/UTF-8 byte bounds and invokes Node built-in SHA-256.
-Unsupported input, limit and hash failures return fixed codes with no raw fallback.
-Source provenance and safe audit event delivery are still unimplemented.
-
-New production-bound tests first failed on the missing module, then pass against
-the implementation. Local: 18 producer tests plus 27 prior oracle tests PASS;
-10 new encoder conformance tests plus three corpus tests PASS. Production and
-new-test strict typechecks, focused lint and pinned frozen installation PASS.
-Development-only @types/node@22.19.0 and transitive undici-types@6.21.0 are added;
-no runtime dependency or existing package-version upgrade. Strict flags stay intact.
-
-Encoder head `2ef4e81e289d9fc7f538067096311816498e668c` passes CI #623 /
-`34035204227` (69 files / 1,355 tests) and Harness #565 / `34035204228`
-(24 files / 119 tests). Harness job `101491886479` passes steps 10/11, including
-10 new encoder conformance tests. Existing Schema/architecture checks remain green.
-This establishes encoder conformance, not completed audit egress or Gate acceptance.
-Next: event projection and observeAudit delivery tests before their
-implementation. M4-045 remains unaccepted; no roadmap marker, later Gate or merge
-authorization changes. Predecessor sections below describe earlier states.
-
-## M4-045 current executable TCK preparation
-
-Review: `docs/review-notes-m4-045-tck-preparation.md` (not acceptance).
-Baseline `e8b85751a4fe2333248f03f9afc44e4b094faf76` passes CI #620 /
-`33992362846` and Harness #562 / `33992362836`; job `101376734316`,
-steps 10/11 PASS. PR #3 is still Open / Draft / mergeable with unchanged base
-and no reviews/review threads at recovery.
-
-New test-only audit event/summary assertions reject malformed output, extra raw
-fields, wrong expected digests and false success. DAV vectors are checked using
-Web Crypto against previously authored hashes. DAL boundary cases and DAI invalid
-input cases are ready for the future encoder. The real pinned source test captures
-the exact native request and final materialized result while demonstrating that
-ordinary observation remains a privileged channel. No fake audit producer is used.
-
-Local: 27 oracle tests and three corpus traceability tests PASS; strict TypeScript
-for the runtime-independent support/tests and focused lint PASS. Preparation head
-`b434813a06588028af6650715cf4932bdddf1045` passes CI #621 / `34028600048`
-(68 files / 1,337 tests) and Harness #563 / `34028600142` (23 files / 109 tests).
-Harness job `101473928632` passes strict source typecheck step 10 and real runtime
-step 11, including the new source-prerequisite test. The three full-repository
-lint warnings are in unchanged predecessor tests; the added files have none.
-These checks do not establish production privacy or close any DAP requirement.
-
-Next: bind executable failing tests to the owned encoder/projection, implement
-the minimum path, then add actual observeAudit integration/delivery witnesses.
-No production, portable Schema, dependency, workflow or roadmap marker change.
-M4-045 is not accepted; later Gates and PR merge remain outside this step.
-
-The following candidate and evidence-recovery sections are predecessor context.
-
-## M4-045 current protocol-first candidate
-
-- Rationale: `rfcs/0002-adapter-audit-admission.md` (PROPOSED).
-- Candidate: `specs/0049-m4-dsh-audit-admission.md`.
-- Corpus: `fixtures/dsh-audit-admission/cases.json`, DAP-001..036.
-- Independent authored digest vectors: `fixtures/dsh-audit-admission/digest-vectors.json`, DAV-001..008.
-- Profile: `M4-045_DSH_AUDIT_ADMISSION_V1`.
-- Reviewed parent: `26c8db7762e9dea4b4670958e2ac1e4869c38964`.
-- Parent CI #618 / `33990474050`: PASS.
-- Parent Harness #560 / `33990474039`: PASS; job `101371683219`, steps 10/11 PASS.
-- PR #3 remains Open / Draft / mergeable; base unchanged; reviews/threads empty.
-
-The candidate specifies a separate concrete Adapter observeAudit extension with
-owned source digests, closed output fields, session-scoped identity digests,
-fixed safe diagnostics and explicit incomplete delivery. Ordinary RuntimeEvent,
-policy/approval/replay and portable Schema semantics remain unchanged. No caller
-Digest callback, digest-shaped value or Receipt constructor grants audit admission.
-RFC 0002 records alternatives and the limits of hash substitution and host trust.
-
-This is a requirement corpus, not executable privacy acceptance. No production,
-executable TCK, schema, dependency, lockfile, workflow or roadmap acceptance change
-is included. Candidate head `d2cbba3e5b09a4fa326f8e5b386c3bae5a448180` passes
-CI #619 / `33992185188` and Harness #561 / `33992185156`; Harness job
-`101376265061` passes step 10 pinned-source typecheck and step 11 real runtime.
-This verifies predecessor regression compatibility, not new privacy conformance.
-Next: executable projection/canonical-vector and pinned runtime TCK
-for this contract before the minimum implementation, then acceptance/governance.
-M4-045 stays unchecked. M4-050+, M5 implementation and PR merge remain unauthorized.
-
-The evidence-recovery section below is preserved as predecessor context; this
-candidate section is now the operational continuation point.
-
-## M4-045 current evidence recovery
-
-Review: `docs/review-notes-m4-045-audit-privacy.md` (non-normative; not acceptance).
-
-Recovered baseline: `0c47080b509a762e22461eea0ab9a785bb19d30c`.
-
-- CI #616 / `33974251591`: PASS.
-- Harness #558 / `33974251606`: PASS.
-- Job `101328043285`, steps 10 and 11: PASS.
-- PR #3 remains Open / Draft / mergeable; base unchanged; no reviews or threads.
-
-The existing Adapter structurally omits raw argument/result bodies and approval
-reasons, but ordinary RuntimeEvent observation is not an audit admission boundary.
-Digest callbacks, opaque metadata and diagnostic errors still require explicit
-privacy ownership. Four synthetic local helper probes confirm body omission
-with a cryptographic digest and canary propagation through an unsafe digest,
-opaque metadata and the supported snapshot error-code field. These are
-helper-level demonstrations, not real rc5 runtime privacy acceptance or a
-reported real-credential leak.
-
-Existing retention schema fixes secrets/environment/rawPrompt false. M4-024
-record construction and M4-043 final-result observation do not authorize
-persistence. Preserve digest domains and exact final-result authority; do not
-change runtime policy inputs or build a detector/ledger to skip protocol design.
-
-Reviewed evidence-recovery head: `f10fc5176d49d8b7bb5c2bacc02cc678f408ea17`.
-CI #617 / `33975036165` and Harness #559 / `33975036169` PASS on that same SHA;
-Harness job `101330128317` passes steps 10 and 11. The evidence-recovery
-baseline is verified; continue protocol-first design. M4-045 is not accepted;
-roadmap remains unchecked. No production, Spec/corpus/schema, TCK, dependency,
-lockfile or workflow change is part of evidence recovery.
-
-Next: prepare a Spec 0049 candidate and requirement corpus that name the owned
-audit egress, explicit string/digest/diagnostic trust boundaries, fail-closed
-admission and correlation rules, with M5 detector/storage/retention work excluded.
-Do not claim that field omission or digest syntax alone proves no raw secret.
-
-The following M4-044 and predecessor evidence is preserved; this M4-045 section
-is the current operational continuation point.
-
-## Current authority and pinned baseline
-
-- Spec: `specs/0048-m4-approval-subsystem-uniqueness.md`.
-- Corpus: `fixtures/approval-subsystem-uniqueness/cases.json`.
-- Profile: `M4-044_APPROVAL_SUBSYSTEM_UNIQUENESS_V1`, 24 cases DAU-001..024.
-- Portable approval routing remains Spec 0034 / M4-023 authority.
-- Adapter native ToolRuntime ASK remains Spec 0046 / M4-042 authority.
-- Harness compatibility baseline: `0.1.0-rc.5@47f943859bef60e4160492346772ded9b24f765a`.
-- Harness implementation never overrides portable protocol authority.
-
-M4-043 predecessor governance evidence remains
-`6be76b80e5e462cd66c8743e1cf142b4e52b2d68`, CI #603 / 33881990790 and
-Harness #545 / 33881990595 PASS. Its accepted tools/result final-authority
-boundary remains unchanged; see `docs/acceptance/m4-043-acceptance-audit.md`.
-
-## M4-044 protocol-first evidence
-
-Exact head: `ff7bb64e9bf51c9687598476f52414dd0d964a39`.
-
-- CI #609 / `33883718218`: PASS.
-- Harness #551 / `33883718205`: PASS.
-
-Only after this dual-green head did source-conformance implementation begin.
-
-## Accepted conformance
-
-Exact head: `333ac1213c4e4b5f416b7c60497900fe2c2f7a9a`.
-
-- CI #613 / `33930456673`: PASS.
-- Harness #555 / `33930456658`: PASS.
-- Job `101207810230`, step 10 pinned-source typecheck: PASS.
-- Same job, step 11 real rc5 runtime conformance: PASS (21 files / 105 tests).
-- M4-044 runtime suite: 2 tests; corpus traceability suite: 4 tests.
-
-Net conformance delta from protocol-first: two added conformance files, +252/-0.
-No production, Spec/corpus, schema, dependency, lockfile or workflow change.
-
-The same real Context/Agent proves one native ASK reaches one ApprovalService
-request and one correlated asked/decided pair. A later deliberate explicit
-Adapter requestApproval reaches the same service once more with a distinct
-native ID, without another tools/pre-execute entry or tool-body execution.
-
-Repository-wide review found no competing production approval orchestrator.
-Capability Broker invokes one supplied port; Adapter ASK only projects the
-native decision; explicit requestApproval calls ctx.get("approval"). Observation
-correlation maps are not approval decision/grant stores. Testkit fake approval
-remains test-only. No production rewrite is warranted.
-
-## Remediation record
-
-Harness #552 at `869151d25fb13536298127b2615a9e3504aaac9d` failed step 10
-with four TS2339 diagnostics at conformance lines 136-138. A helper erased
-SessionEvent payload typing. `a18d4467571379da605cdcd81a7a42e5993f2df4`
-removed it and directly filtered session.events without weakening assertions;
-CI #611 / Harness #553 passed. The Agent was already registered.
-
-Subsequent review aligned DAU-012..023 evidence labels with the normative corpus
-and strengthened audit-ID pairing and no-second-pre-execute assertions.
-Local review commit cd0470e was published through the GitHub connector as
-b90336cd then 333ac121; their final conformance contents match the reviewed files.
-The previous upload blocker is resolved.
-
-Windows local check:all encounters the existing duplicated-drive-path failure
-in verify-boundaries.mjs. That unrelated script was not changed; do not claim
-local full-suite success or weaken checks. Remote fixed-environment CI is the
-acceptance evidence.
-
-## Acceptance and next verification
-
-Audit: `docs/acceptance/m4-044-acceptance-audit.md`.
-
-Audit-only head: `ab00b2be8aac3201ab4d20fe686173089d663155`.
-
-- CI #614 / `33930612203`: PASS.
-- Harness #556 / `33930612213`: PASS.
-- Harness steps 10 and 11: PASS.
-
-## M4-044 governance closure
-
-Final governance evidence head: `934d6c33e56aa292c92f8d6dd70e07ddcc4eb779`.
-
-- CI #615 / `33974016446`: PASS.
-- Harness #557 / `33974016445`: PASS.
-- Job `101327428853`, step 10 pinned-source typecheck: PASS.
-- Same job, step 11 real rc5 runtime: PASS.
-
-The exact diff from audit head changes only CURRENT, append-only HISTORY
-(+39/-0, original prefix preserved byte-for-byte) and one M4-044 roadmap line.
-Original CURRENT evidence is retained. No production or later-Gate behavior changed.
-
-M4-044 governance is CLOSED. M4-045 is the sole newly authorized protocol-first
-Gate; its implementation has not started. This closure-record commit must also
-be checked on its own exact head before further modifications.
-
-## Non-claims and resume
-
-This Gate does not prove arbitrary callers cannot deliberately double-invoke
-approval APIs, complete host-effect mediation, effect success or rollback,
-provider/process/kernel isolation, durable exactly-once approval, raw audit-data
-secrecy, or M5 ledger semantics.
-
-1. Refresh PR #3 metadata, exact head, base, reviews and review threads.
-2. Verify this closure-record head has normal CI and Harness dual-green.
-3. If failing, read the current failed job/step/diagnostic before any edit.
-4. Recover M4-045 authority from existing audit/redaction Specs, Adapter
-   normalization/digest boundaries, accepted TCK and exact pinned source before
-   drafting its protocol-first contract/corpus. Do not infer raw-data secrecy
-   from M4-043/M4-044 or begin production implementation without that Gate.
-5. Keep PR #3 Open / Draft. Never merge, force-push or rewrite accepted ancestry.
-6. Preserve HISTORY append-only and avoid unrelated production or dependency work.
-
-## Preserved predecessor recovery record
-
-The following M4-043 evidence and original M4-044 recovery guidance are retained
-for continuity. The verified M4-044 status and resume steps above are current.
-
-## M4-043 protocol-first authority
+## M4-050 accepted evidence
 
 Normative specification:
 
 ```text
-specs/0047-m4-dsh-authoritative-tool-result.md
-profile: M4-043_DSH_AUTHORITATIVE_TOOL_RESULT_V1
+specs/0050-m4-direct-host-fs-negative-boundary.md
 ```
 
-Portable/source-conformance corpus:
+Requirement corpus:
 
 ```text
-fixtures/dsh-authoritative-tool-result/cases.json
-32 cases: DATR-001 through DATR-032
+fixtures/direct-host-fs-negative-boundary/cases.json
+profile: M4-050_DIRECT_HOST_FS_NEGATIVE_BOUNDARY_V1
+cases: DHFS-001..DHFS-024
 ```
 
-Protocol-first exact head:
+Pinned Harness compatibility baseline:
 
 ```text
-48259967bcae767cf292a7934c23c29a2274658e
+0.1.0-rc.5@47f943859bef60e4160492346772ded9b24f765a
 ```
 
-Its parent is M4-042 final governance head:
+### Protocol-first exact head
 
 ```text
-0bd01855bd71fa39e6a0c9e7437515faaf8c63b2
+302ec43ee48937f13859079c2e00891131ecd9ad
 ```
 
-Protocol-first exact-head evidence:
+- CI #629 / run `34193629081`: PASS.
+- Harness #571 / run `34193629078`: PASS.
+- Harness job `101956581627`, step 10 exact pinned-source typecheck: PASS.
+- Same job, step 11 real rc5 runtime conformance: PASS.
 
-- CI #593 / run `33788981150`: PASS;
-- exact pinned Harness rc5 source-conformance #535 / run `33788981153`: PASS.
+Only after this exact head became dual-green did executable/source-conformance
+work begin.
 
-Only after that head became dual-green did M4-043 source-conformance work begin.
-
-## Accepted ownership model
-
-M4-043 reuses the accepted portable lifecycle boundary:
+### Reviewed executable/source-conformance exact head
 
 ```text
-tool.requested = request intent only
-tool.completed = observed final outcome
+a92a0fcf1b20ec460d85de2e1338c8139c370cc1
 ```
 
-For Adapter DSH, the accepted live final-result source is:
+Its exact delta from the protocol-first head contains only:
 
 ```text
-final materialized Harness tools/result
+packages/adapter-dsh/source-conformance/m4-050-corpus-coverage.conformance.ts
+packages/adapter-dsh/source-conformance/m4-050-direct-host-fs-negative-boundary.conformance.ts
 ```
 
-The following are explicitly not final authority:
+The supported real rc5 witness performs one direct
+`node:fs/promises.writeFile` against a disposable test-owned sentinel using fixed
+benign bytes. The same measured operation proves sentinel absence before, exact
+bytes after, and zero raw `tools/pre-execute`, safe-runtime policy, monotonic
+guard, tool body and `tools/result` participation. The exact expected boundary
+classification is `EXPECTED_UNGOVERNED`; contradictory provenance or mediation
+evidence is `INVALID_EVIDENCE`.
 
-```text
-tool body return
-post-execute pre-final candidate
-policy / guard / approval intent
-process-local denied / cancelled disposition state
-```
+Exact-head evidence:
 
-Required digest ownership remains:
+- CI #630 / run `34194046009`: PASS.
+- Harness #572 / run `34194046036`: PASS.
+- Harness job `101957818163`, step 10 exact pinned-source typecheck: PASS.
+- Same job, step 11 real rc5 runtime conformance: PASS.
 
-```text
-resultDigest = digest(exact tools/result result)
-```
+No production implementation, Schema, dependency, lockfile, workflow, roadmap,
+HISTORY or later-Gate behavior changed in that executable delta.
 
-The digest algorithm itself remains host-defined.
-
-## Existing production binding accepted without rewrite
-
-The existing Adapter production binding in:
-
-```text
-packages/adapter-dsh/src/binding.ts
-```
-
-already observes:
-
-```text
-ctx.on("tools/result", (exec, result) => ...)
-```
-
-For an agent-backed result it:
-
-1. derives `sessionRef` from the live execution agent/session;
-2. correlates exact `exec.callId` and `exec.name`;
-3. uses process-local denial/cancellation disposition only as classification aid;
-4. computes `resultDigest` from the exact observed final result;
-5. normalizes from that same source fact;
-6. emits through the existing ordered observation dispatcher.
-
-Agent-less results are not synthesized into session-scoped `tool.completed`.
-
-Exact-source review found no concrete production defect requiring a rewrite.
-M4-043 therefore remains a proof-of-existing-binding Gate.
-
-## Pinned Harness baseline and final-result chain
-
-Exact pinned Harness compatibility baseline remains:
-
-```text
-version: 0.1.0-rc.5
-commit: 47f943859bef60e4160492346772ded9b24f765a
-```
-
-Pinned ToolRuntime source establishes:
-
-```text
-body / tools/execute
--> tools/post-execute
--> materialize candidate
--> definition-owned final content
--> materialize final result
--> notifyResult(exec, finalResult)
--> return finalResult
-```
-
-`notifyResult()` contains both synchronous observer throws and returned
-Promise/thenable rejections. Observer failure therefore does not become a channel
-for replacing the already-final ToolRuntime result.
-
-## Final reviewed conformance
-
-Final reviewed conformance exact head:
-
-```text
-f681138030626c1be73810b788052a7306bd80ab
-```
-
-Its net delta from the protocol-first head is exactly two source-conformance
-files:
-
-```text
-packages/adapter-dsh/source-conformance/m4-043-authoritative-tool-result.conformance.ts
-packages/adapter-dsh/source-conformance/m4-043-corpus-coverage.conformance.ts
-```
-
-There is no production-code delta.
-
-Real pinned rc5/source evidence covers:
-
-- exact final object identity after post-execute and definition finalization;
-- final success/error authority rather than earlier body state;
-- exact final-result digest ownership;
-- policy disposition as classification only;
-- exact session/call/tool correlation;
-- agent-less fail-closed attribution;
-- frozen execution boundary;
-- synchronous observer throw containment;
-- asynchronous observer rejection containment;
-- Adapter observation/digest failure containment;
-- subscription disposal;
-- explicit separation of executable evidence, pinned-source evidence, reused
-  M3 conformance and architecture non-claims.
-
-Final reviewed exact-head evidence:
-
-- CI #597 / run `33857013262`: PASS;
-- exact pinned Harness rc5 source-conformance #539 / run `33857013278`: PASS;
-- Harness step 10 exact rc5 binding/source-conformance typecheck: PASS;
-- Harness step 11 real rc5 runtime conformance: PASS.
-
-## Exact-source TypeScript remediation record
-
-M4-043 source-conformance encountered test-helper typing defects under the exact
-pinned public source. They were corrected without weakening any quality gate:
-
-1. `defineTool.execute` was aligned to the pinned Promise-returning contract;
-2. the async DATR-023 observer was registered through the public raw event-service
-   seam so ToolRuntime's real thenable-containment path is exercised without
-   weakening the typed `ctx.on()` contract;
-3. brittle recursive `Parameters<typeof defineTool>` reflection was replaced by
-   the public rc5 `ToolExecution`, `ToolExecutionResult` and
-   `ContentBlock[] | undefined` finalizer signature after exact-head TS2321 proved
-   compiler recursion in the helper type.
-
-No `any`, unsafe cast, TypeScript relaxation, validator/schema/TCK weakening,
-production rewrite, dependency or lockfile change was used to obtain green CI.
-
-## Acceptance audit
+### Acceptance audit exact head
 
 Acceptance audit:
 
 ```text
-docs/acceptance/m4-043-acceptance-audit.md
+docs/acceptance/m4-050-acceptance-audit.md
 ```
 
 Audit-only exact head:
 
 ```text
-5455ce99c7de06b209af616f43a544bf2e6eec3b
+44e3ce2d3b23f455628979535f275123ad605af6
 ```
 
-Audit exact-head evidence:
+- CI #631 / run `34200436950`: PASS.
+- Harness #573 / run `34200436977`: PASS.
+- Harness job `101977743221`, step 10 exact pinned-source typecheck: PASS.
+- Same job, step 11 real rc5 runtime conformance: PASS.
 
-- CI #598 / run `33857346910`: PASS;
-- exact pinned Harness rc5 source-conformance #540 / run `33857346900`: PASS;
-- Harness step 10: PASS;
-- Harness step 11: PASS;
-- PR #3 remained Open, Draft and mergeable;
-- reviews: none;
-- review threads: none.
+The audit accepts M4-050 implementation/conformance at `a92a0fcf...`. It does not
+itself close governance or authorize M4-051.
 
-The audit accepts M4-043 implementation/source-conformance at `f681138...`.
+## M4-050 security boundary
 
-## M4-043 governance closure
+M4-050 is deliberately a negative-boundary evidence Gate. It proves that current
+host-privileged in-process direct Node filesystem access can bypass the accepted
+ToolRuntime seams. It MUST NOT be interpreted as evidence of safe-runtime ALLOW or
+DENY.
 
-Final governance evidence head:
-
-```text
-6be76b80e5e462cd66c8743e1cf142b4e52b2d68
-```
-
-The exact diff from audit head `5455ce99c7de06b209af616f43a544bf2e6eec3b`
-is restricted to the authorized governance files. `docs/handoff/HISTORY.md` is
-append-only in the resulting state (`+63/-0` from the audit head); no production,
-Spec/corpus/schema, dependency, lockfile or Harness workflow behavior changed.
-
-Exact-head closure evidence:
-
-- normal CI #603 / run `33881990790`: PASS;
-- exact pinned Harness rc5 source-conformance #545 / run `33881990595`: PASS;
-- Harness step 10 exact rc5 binding/source-conformance typecheck: PASS;
-- Harness step 11 real rc5 runtime conformance: PASS.
-
-Therefore M4-043 governance is CLOSED. M4-044 P0 `no duplicate approval
-subsystem` is the sole newly authorized Gate.
-
-## Security / non-claim boundary
-
-M4-043 does not prove:
+M4-050 does not implement or claim:
 
 ```text
-every host effect traverses ToolRuntime
-successful result means every claimed external effect happened
-failed result means external effects were absent or rolled back
+node:fs interception or monkey patching
+complete host-effect mediation
 provider/process/kernel isolation
-complete system-wide tool-enforced coverage
-durable exactly-once delivery or storage
-raw tool results are safe for audit persistence
+plugin sandboxing
+filesystem transactionality or rollback
+shell/subprocess equivalence
+synthetic CapabilityRequest/Decision/Receipt/Lease facts
+synthetic approval or audit facts
+M6 workspace transactions
+M14 process-isolated plugin hosting
 ```
 
-M4-044 owns formal repository-wide duplicate approval-subsystem audit. M4-045
-owns raw-secret/audit redaction. M4-050+ owns negative enforcement boundaries.
+The direct Node spelling is Adapter/source-conformance evidence only. DeepSeek
+Harness remains compatibility evidence and does not become portable filesystem
+protocol authority.
 
-## M4-044 active Gate boundary
+## Current governance boundary
 
-M4-044 must begin from existing approval ownership and repository evidence. It
-must prove that the accepted portable approval-routing seam and the Adapter DSH
-native ToolRuntime approval path do not create competing approval orchestration
-for one action.
-
-M4-044 MUST NOT:
+The next repository transition is M4-050 governance bookkeeping only. It is
+restricted to the governance records required by repository process:
 
 ```text
-invent a second approval service or state machine
-change M4-023 approval semantics without a concrete authority conflict
-replace Harness native ApprovalService ownership with Adapter-local orchestration
-start M4-045 audit redaction
-start M4-050+ negative boundary work
-change public protocol/schema without normative authority
-merge PR #3
+docs/handoff/CURRENT.md
+docs/handoff/HISTORY.md   # append-only; prior byte prefix must be preserved
+docs/roadmap.md           # only the M4-050 marker/details
 ```
 
-Production changes are allowed only if repository-wide evidence identifies a
-concrete duplicate-subsystem defect. Otherwise this Gate should close by audit and
-conformance evidence rather than speculative refactoring.
+No production, Spec/corpus/schema, Shared TCK, dependency, lockfile, Harness
+baseline/workflow or M4-051 implementation may enter that transition.
 
-## Resume instruction
+Because `HISTORY.md` is append-only, a tooling path that cannot prove preservation
+of the exact existing byte prefix must not rewrite it. Governance is not CLOSED
+until the required governance records are safely committed and that resulting
+exact head itself reaches normal CI plus exact pinned Harness rc5 source-
+conformance dual-green.
 
-1. refresh PR #3 and current exact head before any M4-044 modification;
-2. recover approval ownership from M4-023, M4-042, Adapter production binding and
-   exact pinned Harness rc5 source/tests;
-3. inspect repository approval-related entry points, ports, services, tests and
-   integration wiring for duplicate orchestration or independent decision state;
-4. distinguish portable approval routing from Harness compatibility binding;
-5. if a concrete duplicate path exists, make the smallest authority-consistent
-   fix and prove it; otherwise produce a repository-wide uniqueness audit with
-   executable/source evidence and no production rewrite;
-6. require exact-head normal CI + exact pinned Harness rc5 source-conformance for
-   M4-044 acceptance/governance;
-7. do not begin M4-045 or M4-050+ before M4-044 governance closure;
-8. keep M5, M6, M10, M13, M15 and PR #3 merge unauthorized;
-9. never merge PR #3 without explicit user authorization.
+Only after that closure may M4-051 become the sole newly authorized protocol-first
+Gate. PR #3 must remain Open / Draft and must not be merged without explicit user
+authorization.
