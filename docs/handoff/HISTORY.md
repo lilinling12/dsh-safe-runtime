@@ -2721,3 +2721,29 @@ resulting governance exact head must itself reach normal CI + exact pinned
 Harness rc5 source-conformance dual-green before M4-050 governance is CLOSED and
 M4-051 becomes the sole newly authorized protocol-first Gate. PR #3 remains Open /
 Draft and merge remains unauthorized without explicit user approval.
+
+## 2026-09-08 — Close M4-050 governance and authorize M4-051 protocol-first
+
+M4-050 governance transition head
+`7c93e12380ce0595192f423ec98e9f9b97b9385d` passed normal CI #633 / run
+`34206675133` and exact Harness rc5 source-conformance #575 / run
+`34206675087`. Harness job `101997661205` passed step 10 pinned-source
+TypeScript and step 11 real rc5 runtime on that same exact SHA.
+
+The exact diff from verified handoff parent
+`8365a1c131a971a00334640364c0bc3bff9aaf89` is restricted to the authorized
+governance files: CURRENT `+5/-3`, HISTORY `+49/-0`, and only the M4-050
+roadmap marker/details `+1/-1`. HISTORY preserves its complete prior byte
+prefix; no production, Spec/corpus/schema, Shared TCK, dependency, lockfile,
+Adapter/Harness baseline/workflow or later-Gate behavior changed in the
+governance transition.
+
+M4-050 is GOVERNANCE CLOSED. M4-051 P0 equivalent shell spelling bypass string
+matcher test is the sole newly authorized protocol-first Gate. M4-052+, M5,
+M6, M10, M13, M14 implementation and M15 remain unauthorized by this closure.
+PR #3 remains Open / Draft; merge remains unauthorized without explicit user
+approval.
+
+This closure-record head must itself reach exact-head normal CI plus exact
+pinned Harness rc5 source-conformance, including step 10 and step 11, before
+any M4-051 repository modification begins.

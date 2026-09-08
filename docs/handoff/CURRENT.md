@@ -11,13 +11,14 @@
 - Active PR: `#3 — feat(policy): begin M4 capability broker`
 - Branch: `feat/m4-capability-broker`
 - Base: `main@57430273e065be8d38807d67b175fa154c801d43`
-- Accepted predecessor governance head: `4124fbfbcc8186b972f4f61646a42b012ce1977f`
+- M4-050 governance transition head: `7c93e12380ce0595192f423ec98e9f9b97b9385d` — dual-green
 - M4-001..014: **GOVERNANCE CLOSED**
 - M4-020..025: **GOVERNANCE CLOSED**
 - M4-030..036: **GOVERNANCE CLOSED**
 - M4-040..045: **GOVERNANCE CLOSED**
-- M4-050 direct Node fs bypass → `EXPECTED_UNGOVERNED`: **IMPLEMENTATION / CONFORMANCE ACCEPTED; GOVERNANCE TRANSITION PENDING EXACT-HEAD DUAL-GREEN**
-- M4-051+: **NOT AUTHORIZED until the M4-050 governance exact head is dual-green and closure is recorded**
+- M4-050 direct Node fs bypass → `EXPECTED_UNGOVERNED`: **GOVERNANCE CLOSED**
+- M4-051 equivalent shell spelling bypass string matcher test: **AUTHORIZED / PROTOCOL-FIRST NOT YET STARTED**
+- M4-052+: **NOT AUTHORIZED by the M4-050 closure**
 - M5, M6, M10, M13, M14 implementation, M15: **NOT AUTHORIZED by the current Gate**
 - PR #3 merge: **NOT AUTHORIZED without explicit user authorization**
 
@@ -140,26 +141,18 @@ protocol authority.
 
 ## Current governance boundary
 
-Verified governance-transition parent `8365a1c131a971a00334640364c0bc3bff9aaf89` reached CI #632 / run `34201022150` PASS and Harness #574 / run `34201022021` PASS, including pinned-source step 10 and real rc5 step 11.
-
-The current repository transition is M4-050 governance bookkeeping only. It is
-restricted to the governance records required by repository process:
+M4-050 governance transition exact head:
 
 ```text
-docs/handoff/CURRENT.md
-docs/handoff/HISTORY.md   # append-only; prior byte prefix must be preserved
-docs/roadmap.md           # only the M4-050 marker/details
+7c93e12380ce0595192f423ec98e9f9b97b9385d
 ```
 
-No production, Spec/corpus/schema, Shared TCK, dependency, lockfile, Harness
-baseline/workflow or M4-051 implementation may enter that transition.
+- CI #633 / run `34206675133`: PASS.
+- Harness #575 / run `34206675087`: PASS.
+- Harness job `101997661205`, step 10 exact pinned-source typecheck: PASS.
+- Same job, step 11 real rc5 runtime conformance: PASS.
+- Exact transition diff: CURRENT `+5/-3`, HISTORY `+49/-0`, roadmap `+1/-1`; no other files changed.
 
-Because `HISTORY.md` is append-only, a tooling path that cannot prove preservation
-of the exact existing byte prefix must not rewrite it. Governance is not CLOSED
-until the required governance records are safely committed and that resulting
-exact head itself reaches normal CI plus exact pinned Harness rc5 source-
-conformance dual-green.
+M4-050 is **GOVERNANCE CLOSED**. M4-051 is the sole newly authorized engineering Gate and must begin protocol-first. M4-052+ and all later milestones remain unauthorized by this closure.
 
-Only after that closure may M4-051 become the sole newly authorized protocol-first
-Gate. PR #3 must remain Open / Draft and must not be merged without explicit user
-authorization.
+This closure record itself must reach exact-head normal CI plus exact pinned Harness rc5 source-conformance dual-green before any M4-051 repository modification begins. PR #3 must remain Open / Draft and must not be merged without explicit user authorization.
