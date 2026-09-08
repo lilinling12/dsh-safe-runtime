@@ -60,7 +60,9 @@ describe("M4-052 plugin-sandbox documentation boundary", () => {
       "DSH Safe Runtime v0.1 is not a sandbox for arbitrary in-process plugins.",
     );
     expect(readme).toContain("`tool-enforced` MUST NOT be presented as `process-isolated`");
-    expect(readme).toContain("future process-isolated Plugin Host is tracked as M14");
+    expect(readme.replace(/\s+/gu, " ")).toContain(
+      "future process-isolated Plugin Host is tracked as M14",
+    );
     expect(readme).toContain(
       "Tool-level policy MUST NOT be described as isolation of arbitrary in-process plugins.",
     );
