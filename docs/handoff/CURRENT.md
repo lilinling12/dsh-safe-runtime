@@ -11,7 +11,7 @@
 - Active PR: `#3 — feat(policy): begin M4 capability broker`
 - Branch: `feat/m4-capability-broker`
 - Base: `main@57430273e065be8d38807d67b175fa154c801d43`
-- Exact parent governance head: `934d6c33e56aa292c92f8d6dd70e07ddcc4eb779`
+- Exact parent governance head: `b6a2df594f3d58eeadd1b8be67850893792b03c2`
 - M4-001..014: **GOVERNANCE CLOSED**
 - M4-020..025: **GOVERNANCE CLOSED**
 - M4-030..036: **GOVERNANCE CLOSED**
@@ -20,12 +20,38 @@
 - M4-042: **GOVERNANCE CLOSED**
 - M4-043 authoritative `tools/result`: **GOVERNANCE CLOSED**
 - M4-044 no duplicate approval subsystem: **GOVERNANCE CLOSED**
-- M4-045 audit redaction: **ACCEPTANCE DUAL-GREEN / GOVERNANCE CLOSURE IN PROGRESS**
-- M4-046+: **NOT AUTHORIZED by this Gate**
-- M4-050+, M5, M6, M10, M13, M15: **NOT AUTHORIZED until M4-045 governance exact-head verification completes**
+- M4-045 audit redaction: **GOVERNANCE CLOSED**
+- M4-050 direct Node fs bypass → `EXPECTED_UNGOVERNED`: **AUTHORIZED / PROTOCOL-FIRST NOT STARTED**
+- M4-051+, M5, M6, M10, M13, M15: **NOT AUTHORIZED by the current Gate**
 - PR #3 merge: **NOT AUTHORIZED without explicit user authorization**
 
 Live GitHub state overrides this snapshot.
+
+## M4-045 governance closure
+
+Final governance evidence head:
+`b6a2df594f3d58eeadd1b8be67850893792b03c2`.
+
+- CI #627 / run `34179575503`: PASS.
+- Harness #569 / run `34179575485`: PASS.
+- Harness job `101915729796`, step 10 pinned-source typecheck: PASS.
+- Same job, step 11 real rc5 runtime conformance: PASS.
+
+The exact diff from audit head `33ecd98c9361996cbdfb057b0c624201757db682`
+is restricted to authorized governance files: CURRENT `+35/-4`, HISTORY
+`+31/-0`, and only the M4-045 roadmap marker `+1/-1`. No production,
+Spec/corpus/schema, dependency, lockfile or workflow behavior changed.
+
+M4-045 governance is CLOSED. M4-050 P0 direct Node fs bypass →
+`EXPECTED_UNGOVERNED` is the sole newly authorized Gate. It must begin
+protocol-first from the accepted M4-041 tool-guard non-claim, M4-043 final-result
+boundary, current Adapter/provider seams and exact pinned Harness source. M4-051+
+and later milestones remain unauthorized. PR #3 remains Open / Draft and merge
+remains unauthorized.
+
+This closure-record commit changes only CURRENT and append-only HISTORY. Its own
+exact head must pass normal CI plus exact pinned Harness rc5 source-conformance
+before any M4-050 repository modification begins.
 
 ## M4-045 audit egress acceptance and governance closure
 
