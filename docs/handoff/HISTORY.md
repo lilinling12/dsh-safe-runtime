@@ -2747,3 +2747,53 @@ approval.
 This closure-record head must itself reach exact-head normal CI plus exact
 pinned Harness rc5 source-conformance, including step 10 and step 11, before
 any M4-051 repository modification begins.
+
+## 2026-09-08 — Accept M4-051 equivalent shell spelling negative boundary
+
+M4-051 protocol-first head
+`15d7a7de5ab13e6b47a01c449295bb0a5dc1a3d2` defined Spec 0051 and the
+24-case `ESSM-001` through `ESSM-024` requirement corpus before executable
+work. That exact head passed normal CI #635 / run `34207867737` and exact
+Harness rc5 source-conformance #577 / run `34207867755`; Harness job
+`102001564039` passed step 10 pinned-source typecheck and step 11 real rc5
+runtime conformance.
+
+Reviewed executable/source-conformance head
+`338aba9f4ca286721cf9703d9474bfde4496370f` adds exactly two dedicated
+Adapter source-conformance files and no production code. A real supported
+Bash witness uses a unique disposable test-owned directory, fixed benign
+bytes and two distinct redirection spellings. The fixed Gate-local literal
+matcher yields reference `MATCH` and alternative `NO_MATCH`, while each
+independently starts with an absent sentinel and produces the same exact
+post-execution bytes. The only accepted classification is
+`EXPECTED_STRING_MATCHER_BYPASS`.
+
+Exact executable evidence:
+
+- normal CI #636 / run `34208412572`: PASS;
+- exact Harness rc5 source-conformance #578 / run `34208412227`: PASS;
+- Harness job `102003343533`, step 10 pinned-source typecheck: PASS;
+- same job, step 11 real rc5 runtime conformance: PASS.
+
+Acceptance audit `docs/acceptance/m4-051-acceptance-audit.md` is at
+audit-only head `91b9dcef1c092ab0968ff198d6342a8cc9c7bb81`. That exact
+head passed normal CI #637 / run `34210896023` and exact Harness rc5
+source-conformance #579 / run `34210896202`; Harness job `102011369018`
+passed steps 10 and 11.
+
+M4-051 proves only that raw shell command spelling cannot be the sole
+security semantic for inferred nested effects. Recognized `bash` / `pwsh`
+calls remain accepted M4-011 `process.exec` requests and M4-040/M4-041
+ToolRuntime authority is not weakened. The test-only matcher is not a PDP,
+is not installed in production and does not imply policy ALLOW, shell
+ungoverned execution, provider/process isolation, parser completeness,
+plugin sandboxing, M6 transactionality or M14 isolation.
+
+This governance transition is restricted to CURRENT, this append-only
+HISTORY entry and only the M4-051 roadmap marker/details. No production
+code, Spec/corpus/schema, Shared TCK, dependency, lockfile, Harness
+baseline/workflow or M4-052+ implementation changes here. The resulting
+exact governance head must itself become normal-CI + exact pinned Harness
+dual-green before M4-051 governance can be closed and M4-052 can become
+the sole newly authorized Gate. PR #3 remains Open / Draft and merge
+remains unauthorized without explicit user approval.
