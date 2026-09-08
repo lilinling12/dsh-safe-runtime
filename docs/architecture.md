@@ -356,6 +356,42 @@ ctx.tools.guard()
 
 因此 PEP-TOOL Guarantee = `tool-enforced`，不能宣称 `process-isolated`。
 
+### 7.2.1 v0.1 Plugin Sandbox Non-Claim
+
+DSH Safe Runtime v0.1 **不是 arbitrary in-process Plugin 的 sandbox**。
+
+当前边界必须按以下两个执行域区分：
+
+```text
+进入 Harness ToolRuntime / accepted provider seam 的 action
+  -> Capability Broker / policy / guard / approval
+  -> 只能按已接受证据宣称 tool-enforced / provider-aware guarantee
+
+同进程 Plugin 直接使用宿主 Node / runtime / native API
+  -> 可能完全不进入上述 seam
+  -> 不能宣称 process-isolated / sandboxed
+```
+
+M4-050 已用真实的 test-owned direct `node:fs` mutation 证明第二类边界可以
+存在，并要求诚实记录为 `EXPECTED_UNGOVERNED`，而不是伪造 ALLOW/DENY。
+M4-051 则是另一个更窄的负面边界：Shell String 不能作为 nested effect 的
+唯一安全语义；它不取消 recognized shell call 的 `process.exec` classification。
+
+因此以下推论均不成立：
+
+```text
+tool policy => arbitrary Plugin isolation
+tool-enforced => process-isolated
+command string matcher => complete nested-effect mediation
+workspace rollback => complete Plugin sandbox
+documentation statement => runtime enforcement
+```
+
+真正的 process-isolated Plugin Host 明确属于未来 M14，包括 isolated worker、
+no host env/cwd inheritance、brokered fs/process/network RPC、resource limits 与
+crash isolation。在 M14 相关 Gate 被独立实现并验收前，任何 v0.1 文档、
+GuaranteeLevel 或产品描述都不得提前宣称这些能力。
+
 ## 7.3 PEP-FS
 
 v0.2 进入 Provider-aware Enforcement：
