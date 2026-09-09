@@ -338,6 +338,8 @@ Acceptance evidence
 
 - [x] `M5-001 P0` append-only store。 **ACCEPTED：Spec 0053 + AOS-001..028 + dependency-free `packages/storage` reference implementation；final reviewed head `4c42752b...`, CI #649 / Harness #591 PASS；验收记录 `docs/acceptance/m5-001-acceptance-audit.md` at `be616ba0...`, CI #650 / Harness #592 PASS。Append-only semantics only；canonical JSON / digest / hash chain remain M5-002/003/004.**
 - [ ] `M5-002 P0` canonical JSON。
+
+> **Release sequencing override（2026-09-09）**：M5-002 完成 implementation / acceptance / governance closure 后，暂停 M5-003+；优先执行下方 `R1 — DeepSeek Harness Plugin Alpha Release`。R1 Alpha 发布完成并形成真实外部安装反馈后，再恢复 M5-003+。该调整不改变 M5-003+ 的既有语义或优先级，只改变首次 Alpha 发布前的执行顺序。
 - [ ] `M5-003 P0` record digest。
 - [ ] `M5-004 P1` hash chain。
 - [ ] `M5-005 P1` integrity verify CLI。
@@ -356,6 +358,90 @@ Acceptance evidence
 - [ ] `M5-020 P0` audit store unavailable policy。
 - [ ] `M5-021 P1` durable local spool。
 - [ ] `M5-022 P1` spool reconciliation。
+
+
+---
+
+# R1 — DeepSeek Harness Plugin Alpha Release
+
+目标：在不虚构 process isolation、不等待 M5-M19 全部完成的前提下，把已经经过真实 rc5 source-conformance 验证的 `adapter-dsh` 能力产品化为**可安装、可验证、可回滚发布的 DeepSeek Harness Alpha 插件/Adapter 包**，尽早获得真实用户安装与集成反馈。
+
+> **定位**：R1 是提前执行的 Alpha 产品化/发布轨道，不替代 M20 的最终 Release Gates，也不等于 M14 Process-isolated Plugin Host。
+>
+> **启动条件**：M5-002 governance closure exact-head dual-green。
+>
+> **后续顺序**：R1 Alpha release governance closed → 恢复 M5-003+。
+
+## R1.1 Alpha Readiness
+
+- [ ] `R1-001 P0` Alpha readiness reconciliation。
+  - 重新核对 M0-M4 / M20 Alpha 的真实完成状态，不以旧 checkbox 代替 exact evidence；
+  - 处理 M0 fresh-clone、M1 Spec Review、M4 DoD 与事实验收之间的状态漂移；
+  - 明确 Alpha blocker / accepted-deferred / non-blocker；
+  - 产出独立 acceptance/readiness audit，不能通过回填历史伪造成早已完成。
+
+## R1.2 Public Plugin Surface
+
+- [ ] `R1-002 P0` freeze public DeepSeek Adapter API。
+  - 正式公开 `createDshRc5Adapter` 或经 Spec 评审后的更高层入口；
+  - 用户 API 不暴露内部 M2 port / source-conformance 细节；
+  - lifecycle、dispose、error/fail-closed semantics 明确；
+  - public exports / types / semver compatibility surface 有 contract tests。
+
+- [ ] `R1-003 P0` DeepSeek plugin/bootstrap integration。
+  - 提供最小、可复制的 Harness/Cordis 安装入口；
+  - policy/config 装载路径、默认 deny、ASK/approval、shutdown/dispose 行为可测试；
+  - 不新增第二套 approval/policy/runtime subsystem；
+  - 不把 same-process Adapter 宣称为 plugin sandbox。
+
+## R1.3 Publishable Package
+
+- [ ] `R1-004 P0` make `@dsh-safe/adapter-dsh` publishable。
+  - 移除 package-level `private: true` 前必须完成 package boundary / export audit；
+  - 正确设置 `exports`、`types`、`files`、`engines`、license、repository、keywords 与 peer dependency policy；
+  - 产物只包含运行所需文件，不发布测试夹具、临时 workflow、内部密钥或本地路径；
+  - package name / scope / ownership 必须在实际 publish 前再次确认。
+
+- [ ] `R1-005 P0` external tarball consumer + real Harness smoke gate。
+  - `pnpm pack` / equivalent 生成真实待发布 tarball；
+  - 在 workspace 外的全新 consumer 安装 tarball 与 exact supported DeepSeek Harness；
+  - 至少验证 ALLOW / DENY / ASK、default deny、dispose、unsupported-feature fail-closed；
+  - 外部 consumer 不得通过 monorepo workspace link、未声明文件或源码路径作弊。
+
+## R1.4 Compatibility / UX
+
+- [ ] `R1-006 P0` compatibility and installation contract。
+  - Alpha 首发支持矩阵至少包含当前 accepted baseline `0.1.0-rc.5`；
+  - 每个 Release 发布 DSH range / Adapter version / status compatibility matrix；
+  - unsupported / untested Harness version 必须明确拒绝或标记 unsupported，不静默声称兼容；
+  - Quickstart、policy sample、known limitations、non-sandbox statement 与 upgrade notes 完整。
+
+## R1.5 Release Engineering
+
+- [ ] `R1-007 P0` reproducible release pipeline。
+  - changeset/changelog/version/tag/GitHub Release 流程；
+  - clean checkout → frozen install → test/typecheck/TCK/Harness → pack → external consumer；
+  - npm provenance / package integrity / minimal SBOM 或等价供应链证据；
+  - publish credential 不进入仓库、日志、tarball 或 audit payload；
+  - 正式 publish 必须是显式授权动作，不由普通 PR CI 自动执行。
+
+- [ ] `R1-008 P0` DeepSeek plugin Alpha release acceptance。
+  - 对待发布 tarball 做独立 acceptance audit；
+  - exact package contents / integrity / version / compatibility evidence 固化；
+  - clean-machine installation + real Harness smoke dual-green；
+  - GitHub Release / registry metadata / install docs 一致；
+  - 只有在发布动作获得显式授权后，才执行首次 `0.1.0-alpha.x` registry publish。
+
+### R1 Alpha DoD
+
+- [ ] 独立用户无需 clone monorepo 即可安装已打包 Adapter。
+- [ ] public plugin/bootstrap API 有稳定 contract 与最小 Quickstart。
+- [ ] exact supported Harness baseline 的 source-conformance + external-consumer smoke 同时 green。
+- [ ] default deny / ASK / approval / no-silent-allow 在发布 tarball 上验证。
+- [ ] package contents、license、dependencies、provenance、integrity 与 compatibility matrix 可审计。
+- [ ] README/安装文档明确：v0.1 Alpha **不是 arbitrary in-process plugin sandbox**。
+- [ ] registry publish / GitHub Release 只有在显式发布授权后执行。
+- [ ] Alpha release acceptance/governance closed 后，恢复 M5-003+；M14 仍是未来 process-isolated Plugin Host。
 
 ---
 
