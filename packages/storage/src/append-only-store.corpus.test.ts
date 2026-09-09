@@ -198,7 +198,7 @@ async function verifyCase(id: string): Promise<void> {
         expect(spec).toContain(requiredPath);
       }
       expect(spec).toContain("It MUST NOT include production implementation");
-      expect(spec).toContain("protocol-first commit MUST be restricted to exactly");
+      expect(spec).toContain("The protocol-first candidate for M5-001 is restricted to exactly:");
       return;
     }
     default:
