@@ -304,6 +304,8 @@ async function runPackageCheck() {
 
   run(pnpmExecutable, ["run", "build"], { cwd: protocolRoot });
   run(pnpmExecutable, ["pack", "--pack-destination", protocolPackRoot], { cwd: protocolRoot });
+  // Regression: prepack must rebuild correctly after an existing composite build.
+  run(pnpmExecutable, ["run", "build"], { cwd: testkitRoot });
   run(pnpmExecutable, ["pack", "--pack-destination", testkitPackRoot], { cwd: testkitRoot });
 
   const protocolTarball = await oneTarball(protocolPackRoot, "protocol pack");
