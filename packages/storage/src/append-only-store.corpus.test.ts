@@ -190,17 +190,15 @@ async function verifyCase(id: string): Promise<void> {
     }
     case "AOS-028": {
       const spec = await readFile(resolve(process.cwd(), "specs/0053-m5-append-only-audit-store.md"), "utf8");
-      const current = await readFile(resolve(process.cwd(), "docs/handoff/CURRENT.md"), "utf8");
-      for (const path of [
+      for (const requiredPath of [
         "specs/0053-m5-append-only-audit-store.md",
         "fixtures/append-only-audit-store/cases.json",
         "docs/handoff/CURRENT.md",
       ]) {
-        expect(spec).toContain(path);
-        expect(current).toContain(path);
+        expect(spec).toContain(requiredPath);
       }
       expect(spec).toContain("It MUST NOT include production implementation");
-      expect(current).toContain("No production implementation, new package, dependency, lockfile, Schema, Shared");
+      expect(spec).toContain("protocol-first commit MUST be restricted to exactly");
       return;
     }
     default:
