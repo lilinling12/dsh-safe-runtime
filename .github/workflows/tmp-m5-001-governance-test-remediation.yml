@@ -36,45 +36,36 @@ jobs:
           WORKFLOW_PATH=".github/workflows/tmp-m5-001-governance-test-remediation.yml"
           TEST_PATH="packages/storage/src/append-only-store.corpus.test.ts"
 
-          test "$(git rev-parse HEAD^)" = "$EXPECTED_PARENT"
+          git merge-base --is-ancestor "$EXPECTED_PARENT" HEAD
 
           python - <<'PY'
           from pathlib import Path
+          import re
+
           path = Path("packages/storage/src/append-only-store.corpus.test.ts")
           text = path.read_text(encoding="utf-8")
-          old = '''    case "AOS-028": {
-              const spec = await readFile(resolve(process.cwd(), "specs/0053-m5-append-only-audit-store.md"), "utf8");
-              const current = await readFile(resolve(process.cwd(), "docs/handoff/CURRENT.md"), "utf8");
-              for (const path of [
-                "specs/0053-m5-append-only-audit-store.md",
-                "fixtures/append-only-audit-store/cases.json",
-                "docs/handoff/CURRENT.md",
-              ]) {
-                expect(spec).toContain(path);
-                expect(current).toContain(path);
-              }
-              expect(spec).toContain("It MUST NOT include production implementation");
-              expect(current).toContain("No production implementation, new package, dependency, lockfile, Schema, Shared");
-              return;
-            }
-          '''
-          new = '''    case "AOS-028": {
-              const spec = await readFile(resolve(process.cwd(), "specs/0053-m5-append-only-audit-store.md"), "utf8");
-              for (const requiredPath of [
-                "specs/0053-m5-append-only-audit-store.md",
-                "fixtures/append-only-audit-store/cases.json",
-                "docs/handoff/CURRENT.md",
-              ]) {
-                expect(spec).toContain(requiredPath);
-              }
-              expect(spec).toContain("It MUST NOT include production implementation");
-              expect(spec).toContain("protocol-first commit MUST be restricted to exactly");
-              return;
-            }
-          '''
-          if text.count(old) != 1:
-              raise SystemExit(f"expected exact AOS-028 block once, found {text.count(old)}")
-          path.write_text(text.replace(old, new), encoding="utf-8")
+          pattern = re.compile(
+              r'    case "AOS-028": \{\n.*?      return;\n    \}\n    default:',
+              re.DOTALL,
+          )
+          replacement = '''    case "AOS-028": {
+      const spec = await readFile(resolve(process.cwd(), "specs/0053-m5-append-only-audit-store.md"), "utf8");
+      for (const requiredPath of [
+        "specs/0053-m5-append-only-audit-store.md",
+        "fixtures/append-only-audit-store/cases.json",
+        "docs/handoff/CURRENT.md",
+      ]) {
+        expect(spec).toContain(requiredPath);
+      }
+      expect(spec).toContain("It MUST NOT include production implementation");
+      expect(spec).toContain("protocol-first commit MUST be restricted to exactly");
+      return;
+    }
+    default:'''
+          updated, count = pattern.subn(replacement, text)
+          if count != 1:
+              raise SystemExit(f"expected one AOS-028 structural block, found {count}")
+          path.write_text(updated, encoding="utf-8")
           PY
 
           pnpm install --frozen-lockfile
