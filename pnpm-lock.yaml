@@ -72,6 +72,8 @@ importers:
 
   packages/protocol: {}
 
+  packages/storage: {}
+
   packages/testkit:
     dependencies:
       '@dsh-safe/protocol':
