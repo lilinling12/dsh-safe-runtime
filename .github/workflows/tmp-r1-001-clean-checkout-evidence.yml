@@ -30,5 +30,11 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Build workspace
         run: pnpm build
+      - name: Inspect testkit build state
+        run: |
+          echo '--- tsbuildinfo ---'
+          find packages/testkit -maxdepth 3 -name '*.tsbuildinfo' -print -exec ls -l {} \;
+          echo '--- dist index ---'
+          ls -l packages/testkit/dist/index.js packages/testkit/dist/index.d.ts
       - name: Run complete repository gate
         run: pnpm check:all
