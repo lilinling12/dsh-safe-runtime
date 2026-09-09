@@ -336,7 +336,7 @@ Acceptance evidence
 
 ## M5.1 Ledger
 
-- [ ] `M5-001 P0` append-only store。
+- [x] `M5-001 P0` append-only store。 **ACCEPTED：Spec 0053 + AOS-001..028 + dependency-free `packages/storage` reference implementation；final reviewed head `4c42752b...`, CI #649 / Harness #591 PASS；验收记录 `docs/acceptance/m5-001-acceptance-audit.md` at `be616ba0...`, CI #650 / Harness #592 PASS。Append-only semantics only；canonical JSON / digest / hash chain remain M5-002/003/004.**
 - [ ] `M5-002 P0` canonical JSON。
 - [ ] `M5-003 P0` record digest。
 - [ ] `M5-004 P1` hash chain。

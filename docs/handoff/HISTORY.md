@@ -2913,3 +2913,53 @@ PR #3 remains Open / Draft and merge remains unauthorized without explicit user
 approval. This closure-record head must itself reach exact-head normal CI plus
 exact pinned Harness rc5 source-conformance, including step 10 and step 11,
 before any M5-001 repository modification begins.
+
+## 2026-09-09 — Accept M5-001 append-only audit store implementation/conformance
+
+M5-001 protocol-first head
+`3178d195774c4abed033bd0137bd0df5112519dc` defined Spec 0053 and the
+portable `AOS-001` through `AOS-028` corpus before implementation. Its exact
+delta from M4-052 closure head `a502d3018f3ae7dbab399ebaaebf0b0f3ab0c8b3`
+was limited to CURRENT, Spec 0053, and the M5-001 corpus. That head passed CI
+#647 / run `34298176493` and Harness #589 / run `34298176532`; Harness job
+`102299244534` passed steps 10 and 11.
+
+Architecture review placed implementation in the already-reserved
+`packages/storage/` boundary rather than overloading protocol/adapter or inventing
+a new audit-ledger package. The dependency-free runtime-neutral store implements
+append-only tail publication, immutable ownership, per-ledger gap-free sequence,
+serialized concurrent append ordering, duplicate occurrences, truthful
+`APPENDED` / `NOT_APPENDED` / `INDETERMINATE` outcomes, and caller/snapshot alias
+isolation. Hostile own keys including `__proto__` are preserved as opaque data
+using null-prototype owned objects.
+
+Primary clean implementation head
+`5cdb33921c241bc3679b1325cf1ccdb90bb8b8b0` passed CI #648 / run
+`34301190141` and Harness #590 / run `34301190140`; Harness job
+`102308245913` passed steps 10 and 11. Pre-PR temporary candidate validation had
+caught and corrected a TypeScript narrowing defect, a static-test false positive,
+and the hostile-key ownership risk before acceptance.
+
+Final test-only conformance head
+`4c42752b45f4990ebd3c5423d3e338e8f89385ad` added only
+`packages/storage/src/append-only-store.corpus.test.ts`, executing the complete
+AOS-001..028 case domain. It passed CI #649 / run `34301571222` and Harness #591 /
+run `34301571253`; Harness job `102309382800` passed steps 10 and 11.
+
+Acceptance audit `docs/acceptance/m5-001-acceptance-audit.md` is at audit-only
+head `be616ba066d971261282a227f51100e9ff07503b`. That exact head passed CI
+#650 / run `34301869285` and Harness #592 / run `34301869203`; Harness job
+`102310270503` passed steps 10 and 11. PR #3 remained Open / Draft, unmerged and
+mergeable, with no review or review-thread blockers.
+
+M5-001 intentionally does not implement M5-002 canonical JSON, M5-003 record
+digest, M5-004 hash chain, M5-005 integrity CLI, retention/redaction, durable
+spool, SQLite/PostgreSQL durability, fsync/replication, exactly-once semantics,
+or later milestone claims.
+
+This governance transition changes only CURRENT, this append-only HISTORY entry,
+and the M5-001 roadmap marker/details. The resulting exact head must itself reach
+normal CI plus exact pinned Harness rc5 dual-green before M5-001 governance can be
+closed. Only then may a separate CURRENT + append-only HISTORY closure record
+authorize M5-002 protocol-first. PR #3 merge remains unauthorized without explicit
+user approval.
