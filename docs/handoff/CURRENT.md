@@ -13,15 +13,14 @@
 - Base: `main@57430273e065be8d38807d67b175fa154c801d43`
 - M4-001..052: **GOVERNANCE CLOSED**
 - M5-001 implementation/conformance: **ACCEPTED**
-- M5-001 governance: **REVALIDATION CANDIDATE — NOT CLOSED UNTIL THIS EXACT HEAD IS DUAL-GREEN**
-- M5-002+: **NOT AUTHORIZED until a separate M5-001 closure-record exact head is dual-green**
+- M5-001 governance: **CLOSURE RECORD CANDIDATE — NOT CLOSED UNTIL THIS EXACT HEAD IS DUAL-GREEN**
+- M5-002: **NOT AUTHORIZED UNTIL THIS EXACT CLOSURE HEAD IS DUAL-GREEN**
+- M5-003+: **NOT AUTHORIZED**
 - PR #3 merge: **NOT AUTHORIZED without explicit user authorization**
 
 Live GitHub state overrides this snapshot.
 
-## M5-001 authority
-
-Normative specification and corpus:
+## M5-001 accepted authority
 
 ```text
 specs/0053-m5-append-only-audit-store.md
@@ -30,13 +29,7 @@ profile: M5-001_APPEND_ONLY_AUDIT_STORE_V1
 cases: AOS-001..AOS-028
 ```
 
-Pinned Harness baseline:
-
-```text
-0.1.0-rc.5@47f943859bef60e4160492346772ded9b24f765a
-```
-
-Original implementation acceptance:
+Original acceptance audit:
 
 ```text
 docs/acceptance/m5-001-acceptance-audit.md
@@ -47,46 +40,7 @@ Harness job 102310270503 step 10: PASS
 Harness job 102310270503 step 11: PASS
 ```
 
-## Governance transition failure and remediation
-
-Initial governance transition:
-
-```text
-3d0d3d7c5851ef5cd5f3cabd0cb425ec5a9d2d8f
-CI #651 / run 34302192147: FAIL
-Harness #593 / run 34302192174: PASS
-Harness job 102311267034 step 10: PASS
-Harness job 102311267034 step 11: PASS
-```
-
-Failure classification: repository conformance-test phase coupling. AOS-028
-incorrectly required mutable `docs/handoff/CURRENT.md` to retain protocol-first
-historical wording.
-
-First test-only remediation:
-
-```text
-baf9300823044039daf7c5a12ea993b29e0bcc3d
-CI #652 / run 34302490188: FAIL
-Harness #594 / run 34302490182: PASS
-Harness job 102312178211 step 10: PASS
-Harness job 102312178211 step 11: PASS
-```
-
-The mutable CURRENT dependency was removed, but the replacement test used an
-incorrect paraphrase of Spec 0053 §18.
-
-Final test-only remediation:
-
-```text
-75cf36a60751ebed595bc550670669b7acef8ead
-CI #653 / run 34302612489: PASS
-Harness #595 / run 34302612485: PASS
-Harness job 102312556787 step 10: PASS
-Harness job 102312556787 step 11: PASS
-```
-
-Acceptance amendment:
+Acceptance amendment after governance-phase conformance remediation:
 
 ```text
 docs/acceptance/m5-001-acceptance-audit-amendment.md
@@ -97,30 +51,38 @@ Harness job 102315285660 step 10: PASS
 Harness job 102315285660 step 11: PASS
 ```
 
-The corrected AOS-028 evidence model is:
+Governance revalidation:
 
-- executable conformance checks stable Spec 0053 §18 wording and authorized paths;
-- exact Git compare proves the historical protocol-first commit shape;
-- mutable CURRENT is operational state, not permanent historical evidence.
+```text
+eb0256221831437102e9708f23e33b368e743aec
+CI #655 / run 34303900070: PASS
+Harness #597 / run 34303900081: PASS
+Harness job 102316465048 step 10: PASS
+Harness job 102316465048 step 11: PASS
+```
 
-## Revalidation boundary
+The governance-recovery chain preserves the failed CI #651/#652 evidence and the
+successful test-only remediation heads. The final accepted AOS-028 model uses
+stable Spec 0053 §18 text plus exact Git history, not mutable CURRENT wording.
 
-This revalidation commit is restricted to exactly:
+## Closure boundary
+
+This closure-record commit is restricted to exactly:
 
 ```text
 docs/handoff/CURRENT.md
 docs/handoff/HISTORY.md    # append-only; existing byte prefix preserved
 ```
 
-The already-applied M5-001 roadmap marker must remain unchanged. No production
-source, test, Spec/corpus/Schema, Shared TCK, dependency/lockfile, Adapter/Harness
-contract, workflow, or M5-002+ artifact may change in this revalidation.
+No roadmap change is permitted in this closure record because the M5-001 marker
+was already applied during the governance transition. No production source, test,
+Spec/corpus/Schema, Shared TCK, dependency/lockfile, Adapter/Harness contract,
+workflow, or M5-002+ artifact may change here.
 
-M5-001 is **NOT GOVERNANCE CLOSED** until this exact revalidation head passes
-normal CI plus exact pinned Harness rc5 source-conformance including steps 10 and
-11. Only then may a separate CURRENT + append-only HISTORY closure-record be
-created. M5-002 remains unauthorized until the closure-record exact head is also
-dual-green.
+M5-001 becomes **GOVERNANCE CLOSED** only after this exact closure-record head
+passes normal CI plus exact pinned Harness rc5 source-conformance including steps
+10 and 11.
 
-PR #3 remains Open / Draft and merge remains unauthorized without explicit user
-approval.
+Only then is `M5-002 P0 — canonical JSON` authorized for protocol-first work.
+M5-003+ remains unauthorized. PR #3 remains Open / Draft and merge remains
+unauthorized without explicit user approval.

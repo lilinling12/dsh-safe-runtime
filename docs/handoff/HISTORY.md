@@ -3025,3 +3025,39 @@ historical protocol-first boundary; mutable current handoff text does not.
 This record authorizes only governance revalidation. M5-001 is not governance
 closed until this revalidation exact head is dual-green and a separate closure
 record exact head is also dual-green. M5-002 remains unauthorized until then.
+
+## 2026-09-09 — M5-001 governance closure
+
+M5-001 governance revalidation exact head:
+
+```text
+eb0256221831437102e9708f23e33b368e743aec
+CI #655 / run 34303900070: PASS
+Harness #597 / run 34303900081: PASS
+Harness job 102316465048 step 10: PASS
+Harness job 102316465048 step 11: PASS
+```
+
+The revalidation was restricted to CURRENT plus append-only HISTORY. The existing
+M5-001 roadmap acceptance marker was left unchanged. No production source, test,
+Spec/corpus/Schema, Shared TCK, dependency/lockfile, Adapter/Harness contract,
+workflow, or M5-002+ artifact changed in that revalidation.
+
+The earlier governance-transition failures remain preserved in history and in
+`docs/acceptance/m5-001-acceptance-audit-amendment.md`; they were caused by
+AOS-028 evidence-phase coupling and an incorrect Spec wording assertion, not by
+append-only runtime semantics or Harness rc5 compatibility.
+
+With the acceptance amendment and governance revalidation both dual-green,
+M5-001 is now eligible for final closure. This closure record itself must still
+reach normal-CI + pinned-Harness dual-green before M5-001 is considered
+GOVERNANCE CLOSED.
+
+After this closure-record exact head is dual-green, the next roadmap Gate is:
+
+```text
+M5-002 P0 — canonical JSON
+```
+
+Only M5-002 protocol-first work becomes authorized at that point. M5-003+ remains
+unauthorized, and PR #3 merge remains unauthorized without explicit user approval.
