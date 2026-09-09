@@ -2880,3 +2880,36 @@ Harness rc5 source-conformance dual-green before M4-052 governance is CLOSED.
 Only then may a separate CURRENT + append-only HISTORY closure record reconcile
 and authorize the actual next roadmap boundary. PR #3 remains Open / Draft and
 merge remains unauthorized without explicit user approval.
+
+## 2026-09-09 — Close M4-052 governance and authorize M5-001 protocol-first
+
+M4-052 governance transition head
+`5c5b662b05380d64158d198c6b1327894bba97bc` passed normal CI #645 / run
+`34297276363` and exact Harness rc5 source-conformance #587 / run
+`34297276411`. Harness job `102296523748` passed step 10 pinned-source
+TypeScript and step 11 real rc5 runtime conformance on that same exact SHA.
+
+The exact governance delta from audit head
+`3e2cd73d1e844c7a944c431908e73a825e7e1712` is restricted to CURRENT
+`+71/-119`, HISTORY `+58/-0`, and only the M4-052 roadmap marker/details
+`+1/-1`. The prior HISTORY byte prefix is preserved; no production code,
+Spec/corpus/schema, Shared TCK, dependency, lockfile, Adapter/Harness
+baseline/workflow or later-Gate implementation changed.
+
+M4-052 is GOVERNANCE CLOSED. The accepted public boundary remains explicit:
+DSH Safe Runtime v0.1 is not a sandbox for arbitrary in-process plugins.
+M4-050 direct-host `EXPECTED_UNGOVERNED` evidence and M4-051 lexical
+nested-effect matcher limits remain unchanged; this closure does not add or claim
+process/plugin isolation, Node API interception, M6 transactionality, M12 network
+isolation, M14 process-isolated hosting, or M17/M19 completion.
+
+The live roadmap contains no M4-053 item after M4-052. The next numbered
+engineering Gate is `M5-001 P0` append-only store, and it becomes the sole newly
+authorized protocol-first Gate. M5-002+ and later milestones remain unauthorized
+by this closure. M4 milestone DoD checkboxes are not rewritten here because this
+closure-record is intentionally limited to CURRENT plus append-only HISTORY.
+
+PR #3 remains Open / Draft and merge remains unauthorized without explicit user
+approval. This closure-record head must itself reach exact-head normal CI plus
+exact pinned Harness rc5 source-conformance, including step 10 and step 11,
+before any M5-001 repository modification begins.
