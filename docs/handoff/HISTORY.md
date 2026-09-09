@@ -3107,3 +3107,31 @@ is preserved byte-for-byte by the roadmap replacement except for surrounding
 repository state, and all R1 items remain unchecked. M5-002 governance is not
 closed until this transition exact head is dual-green; only a later closure record
 may authorize R1-001. PR #3 remains Draft/Open and merge remains unauthorized.
+
+## 2026-09-09 — Close M5-002 governance and authorize R1-001
+
+M5-002 governance-transition head
+`ece4f92415499d91e408843f9be120672d185618` was restricted to CURRENT, an
+append-only HISTORY entry, and only the M5-002 roadmap marker. It preserved the
+already accepted R1 release track with all R1 tasks unchecked and did not change
+production code, tests, Spec/corpus/Schema, Shared TCK, dependency/lockfile,
+Adapter/Harness source, workflow, or M5-003+/R1 implementation.
+
+That exact governance head passed:
+
+- CI #661 / run `34318270916`: PASS;
+- Harness #603 / run `34318270838`: PASS;
+- Harness job `102359029666` step 10 pinned-source typecheck: PASS;
+- Harness job `102359029666` step 11 real rc5 runtime conformance: PASS.
+
+This closure record therefore marks M5-002 governance closed once this closure
+exact head itself reaches the required dual-green verification. Under the
+roadmap sequencing override accepted at `be0214eb...`, the next and only newly
+authorized Gate is `R1-001 P0 — Alpha readiness reconciliation`; M5-003+ is
+paused until the R1 DeepSeek Harness Plugin Alpha Release track closes.
+
+R1-001 is reconciliation/readiness work only. It must not prematurely implement
+the public plugin API, bootstrap, publishable package, external tarball consumer,
+release pipeline, registry publish, GitHub Release, or M14 process-isolated
+Plugin Host. Actual registry publishing and PR #3 merge continue to require
+explicit user authorization.
