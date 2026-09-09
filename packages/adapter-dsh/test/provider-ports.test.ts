@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest";
 
+import { DshAdapterError } from "../src/errors.js";
 import {
   createFilesystemPort,
   createSubprocessPort,
-  DshAdapterError,
   type FilesystemProvider,
   type SubprocessProvider,
   type SubprocessProviderHandle,
   type SubprocessProviderSpawnSpec,
-} from "../src/index.js";
+} from "../src/provider-ports.js";
 
 interface FakeTarget {
   readonly targetKey: string;

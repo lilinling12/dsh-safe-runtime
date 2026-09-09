@@ -199,11 +199,12 @@ function ownDisposable(
   let disposal: Promise<void> | undefined;
   const teardown = (): Promise<void> => {
     if (disposal !== undefined) return disposal;
-    disposal = Promise.resolve()
+    const task = Promise.resolve()
       .then(() => disposable.dispose())
       .then(() => undefined)
       .finally(() => children.delete(teardown));
-    return disposal;
+    disposal = task;
+    return task;
   };
   children.add(teardown);
   return Object.freeze({ dispose: teardown });
@@ -216,10 +217,11 @@ function ownObservation(
   let disposal: Promise<void> | undefined;
   const teardown = (): Promise<void> => {
     if (disposal !== undefined) return disposal;
-    disposal = subscription.dispose()
+    const task = Promise.resolve(subscription.dispose())
       .then(() => undefined)
       .finally(() => children.delete(teardown));
-    return disposal;
+    disposal = task;
+    return task;
   };
   children.add(teardown);
   return Object.freeze({
@@ -235,8 +237,9 @@ function ownAuditObservation(
   let disposal: Promise<AuditDeliverySummary> | undefined;
   const dispose = (): Promise<AuditDeliverySummary> => {
     if (disposal !== undefined) return disposal;
-    disposal = subscription.dispose().finally(() => children.delete(teardown));
-    return disposal;
+    const task = subscription.dispose().finally(() => children.delete(teardown));
+    disposal = task;
+    return task;
   };
   const teardown = async (): Promise<void> => {
     await dispose();
@@ -357,14 +360,13 @@ export function createDshRc5Adapter(
 
     registerMonotonicToolGuard(handler) {
       assertLive();
-      const register = internal.registerMonotonicToolGuard;
-      if (register === undefined) {
+      if (internal.registerMonotonicToolGuard === undefined) {
         throw dshAdapterError(
           "UNSUPPORTED_ADAPTER_FEATURES",
           "DeepSeek Harness rc5 monotonic tool guard is unavailable",
         );
       }
-      return ownDisposable(register(handler), children);
+      return ownDisposable(internal.registerMonotonicToolGuard(handler), children);
     },
 
     registerTurnStopping(handler) {

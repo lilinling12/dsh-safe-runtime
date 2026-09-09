@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import {
   createDshRc5Adapter,
   DshAdapterError,
+  type ApprovalRequest,
   type DshRc5AdapterOptions,
 } from "../src/index.js";
 
@@ -57,10 +58,16 @@ describe("R1-002 public DeepSeek Adapter API", () => {
       expectAdapterError(error, "ADAPTER_DISPOSED");
     }
 
-    await expect(adapter.requestApproval({
-      sessionRef: "disposed-session",
+    const disposedRequest: ApprovalRequest = {
+      sessionRef: "disposed-session" as ApprovalRequest["sessionRef"],
       toolName: "test",
-    })).rejects.toMatchObject({ code: "ADAPTER_DISPOSED" });
+    };
+    expect(() => adapter.requestApproval(disposedRequest)).toThrowError(DshAdapterError);
+    try {
+      adapter.requestApproval(disposedRequest);
+    } catch (error: unknown) {
+      expectAdapterError(error, "ADAPTER_DISPOSED");
+    }
   });
 
   it("rolls back partial construction registrations", () => {
