@@ -1,4 +1,4 @@
-name: R1-001 clean checkout evidence
+name: R1-001 governance patch
 
 on:
   push:
@@ -6,28 +6,171 @@ on:
       - evidence/r1-001-clean-checkout-47738763
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  clean-checkout:
+  governance-patch:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout exact R1-001 evidence head
+      - name: Checkout exact product branch
         uses: actions/checkout@v4
         with:
-          ref: 47738763c9ad321e41d2af77c7c3ca7a923421fd
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22.19.0
-      - name: Enable pinned pnpm
+          ref: feat/m4-capability-broker
+          fetch-depth: 0
+      - name: Verify expected product head
+        shell: bash
         run: |
-          corepack enable
-          corepack prepare pnpm@11.7.0 --activate
-          pnpm --version
-      - name: Install with frozen lockfile
-        run: pnpm install --frozen-lockfile
-      - name: Build root workspace
-        run: pnpm build
-      - name: Run full verification
-        run: pnpm check:all
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "0f91d7447df6fd141260a8a8bd3d529466a5c503"
+      - name: Apply bounded R1-001 governance transition
+        shell: bash
+        run: |
+          set -euo pipefail
+          python <<'PY'
+          from pathlib import Path
+
+          current_path = Path("docs/handoff/CURRENT.md")
+          current = current_path.read_text(encoding="utf-8")
+          old_status = "- R1-001 P0 Alpha readiness reconciliation: **PROTOCOL-FIRST CANDIDATE / EVIDENCE COLLECTION NOT AUTHORIZED UNTIL THIS EXACT HEAD IS DUAL-GREEN**"
+          new_status = "- R1-001 P0 Alpha readiness reconciliation: **ACCEPTANCE VERIFIED / GOVERNANCE TRANSITION CANDIDATE**"
+          if current.count(old_status) != 1:
+              raise SystemExit("unexpected R1-001 CURRENT status shape")
+          current = current.replace(old_status, new_status, 1)
+          old_next = "- R1-002+: **NOT AUTHORIZED by the current Gate**"
+          new_next = "- R1-002 P0 public DeepSeek Adapter API: **NOT AUTHORIZED until this governance exact head is dual-green**\n- R1-003+: **NOT AUTHORIZED by the current Gate**"
+          if current.count(old_next) != 1:
+              raise SystemExit("unexpected R1-002 CURRENT status shape")
+          current = current.replace(old_next, new_next, 1)
+          current_append = """
+
+## R1-001 readiness acceptance evidence
+
+Original protocol-first exact head:
+
+```text
+30e897888c1ea28a5082e2bdd9d36d3d2e2530ec
+CI #663 / run 34323540954: PASS
+Harness #605 / run 34323540944: PASS
+```
+
+Clean-checkout evidence, isolated from product history:
+
+```text
+evidence run 34328489680 / job 102391245741
+checkout: 47738763c9ad321e41d2af77c7c3ca7a923421fd
+pnpm install --frozen-lockfile: PASS
+pnpm build: PASS
+pnpm check:all: PASS
+```
+
+Readiness audit:
+
+```text
+docs/acceptance/r1-001-alpha-readiness-reconciliation.md
+audit exact head: 0f91d7447df6fd141260a8a8bd3d529466a5c503
+CI #666 / run 34329061765: PASS
+Harness #608 / run 34329061851: PASS
+Harness job 102393078775 step 10: PASS
+Harness job 102393078775 step 11: PASS
+```
+
+ARR-001..034 resolve to 13 `EVIDENCE_SATISFIED`, 13 `STATUS_DRIFT`, zero
+`R1_TRACK_BLOCKER`, seven `ALPHA_RELEASE_BLOCKER`, and one bounded rc5-only
+`BASELINE_NOT_APPLICABLE`. The track-entry verdict is `R1_002_AUTHORIZED`, while
+Alpha release remains `ALPHA_RELEASE_NOT_READY`.
+
+This governance transition records acceptance only. R1-002 remains locked until
+this governance exact head itself passes normal CI plus exact pinned Harness
+source/runtime conformance. R1-003+, M5-003+, npm/registry publication, GitHub
+Release and PR #3 merge remain unauthorized.
+"""
+          if "## R1-001 readiness acceptance evidence" in current:
+              raise SystemExit("R1-001 acceptance section already exists")
+          current_path.write_text(current.rstrip() + current_append + "\n", encoding="utf-8")
+
+          roadmap_path = Path("docs/roadmap.md")
+          roadmap = roadmap_path.read_text(encoding="utf-8")
+          old_marker = "- [ ] `R1-001 P0` Alpha readiness reconciliation。"
+          new_marker = "- [x] `R1-001 P0` Alpha readiness reconciliation。 **ACCEPTED：readiness audit `docs/acceptance/r1-001-alpha-readiness-reconciliation.md` at `0f91d744...`; CI #666 / Harness #608 exact-head PASS；R1 track blockers = 0；Alpha-release blockers remain owned by R1-002..007。**"
+          if roadmap.count(old_marker) != 1:
+              raise SystemExit("unexpected R1-001 roadmap marker shape")
+          roadmap_path.write_text(roadmap.replace(old_marker, new_marker, 1), encoding="utf-8")
+
+          history_path = Path("docs/handoff/HISTORY.md")
+          history_before = history_path.read_bytes()
+          marker = b"## 2026-09-09 — Accept R1-001 Alpha readiness reconciliation"
+          if marker in history_before:
+              raise SystemExit("R1-001 HISTORY entry already exists")
+          entry = """
+
+## 2026-09-09 — Accept R1-001 Alpha readiness reconciliation
+
+R1-001 protocol-first head `30e897888c1ea28a5082e2bdd9d36d3d2e2530ec`
+changed only Spec 0055, the ARR-001..034 corpus and CURRENT, then passed normal
+CI #663 / run `34323540954` and exact Harness rc5 source-conformance #605 / run
+`34323540944` before evidence collection began.
+
+A separate evidence-only workflow checked out product head
+`47738763c9ad321e41d2af77c7c3ca7a923421fd` and passed clean
+`pnpm install --frozen-lockfile`, root `pnpm build` and `pnpm check:all` in run
+`34328489680`, job `102391245741`. The workflow file remained outside PR #3
+product history.
+
+The prospective readiness audit is
+`docs/acceptance/r1-001-alpha-readiness-reconciliation.md` at exact audit head
+`0f91d7447df6fd141260a8a8bd3d529466a5c503`. That head passed normal CI #666 /
+run `34329061765` and exact Harness #608 / run `34329061851`; Harness job
+`102393078775` passed step 10 pinned-source typecheck and step 11 real rc5 runtime
+conformance.
+
+All ARR-001..034 requirements are resolved: 13 `EVIDENCE_SATISFIED`, 13
+`STATUS_DRIFT`, zero `R1_TRACK_BLOCKER`, seven `ALPHA_RELEASE_BLOCKER`, and one
+bounded rc5-only `BASELINE_NOT_APPLICABLE`. The current M1 review found no
+material protocol-vs-M4 Alpha contradiction. M20 legacy Alpha checkboxes remain
+status drift backed by direct accepted evidence rather than retroactive history
+rewrites. The rc5 action-rewrite row is not claimed implemented: the supported
+seam exposes no rewrite API, R1-006 owns release known-limitations wording, and a
+future supported baseline exposing such a seam must reopen conformance.
+
+Current publishability gaps remain explicit Alpha-release blockers: the Adapter
+package is still private, the real binding factory is not a public root export,
+publishable metadata is incomplete, and external tarball smoke, compatibility
+contract and release engineering remain R1-002..007 work. No package/public API,
+bootstrap, release automation, registry publish, GitHub Release or M5-003+ work
+was implemented by R1-001.
+
+This governance transition is intentionally limited to CURRENT, this append-only
+HISTORY entry and only the R1-001 roadmap acceptance marker. Its resulting exact
+head must itself reach normal CI plus exact pinned Harness rc5 source/runtime
+dual-green before R1-001 governance may close and R1-002 may begin. PR #3 remains
+Open / Draft and merge remains unauthorized without explicit user authorization.
+""".encode("utf-8")
+          with history_path.open("ab") as f:
+              f.write(entry)
+          history_after = history_path.read_bytes()
+          if not history_after.startswith(history_before):
+              raise SystemExit("HISTORY append-only prefix invariant failed")
+          PY
+      - name: Verify governance diff scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          mapfile -t files < <(git diff --name-only | sort)
+          expected=(docs/handoff/CURRENT.md docs/handoff/HISTORY.md docs/roadmap.md)
+          test "${#files[@]}" -eq "${#expected[@]}"
+          for i in "${!expected[@]}"; do
+            test "${files[$i]}" = "${expected[$i]}"
+          done
+          history_stats="$(git diff --numstat -- docs/handoff/HISTORY.md)"
+          echo "$history_stats" | awk '$2 != 0 { exit 1 } END { if (NR != 1) exit 1 }'
+          git diff --stat
+      - name: Commit governance transition
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/handoff/CURRENT.md docs/handoff/HISTORY.md docs/roadmap.md
+          git commit -m "docs(r1-001): record readiness acceptance"
+          git push origin HEAD:feat/m4-capability-broker
