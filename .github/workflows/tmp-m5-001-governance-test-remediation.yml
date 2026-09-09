@@ -1,0 +1,97 @@
+name: Temporary M5-001 governance test remediation
+
+on:
+  push:
+    branches:
+      - tmp/m5-001-governance-test-remediation
+
+permissions:
+  contents: write
+
+jobs:
+  build-candidate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout temporary remediation branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: tmp/m5-001-governance-test-remediation
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.19.0
+
+      - name: Enable pinned pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.7.0 --activate
+
+      - name: Patch phase-coupled conformance assertion and validate
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXPECTED_PARENT="3d0d3d7c5851ef5cd5f3cabd0cb425ec5a9d2d8f"
+          WORKFLOW_PATH=".github/workflows/tmp-m5-001-governance-test-remediation.yml"
+          TEST_PATH="packages/storage/src/append-only-store.corpus.test.ts"
+
+          test "$(git rev-parse HEAD^)" = "$EXPECTED_PARENT"
+
+          python - <<'PY'
+          from pathlib import Path
+          path = Path("packages/storage/src/append-only-store.corpus.test.ts")
+          text = path.read_text(encoding="utf-8")
+          old = '''    case "AOS-028": {
+              const spec = await readFile(resolve(process.cwd(), "specs/0053-m5-append-only-audit-store.md"), "utf8");
+              const current = await readFile(resolve(process.cwd(), "docs/handoff/CURRENT.md"), "utf8");
+              for (const path of [
+                "specs/0053-m5-append-only-audit-store.md",
+                "fixtures/append-only-audit-store/cases.json",
+                "docs/handoff/CURRENT.md",
+              ]) {
+                expect(spec).toContain(path);
+                expect(current).toContain(path);
+              }
+              expect(spec).toContain("It MUST NOT include production implementation");
+              expect(current).toContain("No production implementation, new package, dependency, lockfile, Schema, Shared");
+              return;
+            }
+          '''
+          new = '''    case "AOS-028": {
+              const spec = await readFile(resolve(process.cwd(), "specs/0053-m5-append-only-audit-store.md"), "utf8");
+              for (const requiredPath of [
+                "specs/0053-m5-append-only-audit-store.md",
+                "fixtures/append-only-audit-store/cases.json",
+                "docs/handoff/CURRENT.md",
+              ]) {
+                expect(spec).toContain(requiredPath);
+              }
+              expect(spec).toContain("It MUST NOT include production implementation");
+              expect(spec).toContain("protocol-first commit MUST be restricted to exactly");
+              return;
+            }
+          '''
+          if text.count(old) != 1:
+              raise SystemExit(f"expected exact AOS-028 block once, found {text.count(old)}")
+          path.write_text(text.replace(old, new), encoding="utf-8")
+          PY
+
+          pnpm install --frozen-lockfile
+          pnpm check:all
+
+          rm "$WORKFLOW_PATH"
+          git add -A
+          git diff --cached --check "$EXPECTED_PARENT" --
+          mapfile -t changed < <(git diff --cached --name-only "$EXPECTED_PARENT" --)
+          test "${#changed[@]}" = "1"
+          test "${changed[0]}" = "$TEST_PATH"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          tree="$(git write-tree)"
+          clean_commit="$(printf '%s\n' 'test(storage): decouple protocol history from current handoff' | git commit-tree "$tree" -p "$EXPECTED_PARENT")"
+          test "$(git rev-parse "${clean_commit}^")" = "$EXPECTED_PARENT"
+          git push --force-with-lease="refs/heads/${GITHUB_REF_NAME}:${GITHUB_SHA}" origin "${clean_commit}:refs/heads/${GITHUB_REF_NAME}"
+
+          echo "clean_candidate=$clean_commit" >> "$GITHUB_STEP_SUMMARY"
