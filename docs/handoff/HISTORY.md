@@ -2963,3 +2963,65 @@ normal CI plus exact pinned Harness rc5 dual-green before M5-001 governance can 
 closed. Only then may a separate CURRENT + append-only HISTORY closure record
 authorize M5-002 protocol-first. PR #3 merge remains unauthorized without explicit
 user approval.
+
+## 2026-09-09 — M5-001 governance revalidation after conformance-test remediation
+
+M5-001 implementation/conformance remains accepted under Spec 0053 and profile
+`M5-001_APPEND_ONLY_AUDIT_STORE_V1`.
+
+The first governance-transition head was:
+
+```text
+3d0d3d7c5851ef5cd5f3cabd0cb425ec5a9d2d8f
+CI #651 / run 34302192147: FAIL
+Harness #593 / run 34302192174: PASS
+Harness job 102311267034 step 10: PASS
+Harness job 102311267034 step 11: PASS
+```
+
+Normal CI failed only because AOS-028 treated protocol-first wording in mutable
+`docs/handoff/CURRENT.md` as permanent historical evidence. The governance
+transition itself remained limited to CURRENT, append-only HISTORY, and the
+M5-001 roadmap marker.
+
+First test-only remediation:
+
+```text
+baf9300823044039daf7c5a12ea993b29e0bcc3d
+CI #652 / run 34302490188: FAIL
+Harness #594 / run 34302490182: PASS
+Harness job 102312178211 step 10: PASS
+Harness job 102312178211 step 11: PASS
+```
+
+That remediation correctly removed the mutable CURRENT dependency but used an
+incorrect paraphrase of Spec 0053 §18.
+
+Final test-only remediation:
+
+```text
+75cf36a60751ebed595bc550670669b7acef8ead
+CI #653 / run 34302612489: PASS
+Harness #595 / run 34302612485: PASS
+Harness job 102312556787 step 10: PASS
+Harness job 102312556787 step 11: PASS
+```
+
+Acceptance-audit amendment:
+
+```text
+docs/acceptance/m5-001-acceptance-audit-amendment.md
+head: d1b2b756140e92631d85ff491266cd589f8c8ab4
+CI #654 / run 34303515711: PASS
+Harness #596 / run 34303515676: PASS
+Harness job 102315285660 step 10: PASS
+Harness job 102315285660 step 11: PASS
+```
+
+The amendment preserves the original runtime acceptance and corrects only the
+evidence model for AOS-028: stable Spec text plus exact Git comparison prove the
+historical protocol-first boundary; mutable current handoff text does not.
+
+This record authorizes only governance revalidation. M5-001 is not governance
+closed until this revalidation exact head is dual-green and a separate closure
+record exact head is also dual-green. M5-002 remains unauthorized until then.
