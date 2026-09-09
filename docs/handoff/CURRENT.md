@@ -5,118 +5,27 @@
 
 ## Snapshot
 
-- Recorded at: `2026-09-08`
+- Recorded at: `2026-09-09`
 - Repository: `lilinling12/dsh-safe-runtime`
 - Phase: `M4 — Capability Broker v0.1`
 - Active PR: `#3 — feat(policy): begin M4 capability broker`
 - Branch: `feat/m4-capability-broker`
 - Base: `main@57430273e065be8d38807d67b175fa154c801d43`
-- Active exact head before this candidate: `2be8d80ba2fcb6da97fb8e15d825a75ac1306c9f`
 - M4-001..014: **GOVERNANCE CLOSED**
 - M4-020..025: **GOVERNANCE CLOSED**
 - M4-030..036: **GOVERNANCE CLOSED**
 - M4-040..051: **GOVERNANCE CLOSED**
-- M4-052: **PROTOCOL-FIRST CANDIDATE / DOCUMENTATION IMPLEMENTATION NOT YET AUTHORIZED**
-- M4-053+: **NOT AUTHORIZED**
+- M4-052 implementation/conformance: **ACCEPTED**
+- M4-052 governance: **TRANSITION CANDIDATE — NOT CLOSED UNTIL THIS EXACT HEAD IS DUAL-GREEN**
+- Post-M4-052 work: **NOT AUTHORIZED until a separate dual-green closure record reconciles the roadmap**
 - M5, M6, M10, M13, M14 implementation, M15: **NOT AUTHORIZED by the current Gate**
 - PR #3 merge: **NOT AUTHORIZED without explicit user authorization**
 
 Live GitHub state overrides this snapshot.
 
-## M4-051 final closure evidence
+## M4-052 accepted authority
 
-Accepted M4-051 authority:
-
-```text
-specs/0051-m4-equivalent-shell-spelling-negative-boundary.md
-fixtures/equivalent-shell-spelling-negative-boundary/cases.json
-profile: M4-051_EQUIVALENT_SHELL_SPELLING_NEGATIVE_BOUNDARY_V1
-```
-
-Protocol-first head:
-
-```text
-15d7a7de5ab13e6b47a01c449295bb0a5dc1a3d2
-CI #635 / run 34207867737: PASS
-Harness #577 / run 34207867755: PASS
-Harness job 102001564039 step 10: PASS
-Harness job 102001564039 step 11: PASS
-```
-
-Reviewed executable/source-conformance head:
-
-```text
-338aba9f4ca286721cf9703d9474bfde4496370f
-CI #636 / run 34208412572: PASS
-Harness #578 / run 34208412227: PASS
-Harness job 102003343533 step 10: PASS
-Harness job 102003343533 step 11: PASS
-```
-
-Acceptance audit head:
-
-```text
-91b9dcef1c092ab0968ff198d6342a8cc9c7bb81
-CI #637 / run 34210896023: PASS
-Harness #579 / run 34210896202: PASS
-Harness job 102011369018 step 10: PASS
-Harness job 102011369018 step 11: PASS
-```
-
-Governance transition:
-
-```text
-33d33c71f754f9ac6042a72169382e9b15f21b0f
-CI #638 / run 34212084370: PASS
-Harness #580 / run 34212084357: PASS
-Harness job 102015196009 step 10: PASS
-Harness job 102015196009 step 11: PASS
-```
-
-Closure-record:
-
-```text
-2be8d80ba2fcb6da97fb8e15d825a75ac1306c9f
-CI #639 / run 34212468367: PASS
-Harness #581 / run 34212468357: PASS
-Harness job 102016423212 step 10: PASS
-Harness job 102016423212 step 11: PASS
-```
-
-M4-051 is therefore **GOVERNANCE CLOSED**.
-
-Its retained security boundary is narrow: equivalent measured shell effects can
-bypass a fixed string-derived nested-effect matcher, but recognized shell calls
-remain accepted M4-011 `process.exec` requests. M4-051 did not add a production
-shell parser/matcher and did not prove ToolRuntime, provider, process or plugin
-isolation.
-
-## M4-052 recovered authority
-
-Roadmap Gate:
-
-```text
-M4-052 P0 — document that v0.1 is not plugin sandbox
-```
-
-Existing authority already establishes:
-
-1. `README.md` says tool-level policy MUST NOT be described as isolation of
-   arbitrary in-process plugins.
-2. `docs/architecture.md` PEP-TOOL governs only behavior that reaches the Tool
-   Pipeline; a host Plugin can call Node APIs outside that boundary.
-3. PEP-TOOL guarantee is `tool-enforced`, not `process-isolated`.
-4. governance-closed M4-050 proves the direct-host filesystem negative boundary.
-5. governance-closed M4-051 proves shell-string nested-effect inference is
-   incomplete without relabeling the enclosing `process.exec` as ungoverned.
-6. roadmap M14 explicitly owns the future process-isolated Plugin Host and remains
-   unimplemented/unauthorized.
-7. M19 separately owns the future full Security Model / Known Limitations
-   documentation program and MUST NOT be prematurely claimed complete here.
-
-## Current Gate — M4-052 protocol-first candidate
-
-Normative candidate:
+Normative specification:
 
 ```text
 specs/0052-m4-plugin-sandbox-documentation-boundary.md
@@ -136,56 +45,99 @@ Pinned Harness compatibility baseline:
 0.1.0-rc.5@47f943859bef60e4160492346772ded9b24f765a
 ```
 
-The candidate freezes one public product/security statement:
+The accepted product/security statement is:
 
 ```text
 DSH Safe Runtime v0.1 is not a sandbox for arbitrary in-process plugins.
 ```
 
-The required post-protocol implementation is intentionally documentation-only:
+This is a documentation/security boundary, not a new enforcement mechanism.
+ToolRuntime/provider seams may provide accepted tool-level enforcement when an
+action reaches those seams, while arbitrary code executing in the same host
+process can still invoke ordinary host/runtime APIs outside those seams when host
+permissions allow it. `tool-enforced` MUST NOT be represented as
+`process-isolated`.
+
+## Exact accepted evidence
+
+M4-051 closure-record predecessor:
 
 ```text
-README.md
-  -> concise discoverable v0.1 non-sandbox statement
-
-docs/architecture.md
-  -> precise PEP-TOOL / direct-host / process-isolation boundary
-
-source-conformance
-  -> repository/documentation traceability only; no new isolation mechanism
+2be8d80ba2fcb6da97fb8e15d825a75ac1306c9f
+CI #639 / run 34212468367: PASS
+Harness #581 / run 34212468357: PASS
+Harness job 102016423212 step 10: PASS
+Harness job 102016423212 step 11: PASS
 ```
 
-The Gate MUST NOT create or claim:
+M4-052 protocol-first head:
 
 ```text
-process-isolated plugin host
-Node API interception / monkey patching
-provider/kernel/container sandbox
-new Capability wire types or GuaranteeLevel values
-M6 transactionality
-M12 network isolation
-M14 worker/RPC/supervisor/OS backends
-M17 security review completion
-M19 full Security Model / Known Limitations completion
+5f1849271796bf688148eb507d963831e0141fbf
+CI #640 / run 34213032376: PASS
+Harness #582 / run 34213032375: PASS
+Harness job 102018247773 step 10: PASS
+Harness job 102018247773 step 11: PASS
 ```
 
-## Protocol-first delta boundary
-
-This candidate head is restricted to exactly:
+Final reviewed documentation/source-conformance head:
 
 ```text
-specs/0052-m4-plugin-sandbox-documentation-boundary.md
-fixtures/plugin-sandbox-documentation-boundary/cases.json
+eca1b63fcc45d19147a5850cea9a9c3370c453b8
+CI #643 / run 34233256318: PASS
+Harness #585 / run 34233256381: PASS
+Harness job 102084404657 step 10: PASS
+Harness job 102084404657 step 11: PASS
+```
+
+Acceptance audit:
+
+```text
+docs/acceptance/m4-052-acceptance-audit.md
+head: 3e2cd73d1e844c7a944c431908e73a825e7e1712
+CI #644 / run 34256048732: PASS
+Harness #586 / run 34256048713: PASS
+Harness job 102162006462 step 10: PASS
+Harness job 102162006462 step 11: PASS
+```
+
+The audit exact head is therefore dual-green and authorizes this governance
+transition.
+
+## Accepted security boundary
+
+M4-052 preserves the governance-closed negative boundaries rather than
+overclaiming them:
+
+- M4-050 direct host `node:fs` evidence remains `EXPECTED_UNGOVERNED`; it proves
+  the supported ToolRuntime seams do not mediate arbitrary same-process host API
+  calls.
+- M4-051 remains a lexical nested-effect inference limitation only; recognized
+  shell calls remain M4-011 `process.exec` requests.
+- M4-052 adds no production shell parser/matcher, Node API interception, loader
+  interception, provider/kernel/container sandbox, process isolation or brokered
+  plugin RPC.
+- M14 remains the future owner of a process-isolated Plugin Host.
+- M17/M19 security-review/documentation programs are not claimed complete by this
+  Gate.
+
+## Current governance boundary
+
+M4-052 implementation/conformance is **ACCEPTED** and this commit is the
+governance-transition candidate. Its repository delta is restricted to exactly:
+
+```text
 docs/handoff/CURRENT.md
+docs/handoff/HISTORY.md    # append-only; prior byte prefix unchanged
+docs/roadmap.md            # only M4-052 marker/details
 ```
 
-No README/architecture implementation, source-conformance, production code,
-dependency, lockfile, schema, Shared TCK, HISTORY, roadmap acceptance marker,
-workflow or later-Gate artifact may change before this exact protocol-first head
-passes normal CI plus exact pinned Harness rc5 source-conformance.
+M4-052 governance is **NOT CLOSED** until this exact governance-transition head
+passes normal CI plus exact pinned Harness rc5 source-conformance, including
+steps 10 and 11.
 
-After this candidate becomes exact-head dual-green, only the smallest M4-052
-documentation/source-conformance delta becomes authorized.
-
-PR #3 remains Open / Draft and merge remains unauthorized without explicit user
-approval.
+Until then, no later roadmap work is authorized. After this governance head is
+dual-green, a separate closure-record commit limited to CURRENT plus append-only
+HISTORY must record that exact evidence and reconcile the actual next roadmap
+boundary. PR #3 remains Open / Draft and merge remains unauthorized without
+explicit user approval.

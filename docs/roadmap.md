@@ -318,7 +318,7 @@ Acceptance evidence
 
 - [x] `M4-050 P0` direct Node fs bypass → `EXPECTED_UNGOVERNED`。 **ACCEPTED：Spec 0050 + DHFS-001..024；reviewed conformance `a92a0fcf...`, CI #630 / Harness #572 PASS；audit `docs/acceptance/m4-050-acceptance-audit.md` at `44e3ce2d...`, CI #631 / Harness #573 PASS。This is truthful negative-boundary evidence only; it does not claim Node fs interception, complete mediation, plugin sandboxing or process isolation.**
 - [x] `M4-051 P0` equivalent shell spelling bypass string matcher test。 **ACCEPTED：Spec 0051 + ESSM-001..024；reviewed conformance `338aba9f...`, CI #636 / Harness #578 PASS；audit `docs/acceptance/m4-051-acceptance-audit.md` at `91b9dcef...`, CI #637 / Harness #579 PASS。This is a negative boundary for string-derived nested-effect inference only; recognized shell calls remain `process.exec` and no production shell matcher/parser or isolation claim is added.**
-- [ ] `M4-052 P0` document that v0.1 is not plugin sandbox。
+- [x] `M4-052 P0` document that v0.1 is not plugin sandbox。 **ACCEPTED：Spec 0052 + PSDB-001..024 + README/architecture explicit v0.1 non-sandbox boundary + dedicated source-conformance；final reviewed head `eca1b63f...`, CI #643 / Harness #585 PASS；验收记录 `docs/acceptance/m4-052-acceptance-audit.md` at `3e2cd73d...`, CI #644 / Harness #586 PASS。Documentation/security boundary only；no arbitrary in-process plugin isolation or process-isolation claim.**
 
 ### M4 DoD
 

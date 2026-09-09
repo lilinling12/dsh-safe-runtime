@@ -2822,3 +2822,61 @@ explicit user approval.
 This closure-record head must itself reach exact-head normal CI plus exact
 pinned Harness rc5 source-conformance, including step 10 and step 11,
 before any M4-052 repository modification begins.
+
+## 2026-09-09 — Accept M4-052 v0.1 plugin-sandbox documentation boundary
+
+M4-052 protocol-first head
+`5f1849271796bf688148eb507d963831e0141fbf` defined Spec 0052 and the
+24-case `PSDB-001` through `PSDB-024` requirement corpus before documentation
+implementation. That exact head passed normal CI #640 / run `34213032376` and
+exact Harness rc5 source-conformance #582 / run `34213032375`; Harness job
+`102018247773` passed step 10 pinned-source typecheck and step 11 real rc5
+runtime conformance.
+
+Final reviewed documentation/source-conformance head
+`eca1b63fcc45d19147a5850cea9a9c3370c453b8` limits the cumulative
+post-protocol implementation to `README.md`, `docs/architecture.md` and one
+dedicated M4-052 Adapter source-conformance file. The public boundary states
+that DSH Safe Runtime v0.1 is not a sandbox for arbitrary in-process plugins,
+distinguishes `tool-enforced` from `process-isolated`, preserves M4-050 direct
+host `EXPECTED_UNGOVERNED` evidence and preserves M4-051 as a lexical
+nested-effect matcher limitation while recognized shell calls remain
+`process.exec`.
+
+The two test-only remediation commits changed only M4-052 source-conformance:
+repository-root path resolution uses `process.cwd()` because pinned step 10/11
+execute from the repository root, and README whitespace is normalized only for
+the complete future-M14 wording assertion so Markdown wrapping is not treated as
+protocol semantics. No security assertion was removed or weakened.
+
+Exact final implementation evidence at `eca1b63f...`:
+
+- normal CI #643 / run `34233256318`: PASS;
+- exact Harness rc5 source-conformance #585 / run `34233256381`: PASS;
+- Harness job `102084404657`, step 10 pinned-source typecheck: PASS;
+- same job, step 11 real rc5 runtime conformance: PASS.
+
+Acceptance audit `docs/acceptance/m4-052-acceptance-audit.md` is at audit-only
+head `3e2cd73d1e844c7a944c431908e73a825e7e1712`. That exact head reached
+normal CI #644 / run `34256048732` PASS and exact Harness rc5
+source-conformance #586 / run `34256048713` PASS. Harness job
+`102162006462` passed step 10 pinned-source typecheck and step 11 real rc5
+runtime conformance. PR #3 remained Open / Draft and mergeable with no
+review/thread blockers.
+
+M4-052 is documentation/security-boundary work only. It does not add or claim
+arbitrary in-process plugin isolation, Node API interception/monkey patching,
+loader interception, provider/kernel/container sandboxing, brokered plugin RPC,
+new Capability wire types or GuaranteeLevel values, M6 transactionality, M12
+network isolation, M14 process-isolated Plugin Host implementation, or M17/M19
+completion.
+
+This governance transition is intentionally restricted to CURRENT, this
+append-only HISTORY entry and only the M4-052 roadmap marker/details. No
+production code, Spec/corpus/schema, Shared TCK, dependency, lockfile,
+Adapter/Harness baseline/workflow or later-roadmap implementation changes here.
+The resulting governance exact head must itself reach normal CI plus exact pinned
+Harness rc5 source-conformance dual-green before M4-052 governance is CLOSED.
+Only then may a separate CURRENT + append-only HISTORY closure record reconcile
+and authorize the actual next roadmap boundary. PR #3 remains Open / Draft and
+merge remains unauthorized without explicit user approval.
