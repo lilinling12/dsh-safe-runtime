@@ -216,3 +216,23 @@ This governance transition records acceptance only. R1-002 remains locked until
 this governance exact head itself passes normal CI plus exact pinned Harness
 source/runtime conformance. R1-003+, M5-003+, npm/registry publication, GitHub
 Release and PR #3 merge remain unauthorized.
+
+## R1-001 governance verification re-anchor
+
+Governance content commit:
+
+```text
+53e864f6478fa11c945eb7a7617a30a642472130
+CI #667 / run 34330008706: ACTION_REQUIRED / jobs=[]
+Harness #609 / run 34330008770: ACTION_REQUIRED / jobs=[]
+```
+
+That commit was created by an evidence-only GitHub Actions workflow using its
+`GITHUB_TOKEN`. GitHub created PR workflow-run records but did not schedule jobs;
+the runs cannot be retried. This is an automation-trigger provenance condition,
+not a CI/test/conformance diagnostic and is not counted as dual-green.
+
+This user-authored follow-up changes only CURRENT and re-anchors the same R1-001
+governance state so normal PR workflows can execute on a new exact head. R1-002
+remains unauthorized until this exact re-anchor head passes both normal CI and
+exact pinned Harness source/runtime conformance.
