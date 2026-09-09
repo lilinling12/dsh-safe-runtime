@@ -15,7 +15,7 @@
 - M4-020..025: **GOVERNANCE CLOSED**
 - M4-030..036: **GOVERNANCE CLOSED**
 - M4-040..052: **GOVERNANCE CLOSED**
-- M5-001 P0 append-only store: **AUTHORIZED / PROTOCOL-FIRST NOT YET STARTED**
+- M5-001 P0 append-only store: **PROTOCOL-FIRST CANDIDATE / IMPLEMENTATION NOT AUTHORIZED UNTIL THIS EXACT HEAD IS DUAL-GREEN**
 - M5-002+: **NOT AUTHORIZED by the current Gate**
 - M6, M10, M13, M14 implementation, M15: **NOT AUTHORIZED by the current Gate**
 - PR #3 merge: **NOT AUTHORIZED without explicit user authorization**
@@ -24,95 +24,142 @@ Live GitHub state overrides this snapshot.
 
 ## M4-052 final closure evidence
 
-Normative specification:
+Closure-record exact head:
 
 ```text
-specs/0052-m4-plugin-sandbox-documentation-boundary.md
+a502d3018f3ae7dbab399ebaaebf0b0f3ab0c8b3
+CI #646 / run 34297562557: PASS
+Harness #588 / run 34297562612: PASS
+Harness job 102297370394 step 10: PASS
+Harness job 102297370394 step 11: PASS
 ```
-
-Requirement corpus:
-
-```text
-fixtures/plugin-sandbox-documentation-boundary/cases.json
-profile: M4-052_PLUGIN_SANDBOX_DOCUMENTATION_BOUNDARY_V1
-cases: PSDB-001..PSDB-024
-```
-
-Final reviewed documentation/source-conformance head:
-
-```text
-eca1b63fcc45d19147a5850cea9a9c3370c453b8
-CI #643 / run 34233256318: PASS
-Harness #585 / run 34233256381: PASS
-Harness job 102084404657 step 10: PASS
-Harness job 102084404657 step 11: PASS
-```
-
-Acceptance audit head:
-
-```text
-3e2cd73d1e844c7a944c431908e73a825e7e1712
-CI #644 / run 34256048732: PASS
-Harness #586 / run 34256048713: PASS
-Harness job 102162006462 step 10: PASS
-Harness job 102162006462 step 11: PASS
-```
-
-Governance transition head:
-
-```text
-5c5b662b05380d64158d198c6b1327894bba97bc
-CI #645 / run 34297276363: PASS
-Harness #587 / run 34297276411: PASS
-Harness job 102296523748 step 10: PASS
-Harness job 102296523748 step 11: PASS
-```
-
-The exact governance-transition diff from the audit head is restricted to:
-
-```text
-docs/handoff/CURRENT.md   +71 / -119
-docs/handoff/HISTORY.md   +58 / -0
-docs/roadmap.md           +1 / -1   # M4-052 marker/details only
-```
-
-No production code, Spec/corpus/schema, Shared TCK, dependency, lockfile,
-Adapter/Harness baseline/workflow or later-Gate implementation changed in the
-governance transition. The prior HISTORY byte prefix was preserved.
 
 M4-052 is therefore **GOVERNANCE CLOSED**.
 
-## Retained M4-052 security boundary
+The live roadmap contains no M4-053 item. The next numbered engineering Gate is
+`M5-001 P0 — append-only store`.
 
-The closed Gate records a truthful documentation/security non-claim:
+## M5-001 recovered authority
 
-```text
-DSH Safe Runtime v0.1 is not a sandbox for arbitrary in-process plugins.
-```
-
-M4-052 does not add arbitrary in-process plugin isolation, Node API interception,
-loader interception, provider/kernel/container sandboxing, brokered plugin RPC,
-new Capability wire types or GuaranteeLevel values, M6 transactionality, M12
-network isolation, M14 process-isolated Plugin Host implementation, or M17/M19
-completion. M4-050 `EXPECTED_UNGOVERNED` direct-host evidence and the narrower
-M4-051 shell-string matcher limitation remain unchanged.
-
-## Next authorized Gate — M5-001
-
-The live roadmap has no M4-053 item after M4-052. The next numbered engineering
-Gate is:
+Roadmap ownership:
 
 ```text
-M5-001 P0 — append-only store
+M5-001 P0 append-only store
+M5-002 P0 canonical JSON
+M5-003 P0 record digest
+M5-004 P1 hash chain
+M5-005 P1 integrity verify CLI
 ```
 
-Only M5-001 protocol-first work is newly authorized by this closure. M5-002+ and
-later milestones remain unauthorized until their own governance transitions.
-M4 milestone DoD checkboxes remain roadmap state and are not rewritten by this
-closure-record commit, whose allowed delta is CURRENT plus append-only HISTORY
-only.
+Architecture authority requires:
 
-This closure-record head must itself reach exact-head normal CI plus exact pinned
-Harness rc5 source-conformance, including steps 10 and 11, before any M5-001
-repository modification begins. PR #3 remains Open / Draft and merge remains
-unauthorized without explicit user approval.
+```text
+Audit Record MUST have append-only semantics.
+```
+
+The architecture's hash-chain sketch is not M5-001 authority because the roadmap
+assigns hash chaining separately to M5-004.
+
+Core Spec 0001 already establishes that governed CapabilityReceipt state is
+persisted after redaction and that Evidence has integrity/privacy semantics.
+M5-001 does not redefine those wire objects or pull canonicalization, digesting,
+redaction, retention or integrity verification into this Gate.
+
+The existing M2 Adapter sidecar exposes a minimal persistence seam:
+
+```text
+SidecarEvidenceSink.append(record)
+```
+
+Its own source explicitly leaves storage, retention, hash chaining and replay
+indexes to later safe-runtime milestones. M5-001 therefore does not redefine
+`SidecarEvidenceRecord`, make Harness storage the portable ledger authority, or
+reuse Harness durable sequence as Audit Ledger sequence authority.
+
+There is no existing `audit-ledger` package in the current repository package
+set. Package ownership/creation is intentionally not decided by this
+protocol-first commit and must be justified during implementation review after
+this exact head becomes dual-green.
+
+## Current Gate — M5-001 protocol-first candidate
+
+Normative candidate:
+
+```text
+specs/0053-m5-append-only-audit-store.md
+```
+
+Portable requirement corpus:
+
+```text
+fixtures/append-only-audit-store/cases.json
+profile: M5-001_APPEND_ONLY_AUDIT_STORE_V1
+cases: AOS-001..AOS-028
+```
+
+Pinned Harness compatibility baseline remains:
+
+```text
+0.1.0-rc.5@47f943859bef60e4160492346772ded9b24f765a
+```
+
+The candidate defines append-only as a language-neutral state-transition
+contract:
+
+- `append(record)` is the only portable mutation;
+- successful append adds exactly one immutable tail occurrence;
+- pre-existing history cannot be updated, replaced, deleted, truncated,
+  inserted-before or reordered;
+- successful occurrences have unique, gap-free, monotonic per-ledger sequence;
+- overlapping successful appends must resolve to one observable total order;
+- caller or snapshot aliases cannot mutate stored history;
+- outcome domain is `APPENDED`, `NOT_APPENDED`, `INDETERMINATE`;
+- ambiguous publication failure must remain `INDETERMINATE`, preventing false
+  success/failure and preventing an implicit exactly-once claim;
+- structurally equal records may be appended more than once because M5-001 does
+  not define deduplication or record identity.
+
+## Explicit later-Gate exclusions
+
+M5-001 MUST NOT implement or claim:
+
+```text
+canonical JSON                         # M5-002
+record digest                          # M5-003
+hash chain                             # M5-004
+integrity verify CLI                   # M5-005
+secret detector / env redaction       # M5-010 / M5-011
+args/result digest defaults            # M5-012
+source-content retention opt-in        # M5-013
+retention TTL                          # M5-014
+delete/export workflow                 # M5-015
+audit-store unavailable product policy # M5-020
+durable local spool / reconciliation   # M5-021 / M5-022
+```
+
+The candidate also does not claim SQLite/PostgreSQL/WAL/fsync/replication,
+durable exactly-once, M6 transactionality, M7 commit-journal behavior, M9 AVP
+ledger completion or M14 isolation.
+
+## Protocol-first delta boundary
+
+This candidate is restricted to exactly:
+
+```text
+specs/0053-m5-append-only-audit-store.md
+fixtures/append-only-audit-store/cases.json
+docs/handoff/CURRENT.md
+```
+
+No production implementation, new package, dependency, lockfile, Schema, Shared
+TCK, Adapter rewrite, HISTORY, roadmap acceptance marker, workflow or M5-002+
+artifact may change before this exact protocol-first head passes normal CI plus
+exact pinned Harness rc5 source-conformance.
+
+After that exact head becomes dual-green, only the smallest M5-001 runtime-neutral
+store implementation/conformance delta becomes authorized. Package ownership must
+be justified from the existing module boundaries rather than guessed from the
+roadmap wording.
+
+PR #3 remains Open / Draft and merge remains unauthorized without explicit user
+approval.
