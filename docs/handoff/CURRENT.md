@@ -14,8 +14,9 @@
 - M4-001..052: **GOVERNANCE CLOSED**
 - M5-001 P0 append-only store: **GOVERNANCE CLOSED**
 - M5-002 P0 canonical JSON: **GOVERNANCE CLOSED**
-- R1-001 P0 Alpha readiness reconciliation: **PROTOCOL-FIRST CANDIDATE / EVIDENCE COLLECTION NOT AUTHORIZED UNTIL THIS EXACT HEAD IS DUAL-GREEN**
-- R1-002+: **NOT AUTHORIZED by the current Gate**
+- R1-001 P0 Alpha readiness reconciliation: **ACCEPTANCE VERIFIED / GOVERNANCE TRANSITION CANDIDATE**
+- R1-002 P0 public DeepSeek Adapter API: **NOT AUTHORIZED until this governance exact head is dual-green**
+- R1-003+: **NOT AUTHORIZED by the current Gate**
 - M5-003+: **PAUSED until R1 Alpha release governance closes**
 - npm/registry publish and GitHub Release: **NOT AUTHORIZED**
 - PR #3 merge: **NOT AUTHORIZED without explicit user authorization**
@@ -174,3 +175,44 @@ readiness-audit/supporting evidence delta become authorized.
 
 R1-002, package publication, GitHub Release, M5-003+, and PR #3 merge remain
 unauthorized.
+
+## R1-001 readiness acceptance evidence
+
+Original protocol-first exact head:
+
+```text
+30e897888c1ea28a5082e2bdd9d36d3d2e2530ec
+CI #663 / run 34323540954: PASS
+Harness #605 / run 34323540944: PASS
+```
+
+Clean-checkout evidence, isolated from product history:
+
+```text
+evidence run 34328489680 / job 102391245741
+checkout: 47738763c9ad321e41d2af77c7c3ca7a923421fd
+pnpm install --frozen-lockfile: PASS
+pnpm build: PASS
+pnpm check:all: PASS
+```
+
+Readiness audit:
+
+```text
+docs/acceptance/r1-001-alpha-readiness-reconciliation.md
+audit exact head: 0f91d7447df6fd141260a8a8bd3d529466a5c503
+CI #666 / run 34329061765: PASS
+Harness #608 / run 34329061851: PASS
+Harness job 102393078775 step 10: PASS
+Harness job 102393078775 step 11: PASS
+```
+
+ARR-001..034 resolve to 13 `EVIDENCE_SATISFIED`, 13 `STATUS_DRIFT`, zero
+`R1_TRACK_BLOCKER`, seven `ALPHA_RELEASE_BLOCKER`, and one bounded rc5-only
+`BASELINE_NOT_APPLICABLE`. The track-entry verdict is `R1_002_AUTHORIZED`, while
+Alpha release remains `ALPHA_RELEASE_NOT_READY`.
+
+This governance transition records acceptance only. R1-002 remains locked until
+this governance exact head itself passes normal CI plus exact pinned Harness
+source/runtime conformance. R1-003+, M5-003+, npm/registry publication, GitHub
+Release and PR #3 merge remain unauthorized.

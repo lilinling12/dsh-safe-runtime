@@ -374,7 +374,7 @@ Acceptance evidence
 
 ## R1.1 Alpha Readiness
 
-- [ ] `R1-001 P0` Alpha readiness reconciliation。
+- [x] `R1-001 P0` Alpha readiness reconciliation。 **ACCEPTED：readiness audit `docs/acceptance/r1-001-alpha-readiness-reconciliation.md` at `0f91d744...`; CI #666 / Harness #608 exact-head PASS；R1 track blockers = 0；Alpha-release blockers remain owned by R1-002..007。**
   - 重新核对 M0-M4 / M20 Alpha 的真实完成状态，不以旧 checkbox 代替 exact evidence；
   - 处理 M0 fresh-clone、M1 Spec Review、M4 DoD 与事实验收之间的状态漂移；
   - 明确 Alpha blocker / accepted-deferred / non-blocker；

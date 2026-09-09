@@ -3135,3 +3135,46 @@ the public plugin API, bootstrap, publishable package, external tarball consumer
 release pipeline, registry publish, GitHub Release, or M14 process-isolated
 Plugin Host. Actual registry publishing and PR #3 merge continue to require
 explicit user authorization.
+
+
+## 2026-09-09 — Accept R1-001 Alpha readiness reconciliation
+
+R1-001 protocol-first head `30e897888c1ea28a5082e2bdd9d36d3d2e2530ec`
+changed only Spec 0055, the ARR-001..034 corpus and CURRENT, then passed normal
+CI #663 / run `34323540954` and exact Harness rc5 source-conformance #605 / run
+`34323540944` before evidence collection began.
+
+A separate evidence-only workflow checked out product head
+`47738763c9ad321e41d2af77c7c3ca7a923421fd` and passed clean
+`pnpm install --frozen-lockfile`, root `pnpm build` and `pnpm check:all` in run
+`34328489680`, job `102391245741`. The workflow file remained outside PR #3
+product history.
+
+The prospective readiness audit is
+`docs/acceptance/r1-001-alpha-readiness-reconciliation.md` at exact audit head
+`0f91d7447df6fd141260a8a8bd3d529466a5c503`. That head passed normal CI #666 /
+run `34329061765` and exact Harness #608 / run `34329061851`; Harness job
+`102393078775` passed step 10 pinned-source typecheck and step 11 real rc5 runtime
+conformance.
+
+All ARR-001..034 requirements are resolved: 13 `EVIDENCE_SATISFIED`, 13
+`STATUS_DRIFT`, zero `R1_TRACK_BLOCKER`, seven `ALPHA_RELEASE_BLOCKER`, and one
+bounded rc5-only `BASELINE_NOT_APPLICABLE`. The current M1 review found no
+material protocol-vs-M4 Alpha contradiction. M20 legacy Alpha checkboxes remain
+status drift backed by direct accepted evidence rather than retroactive history
+rewrites. The rc5 action-rewrite row is not claimed implemented: the supported
+seam exposes no rewrite API, R1-006 owns release known-limitations wording, and a
+future supported baseline exposing such a seam must reopen conformance.
+
+Current publishability gaps remain explicit Alpha-release blockers: the Adapter
+package is still private, the real binding factory is not a public root export,
+publishable metadata is incomplete, and external tarball smoke, compatibility
+contract and release engineering remain R1-002..007 work. No package/public API,
+bootstrap, release automation, registry publish, GitHub Release or M5-003+ work
+was implemented by R1-001.
+
+This governance transition is intentionally limited to CURRENT, this append-only
+HISTORY entry and only the R1-001 roadmap acceptance marker. Its resulting exact
+head must itself reach normal CI plus exact pinned Harness rc5 source/runtime
+dual-green before R1-001 governance may close and R1-002 may begin. PR #3 remains
+Open / Draft and merge remains unauthorized without explicit user authorization.
