@@ -3061,3 +3061,49 @@ M5-002 P0 — canonical JSON
 
 Only M5-002 protocol-first work becomes authorized at that point. M5-003+ remains
 unauthorized, and PR #3 merge remains unauthorized without explicit user approval.
+
+## 2026-09-09 — Accept M5-002 RFC 8785 canonical JSON
+
+M5-002 protocol-first head `a3d89753133f3ebc3132cd034b5d0a5caf55f43a`
+defined Spec 0054 and the language-neutral `CJ-001..CJ-036` corpus before
+implementation. That exact head passed CI #657 / run `34304845631` and Harness
+#599 / run `34304845765`; Harness job `102319284518` passed step 10 pinned-source
+typecheck and step 11 real rc5 runtime conformance.
+
+An independent roadmap-only planning head
+`be0214ebc226d0bf1b8752b70be7a4dd84910a9b` added `R1 — DeepSeek Harness Plugin
+Alpha Release` plus the sequencing rule that after M5-002 closure the project
+pauses M5-003+ and executes R1 before resuming later M5 work. Its exact delta was
+only `docs/roadmap.md`, and CI #658 / Harness #600 passed with Harness job
+`102354979028` steps 10/11 PASS. This planning change is not M5-002 implementation
+evidence and no R1 task was marked complete.
+
+Final reviewed M5-002 implementation/conformance head
+`2bd329d900f1e269e472f518386ef8d3ed6a59fd` adds the dependency-free protocol
+canonicalizer, public export, exact 36-case executable corpus projection and
+host-runtime hardening tests. It implements structured JSON -> RFC 8785/JCS
+canonical text -> exact UTF-8 bytes, including recursive raw-name UTF-16 ordering,
+array-order preservation, Unicode non-normalization, lone-surrogate rejection,
+finite binary64/ECMAScript number formatting, non-finite rejection, and fail-loud
+handling of unsupported JavaScript host values/cycles/accessors/unsafe object
+shapes. It does not implement SHA-256, record digest, hash chain, integrity CLI,
+storage policy or later M5 behavior.
+
+Exact implementation evidence at `2bd329d9...`:
+
+- CI #659 / run `34317551487`: PASS;
+- Harness #601 / run `34317551427`: PASS;
+- Harness job `102356846690` step 10: PASS;
+- Harness job `102356846690` step 11: PASS.
+
+Acceptance audit `docs/acceptance/m5-002-acceptance-audit.md` is at audit-only
+head `099d75ea539fad4fbf90dbcf57a73ccd5ba0f870`. That exact head passed CI #660 /
+run `34317920371` and Harness #602 / run `34317920355`; Harness job
+`102357963862` passed steps 10 and 11.
+
+This governance transition is intentionally limited to CURRENT, this append-only
+HISTORY entry and only the M5-002 roadmap marker/details. The accepted R1 section
+is preserved byte-for-byte by the roadmap replacement except for surrounding
+repository state, and all R1 items remain unchecked. M5-002 governance is not
+closed until this transition exact head is dual-green; only a later closure record
+may authorize R1-001. PR #3 remains Draft/Open and merge remains unauthorized.

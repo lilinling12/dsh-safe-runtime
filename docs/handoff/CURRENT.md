@@ -13,15 +13,37 @@
 - Base: `main@57430273e065be8d38807d67b175fa154c801d43`
 - M4-001..052: **GOVERNANCE CLOSED**
 - M5-001 P0 append-only store: **GOVERNANCE CLOSED**
-- M5-002 P0 canonical JSON: **PROTOCOL-FIRST CANDIDATE / IMPLEMENTATION NOT AUTHORIZED UNTIL THIS EXACT HEAD IS DUAL-GREEN**
-- M5-003+: **NOT AUTHORIZED by the current Gate**
+- M5-002 P0 canonical JSON implementation/conformance: **ACCEPTED**
+- M5-002 governance: **TRANSITION CANDIDATE — NOT CLOSED UNTIL THIS EXACT HEAD IS DUAL-GREEN**
+- R1-001: **NOT AUTHORIZED until a separate M5-002 closure-record exact head is dual-green**
+- M5-003+: **PAUSED by accepted release sequencing; not authorized after M5-002 closure until R1 Alpha closes**
 - PR #3 merge: **NOT AUTHORIZED without explicit user authorization**
 
 Live GitHub state overrides this snapshot.
 
-## M5-001 final closure evidence
+## M5-002 authority
 
-Closure-record exact head:
+```text
+specs/0054-m5-canonical-json.md
+fixtures/canonical-json/cases.json
+profile: M5-002_CANONICAL_JSON_RFC8785_V1
+cases: CJ-001..CJ-036
+```
+
+Pinned Harness baseline:
+
+```text
+0.1.0-rc.5@47f943859bef60e4160492346772ded9b24f765a
+```
+
+Accepted semantics are restricted to structured JSON value -> RFC 8785/JCS
+canonical text -> exact UTF-8 bytes. M5-002 does not compute record digests,
+construct hash chains, verify tamper evidence, or implement retention/storage
+policy.
+
+## Exact accepted evidence
+
+M5-001 closure predecessor:
 
 ```text
 c93e31751b25e131eb82c68d1d812813f34f01a7
@@ -31,125 +53,68 @@ Harness job 102317305472 step 10: PASS
 Harness job 102317305472 step 11: PASS
 ```
 
-M5-001 is therefore **GOVERNANCE CLOSED**. Its append-only semantics remain
-predecessor authority and MUST NOT be weakened by M5-002.
-
-The earlier M5-001 governance-transition CI failures and their test-only
-remediation remain recorded in:
+M5-002 protocol-first:
 
 ```text
-docs/acceptance/m5-001-acceptance-audit-amendment.md
+a3d89753133f3ebc3132cd034b5d0a5caf55f43a
+CI #657 / run 34304845631: PASS
+Harness #599 / run 34304845765: PASS
+Harness job 102319284518 step 10: PASS
+Harness job 102319284518 step 11: PASS
 ```
 
-The next roadmap Gate is `M5-002 P0 — canonical JSON`.
-
-## M5-002 recovered authority
-
-Existing deterministic-semantics authority states:
+Independent R1 release-roadmap planning:
 
 ```text
-Portable protocol digests SHOULD use RFC 8785 JSON Canonicalization Scheme for
-structured JSON payloads and SHA-256 by default.
+be0214ebc226d0bf1b8752b70be7a4dd84910a9b
+CI #658 / run 34316924618: PASS
+Harness #600 / run 34316924500: PASS
+Harness job 102354979028 step 10: PASS
+Harness job 102354979028 step 11: PASS
 ```
 
-M5-002 owns only the canonical JSON portion of that statement. The roadmap assigns
-record digest to M5-003, hash chain to M5-004, and integrity verification CLI to
-M5-005; those concerns remain excluded from this Gate.
-
-Architecture already reserves portable `canonical-json/` responsibility in the
-core package layout. Canonicalization must not become DeepSeek Harness or Adapter
-specific.
-
-RFC 8785/JCS requires deterministic canonical representation built from I-JSON
-input constraints, ECMAScript-compatible primitive serialization, recursive
-property sorting by raw UTF-16 code units, preserved array order, and final UTF-8
-encoding.
-
-## Current Gate — M5-002 protocol-first candidate
-
-Normative candidate:
+Final reviewed M5-002 implementation/conformance:
 
 ```text
-specs/0054-m5-canonical-json.md
+2bd329d900f1e269e472f518386ef8d3ed6a59fd
+CI #659 / run 34317551487: PASS
+Harness #601 / run 34317551427: PASS
+Harness job 102356846690 step 10: PASS
+Harness job 102356846690 step 11: PASS
 ```
 
-Portable requirement corpus:
+Acceptance audit:
 
 ```text
-fixtures/canonical-json/cases.json
-profile: M5-002_CANONICAL_JSON_RFC8785_V1
-cases: CJ-001..CJ-036
+docs/acceptance/m5-002-acceptance-audit.md
+head: 099d75ea539fad4fbf90dbcf57a73ccd5ba0f870
+CI #660 / run 34317920371: PASS
+Harness #602 / run 34317920355: PASS
+Harness job 102357963862 step 10: PASS
+Harness job 102357963862 step 11: PASS
 ```
 
-Pinned Harness compatibility baseline remains:
+The audit exact head is dual-green and authorizes this governance transition.
+
+## Governance transition boundary
+
+This transition is restricted to exactly:
 
 ```text
-0.1.0-rc.5@47f943859bef60e4160492346772ded9b24f765a
-```
-
-The candidate defines a language-neutral operation:
-
-```text
-structured JSON value -> RFC 8785 canonical UTF-8 bytes
-```
-
-Required semantics include:
-
-- portable inputs are JSON values only;
-- object property names are recursively sorted by raw UTF-16 code units,
-  independent of locale and insertion order;
-- array element order is preserved;
-- literals/string escaping/finite binary64 number serialization follow JCS;
-- Unicode content is preserved without normalization;
-- lone surrogates fail loud rather than being replaced;
-- NaN and infinities fail loud;
-- unsupported host values, coercion-dependent objects, and cyclic graphs fail loud
-  rather than being silently omitted/stringified/coerced;
-- canonical output authority is exact UTF-8 bytes with no BOM or extra whitespace;
-- canonicalization does not mutate caller input;
-- no digest/hash-chain/tamper-evidence behavior is included.
-
-## Explicit later-Gate exclusions
-
-M5-002 MUST NOT implement or claim:
-
-```text
-M5-003 record digest
-M5-004 hash chain
-M5-005 integrity verify CLI
-M5-010 secret detector interface
-M5-011 env redaction
-M5-012 args/result digest default
-M5-013 source-content retention opt-in
-M5-014 retention TTL
-M5-015 delete/export workflow
-M5-020 audit-store unavailable policy
-M5-021 durable local spool
-M5-022 spool reconciliation
-```
-
-It also MUST NOT redefine M5-001 append ordering/sequence/outcome semantics or add
-history-rewriting operations.
-
-## Protocol-first delta boundary
-
-This candidate is restricted to exactly:
-
-```text
-specs/0054-m5-canonical-json.md
-fixtures/canonical-json/cases.json
 docs/handoff/CURRENT.md
+docs/handoff/HISTORY.md    # append-only; prior byte prefix unchanged
+docs/roadmap.md            # only M5-002 marker/details
 ```
 
-No production implementation, dependency/lockfile, Schema, Shared TCK,
-Adapter/Harness rewrite, HISTORY, roadmap acceptance marker, workflow, or M5-003+
-artifact may change before this exact protocol-first head passes normal CI plus
-exact pinned Harness rc5 source-conformance.
+The previously accepted `R1 — DeepSeek Harness Plugin Alpha Release` planning
+section remains unchanged and every R1 task remains unchecked. No production
+code, test, Spec/corpus/Schema, Shared TCK, dependency/lockfile, Adapter/Harness
+source, workflow, or M5-003+/R1 implementation changes here.
 
-After this exact head becomes dual-green, only the smallest M5-002 implementation
-and executable-conformance delta becomes authorized. Package/file ownership must
-be justified from the existing architecture and current module boundaries rather
-than guessed from roadmap wording.
+M5-002 is **NOT GOVERNANCE CLOSED** until this exact governance-transition head
+passes normal CI plus exact pinned Harness rc5 source-conformance, including
+steps 10 and 11. Only then may a separate CURRENT + append-only HISTORY closure
+record authorize `R1-001 P0 — Alpha readiness reconciliation`.
 
 PR #3 remains Open / Draft and merge remains unauthorized without explicit user
 approval.

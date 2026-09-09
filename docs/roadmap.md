@@ -337,7 +337,7 @@ Acceptance evidence
 ## M5.1 Ledger
 
 - [x] `M5-001 P0` append-only store。 **ACCEPTED：Spec 0053 + AOS-001..028 + dependency-free `packages/storage` reference implementation；final reviewed head `4c42752b...`, CI #649 / Harness #591 PASS；验收记录 `docs/acceptance/m5-001-acceptance-audit.md` at `be616ba0...`, CI #650 / Harness #592 PASS。Append-only semantics only；canonical JSON / digest / hash chain remain M5-002/003/004.**
-- [ ] `M5-002 P0` canonical JSON。
+- [x] `M5-002 P0` canonical JSON。 **ACCEPTED：Spec 0054 + CJ-001..036 + dependency-free `@dsh-safe/protocol` RFC 8785/JCS canonicalizer + host-value fail-loud hardening；final reviewed head `2bd329d9...`, CI #659 / Harness #601 PASS；验收记录 `docs/acceptance/m5-002-acceptance-audit.md` at `099d75ea...`, CI #660 / Harness #602 PASS。Canonical bytes only；M5-003 digest and later M5 work remain paused while R1 DeepSeek Plugin Alpha Release executes after governance closure.**
 
 > **Release sequencing override（2026-09-09）**：M5-002 完成 implementation / acceptance / governance closure 后，暂停 M5-003+；优先执行下方 `R1 — DeepSeek Harness Plugin Alpha Release`。R1 Alpha 发布完成并形成真实外部安装反馈后，再恢复 M5-003+。该调整不改变 M5-003+ 的既有语义或优先级，只改变首次 Alpha 发布前的执行顺序。
 - [ ] `M5-003 P0` record digest。
