@@ -1,0 +1,33 @@
+name: R1-001 clean checkout evidence
+
+on:
+  push:
+    branches:
+      - evidence/r1-001-clean-checkout-47738763
+
+permissions:
+  contents: read
+
+jobs:
+  clean-checkout:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact R1-001 evidence head
+        uses: actions/checkout@v4
+        with:
+          ref: 47738763c9ad321e41d2af77c7c3ca7a923421fd
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.19.0
+      - name: Enable pinned pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.7.0 --activate
+          pnpm --version
+      - name: Install with frozen lockfile
+        run: pnpm install --frozen-lockfile
+      - name: Build root workspace
+        run: pnpm build
+      - name: Run full verification
+        run: pnpm check:all
