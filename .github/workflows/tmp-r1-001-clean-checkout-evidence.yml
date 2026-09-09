@@ -15,7 +15,7 @@ jobs:
       - name: Checkout exact evidence head
         uses: actions/checkout@v4
         with:
-          ref: 30e897888c1ea28a5082e2bdd9d36d3d2e2530ec
+          ref: 47738763c9ad321e41d2af77c7c3ca7a923421fd
           fetch-depth: 1
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -30,11 +30,5 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Build workspace
         run: pnpm build
-      - name: Inspect testkit build state
-        run: |
-          echo '--- tsbuildinfo ---'
-          find packages/testkit -maxdepth 3 -name '*.tsbuildinfo' -print -exec ls -l {} \;
-          echo '--- dist index ---'
-          ls -l packages/testkit/dist/index.js packages/testkit/dist/index.d.ts
       - name: Run complete repository gate
         run: pnpm check:all
