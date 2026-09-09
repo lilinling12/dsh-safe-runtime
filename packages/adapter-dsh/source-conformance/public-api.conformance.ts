@@ -1,12 +1,41 @@
 import { Context } from "@deepseek-ai/cordis";
 import { describe, expect, it } from "vitest";
 
+import * as PublicApi from "../src/index.js";
 import {
   createDshRc5Adapter,
   DshAdapterError,
+  type AdapterFeatureMatrix,
+  type ApprovalDecision,
   type ApprovalRequest,
+  type AuditDeliverySummary,
+  type AuditObservationSubscription,
+  type CompletionBoundaryRequest,
+  type CompletionSteerRequest,
+  type Disposable,
+  type DshAdapterErrorCode,
+  type DshAuditEvent,
+  type DshAuditEventSink,
+  type DshRc5Adapter,
   type DshRc5AdapterOptions,
+  type ObservationSubscription,
+  type RuntimeEvent,
+  type RuntimeEventSink,
+  type ToolExecutionScope,
+  type ToolGuardDecision,
+  type ToolGuardHandler,
+  type ToolPolicyDecision,
+  type ToolPolicyHandler,
+  type ToolPolicyRequest,
+  type TurnStoppingHandler,
 } from "../src/index.js";
+
+// Negative imports are intentional compile-time contract assertions. These M2
+// architecture/provider seams must not become R1 Alpha package-root API.
+// @ts-expect-error HarnessRuntimeAdapter is package-internal.
+import type { HarnessRuntimeAdapter } from "../src/index.js";
+// @ts-expect-error FilesystemPort is package-internal.
+import type { FilesystemPort } from "../src/index.js";
 
 const digest = (value: unknown): string => `digest:${String(value)}`;
 
@@ -16,6 +45,48 @@ function expectAdapterError(error: unknown, code: DshAdapterError["code"]): void
 }
 
 describe("R1-002 public DeepSeek Adapter API", () => {
+  it("exposes only the reviewed package-root runtime values and public type surface", () => {
+    expect(Object.keys(PublicApi).sort()).toEqual([
+      "DshAdapterError",
+      "createDshRc5Adapter",
+    ]);
+
+    const publicTypes = undefined as unknown as readonly [
+      AdapterFeatureMatrix,
+      ApprovalDecision,
+      ApprovalRequest,
+      AuditDeliverySummary,
+      AuditObservationSubscription,
+      CompletionBoundaryRequest,
+      CompletionSteerRequest,
+      Disposable,
+      DshAdapterErrorCode,
+      DshAuditEvent,
+      DshAuditEventSink,
+      DshRc5Adapter,
+      DshRc5AdapterOptions,
+      ObservationSubscription,
+      RuntimeEvent,
+      RuntimeEventSink,
+      ToolExecutionScope,
+      ToolGuardDecision,
+      ToolGuardHandler,
+      ToolPolicyDecision,
+      ToolPolicyHandler,
+      ToolPolicyRequest,
+      TurnStoppingHandler,
+    ];
+    expect(publicTypes).toBeUndefined();
+
+    type NoFilesystem = "filesystem" extends keyof DshRc5Adapter ? false : true;
+    type NoSubprocess = "subprocess" extends keyof DshRc5Adapter ? false : true;
+    const noProviderPorts: readonly [NoFilesystem, NoSubprocess] = [true, true];
+    expect(noProviderPorts).toEqual([true, true]);
+
+    const hiddenM2Types = undefined as unknown as readonly [HarnessRuntimeAdapter, FilesystemPort];
+    expect(hiddenM2Types).toBeUndefined();
+  });
+
   it("rejects invalid options before touching Harness", () => {
     const ctx = new Context();
 
