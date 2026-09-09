@@ -41,49 +41,7 @@ jobs:
           if current.count(old_next) != 1:
               raise SystemExit("unexpected R1-002 CURRENT status shape")
           current = current.replace(old_next, new_next, 1)
-          current_append = """
-
-## R1-001 readiness acceptance evidence
-
-Original protocol-first exact head:
-
-```text
-30e897888c1ea28a5082e2bdd9d36d3d2e2530ec
-CI #663 / run 34323540954: PASS
-Harness #605 / run 34323540944: PASS
-```
-
-Clean-checkout evidence, isolated from product history:
-
-```text
-evidence run 34328489680 / job 102391245741
-checkout: 47738763c9ad321e41d2af77c7c3ca7a923421fd
-pnpm install --frozen-lockfile: PASS
-pnpm build: PASS
-pnpm check:all: PASS
-```
-
-Readiness audit:
-
-```text
-docs/acceptance/r1-001-alpha-readiness-reconciliation.md
-audit exact head: 0f91d7447df6fd141260a8a8bd3d529466a5c503
-CI #666 / run 34329061765: PASS
-Harness #608 / run 34329061851: PASS
-Harness job 102393078775 step 10: PASS
-Harness job 102393078775 step 11: PASS
-```
-
-ARR-001..034 resolve to 13 `EVIDENCE_SATISFIED`, 13 `STATUS_DRIFT`, zero
-`R1_TRACK_BLOCKER`, seven `ALPHA_RELEASE_BLOCKER`, and one bounded rc5-only
-`BASELINE_NOT_APPLICABLE`. The track-entry verdict is `R1_002_AUTHORIZED`, while
-Alpha release remains `ALPHA_RELEASE_NOT_READY`.
-
-This governance transition records acceptance only. R1-002 remains locked until
-this governance exact head itself passes normal CI plus exact pinned Harness
-source/runtime conformance. R1-003+, M5-003+, npm/registry publication, GitHub
-Release and PR #3 merge remain unauthorized.
-"""
+          current_append = "\n\n## R1-001 readiness acceptance evidence\n\nOriginal protocol-first exact head:\n\n```text\n30e897888c1ea28a5082e2bdd9d36d3d2e2530ec\nCI #663 / run 34323540954: PASS\nHarness #605 / run 34323540944: PASS\n```\n\nClean-checkout evidence, isolated from product history:\n\n```text\nevidence run 34328489680 / job 102391245741\ncheckout: 47738763c9ad321e41d2af77c7c3ca7a923421fd\npnpm install --frozen-lockfile: PASS\npnpm build: PASS\npnpm check:all: PASS\n```\n\nReadiness audit:\n\n```text\ndocs/acceptance/r1-001-alpha-readiness-reconciliation.md\naudit exact head: 0f91d7447df6fd141260a8a8bd3d529466a5c503\nCI #666 / run 34329061765: PASS\nHarness #608 / run 34329061851: PASS\nHarness job 102393078775 step 10: PASS\nHarness job 102393078775 step 11: PASS\n```\n\nARR-001..034 resolve to 13 `EVIDENCE_SATISFIED`, 13 `STATUS_DRIFT`, zero\n`R1_TRACK_BLOCKER`, seven `ALPHA_RELEASE_BLOCKER`, and one bounded rc5-only\n`BASELINE_NOT_APPLICABLE`. The track-entry verdict is `R1_002_AUTHORIZED`, while\nAlpha release remains `ALPHA_RELEASE_NOT_READY`.\n\nThis governance transition records acceptance only. R1-002 remains locked until\nthis governance exact head itself passes normal CI plus exact pinned Harness\nsource/runtime conformance. R1-003+, M5-003+, npm/registry publication, GitHub\nRelease and PR #3 merge remain unauthorized.\n"
           if "## R1-001 readiness acceptance evidence" in current:
               raise SystemExit("R1-001 acceptance section already exists")
           current_path.write_text(current.rstrip() + current_append + "\n", encoding="utf-8")
@@ -101,52 +59,9 @@ Release and PR #3 merge remain unauthorized.
           marker = b"## 2026-09-09 — Accept R1-001 Alpha readiness reconciliation"
           if marker in history_before:
               raise SystemExit("R1-001 HISTORY entry already exists")
-          entry = """
-
-## 2026-09-09 — Accept R1-001 Alpha readiness reconciliation
-
-R1-001 protocol-first head `30e897888c1ea28a5082e2bdd9d36d3d2e2530ec`
-changed only Spec 0055, the ARR-001..034 corpus and CURRENT, then passed normal
-CI #663 / run `34323540954` and exact Harness rc5 source-conformance #605 / run
-`34323540944` before evidence collection began.
-
-A separate evidence-only workflow checked out product head
-`47738763c9ad321e41d2af77c7c3ca7a923421fd` and passed clean
-`pnpm install --frozen-lockfile`, root `pnpm build` and `pnpm check:all` in run
-`34328489680`, job `102391245741`. The workflow file remained outside PR #3
-product history.
-
-The prospective readiness audit is
-`docs/acceptance/r1-001-alpha-readiness-reconciliation.md` at exact audit head
-`0f91d7447df6fd141260a8a8bd3d529466a5c503`. That head passed normal CI #666 /
-run `34329061765` and exact Harness #608 / run `34329061851`; Harness job
-`102393078775` passed step 10 pinned-source typecheck and step 11 real rc5 runtime
-conformance.
-
-All ARR-001..034 requirements are resolved: 13 `EVIDENCE_SATISFIED`, 13
-`STATUS_DRIFT`, zero `R1_TRACK_BLOCKER`, seven `ALPHA_RELEASE_BLOCKER`, and one
-bounded rc5-only `BASELINE_NOT_APPLICABLE`. The current M1 review found no
-material protocol-vs-M4 Alpha contradiction. M20 legacy Alpha checkboxes remain
-status drift backed by direct accepted evidence rather than retroactive history
-rewrites. The rc5 action-rewrite row is not claimed implemented: the supported
-seam exposes no rewrite API, R1-006 owns release known-limitations wording, and a
-future supported baseline exposing such a seam must reopen conformance.
-
-Current publishability gaps remain explicit Alpha-release blockers: the Adapter
-package is still private, the real binding factory is not a public root export,
-publishable metadata is incomplete, and external tarball smoke, compatibility
-contract and release engineering remain R1-002..007 work. No package/public API,
-bootstrap, release automation, registry publish, GitHub Release or M5-003+ work
-was implemented by R1-001.
-
-This governance transition is intentionally limited to CURRENT, this append-only
-HISTORY entry and only the R1-001 roadmap acceptance marker. Its resulting exact
-head must itself reach normal CI plus exact pinned Harness rc5 source/runtime
-dual-green before R1-001 governance may close and R1-002 may begin. PR #3 remains
-Open / Draft and merge remains unauthorized without explicit user authorization.
-""".encode("utf-8")
+          entry = "\n\n## 2026-09-09 — Accept R1-001 Alpha readiness reconciliation\n\nR1-001 protocol-first head `30e897888c1ea28a5082e2bdd9d36d3d2e2530ec`\nchanged only Spec 0055, the ARR-001..034 corpus and CURRENT, then passed normal\nCI #663 / run `34323540954` and exact Harness rc5 source-conformance #605 / run\n`34323540944` before evidence collection began.\n\nA separate evidence-only workflow checked out product head\n`47738763c9ad321e41d2af77c7c3ca7a923421fd` and passed clean\n`pnpm install --frozen-lockfile`, root `pnpm build` and `pnpm check:all` in run\n`34328489680`, job `102391245741`. The workflow file remained outside PR #3\nproduct history.\n\nThe prospective readiness audit is\n`docs/acceptance/r1-001-alpha-readiness-reconciliation.md` at exact audit head\n`0f91d7447df6fd141260a8a8bd3d529466a5c503`. That head passed normal CI #666 /\nrun `34329061765` and exact Harness #608 / run `34329061851`; Harness job\n`102393078775` passed step 10 pinned-source typecheck and step 11 real rc5 runtime\nconformance.\n\nAll ARR-001..034 requirements are resolved: 13 `EVIDENCE_SATISFIED`, 13\n`STATUS_DRIFT`, zero `R1_TRACK_BLOCKER`, seven `ALPHA_RELEASE_BLOCKER`, and one\nbounded rc5-only `BASELINE_NOT_APPLICABLE`. The current M1 review found no\nmaterial protocol-vs-M4 Alpha contradiction. M20 legacy Alpha checkboxes remain\nstatus drift backed by direct accepted evidence rather than retroactive history\nrewrites. The rc5 action-rewrite row is not claimed implemented: the supported\nseam exposes no rewrite API, R1-006 owns release known-limitations wording, and a\nfuture supported baseline exposing such a seam must reopen conformance.\n\nCurrent publishability gaps remain explicit Alpha-release blockers: the Adapter\npackage is still private, the real binding factory is not a public root export,\npublishable metadata is incomplete, and external tarball smoke, compatibility\ncontract and release engineering remain R1-002..007 work. No package/public API,\nbootstrap, release automation, registry publish, GitHub Release or M5-003+ work\nwas implemented by R1-001.\n\nThis governance transition is intentionally limited to CURRENT, this append-only\nHISTORY entry and only the R1-001 roadmap acceptance marker. Its resulting exact\nhead must itself reach normal CI plus exact pinned Harness rc5 source/runtime\ndual-green before R1-001 governance may close and R1-002 may begin. PR #3 remains\nOpen / Draft and merge remains unauthorized without explicit user authorization.\n"
           with history_path.open("ab") as f:
-              f.write(entry)
+              f.write(entry.encode("utf-8"))
           history_after = history_path.read_bytes()
           if not history_after.startswith(history_before):
               raise SystemExit("HISTORY append-only prefix invariant failed")
