@@ -382,7 +382,7 @@ Acceptance evidence
 
 ## R1.2 Public Plugin Surface
 
-- [ ] `R1-002 P0` freeze public DeepSeek Adapter API。
+- [x] `R1-002 P0` freeze public DeepSeek Adapter API。 **ACCEPTED：Spec 0056 + DPA-001..036 + curated package-root `createDshRc5Adapter` / `DshRc5Adapter` surface + aggregate lifecycle/dispose/construction rollback + explicit public export allowlist；final reviewed public-surface head `45d9f4cf...`, CI #675 / Harness #617 PASS；验收记录 `docs/acceptance/r1-002-public-adapter-api.md` at `97d7904d...`, CI #676 / Harness #618 PASS。Package publishability remains R1-004；R1-003 is not authorized until this governance exact head is dual-green.**
   - 正式公开 `createDshRc5Adapter` 或经 Spec 评审后的更高层入口；
   - 用户 API 不暴露内部 M2 port / source-conformance 细节；
   - lifecycle、dispose、error/fail-closed semantics 明确；

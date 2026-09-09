@@ -3178,3 +3178,57 @@ HISTORY entry and only the R1-001 roadmap acceptance marker. Its resulting exact
 head must itself reach normal CI plus exact pinned Harness rc5 source/runtime
 dual-green before R1-001 governance may close and R1-002 may begin. PR #3 remains
 Open / Draft and merge remains unauthorized without explicit user authorization.
+
+## 2026-09-10 — Accept R1-002 public DeepSeek Adapter API
+
+R1-002 protocol-first exact head
+`da133cadb64ae071b68e020ea15c0295f9ce9033` passed normal CI #670 and exact
+Harness rc5 source-conformance #612 before production API work began.
+
+The first managed-public-facade candidate
+`bebe55535e312619e2a52a6572b50a4a50fe3bc0` failed CI #671 and Harness #613.
+Exact failed-job diagnostics were read before remediation. The failure was a
+Harness-facing compile-topology/strict-TypeScript issue, not a protocol or
+compatibility-baseline reason to weaken validation. The corrected head
+`7243987d9f6222d52079d10deb848f992dbef89c` passed CI #672 / run
+`34335868629` and Harness #614 / run `34335868609`, including pinned-source
+step 10 and real rc5 runtime step 11, without dependency/lockfile/strictness
+weakening.
+
+Final public-root hardening head
+`45d9f4cf0c53cda87937493bf8bb3a0c25f64a5f` uses an explicit package-root
+allowlist, keeps M2 provider/replay/normalization/source-conformance internals out
+of the Alpha semver surface, and strengthens positive/negative exact-rc5 root
+contract evidence. Its exact delta from `7243987d...` is only the public root
+plus two source-conformance files. That exact head passed CI #675 / run
+`34339695836` and Harness #617 / run `34339695827`; Harness job
+`102427316176` passed step 10 pinned-source typecheck and step 11 real rc5
+runtime conformance.
+
+Acceptance audit `docs/acceptance/r1-002-public-adapter-api.md` is at exact head
+`97d7904d2fe1ac7c54bbbb0b81ac931ee58e8117`. All DPA-001..036 requirements are
+satisfied there. The exact audit head passed CI #676 / run `34340038589` and
+Harness #618 / run `34340038525`; Harness job `102428421525` passed steps 10
+and 11.
+
+The accepted Alpha TypeScript surface exposes one curated
+`createDshRc5Adapter(ctx, options): DshRc5Adapter` root entry, required digest and
+diagnostic-only observation callback, no public deterministic clock, no
+filesystem/subprocess provider ports, atomic construction rollback, aggregate
+idempotent/concurrent-safe disposal, caller-vs-Adapter resource ownership, and
+stable `INVALID_ADAPTER_OPTIONS` / `ADAPTER_DISPOSED` failures. Existing
+fail-closed policy, approval, monotonic-guard, final-result and audit semantics
+remain delegated to the already accepted internal rc5 binding.
+
+R1-002 does not make the package publishable, does not implement the R1-003
+plugin/bootstrap integration, does not claim process isolation/arbitrary-plugin
+sandboxing/complete host-effect mediation/external-effect rollback, does not
+resume M5-003+, publish to a registry, create a GitHub Release, or authorize PR
+#3 merge.
+
+This governance transition is intentionally restricted to CURRENT, this
+append-only HISTORY entry, and only the R1-002 roadmap acceptance marker/details.
+The resulting governance exact head must itself reach normal CI plus exact pinned
+Harness rc5 source/runtime dual-green before R1-002 governance is CLOSED and
+R1-003 P0 plugin/bootstrap integration becomes the sole newly authorized
+protocol-first Gate.
