@@ -15,7 +15,7 @@
 - M5-001 P0 append-only store: **GOVERNANCE CLOSED**
 - M5-002 P0 canonical JSON: **GOVERNANCE CLOSED**
 - R1-001 P0 Alpha readiness reconciliation: **GOVERNANCE CLOSED**
-- R1-002 P0 public DeepSeek Adapter API: **AUTHORIZED / PROTOCOL-FIRST NOT YET IMPLEMENTED**
+- R1-002 P0 public DeepSeek Adapter API: **PROTOCOL-FIRST CANDIDATE / IMPLEMENTATION NOT AUTHORIZED UNTIL THIS EXACT HEAD IS DUAL-GREEN**
 - R1-003+: **NOT AUTHORIZED by the current Gate**
 - M5-003+: **PAUSED until R1 Alpha release governance closes**
 - npm/registry publish and GitHub Release: **NOT AUTHORIZED**
@@ -155,27 +155,6 @@ contract records the limitation and future-reopen rule.
 Direct same-process host/plugin APIs remain covered only by the accepted
 M4-050/M4-052 ungoverned/non-sandbox boundary.
 
-## Protocol-first delta boundary
-
-This candidate is restricted to exactly:
-
-```text
-specs/0055-r1-alpha-readiness-reconciliation.md
-fixtures/alpha-readiness-reconciliation/cases.json
-docs/handoff/CURRENT.md
-```
-
-No roadmap/HISTORY, package implementation/test, package metadata, dependency or
-lockfile, Schema/Shared TCK, compatibility-baseline, workflow, registry/release,
-R1-002+, or M5-003+ change is authorized before this exact protocol-first head
-passes normal CI plus exact pinned Harness source/runtime conformance.
-
-After protocol dual-green, only evidence collection and the smallest R1-001
-readiness-audit/supporting evidence delta become authorized.
-
-R1-002, package publication, GitHub Release, M5-003+, and PR #3 merge remain
-unauthorized.
-
 ## R1-001 readiness acceptance evidence
 
 Original protocol-first exact head:
@@ -243,7 +222,69 @@ The same exact SHA passed normal CI plus exact pinned Harness source/runtime
 conformance. R1-001 governance is therefore closed and R1-002 protocol-first work
 is the only newly authorized engineering Gate.
 
-This closure-record update is governance-only. It must itself pass normal CI plus
-exact pinned Harness source/runtime conformance before any R1-002 repository delta
-is created. R1-003+, M5-003+, npm/registry publication, GitHub Release and PR #3
-merge remain unauthorized.
+R1-001 closure record:
+
+```text
+4bb553651061b66176dfd1babe24c96fdd415995
+CI #669 / run 34330477937: PASS
+Harness #611 / run 34330477951: PASS
+```
+
+That closure exact head is dual-green, so R1-002 protocol-first work is now
+legitimately authorized.
+
+## R1-002 protocol-first authority candidate
+
+Normative candidate:
+
+```text
+specs/0056-r1-dsh-public-adapter-api.md
+```
+
+Public Adapter API contract corpus:
+
+```text
+fixtures/dsh-public-adapter-api/cases.json
+profile: R1-002_DSH_PUBLIC_ADAPTER_API_V1
+cases: DPA-001..DPA-036
+```
+
+Pinned compatibility baseline remains exactly:
+
+```text
+0.1.0-rc.5@47f943859bef60e4160492346772ded9b24f765a
+```
+
+The candidate freezes a curated package-root `createDshRc5Adapter` API rather than
+publishing the broad M2 `HarnessRuntimeAdapter` surface. It requires aggregate,
+idempotent Adapter disposal; construction rollback on partial setup failure;
+stable `ADAPTER_DISPOSED` and `INVALID_ADAPTER_OPTIONS` errors; explicit ownership
+of Adapter-created child resources; and package-root contract tests.
+
+The candidate deliberately keeps the deterministic `now` seam test-only and does
+not expose rc5 filesystem/subprocess provider ports through the public Adapter.
+
+R1-002 remains Adapter-specific integration authority. It does not redefine
+portable core protocol semantics and does not upgrade same-process Harness/plugin
+integration into a process-isolation or arbitrary-plugin sandbox guarantee.
+
+## R1-002 protocol-first delta boundary
+
+Before exact-head dual-green, the repository delta is restricted to exactly:
+
+```text
+specs/0056-r1-dsh-public-adapter-api.md
+fixtures/dsh-public-adapter-api/cases.json
+docs/handoff/CURRENT.md
+```
+
+No production/test package change, package metadata, dependency/lockfile, Schema,
+Shared TCK, compatibility baseline, workflow, roadmap/HISTORY, R1-003+, M5-003+,
+registry publication, GitHub Release or PR merge is authorized in this candidate.
+
+Only after this exact protocol-first head passes normal CI plus exact pinned
+Harness source/runtime conformance may the smallest R1-002 implementation and
+contract-test delta begin.
+
+R1-003+, R1-004 publishability work, M5-003+, npm/registry publication, GitHub
+Release and PR #3 merge remain unauthorized.
