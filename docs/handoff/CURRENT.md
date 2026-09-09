@@ -14,8 +14,8 @@
 - M4-001..052: **GOVERNANCE CLOSED**
 - M5-001 P0 append-only store: **GOVERNANCE CLOSED**
 - M5-002 P0 canonical JSON: **GOVERNANCE CLOSED**
-- R1-001 P0 Alpha readiness reconciliation: **ACCEPTANCE VERIFIED / GOVERNANCE TRANSITION CANDIDATE**
-- R1-002 P0 public DeepSeek Adapter API: **NOT AUTHORIZED until this governance exact head is dual-green**
+- R1-001 P0 Alpha readiness reconciliation: **GOVERNANCE CLOSED**
+- R1-002 P0 public DeepSeek Adapter API: **AUTHORIZED / PROTOCOL-FIRST NOT YET IMPLEMENTED**
 - R1-003+: **NOT AUTHORIZED by the current Gate**
 - M5-003+: **PAUSED until R1 Alpha release governance closes**
 - npm/registry publish and GitHub Release: **NOT AUTHORIZED**
@@ -212,11 +212,6 @@ ARR-001..034 resolve to 13 `EVIDENCE_SATISFIED`, 13 `STATUS_DRIFT`, zero
 `BASELINE_NOT_APPLICABLE`. The track-entry verdict is `R1_002_AUTHORIZED`, while
 Alpha release remains `ALPHA_RELEASE_NOT_READY`.
 
-This governance transition records acceptance only. R1-002 remains locked until
-this governance exact head itself passes normal CI plus exact pinned Harness
-source/runtime conformance. R1-003+, M5-003+, npm/registry publication, GitHub
-Release and PR #3 merge remain unauthorized.
-
 ## R1-001 governance verification re-anchor
 
 Governance content commit:
@@ -232,7 +227,23 @@ That commit was created by an evidence-only GitHub Actions workflow using its
 the runs cannot be retried. This is an automation-trigger provenance condition,
 not a CI/test/conformance diagnostic and is not counted as dual-green.
 
-This user-authored follow-up changes only CURRENT and re-anchors the same R1-001
-governance state so normal PR workflows can execute on a new exact head. R1-002
-remains unauthorized until this exact re-anchor head passes both normal CI and
-exact pinned Harness source/runtime conformance.
+User-authored governance re-anchor:
+
+```text
+cc28f849f57abe03d83c33c8d45394f0ad37a271
+CI #668 / run 34330231181: PASS
+Harness #610 / run 34330231232: PASS
+Harness job 102396837524 step 10: PASS
+Harness job 102396837524 step 11: PASS
+```
+
+The re-anchor changes only CURRENT relative to the governance content commit and
+preserves the accepted R1-001 audit, append-only HISTORY record and roadmap marker.
+The same exact SHA passed normal CI plus exact pinned Harness source/runtime
+conformance. R1-001 governance is therefore closed and R1-002 protocol-first work
+is the only newly authorized engineering Gate.
+
+This closure-record update is governance-only. It must itself pass normal CI plus
+exact pinned Harness source/runtime conformance before any R1-002 repository delta
+is created. R1-003+, M5-003+, npm/registry publication, GitHub Release and PR #3
+merge remain unauthorized.
