@@ -1,10 +1,10 @@
-import type { Context, Fiber } from "@deepseek-ai/cordis";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import type { Context } from "@deepseek-ai/cordis";
 import { CallId } from "@deepseek-ai/dsh-llm";
 import SessionStore, { SessionId } from "@deepseek-ai/dsh-session";
 import SystemPrompt from "@deepseek-ai/dsh-system-prompt";
 import ToolRuntime, { defineTool } from "@deepseek-ai/dsh-tools";
 import ApprovalService, { type ApprovalOutcome } from "@deepseek-ai/dsh-user-approval";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import {
   createDshRc5Plugin,
@@ -26,9 +26,8 @@ function digest(value: unknown): string {
   return `r1-003:${JSON.stringify(value)}`;
 }
 
-function resultText(result: Awaited<ReturnType<Context["tools"]["execute"]>>): string {
-  const first = result.content[0];
-  return first?.type === "text" ? first.text : JSON.stringify(result.content);
+function resultText(result: unknown): string {
+  return JSON.stringify(result);
 }
 
 function registerStringTool(ctx: Context, name: string, onBody?: () => void): void {
@@ -47,13 +46,13 @@ function registerStringTool(ctx: Context, name: string, onBody?: () => void): vo
   }));
 }
 
-async function setupTools(harness: HarnessTestScope): Promise<Context> {
+async function setupTools(harness: HarnessTestScope) {
   await harness.ctx.plugin(SystemPrompt);
   await harness.ctx.plugin(ToolRuntime);
   return harness.inject(["tools"]);
 }
 
-async function setupApproval(harness: HarnessTestScope): Promise<Context> {
+async function setupApproval(harness: HarnessTestScope) {
   await harness.ctx.plugin(SessionStore);
   await harness.ctx.plugin(SystemPrompt);
   await harness.ctx.plugin(ApprovalService, { policy: "ask" });
@@ -67,10 +66,7 @@ function createOpenAgent(ctx: Context, sessionRef: string) {
   return { session, agent: createAgentFixture(ctx, session) };
 }
 
-async function mount(
-  ctx: Context,
-  options: DshRc5PluginOptions,
-): Promise<Fiber> {
+async function mount(ctx: Context, options: DshRc5PluginOptions) {
   return ctx.plugin(createDshRc5Plugin(options));
 }
 
