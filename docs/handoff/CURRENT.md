@@ -11,187 +11,247 @@
 - Active PR: `#3 — feat(policy): begin M4 capability broker`
 - Branch: `feat/m4-capability-broker`
 - Base: `main@57430273e065be8d38807d67b175fa154c801d43`
-- M4-001..052: **GOVERNANCE CLOSED**
-- M5-001 P0 append-only store: **GOVERNANCE CLOSED**
-- M5-002 P0 canonical JSON: **GOVERNANCE CLOSED**
 - R1-001 P0 Alpha readiness reconciliation: **GOVERNANCE CLOSED**
-- R1-002 P0 public DeepSeek Adapter API: **IMPLEMENTATION ACCEPTED / GOVERNANCE TRANSITION PENDING EXACT-HEAD DUAL-GREEN**
-- R1-003+: **NOT AUTHORIZED until R1-002 governance exact head is dual-green**
+- R1-002 P0 public DeepSeek Adapter API: **GOVERNANCE CLOSED**
+- R1-003 P0 DeepSeek plugin/bootstrap integration: **PROTOCOL-FIRST CANDIDATE / IMPLEMENTATION NOT AUTHORIZED UNTIL THIS EXACT HEAD IS DUAL-GREEN**
+- R1-004+: **NOT AUTHORIZED by the current Gate**
 - M5-003+: **PAUSED until R1 Alpha release governance closes**
 - npm/registry publish and GitHub Release: **NOT AUTHORIZED**
 - PR #3 merge: **NOT AUTHORIZED without explicit user authorization**
 
 Live GitHub state overrides this snapshot.
 
-## Current authority — R1-002
+## R1-002 closure authority
 
-Normative Spec:
-
-```text
-specs/0056-r1-dsh-public-adapter-api.md
-```
-
-Contract corpus:
+R1-002 final governance exact head:
 
 ```text
-fixtures/dsh-public-adapter-api/cases.json
-profile: R1-002_DSH_PUBLIC_ADAPTER_API_V1
-cases: DPA-001..DPA-036
-```
-
-Acceptance audit:
-
-```text
-docs/acceptance/r1-002-public-adapter-api.md
-```
-
-Pinned Harness compatibility baseline remains exactly:
-
-```text
-0.1.0-rc.5@47f943859bef60e4160492346772ded9b24f765a
-```
-
-DeepSeek Harness remains Adapter compatibility/source-conformance evidence only;
-it does not redefine portable safe-runtime protocol semantics.
-
-## R1-002 exact evidence chain
-
-Protocol-first exact head:
-
-```text
-da133cadb64ae071b68e020ea15c0295f9ce9033
-CI #670: PASS
-Harness #612: PASS
-```
-
-The first managed-facade implementation candidate
-`bebe55535e312619e2a52a6572b50a4a50fe3bc0` failed CI #671 and Harness #613.
-Exact failed job diagnostics were inspected before remediation. The failure was a
-Harness-facing compile-topology and strict-TypeScript issue; no validator,
-TypeScript strictness, dependency policy, frozen lockfile or compatibility
-baseline was weakened.
-
-Corrected managed-facade head:
-
-```text
-7243987d9f6222d52079d10deb848f992dbef89c
-CI #672 / run 34335868629: PASS
-Harness #614 / run 34335868609: PASS
+3a5e8e780a09c6764eb4d966c4a42348817e0780
+CI #677 / run 34394030179: PASS
+Harness #619 / run 34394030180: PASS
 Harness step 10 pinned-source typecheck: PASS
 Harness step 11 real rc5 runtime conformance: PASS
 ```
 
-Final public-root hardening head:
+The exact governance delta from accepted audit head
+`97d7904d2fe1ac7c54bbbb0b81ac931ee58e8117` was one commit and exactly three
+governance files: CURRENT, append-only HISTORY and only the R1-002 roadmap marker.
+Therefore R1-002 is **GOVERNANCE CLOSED** and R1-003 is the sole newly authorized
+engineering Gate.
 
-```text
-45d9f4cf0c53cda87937493bf8bb3a0c25f64a5f
-CI #675 / run 34339695836: PASS
-Harness #617 / run 34339695827: PASS
-Harness job 102427316176 step 10: PASS
-Harness job 102427316176 step 11: PASS
-```
-
-That head freezes an explicit package-root public allowlist and keeps internal
-normalization, dispatcher, provider-port, replay/source-conformance helpers and
-package-stage markers out of the Alpha semver surface.
-
-Acceptance-audit exact head:
-
-```text
-97d7904d2fe1ac7c54bbbb0b81ac931ee58e8117
-CI #676 / run 34340038589: PASS
-Harness #618 / run 34340038525: PASS
-Harness job 102428421525 step 10: PASS
-Harness job 102428421525 step 11: PASS
-```
-
-All DPA-001..036 requirements are satisfied at that exact acceptance head.
-
-## Accepted R1-002 public API boundary
-
-The Alpha TypeScript API intentionally exposes one curated package-root entry:
+The accepted R1-002 package-root Adapter remains:
 
 ```text
 createDshRc5Adapter(ctx, options): DshRc5Adapter
 ```
 
-Accepted public behavior includes:
+with aggregate asynchronous disposal, atomic construction rollback, stable
+fail-closed lifecycle errors and the explicit public export allowlist. R1-003 MUST
+reuse that public boundary rather than deep-importing the package-private binding.
 
-- required `digest(value: unknown): string`;
-- optional diagnostic-only `onObservationFailure`;
-- no public deterministic `now`/clock seam;
-- dedicated `DshRc5Adapter`, not public inheritance from broad M2
-  `HarnessRuntimeAdapter`;
-- no public filesystem/subprocess provider ports;
-- explicit metadata, observation/audit, policy, monotonic-guard, turn-stopping,
-  approval and completion-steering methods;
-- aggregate asynchronous `dispose()`;
-- atomic construction rollback after partial Harness registration failure;
-- lifecycle `LIVE -> DISPOSING -> DISPOSED`;
-- idempotent/concurrent-safe aggregate disposal;
-- Adapter-owned child/root resource cleanup without disposing caller-owned
-  Harness Context/services/agents/listeners;
-- stable `INVALID_ADAPTER_OPTIONS` and `ADAPTER_DISPOSED` Adapter errors;
-- post-dispose operations fail before initiating new Harness work;
-- existing fail-closed policy/approval/guard/final-result/audit semantics remain
-  owned by the already accepted internal rc5 binding.
+## R1-003 normative candidate
 
-## R1-002 non-claims / excluded work
+Normative candidate:
 
-R1-002 does not:
+```text
+specs/0057-r1-dsh-plugin-bootstrap-integration.md
+```
 
-- make `@dsh-safe/adapter-dsh` publishable;
-- implement R1-003 plugin/bootstrap integration;
-- set package `exports`/`types`/`files` or remove `private: true`;
-- implement external tarball consumer smoke or compatibility-range policy;
-- implement release pipeline, versioning, provenance, registry publish or GitHub
-  Release;
+Contract corpus:
+
+```text
+fixtures/dsh-plugin-bootstrap/cases.json
+profile: R1-003_DSH_PLUGIN_BOOTSTRAP_V1
+cases: DPB-001..DPB-032
+```
+
+Pinned compatibility baseline remains exactly:
+
+```text
+0.1.0-rc.5@47f943859bef60e4160492346772ded9b24f765a
+```
+
+DeepSeek Harness/Cordis source is Adapter compatibility evidence only. It does not
+redefine portable Capability, Resource, Subject, policy, Lease, approval,
+GuaranteeLevel or audit semantics.
+
+## Recovered pinned Cordis / Harness facts
+
+Exact pinned source establishes the integration facts required by R1-003:
+
+- `ctx.plugin(plugin, ...args)` is Cordis' native plugin installation seam;
+- the returned `Fiber & PromiseLike<Fiber>` owns plugin effects/disposers;
+- plugin return cleanup and `ctx.effect()` support asynchronous Fiber-owned
+  teardown;
+- failed plugin construction enters failed cleanup rather than a successful ACTIVE
+  plugin;
+- child plugin lifecycle belongs to the parent Fiber/context;
+- pinned Harness app-boot/Loader already owns root Context creation, configuration
+  tree loading, plugin resolution and framework lifecycle.
+
+R1-003 therefore MUST NOT create another plugin manager, registry, Fiber manager,
+root Context loader or hot-reload subsystem.
+
+## Candidate public bootstrap boundary
+
+The candidate freezes one additional package-root programmatic entry:
+
+```text
+createDshRc5Plugin(options): DshRc5Plugin
+```
+
+whose result is installed through real Cordis:
+
+```text
+const plugin = createDshRc5Plugin(options)
+const fiber = await ctx.plugin(plugin)
+```
+
+The logical bootstrap options preserve R1-002 Adapter options and select exactly
+one policy mode:
+
+```text
+DENY_ALL
+HANDLER(handler, optional monotonicGuard)
+```
+
+Omitted policy is identical to `DENY_ALL`.
+
+This is intentionally a programmatic Alpha bootstrap. R1-002 requires a
+caller-supplied function-valued `digest(value)` option, so R1-003 does not pretend
+that a plain serialized `cordis.yml` package entry can already express the full
+contract. Publishable/bare-package install UX remains R1-004/R1-006 work.
+
+## Fail-closed default
+
+`DENY_ALL` installs both:
+
+```text
+registerToolPolicy()          -> DENY
+registerMonotonicToolGuard()  -> DENY
+```
+
+with stable internal reason:
+
+```text
+safe-runtime plugin default deny
+```
+
+and requires both `toolsPreExecute` and `toolsMonotonicGuard` support.
+
+The two registrations preserve accepted M4 semantics: pre-execute is reorderable,
+while the reached monotonic guard is a hard ToolRuntime veto. Missing required
+support fails activation explicitly; the plugin must not silently downgrade and
+claim the same guarantee.
+
+This still does not mean arbitrary in-process host effects are sandboxed or that
+every effect traverses ToolRuntime.
+
+## HANDLER / approval boundary
+
+`HANDLER` mode reuses the exact caller-supplied R1-002 ToolPolicyHandler once.
+ALLOW/DENY/ASK retain accepted M4-040 behavior. Optional monotonic guard is
+installed only when explicitly supplied and supported; the plugin must not derive a
+synchronous guard from an async policy handler or convert ASK into a hard guard.
+
+A reached ASK remains owned by the pinned Harness native path:
+
+```text
+Adapter ASK -> ToolRuntime.serviceAsk() -> ctx.approval.request(...)
+```
+
+The plugin must not automatically call Adapter `requestApproval()` for the same
+ToolRuntime ASK or create another approval provider/state machine.
+
+## Deliberate non-composition boundary
+
+R1-003 does not automatically wire a serialized CapabilityPolicy into complete
+ToolRuntime authorization. Accepted M4 classifiers still contain unresolved
+operands including `EXECUTION_ROOT` and `ARGUMENT_WORKDIR`, while Core requires
+provider-owned identity/containment rather than guessed path authority.
+
+The plugin therefore MUST NOT guess:
+
+```text
+raw path -> workspace:// or hostfs://
+shell text -> process:// executable
+host cwd -> execution-root authorization
+```
+
+Full Capability -> provider/resource -> PDP -> Lease -> decision/receipt ->
+execution composition remains later integrated-runtime work. R1-003 is only the
+native plugin/bootstrap lifecycle and safe default boundary.
+
+## Activation / disposal ownership
+
+A successful plugin activation constructs exactly one R1-002 Adapter and installs
+only the registrations required by the selected mode. If a post-construction step
+fails, Adapter disposal must run and no plugin-owned listener/guard may remain
+live.
+
+On successful activation, the Cordis Fiber owns cleanup that awaits
+`adapter.dispose()`. Therefore `await fiber.dispose()` must not complete before
+aggregate Adapter teardown settles. Unload must not dispose the caller-owned root
+Context, agents, services or independent listeners. A later remount is a new
+independent plugin instance; no process-global singleton is introduced.
+
+## Security and package non-claims
+
+R1-003 does not:
+
+- claim arbitrary in-process plugin sandboxing or process isolation;
+- claim direct Node host filesystem/process/network effects are completely
+  mediated;
+- invent provider identity or resource containment;
+- implement complete M10 orchestration;
+- expose R1-002 filesystem/subprocess internal ports;
+- add a second approval/policy/runtime subsystem;
+- remove `private: true`;
+- finalize package `exports` / `types` / `files` / `engines` metadata;
+- claim bare `cordis.yml` package loading is release-ready;
+- run R1-005 external tarball smoke;
+- define R1-006 compatibility ranges/install docs;
+- implement R1-007 release/provenance automation;
 - resume M5-003+;
-- claim process isolation, arbitrary in-process plugin sandboxing, complete
-  host-effect mediation or external-effect rollback;
+- publish to npm/registry or create a GitHub Release;
 - authorize PR #3 merge.
 
-Those later concerns remain assigned to R1-003..008 and later security/runtime
-milestones.
+## Protocol-first delta boundary
 
-## Current governance transition
-
-The only authorized repository change after the accepted audit head is the
-R1-002 governance transition, restricted to:
+Before exact-head dual-green, the repository delta is restricted to exactly:
 
 ```text
+specs/0057-r1-dsh-plugin-bootstrap-integration.md
+fixtures/dsh-plugin-bootstrap/cases.json
 docs/handoff/CURRENT.md
-docs/handoff/HISTORY.md   # append-only
-docs/roadmap.md           # only R1-002 acceptance marker/details
 ```
 
-No production source/test, Spec/corpus/Schema, Shared TCK, dependency/lockfile,
-Harness baseline/workflow, package publication metadata, R1-003+, M5-003+,
-registry/GitHub Release or merge change belongs in this transition.
-
-The resulting governance exact head must itself pass, on the same SHA:
+Not authorized in this candidate:
 
 ```text
-normal CI
-+
-Harness source-conformance step 10 pinned-source typecheck
-+
-Harness source-conformance step 11 real rc5 runtime conformance
-```
-
-Until that exact-head evidence is green:
-
-```text
-R1-002 GOVERNANCE NOT CLOSED
-R1-003 NOT AUTHORIZED
+production TypeScript
+source-conformance implementation
+package.json / pnpm-lock.yaml
+Schema / protocol wire changes
+Shared TCK registration
+HISTORY
+roadmap R1-003 acceptance marker
+R1-004+
+M5-003+
+registry publish / GitHub Release
+PR #3 merge
 ```
 
 ## Next allowed action
 
-Verify the final R1-002 governance exact head only. If normal CI and exact pinned
-Harness steps 10/11 are all green, R1-002 becomes **GOVERNANCE CLOSED** and
-`R1-003 P0 — DeepSeek plugin/bootstrap integration` becomes the sole newly
-authorized Gate. R1-003 must then begin protocol-first in a subsequent Gate step.
+Verify this exact R1-003 protocol-first head through both normal CI and exact
+pinned Harness rc5 source-conformance, including step 10 pinned-source TypeScript
+and step 11 real runtime conformance.
 
-PR #3 must remain Open / Draft / unmerged unless explicit merge authorization is
-provided.
+Only if the same exact SHA is dual-green may the smallest R1-003 production and
+source-conformance implementation begin. Until then:
+
+```text
+R1-003 IMPLEMENTATION NOT AUTHORIZED
+R1-004+ NOT AUTHORIZED
+```
