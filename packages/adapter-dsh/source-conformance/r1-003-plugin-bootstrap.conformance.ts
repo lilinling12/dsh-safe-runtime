@@ -127,7 +127,7 @@ describe("R1-003 pinned rc5 native plugin bootstrap", () => {
       },
     });
 
-    expect(() => createDshRc5Plugin(accessorOptions as DshRc5PluginOptions))
+    expect(() => createDshRc5Plugin(accessorOptions as unknown as DshRc5PluginOptions))
       .toThrowError(expect.objectContaining({ code: "INVALID_PLUGIN_OPTIONS" }));
     expect(outerGetterCalls).toBe(0);
 
