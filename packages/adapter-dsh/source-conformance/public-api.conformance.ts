@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import * as PublicApi from "../src/index.js";
 import {
   createDshRc5Adapter,
+  createDshRc5Plugin,
   DshAdapterError,
   type AdapterFeatureMatrix,
   type ApprovalDecision,
@@ -18,6 +19,9 @@ import {
   type DshAuditEventSink,
   type DshRc5Adapter,
   type DshRc5AdapterOptions,
+  type DshRc5Plugin,
+  type DshRc5PluginOptions,
+  type DshRc5PluginPolicy,
   type ObservationSubscription,
   type RuntimeEvent,
   type RuntimeEventSink,
@@ -44,11 +48,12 @@ function expectAdapterError(error: unknown, code: DshAdapterError["code"]): void
   expect((error as DshAdapterError).code).toBe(code);
 }
 
-describe("R1-002 public DeepSeek Adapter API", () => {
+describe("R1 Alpha public DeepSeek Adapter API", () => {
   it("exposes only the reviewed package-root runtime values and public type surface", () => {
     expect(Object.keys(PublicApi).sort()).toEqual([
       "DshAdapterError",
       "createDshRc5Adapter",
+      "createDshRc5Plugin",
     ]);
 
     const publicTypes = undefined as unknown as readonly [
@@ -65,6 +70,9 @@ describe("R1-002 public DeepSeek Adapter API", () => {
       DshAuditEventSink,
       DshRc5Adapter,
       DshRc5AdapterOptions,
+      DshRc5Plugin,
+      DshRc5PluginOptions,
+      DshRc5PluginPolicy,
       ObservationSubscription,
       RuntimeEvent,
       RuntimeEventSink,
@@ -85,9 +93,12 @@ describe("R1-002 public DeepSeek Adapter API", () => {
 
     const hiddenM2Types = undefined as unknown as readonly [HarnessRuntimeAdapter, FilesystemPort];
     expect(hiddenM2Types).toBeUndefined();
+
+    const plugin = createDshRc5Plugin({ adapter: { digest } });
+    expect(plugin.name).toBe("@dsh-safe/adapter-dsh/rc5");
   });
 
-  it("rejects invalid options before touching Harness", () => {
+  it("rejects invalid Adapter options before touching Harness", () => {
     const ctx = new Context();
 
     expect(() => createDshRc5Adapter(

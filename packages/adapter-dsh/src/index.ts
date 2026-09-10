@@ -1,4 +1,4 @@
-// R1-002 Alpha public package root.
+// R1 Alpha public package root.
 //
 // Keep this surface intentionally small and explicit. Internal normalization,
 // dispatcher, provider-port, replay, sidecar, correlation, compatibility and
@@ -6,6 +6,13 @@
 // modules and are not part of the Alpha semver contract.
 export { createDshRc5Adapter } from "./public-api.js";
 export type { DshRc5Adapter, DshRc5AdapterOptions } from "./public-api.js";
+
+export { createDshRc5Plugin } from "./plugin.js";
+export type {
+  DshRc5Plugin,
+  DshRc5PluginOptions,
+  DshRc5PluginPolicy,
+} from "./plugin.js";
 
 export { DshAdapterError } from "./errors.js";
 export type { DshAdapterErrorCode } from "./errors.js";
