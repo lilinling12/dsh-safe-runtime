@@ -388,7 +388,7 @@ Acceptance evidence
   - lifecycle、dispose、error/fail-closed semantics 明确；
   - public exports / types / semver compatibility surface 有 contract tests。
 
-- [ ] `R1-003 P0` DeepSeek plugin/bootstrap integration。
+- [x] `R1-003 P0` DeepSeek plugin/bootstrap integration。 **ACCEPTED：Spec 0057 + DPB-001..032 + native Cordis programmatic bootstrap + default-deny/ASK/disposal lifecycle conformance；final reviewed implementation head `bbe3f186...`, CI #681 / Harness #623 PASS；验收记录 `docs/acceptance/r1-003-plugin-bootstrap-integration.md` at `fea37f857...`, CI #682 / Harness #624 PASS。Package publishability remains R1-004；same-process bootstrap remains non-sandbox and does not claim complete host-effect mediation.**
   - 提供最小、可复制的 Harness/Cordis 安装入口；
   - policy/config 装载路径、默认 deny、ASK/approval、shutdown/dispose 行为可测试；
   - 不新增第二套 approval/policy/runtime subsystem；

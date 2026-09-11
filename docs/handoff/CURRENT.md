@@ -5,7 +5,7 @@
 
 ## Snapshot
 
-- Recorded at: `2026-09-10`
+- Recorded at: `2026-09-11`
 - Repository: `lilinling12/dsh-safe-runtime`
 - Phase: `R1 — DeepSeek Harness Plugin Alpha Release`
 - Active PR: `#3 — feat(policy): begin M4 capability broker`
@@ -13,17 +13,18 @@
 - Base: `main@57430273e065be8d38807d67b175fa154c801d43`
 - R1-001 P0 Alpha readiness reconciliation: **GOVERNANCE CLOSED**
 - R1-002 P0 public DeepSeek Adapter API: **GOVERNANCE CLOSED**
-- R1-003 P0 DeepSeek plugin/bootstrap integration: **PROTOCOL-FIRST CANDIDATE / IMPLEMENTATION NOT AUTHORIZED UNTIL THIS EXACT HEAD IS DUAL-GREEN**
-- R1-004+: **NOT AUTHORIZED by the current Gate**
+- R1-003 P0 DeepSeek plugin/bootstrap integration: **IMPLEMENTATION ACCEPTED / GOVERNANCE CLOSURE CANDIDATE**
+- R1-004 P0 publishable Adapter package: **NOT AUTHORIZED UNTIL THIS GOVERNANCE EXACT HEAD IS DUAL-GREEN**
+- R1-005+: **NOT AUTHORIZED by the current Gate**
 - M5-003+: **PAUSED until R1 Alpha release governance closes**
 - npm/registry publish and GitHub Release: **NOT AUTHORIZED**
-- PR #3 merge: **NOT AUTHORIZED without explicit user authorization**
+- PR #3 merge / Ready-for-review transition: **NOT AUTHORIZED without explicit user authorization**
 
 Live GitHub state overrides this snapshot.
 
-## R1-002 closure authority
+## R1-003 accepted authority chain
 
-R1-002 final governance exact head:
+R1-002 predecessor governance authority:
 
 ```text
 3a5e8e780a09c6764eb4d966c4a42348817e0780
@@ -33,225 +34,186 @@ Harness step 10 pinned-source typecheck: PASS
 Harness step 11 real rc5 runtime conformance: PASS
 ```
 
-The exact governance delta from accepted audit head
-`97d7904d2fe1ac7c54bbbb0b81ac931ee58e8117` was one commit and exactly three
-governance files: CURRENT, append-only HISTORY and only the R1-002 roadmap marker.
-Therefore R1-002 is **GOVERNANCE CLOSED** and R1-003 is the sole newly authorized
-engineering Gate.
-
-The accepted R1-002 package-root Adapter remains:
+R1-003 protocol-first authority:
 
 ```text
-createDshRc5Adapter(ctx, options): DshRc5Adapter
+fa89e3993c812aafa0325fab6b33dc339d7323dc
+CI #678 / run 34425239915: PASS
+Harness #620 / run 34425239924: PASS
 ```
 
-with aggregate asynchronous disposal, atomic construction rollback, stable
-fail-closed lifecycle errors and the explicit public export allowlist. R1-003 MUST
-reuse that public boundary rather than deep-importing the package-private binding.
-
-## R1-003 normative candidate
-
-Normative candidate:
+Normative artifacts:
 
 ```text
 specs/0057-r1-dsh-plugin-bootstrap-integration.md
-```
-
-Contract corpus:
-
-```text
 fixtures/dsh-plugin-bootstrap/cases.json
 profile: R1-003_DSH_PLUGIN_BOOTSTRAP_V1
 cases: DPB-001..DPB-032
 ```
 
-Pinned compatibility baseline remains exactly:
+Final reviewed implementation/conformance head:
 
 ```text
-0.1.0-rc.5@47f943859bef60e4160492346772ded9b24f765a
+bbe3f18625de565564e57073599efd66baafd826
+CI #681 / run 34445638834: PASS
+Harness #623 / run 34445638813: PASS
+Harness step 10 pinned-source typecheck: PASS
+Harness step 11 real rc5 runtime conformance: PASS
 ```
 
-DeepSeek Harness/Cordis source is Adapter compatibility evidence only. It does not
-redefine portable Capability, Resource, Subject, policy, Lease, approval,
-GuaranteeLevel or audit semantics.
+Acceptance audit:
 
-## Recovered pinned Cordis / Harness facts
+```text
+docs/acceptance/r1-003-plugin-bootstrap-integration.md
+head: fea37f8574585813f6c6c264a9d2c548286a6a41
+CI #682 / run 34446201887: PASS
+Harness #624 / run 34446201886: PASS
+Harness step 10 pinned-source typecheck: PASS
+Harness step 11 real rc5 runtime conformance: PASS
+```
 
-Exact pinned source establishes the integration facts required by R1-003:
+The implementation line descends from the accepted protocol-first head. No
+protocol authority was rebased, squashed or force-rewritten.
 
-- `ctx.plugin(plugin, ...args)` is Cordis' native plugin installation seam;
-- the returned `Fiber & PromiseLike<Fiber>` owns plugin effects/disposers;
-- plugin return cleanup and `ctx.effect()` support asynchronous Fiber-owned
-  teardown;
-- failed plugin construction enters failed cleanup rather than a successful ACTIVE
-  plugin;
-- child plugin lifecycle belongs to the parent Fiber/context;
-- pinned Harness app-boot/Loader already owns root Context creation, configuration
-  tree loading, plugin resolution and framework lifecycle.
+## Accepted R1-003 public bootstrap boundary
 
-R1-003 therefore MUST NOT create another plugin manager, registry, Fiber manager,
-root Context loader or hot-reload subsystem.
-
-## Candidate public bootstrap boundary
-
-The candidate freezes one additional package-root programmatic entry:
+The package root adds exactly one bootstrap factory and its narrowly required
+public types:
 
 ```text
 createDshRc5Plugin(options): DshRc5Plugin
+DshRc5Plugin
+DshRc5PluginOptions
+DshRc5PluginPolicy
 ```
 
-whose result is installed through real Cordis:
+The plugin is installed through the native Cordis seam:
 
 ```text
 const plugin = createDshRc5Plugin(options)
 const fiber = await ctx.plugin(plugin)
 ```
 
-The logical bootstrap options preserve R1-002 Adapter options and select exactly
-one policy mode:
+It reuses the accepted R1-002 Adapter surface rather than deep-importing the
+package-private binding or creating another runtime subsystem.
+
+The programmatic Alpha policy modes remain exactly:
 
 ```text
 DENY_ALL
 HANDLER(handler, optional monotonicGuard)
 ```
 
-Omitted policy is identical to `DENY_ALL`.
+Omitted policy is `DENY_ALL`.
 
-This is intentionally a programmatic Alpha bootstrap. R1-002 requires a
-caller-supplied function-valued `digest(value)` option, so R1-003 does not pretend
-that a plain serialized `cordis.yml` package entry can already express the full
-contract. Publishable/bare-package install UX remains R1-004/R1-006 work.
+## Fail-closed and approval behavior
 
-## Fail-closed default
-
-`DENY_ALL` installs both:
-
-```text
-registerToolPolicy()          -> DENY
-registerMonotonicToolGuard()  -> DENY
-```
-
-with stable internal reason:
+`DENY_ALL` installs both an Adapter tool-policy DENY and a monotonic-guard DENY
+using the same stable internal reason:
 
 ```text
 safe-runtime plugin default deny
 ```
 
-and requires both `toolsPreExecute` and `toolsMonotonicGuard` support.
+Both `toolsPreExecute` and `toolsMonotonicGuard` are required for successful
+DENY_ALL activation. Missing required support fails activation explicitly; the
+plugin does not downgrade silently to a reorderable-only listener.
 
-The two registrations preserve accepted M4 semantics: pre-execute is reorderable,
-while the reached monotonic guard is a hard ToolRuntime veto. Missing required
-support fails activation explicitly; the plugin must not silently downgrade and
-claim the same guarantee.
+HANDLER mode installs the caller-supplied policy handler exactly once. An optional
+monotonic guard is installed only when explicitly supplied. The plugin does not
+derive a synchronous guard from an async policy handler and does not turn ASK into
+a hard guard.
 
-This still does not mean arbitrary in-process host effects are sandboxed or that
-every effect traverses ToolRuntime.
-
-## HANDLER / approval boundary
-
-`HANDLER` mode reuses the exact caller-supplied R1-002 ToolPolicyHandler once.
-ALLOW/DENY/ASK retain accepted M4-040 behavior. Optional monotonic guard is
-installed only when explicitly supplied and supported; the plugin must not derive a
-synchronous guard from an async policy handler or convert ASK into a hard guard.
-
-A reached ASK remains owned by the pinned Harness native path:
+A reached ASK remains owned by the native Harness path:
 
 ```text
 Adapter ASK -> ToolRuntime.serviceAsk() -> ctx.approval.request(...)
 ```
 
-The plugin must not automatically call Adapter `requestApproval()` for the same
-ToolRuntime ASK or create another approval provider/state machine.
+The plugin does not automatically call Adapter `requestApproval()` for the same
+ToolRuntime ASK and does not add another approval provider/state machine.
+Agent-less ASK remains fail closed.
 
-## Deliberate non-composition boundary
+## Lifecycle ownership
 
-R1-003 does not automatically wire a serialized CapabilityPolicy into complete
-ToolRuntime authorization. Accepted M4 classifiers still contain unresolved
-operands including `EXECUTION_ROOT` and `ARGUMENT_WORKDIR`, while Core requires
-provider-owned identity/containment rather than guessed path authority.
+Each mount constructs exactly one R1-002 Adapter. Failed post-construction
+activation awaits Adapter rollback before propagating failure. Successful Cordis
+Fiber cleanup awaits `adapter.dispose()`.
 
-The plugin therefore MUST NOT guess:
+Therefore:
 
 ```text
-raw path -> workspace:// or hostfs://
-shell text -> process:// executable
-host cwd -> execution-root authorization
+await fiber.dispose()
 ```
 
-Full Capability -> provider/resource -> PDP -> Lease -> decision/receipt ->
-execution composition remains later integrated-runtime work. R1-003 is only the
-native plugin/bootstrap lifecycle and safe default boundary.
+settles only after plugin-owned Adapter teardown. Root Context, sessions, agents,
+services, independent listeners and independent approval providers remain
+caller-owned. Disposed plugin handlers do not survive a later remount, and no
+process-global singleton is introduced.
 
-## Activation / disposal ownership
-
-A successful plugin activation constructs exactly one R1-002 Adapter and installs
-only the registrations required by the selected mode. If a post-construction step
-fails, Adapter disposal must run and no plugin-owned listener/guard may remain
-live.
-
-On successful activation, the Cordis Fiber owns cleanup that awaits
-`adapter.dispose()`. Therefore `await fiber.dispose()` must not complete before
-aggregate Adapter teardown settles. Unload must not dispose the caller-owned root
-Context, agents, services or independent listeners. A later remount is a new
-independent plugin instance; no process-global singleton is introduced.
-
-## Security and package non-claims
+## Preserved security and package boundaries
 
 R1-003 does not:
 
 - claim arbitrary in-process plugin sandboxing or process isolation;
-- claim direct Node host filesystem/process/network effects are completely
-  mediated;
-- invent provider identity or resource containment;
-- implement complete M10 orchestration;
+- claim complete direct Node filesystem/process/network/secret mediation;
+- invent provider/resource identity or containment;
+- map unresolved `EXECUTION_ROOT` / `ARGUMENT_WORKDIR` into guessed authority;
+- automatically compose a serialized CapabilityPolicy into a complete PEP;
+- add a second approval/policy/runtime/lifecycle subsystem;
 - expose R1-002 filesystem/subprocess internal ports;
-- add a second approval/policy/runtime subsystem;
 - remove `private: true`;
-- finalize package `exports` / `types` / `files` / `engines` metadata;
+- finalize package `exports`, `types`, `files`, `engines`, license/repository or
+  peer-dependency publication metadata;
 - claim bare `cordis.yml` package loading is release-ready;
-- run R1-005 external tarball smoke;
-- define R1-006 compatibility ranges/install docs;
+- perform R1-005 external tarball smoke;
+- define R1-006 compatibility/install ranges;
 - implement R1-007 release/provenance automation;
 - resume M5-003+;
 - publish to npm/registry or create a GitHub Release;
-- authorize PR #3 merge.
+- authorize PR #3 merge or Ready-for-review transition.
 
-## Protocol-first delta boundary
+Pinned `0.1.0-rc.5@47f943859bef60e4160492346772ded9b24f765a`
+remains Adapter compatibility evidence only and does not redefine portable
+safe-runtime protocol semantics.
 
-Before exact-head dual-green, the repository delta is restricted to exactly:
+## Governance-closure delta boundary
+
+The final R1-003 governance transition is restricted to exactly:
 
 ```text
-specs/0057-r1-dsh-plugin-bootstrap-integration.md
-fixtures/dsh-plugin-bootstrap/cases.json
 docs/handoff/CURRENT.md
+docs/handoff/HISTORY.md   # append-only
+docs/roadmap.md           # only R1-003 acceptance marker/details
 ```
 
-Not authorized in this candidate:
-
-```text
-production TypeScript
-source-conformance implementation
-package.json / pnpm-lock.yaml
-Schema / protocol wire changes
-Shared TCK registration
-HISTORY
-roadmap R1-003 acceptance marker
-R1-004+
-M5-003+
-registry publish / GitHub Release
-PR #3 merge
-```
+This transition must not change production code, source-conformance tests,
+Spec/corpus/Schema, Shared TCK, dependency/lockfile state, Harness baseline or
+workflow, package publication metadata, R1-004+ implementation, M5-003+ work,
+registry state, GitHub Release state or PR merge/readiness state.
 
 ## Next allowed action
 
-Verify this exact R1-003 protocol-first head through both normal CI and exact
-pinned Harness rc5 source-conformance, including step 10 pinned-source TypeScript
-and step 11 real runtime conformance.
+Verify the resulting governance exact head through both normal CI and exact
+pinned Harness rc5 source-conformance.
 
-Only if the same exact SHA is dual-green may the smallest R1-003 production and
-source-conformance implementation begin. Until then:
+The same SHA must pass:
 
 ```text
-R1-003 IMPLEMENTATION NOT AUTHORIZED
-R1-004+ NOT AUTHORIZED
+normal CI
+Harness pinned-source TypeScript step 10
+Harness real rc5 runtime conformance step 11
 ```
+
+Only after that same exact governance SHA is dual-green may repository state be
+interpreted as:
+
+```text
+R1-003 GOVERNANCE CLOSED
+R1-004 P0 PUBLISHABLE PACKAGE AUTHORIZED FOR PROTOCOL-FIRST / DESIGN-FIRST WORK
+R1-005+ NOT AUTHORIZED
+M5-003+ PAUSED
+PR #3 REMAINS OPEN / DRAFT / UNMERGED
+```
+
+Until that evidence exists, R1-004 repository modification remains unauthorized.
