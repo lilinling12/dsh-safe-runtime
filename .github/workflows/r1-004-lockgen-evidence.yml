@@ -1,4 +1,4 @@
-name: R1-004 source-backed build evidence
+name: R1-004 source-backed package evidence
 
 on:
   push:
@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  source-backed-build:
+  source-backed-package:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout evidence branch
@@ -43,6 +43,9 @@ jobs:
       - name: Install safe-runtime dependencies reproducibly
         run: pnpm install --frozen-lockfile
 
+      - name: Build protocol runtime dependency
+        run: pnpm --filter @dsh-safe/protocol build
+
       - name: Project exact pinned Harness workspace packages
         run: |
           node packages/adapter-dsh/scripts/project-pinned-harness-workspace.mjs \
@@ -51,7 +54,7 @@ jobs:
             --consumer-root .tmp/deepseek-harness \
             --manifest .tmp/harness-workspace-projection.json
 
-      - name: Emit publication source graph against exact pinned source
+      - name: Emit only the accepted public-root graph
         run: |
           cat > packages/adapter-dsh/tsconfig.publish-probe.json <<'JSON'
           {
@@ -65,7 +68,8 @@ jobs:
               "declarationMap": false,
               "sourceMap": false
             },
-            "include": ["src/**/*.ts"],
+            "files": ["src/index.ts"],
+            "include": [],
             "exclude": []
           }
           JSON
@@ -74,15 +78,144 @@ jobs:
           pnpm --filter @dsh-safe/adapter-dsh exec tsc -p tsconfig.publish-probe.json
           test -f packages/adapter-dsh/.tmp/r1-004-dist/index.js
           test -f packages/adapter-dsh/.tmp/r1-004-dist/index.d.ts
-          find packages/adapter-dsh/.tmp/r1-004-dist -type f -print | sort
+          find packages/adapter-dsh/.tmp/r1-004-dist -type f -print | sort | tee .tmp/r1-004-emitted-files.txt
 
-      - name: Upload source-backed build evidence
+      - name: Smoke built public root
+        run: |
+          node --input-type=module <<'NODE'
+          import { pathToFileURL } from 'node:url'
+          import { resolve } from 'node:path'
+
+          const entry = resolve('packages/adapter-dsh/.tmp/r1-004-dist/index.js')
+          const mod = await import(pathToFileURL(entry).href)
+          const actual = Object.keys(mod).sort()
+          const expected = ['DshAdapterError', 'createDshRc5Adapter', 'createDshRc5Plugin'].sort()
+          if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+            throw new Error(`Unexpected built runtime export surface: ${JSON.stringify(actual)}`)
+          }
+          console.log('Built runtime export surface:', actual.join(', '))
+          NODE
+
+      - name: Stage candidate package metadata in working tree only
+        run: |
+          rm -rf packages/adapter-dsh/dist
+          cp -R packages/adapter-dsh/.tmp/r1-004-dist packages/adapter-dsh/dist
+
+          node --input-type=module <<'NODE'
+          import { readFile, writeFile } from 'node:fs/promises'
+
+          const path = 'packages/adapter-dsh/package.json'
+          const manifest = JSON.parse(await readFile(path, 'utf8'))
+          delete manifest.private
+          manifest.description = 'DeepSeek Harness rc5 adapter and plugin for the DSH Safe Runtime protocol.'
+          manifest.repository = {
+            type: 'git',
+            url: 'git+https://github.com/lilinling12/dsh-safe-runtime.git',
+            directory: 'packages/adapter-dsh'
+          }
+          manifest.keywords = [
+            'ai-agents',
+            'capability-security',
+            'deepseek-harness',
+            'policy-engine'
+          ]
+          manifest.engines = { node: '^22.19.0 || >=24.0.0' }
+          manifest.exports = {
+            '.': {
+              types: './dist/index.d.ts',
+              import: './dist/index.js'
+            }
+          }
+          manifest.files = ['dist']
+          await writeFile(path, `${JSON.stringify(manifest, null, 2)}\n`)
+          NODE
+
+      - name: Pack real npm-compatible tarball
+        run: |
+          rm -rf .tmp/r1-004-pack
+          mkdir -p .tmp/r1-004-pack
+          pnpm --filter @dsh-safe/adapter-dsh pack --pack-destination "$(pwd)/.tmp/r1-004-pack"
+          TARBALL="$(find .tmp/r1-004-pack -maxdepth 1 -name '*.tgz' -type f -print -quit)"
+          test -n "$TARBALL"
+          printf '%s\n' "$TARBALL" > .tmp/r1-004-tarball-path.txt
+          tar -tzf "$TARBALL" | sort | tee .tmp/r1-004-tarball-files.txt
+          tar -xOf "$TARBALL" package/package.json > .tmp/r1-004-packed-package.json
+          cat .tmp/r1-004-packed-package.json
+
+      - name: Audit packed manifest and contents
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFile } from 'node:fs/promises'
+
+          const manifest = JSON.parse(await readFile('.tmp/r1-004-packed-package.json', 'utf8'))
+          const files = (await readFile('.tmp/r1-004-tarball-files.txt', 'utf8'))
+            .trim()
+            .split('\n')
+            .filter(Boolean)
+
+          const fail = (message) => { throw new Error(message) }
+          if (manifest.name !== '@dsh-safe/adapter-dsh') fail(`Unexpected name: ${manifest.name}`)
+          if (manifest.version !== '0.1.0-alpha.0') fail(`Unexpected version: ${manifest.version}`)
+          if ('private' in manifest) fail('Packed manifest must not contain private')
+          if (manifest.type !== 'module') fail(`Unexpected module type: ${manifest.type}`)
+          if (manifest.license !== 'MIT') fail(`Unexpected license: ${manifest.license}`)
+          if (manifest.engines?.node !== '^22.19.0 || >=24.0.0') fail(`Unexpected Node engine: ${manifest.engines?.node}`)
+          if (JSON.stringify(Object.keys(manifest.exports ?? {})) !== JSON.stringify(['.'])) fail('Package must expose exactly one public subpath')
+          if (manifest.exports?.['.']?.types !== './dist/index.d.ts') fail('Wrong declaration export target')
+          if (manifest.exports?.['.']?.import !== './dist/index.js') fail('Wrong ESM export target')
+          if (JSON.stringify(manifest.files) !== JSON.stringify(['dist'])) fail(`Unexpected files allowlist: ${JSON.stringify(manifest.files)}`)
+          if (manifest.scripts?.preinstall || manifest.scripts?.install || manifest.scripts?.postinstall) fail('Install-time scripts are forbidden')
+
+          const peers = {
+            '@deepseek-ai/cordis': '4.0.1',
+            '@deepseek-ai/dsh-agent': '0.1.0-rc.5',
+            '@deepseek-ai/dsh-llm': '0.1.0-rc.5',
+            '@deepseek-ai/dsh-session': '0.1.0-rc.5',
+            '@deepseek-ai/dsh-tools': '0.1.0-rc.5',
+            '@deepseek-ai/dsh-user-approval': '0.1.0-rc.5'
+          }
+          if (JSON.stringify(manifest.peerDependencies) !== JSON.stringify(peers)) {
+            fail(`Peer baseline drifted: ${JSON.stringify(manifest.peerDependencies)}`)
+          }
+
+          const protocol = manifest.dependencies?.['@dsh-safe/protocol']
+          if (!protocol || protocol.startsWith('workspace:')) fail(`Protocol dependency is not registry-installable: ${protocol}`)
+          console.log('Packed protocol dependency:', protocol)
+
+          const required = ['package/package.json', 'package/dist/index.js', 'package/dist/index.d.ts']
+          for (const file of required) if (!files.includes(file)) fail(`Missing packed file: ${file}`)
+
+          const forbidden = [
+            /^package\/src\//,
+            /^package\/source-conformance\//,
+            /^package\/fixtures\//,
+            /^package\/coverage\//,
+            /^package\/node_modules\//,
+            /^package\/.github\//,
+            /\.tsbuildinfo$/,
+            /(^|\/)\.env(?:\.|$)/,
+            /(^|\/)(?:credentials?|secrets?|private[-_]?keys?)(?:\.|\/|$)/i
+          ]
+          for (const file of files) {
+            for (const pattern of forbidden) {
+              if (pattern.test(file)) fail(`Forbidden packed content: ${file}`)
+            }
+          }
+
+          console.log(`Packed file count: ${files.length}`)
+          console.log('R1-004 tarball evidence audit: PASS')
+          NODE
+
+      - name: Upload source-backed package evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: r1-004-source-backed-build-evidence
+          name: r1-004-source-backed-package-evidence
           if-no-files-found: error
           path: |
             .tmp/harness-workspace-projection.json
+            .tmp/r1-004-emitted-files.txt
+            .tmp/r1-004-packed-package.json
+            .tmp/r1-004-tarball-files.txt
+            .tmp/r1-004-pack/*.tgz
             packages/adapter-dsh/tsconfig.publish-probe.json
-            packages/adapter-dsh/.tmp/r1-004-dist
