@@ -1,0 +1,38 @@
+name: R1-004 Package Builder
+
+on:
+  push:
+    branches:
+      - tmp/r1-004-package-builder-20260911
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout builder branch
+        uses: actions/checkout@v4
+
+      - name: Preserve builder script
+        run: cp .github/scripts/r1_004_package_builder.py /tmp/r1_004_package_builder.py
+
+      - name: Checkout exact R1-004 protocol-first parent
+        uses: actions/checkout@v4
+        with:
+          ref: 3ce15c7796bd32ecebcb220207fad3ccd03b7834
+          fetch-depth: 1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.19.0
+
+      - name: Enable pinned pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.7.0 --activate
+          pnpm --version
+
+      - name: Build validated R1-004 candidate
+        run: python3 /tmp/r1_004_package_builder.py
