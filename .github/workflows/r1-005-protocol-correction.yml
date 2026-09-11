@@ -172,6 +172,7 @@ jobs:
           git diff --check
           changed="$(git diff --name-only HEAD | sort)"
           expected="$(printf '%s\n' \
+            '.github/workflows/r1-005-protocol-correction.yml' \
             'docs/handoff/CURRENT.md' \
             'fixtures/adapter-dsh-external-consumer/cases.json' \
             'specs/0059-r1-external-tarball-consumer-harness-smoke.md' | sort)"
