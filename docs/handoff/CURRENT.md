@@ -15,7 +15,7 @@
 - R1-002: **GOVERNANCE CLOSED**
 - R1-003: **GOVERNANCE CLOSED**
 - R1-004: **GOVERNANCE CLOSED**
-- R1-005: **PROTOCOL-FIRST CANDIDATE / EXACT-HEAD VERIFICATION REQUIRED**
+- R1-005: **PROTOCOL-FIRST CORRECTION CANDIDATE / EXACT-HEAD VERIFICATION REQUIRED**
 - R1-006+: **NOT AUTHORIZED**
 - M5-003+: **PAUSED until R1 Alpha release governance closes**
 - npm/registry publish, release tag and GitHub Release: **NOT AUTHORIZED**
@@ -158,7 +158,7 @@ HANDLER DENY with body non-entry
 HANDLER ASK + ALLOWED_ONCE
 HANDLER ASK + REJECTED
 omitted policy -> DENY_ALL/default deny
-unsupported required feature -> activation fails closed
+installed required features -> exact rc5 public feature matrix reports present
 await fiber.dispose() -> no stale Adapter registration
 ```
 
@@ -191,6 +191,32 @@ COMPLETE_HOST_EFFECT_MEDIATION_VERIFIED
 
 R1-006 owns compatibility/install UX. R1-007/R1-008 own release/provenance and
 actual publication. M14 remains the future process-isolated Plugin Host.
+
+## Protocol-first correction rationale
+
+Initial R1-005 protocol-first head:
+
+```text
+0591e7af8f6b7f2f258d86cfff6fe973a516f699
+CI #695 / run 34650647529: PASS
+Harness #637 / run 34650647706: PASS
+Harness job 103431757382 step 10: PASS
+Harness job 103431757382 step 11: PASS
+```
+
+Post-green source review found one draft-only overconstraint: Spec 0059 had
+required the exact rc5 external consumer to manufacture an unsupported-feature
+activation attempt, while the accepted rc5 public `AdapterFeatureMatrix` fixes
+`toolsPreExecute` and `toolsMonotonicGuard` as present compatibility facts.
+
+The correction preserves the inherited R1-003 fail-closed rule for any future
+separately accepted baseline that truthfully lacks a required feature, but forbids
+monkey-patching/faking rc5 solely to create that negative case. Current rc5 smoke
+must instead assert the installed public feature matrix reports every selected-mode
+requirement present.
+
+This correction is protocol-only. R1-005 executable implementation remains
+unauthorized until the corrected exact head is again normal-CI + Harness dual-green.
 
 ## Protocol-first delta boundary
 
@@ -245,7 +271,7 @@ acceptance review.
 
 ```text
 R1-004 GOVERNANCE CLOSED
-R1-005 PROTOCOL-FIRST CANDIDATE: VERIFY EXACT HEAD
+R1-005 PROTOCOL-FIRST CORRECTION CANDIDATE: VERIFY EXACT HEAD
 R1-005 IMPLEMENTATION: NOT YET AUTHORIZED
 R1-006+ NOT AUTHORIZED
 M5-003+ PAUSED

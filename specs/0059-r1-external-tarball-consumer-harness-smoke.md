@@ -294,19 +294,27 @@ A real test-owned tool body MUST not enter.
 The smoke MUST prove this from the installed tarball's public plugin API, not by
 calling an internal deny helper.
 
-## 17. Unsupported-feature fail-closed smoke
+## 17. Required-feature compatibility assertion
 
-The external suite MUST include at least one activation attempt whose declared
-runtime feature set lacks a feature required by the selected plugin mode.
+The external suite MUST inspect the installed Adapter's public feature matrix and
+prove that every feature required by the selected plugin mode is present on the
+accepted exact rc5 baseline.
 
-The attempt MUST:
+For the currently accepted baseline, `toolsPreExecute` and
+`toolsMonotonicGuard` are fixed compatibility facts and are both `true`.
+R1-005 MUST NOT monkey-patch the Adapter, substitute a fake feature matrix or
+fabricate a different runtime merely to manufacture an unsupported-feature case.
 
-- fail activation explicitly through the accepted unsupported-feature boundary;
-- leave no usable partially active plugin;
-- clean up Adapter-owned registrations created by the failed attempt;
-- never degrade silently to a weaker path while reporting success.
+The fail-closed unsupported-feature branch accepted by R1-003 remains normative:
+if a future separately accepted Harness baseline truthfully reports a required
+feature as unavailable, its external-consumer suite MUST prove activation fails
+explicitly, leaves no partially active plugin, cleans Adapter-owned registrations
+and never silently downgrades to a weaker path. Such a future baseline requires
+its own compatibility authority under R1-006 or later governance.
 
-For DENY_ALL, missing `toolsPreExecute` or `toolsMonotonicGuard` is sufficient.
+For rc5 R1-005 evidence, the correct result is therefore
+`REQUIRED_FEATURES_PRESENT`; an artificial unsupported-feature negative case is
+not applicable and MUST NOT be fabricated.
 
 ## 18. Disposal smoke
 
@@ -475,7 +483,7 @@ R1-005 implementation acceptance requires the same exact safe-runtime SHA to hav
 9. DENY body-non-entry smoke PASS;
 10. ASK native approval smoke PASS;
 11. omitted-policy default-deny smoke PASS;
-12. unsupported-feature fail-closed smoke PASS;
+12. installed required-feature compatibility assertion PASS;
 13. disposal/no-stale-registration smoke PASS.
 
 A source-conformance-only success is insufficient. A consumer that resolves any
