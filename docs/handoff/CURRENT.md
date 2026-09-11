@@ -14,7 +14,7 @@
 - R1-001 P0 Alpha readiness reconciliation: **GOVERNANCE CLOSED**
 - R1-002 P0 public DeepSeek Adapter API: **GOVERNANCE CLOSED**
 - R1-003 P0 DeepSeek plugin/bootstrap integration: **GOVERNANCE CLOSED**
-- R1-004 P0 publishable Adapter package: **PROTOCOL-FIRST DUAL-GREEN / IMPLEMENTATION AUTHORIZED BUT BLOCKED ON PINNED SOURCE ↔ REGISTRY COORDINATE RESOLUTION**
+- R1-004 P0 publishable Adapter package: **PROTOCOL-FIRST DUAL-GREEN / IMPLEMENTATION AUTHORIZED**
 - R1-005+: **NOT AUTHORIZED by the current Gate**
 - M5-003+: **PAUSED until R1 Alpha release governance closes**
 - npm/registry publish and GitHub Release: **NOT AUTHORIZED**
@@ -34,77 +34,10 @@ Harness step 10 pinned-source typecheck: PASS
 Harness step 11 real rc5 runtime conformance: PASS
 ```
 
-The exact governance delta from accepted audit head
-`fea37f8574585813f6c6c264a9d2c548286a6a41` was one direct-child commit and
-exactly three governance files:
+R1-003 is **GOVERNANCE CLOSED** and R1-004 is the sole active engineering Gate.
+PR #3 remains Open / Draft / unmerged.
 
-```text
-docs/handoff/CURRENT.md
-docs/handoff/HISTORY.md   # +74/-0 append-only
-docs/roadmap.md           # R1-003 marker +1/-1 only
-```
-
-Therefore R1-003 is **GOVERNANCE CLOSED** and R1-004 is the sole newly authorized
-engineering Gate.
-
-PR #3 remained Open / Draft / unmerged at closure.
-
-## R1-004 recovered package facts
-
-Current Adapter manifest:
-
-```text
-name: @dsh-safe/adapter-dsh
-version: 0.1.0-alpha.0
-private: true
-type: module
-license: MIT
-```
-
-Current exact peers:
-
-```text
-@deepseek-ai/cordis             4.0.1
-@deepseek-ai/dsh-agent          0.1.0-rc.5
-@deepseek-ai/dsh-llm            0.1.0-rc.5
-@deepseek-ai/dsh-session        0.1.0-rc.5
-@deepseek-ai/dsh-tools          0.1.0-rc.5
-@deepseek-ai/dsh-user-approval  0.1.0-rc.5
-```
-
-Source dependency:
-
-```text
-@dsh-safe/protocol: workspace:*
-```
-
-`@dsh-safe/protocol` already has a built ESM root, declaration export, `files:
-["dist"]` and a real build script. R1-004 does not redesign that package.
-
-## Publication-build blocker discovered before implementation
-
-`packages/adapter-dsh/tsconfig.json` currently excludes:
-
-```text
-src/binding.ts
-src/public-api.ts
-src/plugin.ts
-src/index.ts
-```
-
-That exclusion is deliberate for ordinary monorepo typecheck because those files
-belong to the exact pinned Harness compile topology.
-
-Consequently, simply removing `private: true` and adding an `exports` entry to
-`dist/index.js` would produce a false publishability claim: the ordinary Adapter
-compile path does not currently emit the package-root runtime/declarations.
-
-R1-004 MUST establish a separate truthful publication build graph for the
-accepted public root. It MUST NOT publish TS source, point metadata at missing
-files, use ambient Harness shims, or depend on source-conformance projection at
-consumer runtime.
-
-## R1-004 normative candidate
+## R1-004 normative authority
 
 Normative candidate:
 
@@ -143,15 +76,33 @@ Harness step 11 real rc5 runtime conformance: PASS
 ```
 
 Therefore the protocol-first prerequisite is satisfied and R1-004 package/build
-implementation is authorized in principle. The blocker below was discovered while
-recovering the clean publication-build dependency graph before any package,
-lockfile, build-script or production change was made.
+implementation is authorized.
 
-## Pinned-source versus registry-coordinate blocker
+## Corrected upstream release evidence
 
-The exact pinned upstream commit
-`47f943859bef60e4160492346772ded9b24f765a` declares `0.1.0-rc.5` in the
-package manifests used by the Adapter compile graph, including at least:
+A transient handoff-only head `158dd5df41ae56c8dd038d14db70f1573f3ca9ba`
+recorded a suspected source-versus-registry coordinate blocker after public npm
+searches failed to surface an exact `0.1.0-rc.5` lock/tarball record. Further
+upstream authority review disproved that inference before package implementation
+began.
+
+The exact pinned upstream commit itself is:
+
+```text
+47f943859bef60e4160492346772ded9b24f765a
+Merge pull request #2519 from deepseek-harness/feat/npm-public
+release: dsh@0.1.0-rc.5 & publish the dsh family publicly
+```
+
+The same upstream history contains the direct release commit:
+
+```text
+abe560f81edebe5f6a5b62706ff502daa0dccd40
+release(dsh): 0.1.0-rc.5
+```
+
+and the pinned package manifests declare `0.1.0-rc.5` for the exact Adapter
+compile authority, including:
 
 ```text
 @deepseek-ai/dsh-agent          0.1.0-rc.5
@@ -161,53 +112,64 @@ package manifests used by the Adapter compile graph, including at least:
 @deepseek-ai/dsh-user-approval  0.1.0-rc.5
 ```
 
-However, current upstream release evidence does not establish those same
-`0.1.0-rc.5` coordinates as registry-published packages:
+Therefore absence of a convenient Git tag or third-party lockfile is **not** a
+valid basis for changing the accepted rc5 authority. The earlier suspected
+blocker is cleared. No Spec, corpus, peer version, compatibility baseline,
+package manifest, lockfile or production code was changed while investigating it.
 
-- the upstream Git tag set contains no `dsh-v0.1.0-rc.5` tag and starts the
-  visible `0.1.0` release-tag line at later RCs;
-- current npm version histories inspected for the Harness family show the early
-  RC line using `0.0.1-rc.5`, followed by `0.1.0-rc.2`, `0.1.0-rc.3` and later
-  `0.1.0-rc.6`, rather than proving a published `0.1.0-rc.5` coordinate;
-- repository search found no trustworthy exact `0.1.0-rc.5` registry lock/tarball
-  evidence that could be used as the publication build's dependency authority.
+## Recovered package/build facts
 
-This matters because `pnpm-workspace.yaml` has `autoInstallPeers: false`, while
-the publication graph imports the pinned Harness/Cordis packages directly.
-Simply copying the current exact peers into `devDependencies` would therefore
-claim a registry resolution that has not been proven to exist. Substituting
-`0.0.1-rc.5`, broadening to a range, or silently switching to `0.1.0-rc.6` would
-change the accepted compatibility authority and is not authorized by Spec 0058.
-
-Until the authority is resolved, do NOT modify:
+Current Adapter manifest remains:
 
 ```text
-packages/adapter-dsh/package.json
-packages/adapter-dsh publication build config/scripts
-pnpm-lock.yaml
-Harness compatibility baseline
-peer dependency versions
-R1-004 corpus expectations
-R1-005+
+name: @dsh-safe/adapter-dsh
+version: 0.1.0-alpha.0
+private: true
+type: module
+license: MIT
 ```
 
-A valid resolution must explicitly choose one of these authority models before
-implementation continues:
+Current exact runtime peers remain:
 
-1. preserve the pinned source commit as compatibility authority and normatively
-   define a reproducible source-backed publication compile input that does not
-   pretend unavailable registry coordinates exist; or
-2. authorize a registry-backed Harness baseline/version and re-run the required
-   protocol/compatibility evidence before changing peer/build coordinates.
+```text
+@deepseek-ai/cordis             4.0.1
+@deepseek-ai/dsh-agent          0.1.0-rc.5
+@deepseek-ai/dsh-llm            0.1.0-rc.5
+@deepseek-ai/dsh-session        0.1.0-rc.5
+@deepseek-ai/dsh-tools          0.1.0-rc.5
+@deepseek-ai/dsh-user-approval  0.1.0-rc.5
+```
 
-Do not infer that option 2 is allowed merely because a newer Harness release is
-available. Do not weaken the exact pinned-source conformance requirement to make
-R1-004 packable.
+Source dependency remains:
+
+```text
+@dsh-safe/protocol: workspace:*
+```
+
+`packages/adapter-dsh/tsconfig.json` intentionally excludes:
+
+```text
+src/binding.ts
+src/public-api.ts
+src/plugin.ts
+src/index.ts
+```
+
+because ordinary monorepo typecheck is narrower than the exact pinned Harness
+compile topology. R1-004 therefore needs a separate truthful publication build
+graph that emits the accepted package root and all reachable runtime/declaration
+modules.
+
+`pnpm-workspace.yaml` has `autoInstallPeers: false`. A clean publication compile
+must therefore make the exact pinned Harness/Cordis build-time type inputs
+available reproducibly rather than relying on the source-conformance workflow's
+temporary workspace projection. Runtime ownership remains peer-based; build-time
+copies must not broaden or replace those peers.
 
 ## Candidate package contract
 
-R1-004 defines publishability as a real artifact property, not a manifest flag.
-The implementation must eventually prove all of the following on one exact head:
+R1-004 implementation must prove all of the following on one exact implementation
+head:
 
 ```text
 clean deterministic publication build
@@ -225,7 +187,7 @@ normal CI green
 exact pinned Harness source/runtime conformance green
 ```
 
-The likely ESM root shape is:
+Expected single-root export shape is:
 
 ```json
 {
@@ -238,8 +200,24 @@ The likely ESM root shape is:
 }
 ```
 
-but implementation may use an equivalent single-root shape only if the generated
-artifact proves the same semantics.
+An equivalent root-only shape is acceptable only if the generated artifact proves
+the same semantics.
+
+R1-004 MAY add the minimum exact development-time Harness packages required for
+clean publication compilation, with a reviewed frozen-lockfile delta and no
+unrelated version/integrity churn. It MUST keep Harness/Cordis runtime ownership
+in exact peerDependencies.
+
+## Lockfile-generation rule
+
+Do not hand-author pnpm registry resolution/integrity data. Generate the R1-004
+manifest/lock candidate with the repository-pinned package manager in an isolated
+branch or equivalent disposable environment, inspect the exact delta, and only
+then apply the verified package/build/check delta to the product branch.
+
+The isolation branch/workflow is evidence tooling only. It must not become part of
+PR #3 product history and must not publish packages, use registry credentials,
+create release tags or create a GitHub Release.
 
 ## R1-004 versus R1-005
 
@@ -262,16 +240,15 @@ no workspace-link/source-path cheating
 Therefore R1-004 acceptance may claim `PACKAGE_ARTIFACT_VALID`, but not
 `EXTERNAL_INSTALL_VERIFIED`.
 
-## Package security / release non-claims
+## Security / release non-claims
 
 R1-004 MUST NOT:
 
 - publish to npm/registry;
 - create a GitHub Release or release tag;
 - add registry credentials;
-- claim the registry scope is already reserved;
 - broaden rc5 peer ranges to untested Harness versions;
-- add install-time scripts merely to make the package work;
+- add preinstall/install/postinstall scripts merely to make the package work;
 - expose binding/provider/source-conformance/internal subpaths;
 - claim arbitrary in-process plugin sandboxing or process isolation;
 - claim complete host filesystem/process/network/secret mediation;
@@ -279,43 +256,28 @@ R1-004 MUST NOT:
 - implement R1-005+;
 - merge or mark PR #3 Ready.
 
-## Protocol-first delta boundary
-
-The protocol-first prerequisite has already passed exact-head normal CI plus
-exact pinned Harness conformance at `3ce15c7796bd32ecebcb220207fad3ccd03b7834`.
-The original pre-verification boundary was restricted to exactly:
-
-```text
-specs/0058-r1-adapter-dsh-publishable-package.md
-fixtures/adapter-dsh-package/cases.json
-docs/handoff/CURRENT.md
-```
-
-No package/build implementation has been committed after that verification. The
-newly discovered source/registry authority conflict must be resolved before the
-implementation permissions unlocked by the dual-green prerequisite are exercised.
-
-Still not authorized:
-
-```text
-R1-005+
-M5-003+
-registry publish / GitHub Release / release tag
-PR #3 merge or Ready transition
-```
-
 ## Next allowed action
 
-Resolve the pinned-source versus registry-coordinate authority conflict above
-without changing production/package behavior first. Only after the resolution is
-normatively explicit may the smallest R1-004 publication build/package delta
-begin and obtain exact-head normal CI plus exact pinned Harness verification.
+Generate and review the smallest truthful R1-004 publication build/package
+candidate using exact rc5/Cordis build-time authority and a real pnpm-generated
+lockfile delta. Then apply only the verified product delta to PR #3 and require
+that new exact implementation head to pass:
 
-Until then:
+```text
+normal CI
++
+exact pinned Harness source typecheck/runtime conformance
++
+clean publication build
++
+actual tarball audit
+```
+
+Until an implementation head is accepted:
 
 ```text
 R1-004 PROTOCOL-FIRST: DUAL-GREEN
-R1-004 IMPLEMENTATION: AUTHORIZED IN PRINCIPLE / BLOCKED ON AUTHORITY RESOLUTION
+R1-004 IMPLEMENTATION: AUTHORIZED / NOT YET ACCEPTED
 R1-005+ NOT AUTHORIZED
 M5-003+ PAUSED
 REGISTRY PUBLISH NOT AUTHORIZED
