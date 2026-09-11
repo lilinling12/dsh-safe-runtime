@@ -9,30 +9,22 @@ permissions:
   contents: write
 
 jobs:
-  build-governance-commit:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout builder branch
         uses: actions/checkout@v4
 
-      - name: Preserve temporary helper
-        run: cp .github/scripts/r1-003-governance-builder.py /tmp/r1-003-governance-builder.py
+      - name: Preserve builder script
+        run: cp .github/scripts/r1_003_governance_builder.py /tmp/r1_003_governance_builder.py
 
       - name: Checkout exact accepted audit parent
-        run: |
-          git fetch --no-tags --depth=1 origin fea37f8574585813f6c6c264a9d2c548286a6a41
-          git checkout --detach fea37f8574585813f6c6c264a9d2c548286a6a41
+        uses: actions/checkout@v4
+        with:
+          ref: fea37f8574585813f6c6c264a9d2c548286a6a41
+          fetch-depth: 1
 
-      - name: Build and validate exact governance delta
+      - name: Build governance commit
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: python3 /tmp/r1-003-governance-builder.py
-
-      - name: Commit exact three-file transition
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/handoff/CURRENT.md docs/handoff/HISTORY.md docs/roadmap.md
-          git commit -m "docs(r1-003): close plugin bootstrap governance"
-          git push origin HEAD:refs/heads/tmp/r1-003-governance-result-20260911
-          git rev-parse HEAD
+        run: python3 /tmp/r1_003_governance_builder.py
