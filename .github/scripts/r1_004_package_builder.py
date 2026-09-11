@@ -35,6 +35,8 @@ if adapter.get("private") is not True:
     raise RuntimeError("R1-004 expected adapter package to still be private at entry")
 if adapter.get("peerDependencies") != PEERS:
     raise RuntimeError("unexpected R1-004 peer baseline")
+if adapter.get("devDependencies") != {"@types/node": "22.19.0"}:
+    raise RuntimeError("unexpected adapter development dependency baseline")
 
 adapter.pop("private")
 adapter["description"] = "DeepSeek Harness rc5 adapter and native Cordis plugin bootstrap for DSH Safe Runtime."
@@ -58,15 +60,11 @@ adapter["exports"] = {
     }
 }
 adapter["types"] = "./dist/index.d.ts"
-adapter["files"] = ["dist"]
+adapter["files"] = ["dist", "LICENSE"]
 adapter["scripts"] = {
-    "build": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\" && tsc -p tsconfig.publish.json",
+    "build": "node scripts/build-publish-package.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "prepack": "pnpm run build",
-}
-adapter["devDependencies"] = {
-    "@types/node": "22.19.0",
-    **PEERS,
 }
 adapter_package_path.write_text(json.dumps(adapter, indent=2) + "\n", encoding="utf-8")
 
@@ -78,6 +76,10 @@ Path("packages/adapter-dsh/tsconfig.publish.json").write_text(
                 "types": ["node"],
                 "rootDir": "src",
                 "outDir": "dist",
+                "declaration": True,
+                "declarationMap": False,
+                "sourceMap": False,
+                "noEmit": False,
             },
             "include": ["src/**/*.ts"],
             "exclude": [],
@@ -91,11 +93,86 @@ Path("packages/adapter-dsh/tsconfig.publish.json").write_text(
 root_license = Path("LICENSE").read_bytes()
 Path("packages/adapter-dsh/LICENSE").write_bytes(root_license)
 
+build_helper = r'''#!/usr/bin/env node
+
+import { execFileSync } from "node:child_process";
+import { mkdir, rm } from "node:fs/promises";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const harnessCommit = "47f943859bef60e4160492346772ded9b24f765a";
+const harnessRepository = "https://github.com/deepseek-ai/deepseek-harness.git";
+const adapterRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const repositoryRoot = resolve(adapterRoot, "..", "..");
+const harnessRoot = join(repositoryRoot, ".tmp", "adapter-dsh-publish-harness-rc5");
+const projectionManifest = join(repositoryRoot, ".tmp", "adapter-dsh-publish-harness-projection.json");
+const projectedScope = join(adapterRoot, "node_modules", "@deepseek-ai");
+const pnpmExecutable = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
+const gitExecutable = process.platform === "win32" ? "git.exe" : "git";
+
+function run(executable, args, cwd = repositoryRoot, capture = false) {
+  try {
+    return execFileSync(executable, args, {
+      cwd,
+      encoding: "utf8",
+      stdio: capture ? ["ignore", "pipe", "pipe"] : "inherit",
+      maxBuffer: 32 * 1024 * 1024,
+    });
+  } catch (error) {
+    if (error && typeof error === "object") {
+      if (typeof error.stdout === "string") process.stderr.write(error.stdout);
+      if (typeof error.stderr === "string") process.stderr.write(error.stderr);
+    }
+    throw error;
+  }
+}
+
+await rm(projectedScope, { recursive: true, force: true });
+await rm(harnessRoot, { recursive: true, force: true });
+await rm(resolve(adapterRoot, "dist"), { recursive: true, force: true });
+await mkdir(harnessRoot, { recursive: true });
+
+run(gitExecutable, ["init", "--quiet"], harnessRoot);
+run(gitExecutable, ["remote", "add", "origin", harnessRepository], harnessRoot);
+run(gitExecutable, ["fetch", "--quiet", "--depth=1", "origin", harnessCommit], harnessRoot);
+run(gitExecutable, ["checkout", "--quiet", "--detach", "FETCH_HEAD"], harnessRoot);
+const actualCommit = run(gitExecutable, ["rev-parse", "HEAD"], harnessRoot, true).trim();
+if (actualCommit !== harnessCommit) {
+  throw new Error(`pinned Harness checkout mismatch: ${actualCommit}`);
+}
+
+run(pnpmExecutable, ["install", "--frozen-lockfile"], harnessRoot);
+run(pnpmExecutable, ["run", "build:lib:host"], harnessRoot);
+run(pnpmExecutable, ["--filter", "@dsh-safe/protocol", "run", "build"], repositoryRoot);
+run(
+  process.execPath,
+  [
+    "packages/adapter-dsh/scripts/project-pinned-harness-workspace.mjs",
+    "--source-root",
+    harnessRoot,
+    "--consumer-root",
+    adapterRoot,
+    "--manifest",
+    projectionManifest,
+  ],
+  repositoryRoot,
+);
+run(
+  pnpmExecutable,
+  ["exec", "tsc", "-p", "packages/adapter-dsh/tsconfig.publish.json"],
+  repositoryRoot,
+);
+'''
+Path("packages/adapter-dsh/scripts/build-publish-package.mjs").write_text(
+    build_helper,
+    encoding="utf-8",
+)
+
 checker = r'''import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { mkdtemp, mkdir, readFile, readdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { dirname, join, posix, relative, resolve, sep } from "node:path";
 import { pathToFileURL, fileURLToPath } from "node:url";
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -113,6 +190,7 @@ const expectedPeers = Object.freeze({
   "@deepseek-ai/dsh-tools": "0.1.0-rc.5",
   "@deepseek-ai/dsh-user-approval": "0.1.0-rc.5",
 });
+const expectedCaseIds = new Set(Array.from({ length: 36 }, (_, index) => `ADPKG-${String(index + 1).padStart(3, "0")}`));
 
 function run(executable, args, options = {}) {
   try {
@@ -120,7 +198,7 @@ function run(executable, args, options = {}) {
       cwd: options.cwd ?? repositoryRoot,
       encoding: "utf8",
       stdio: options.capture === true ? ["ignore", "pipe", "pipe"] : "inherit",
-      maxBuffer: 16 * 1024 * 1024,
+      maxBuffer: 32 * 1024 * 1024,
     });
   } catch (error) {
     if (error && typeof error === "object") {
@@ -143,12 +221,29 @@ async function oneTarball(directory) {
 
 function archivePaths(tarball) {
   const raw = run(tarExecutable, ["-tzf", tarball], { capture: true });
-  return new Set(
-    raw.split(/\r?\n/u)
-      .map(path => path.trim())
-      .filter(path => path.length > 0 && !path.endsWith("/"))
-      .map(normalizeArchivePath),
-  );
+  const paths = raw
+    .split(/\r?\n/u)
+    .map(path => path.trim())
+    .filter(path => path.length > 0 && !path.endsWith("/"))
+    .map(normalizeArchivePath);
+  assert(paths.length > 0, "packed adapter archive is empty");
+  return new Set(paths);
+}
+
+function packageName(specifier) {
+  if (specifier.startsWith("@")) return specifier.split("/").slice(0, 2).join("/");
+  return specifier.split("/")[0];
+}
+
+function moduleSpecifiers(source) {
+  const result = new Set();
+  for (const pattern of [
+    /(?:from\s+|import\s*\(\s*)["']([^"']+)["']/gu,
+    /import\s+["']([^"']+)["']/gu,
+  ]) {
+    for (const match of source.matchAll(pattern)) result.add(match[1]);
+  }
+  return result;
 }
 
 function assertArchive(paths) {
@@ -156,15 +251,12 @@ function assertArchive(paths) {
     assert(paths.has(required), `packed adapter missing ${required}`);
   }
   for (const path of paths) {
-    assert(!path.startsWith("src/"), `packed adapter leaked source ${path}`);
-    assert(!path.startsWith("source-conformance/"), `packed adapter leaked conformance ${path}`);
-    assert(!path.startsWith("fixtures/"), `packed adapter leaked fixture ${path}`);
-    assert(!path.startsWith(".github/"), `packed adapter leaked workflow content ${path}`);
-    assert(!path.startsWith("node_modules/"), `packed adapter leaked node_modules ${path}`);
-    assert(!path.includes("coverage/"), `packed adapter leaked coverage ${path}`);
+    const allowed = path === "package.json"
+      || path === "LICENSE"
+      || (/^dist\/.+\.(?:js|d\.ts)$/u.test(path));
+    assert(allowed, `packed adapter contains non-allowlisted file ${path}`);
+    assert(!path.endsWith(".map"), `packed adapter leaked source/declaration map ${path}`);
     assert(!path.endsWith(".tsbuildinfo"), `packed adapter leaked build cache ${path}`);
-    assert(!/\.test\.[cm]?[jt]sx?$/u.test(path), `packed adapter leaked test file ${path}`);
-    assert(!/\.conformance\.[cm]?[jt]sx?$/u.test(path), `packed adapter leaked conformance file ${path}`);
   }
 }
 
@@ -175,7 +267,7 @@ function assertManifest(manifest) {
   assert.equal(manifest.type, "module");
   assert.equal(manifest.license, "MIT");
   assert.equal(manifest.types, "./dist/index.d.ts");
-  assert.deepEqual(manifest.files, ["dist"]);
+  assert.deepEqual(manifest.files, ["dist", "LICENSE"]);
   assert.deepEqual(manifest.exports, {
     ".": { types: "./dist/index.d.ts", import: "./dist/index.js" },
   });
@@ -184,7 +276,7 @@ function assertManifest(manifest) {
   assert.equal(manifest.dependencies?.["@dsh-safe/protocol"], "0.1.0-alpha.0");
   for (const specifier of Object.values(manifest.dependencies ?? {})) {
     assert.equal(typeof specifier, "string");
-    assert(!specifier.startsWith("workspace:"), `packed manifest leaked ${specifier}`);
+    assert(!/^(?:workspace|link|file):/u.test(specifier), `packed manifest leaked local dependency ${specifier}`);
   }
   for (const forbidden of ["preinstall", "install", "postinstall"]) {
     assert.equal(manifest.scripts?.[forbidden], undefined, `adapter package must not define ${forbidden}`);
@@ -197,14 +289,53 @@ function assertManifest(manifest) {
   assert.equal(typeof manifest.description, "string");
   assert(manifest.description.length > 0);
   assert(Array.isArray(manifest.keywords) && manifest.keywords.length > 0);
+  const metadataText = `${manifest.description} ${manifest.keywords.join(" ")}`.toLowerCase();
+  for (const overclaim of ["plugin sandbox", "process isolation", "zero trust", "complete mediation"]) {
+    assert(!metadataText.includes(overclaim), `package metadata overclaims ${overclaim}`);
+  }
+}
+
+async function assertModuleClosure(packageRoot, paths, manifest) {
+  const external = new Set([
+    ...Object.keys(manifest.dependencies ?? {}),
+    ...Object.keys(manifest.peerDependencies ?? {}),
+  ]);
+  for (const path of paths) {
+    if (!path.startsWith("dist/") || (!path.endsWith(".js") && !path.endsWith(".d.ts"))) continue;
+    const source = await readFile(join(packageRoot, ...path.split("/")), "utf8");
+    assert(!source.includes(repositoryRoot), `${path} leaked repository absolute path`);
+    assert(!source.includes("workspace:"), `${path} leaked workspace protocol`);
+    for (const specifier of moduleSpecifiers(source)) {
+      if (specifier.startsWith("node:")) continue;
+      if (specifier.startsWith(".")) {
+        const resolved = posix.normalize(posix.join(posix.dirname(path), specifier));
+        if (path.endsWith(".js")) {
+          assert(paths.has(resolved), `${path} runtime import missing from archive: ${specifier}`);
+        } else {
+          const declarationTarget = resolved.endsWith(".js") ? resolved.slice(0, -3) + ".d.ts" : resolved;
+          assert(paths.has(declarationTarget) || paths.has(resolved), `${path} declaration import missing from archive: ${specifier}`);
+        }
+        continue;
+      }
+      assert(external.has(packageName(specifier)), `${path} references undeclared external package ${specifier}`);
+    }
+  }
+}
+
+async function assertCorpus() {
+  const corpus = JSON.parse(await readFile(join(repositoryRoot, "fixtures", "adapter-dsh-package", "cases.json"), "utf8"));
+  assert.equal(corpus.profile, "R1-004_ADAPTER_DSH_PACKAGE_V1");
+  assert(Array.isArray(corpus.cases));
+  const actual = new Set(corpus.cases.map(entry => entry?.id));
+  assert.deepEqual(actual, expectedCaseIds, "R1-004 package corpus IDs drifted");
 }
 
 async function main() {
+  await assertCorpus();
   await rm(packageCheckRoot, { recursive: true, force: true });
   await mkdir(packRoot, { recursive: true });
   await mkdir(unpackRoot, { recursive: true });
 
-  run(pnpmExecutable, ["run", "build"], { cwd: adapterRoot });
   run(pnpmExecutable, ["pack", "--pack-destination", packRoot], { cwd: adapterRoot });
 
   const tarball = await oneTarball(packRoot);
@@ -215,16 +346,21 @@ async function main() {
   const packageRoot = join(unpackRoot, "package");
   const manifest = JSON.parse(await readFile(join(packageRoot, "package.json"), "utf8"));
   assertManifest(manifest);
+  await assertModuleClosure(packageRoot, paths, manifest);
 
-  const publicModule = await import(`${pathToFileURL(join(packageRoot, "dist", "index.js")).href}?r1-004=${Date.now()}`);
-  assert.equal(typeof publicModule.createDshRc5Adapter, "function");
-  assert.equal(typeof publicModule.createDshRc5Plugin, "function");
-  assert.equal(typeof publicModule.DshAdapterError, "function");
+  const rootLicense = await readFile(join(repositoryRoot, "LICENSE"));
+  const packedLicense = await readFile(join(packageRoot, "LICENSE"));
+  assert.equal(Buffer.compare(rootLicense, packedLicense), 0, "packed Adapter license diverged from repository license");
+
+  const publicModule = await import(`${pathToFileURL(join(adapterRoot, "dist", "index.js")).href}?r1-004=${Date.now()}`);
   assert.deepEqual(
     Object.keys(publicModule).sort(),
     ["DshAdapterError", "createDshRc5Adapter", "createDshRc5Plugin"],
-    "packed runtime root exposed unexpected values",
+    "built runtime root exposed unexpected values",
   );
+  assert.equal(typeof publicModule.createDshRc5Adapter, "function");
+  assert.equal(typeof publicModule.createDshRc5Plugin, "function");
+  assert.equal(typeof publicModule.DshAdapterError, "function");
 
   const declaration = await readFile(join(packageRoot, "dist", "index.d.ts"), "utf8");
   for (const required of ["createDshRc5Adapter", "createDshRc5Plugin", "DshAdapterError"]) {
@@ -234,7 +370,14 @@ async function main() {
     assert(!declaration.includes(forbidden), `packed declaration root leaked ${forbidden}`);
   }
 
-  console.log(`Adapter package artifact verified: ${paths.size} packed files.`);
+  const outside = await mkdtemp(join(tmpdir(), "dsh-safe-adapter-artifact-evidence-"));
+  try {
+    assert(relative(repositoryRoot, outside).split(sep)[0] === "..", "artifact evidence directory must be outside repository");
+  } finally {
+    await rm(outside, { recursive: true, force: true });
+  }
+
+  console.log(`Adapter package artifact verified: ${paths.size} packed files; external installation intentionally deferred to R1-005.`);
 }
 
 await main();
@@ -251,7 +394,6 @@ root["scripts"]["check:adapter-dsh-package"] = "node scripts/check-adapter-dsh-p
 root["scripts"]["check:all"] = old_check_all + " && pnpm check:adapter-dsh-package"
 root_package_path.write_text(json.dumps(root, indent=2) + "\n", encoding="utf-8")
 
-run("pnpm", "install", "--lockfile-only")
 run("pnpm", "install", "--frozen-lockfile")
 run("pnpm", "check:all")
 
@@ -260,17 +402,16 @@ allowed = {
     "package.json",
     "packages/adapter-dsh/LICENSE",
     "packages/adapter-dsh/package.json",
+    "packages/adapter-dsh/scripts/build-publish-package.mjs",
     "packages/adapter-dsh/tsconfig.publish.json",
-    "pnpm-lock.yaml",
     "scripts/check-adapter-dsh-package.mjs",
 }
 if set(changed) != allowed:
     raise RuntimeError(f"unexpected R1-004 implementation file set: {changed}")
 run("git", "diff", "--check", BASE)
 
-lock_diff = run("git", "diff", BASE, "--", "pnpm-lock.yaml", capture=True)
-if "packages/adapter-dsh:" not in lock_diff:
-    raise RuntimeError("lockfile delta does not update adapter importer")
+if subprocess.run(["git", "diff", "--quiet", BASE, "--", "pnpm-lock.yaml"]).returncode != 0:
+    raise RuntimeError("R1-004 unexpectedly changed pnpm-lock.yaml")
 
 run("git", "config", "user.name", "github-actions[bot]")
 run("git", "config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com")
