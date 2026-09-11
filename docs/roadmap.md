@@ -396,7 +396,7 @@ Acceptance evidence
 
 ## R1.3 Publishable Package
 
-- [ ] `R1-004 P0` make `@dsh-safe/adapter-dsh` publishable。
+- [x] `R1-004 P0` make `@dsh-safe/adapter-dsh` publishable。 **ACCEPTED：Spec 0058 + ADPKG-001..036 + exact-source-backed publication build + single-root ESM/declaration package + real `pnpm pack` tarball audit；final reviewed implementation head `73ed70fe...`, CI #689 / Harness #631 PASS；验收记录 `docs/acceptance/r1-004-adapter-dsh-publishable-package.md` at `52956f24...`；acceptance exact head `705b6756...`, CI #691 / Harness #633 PASS。Claim is `PACKAGE_ARTIFACT_VALID` only；external installation remains R1-005；registry publish remains unauthorized.**
   - 移除 package-level `private: true` 前必须完成 package boundary / export audit；
   - 正确设置 `exports`、`types`、`files`、`engines`、license、repository、keywords 与 peer dependency policy；
   - 产物只包含运行所需文件，不发布测试夹具、临时 workflow、内部密钥或本地路径；
