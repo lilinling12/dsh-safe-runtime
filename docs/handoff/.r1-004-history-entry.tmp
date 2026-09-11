@@ -1,0 +1,60 @@
+## 2026-09-12 — Accept R1-004 publishable Adapter package
+
+R1-004 protocol-first exact head
+`3ce15c7796bd32ecebcb220207fad3ccd03b7834` froze Spec 0058 and the
+`ADPKG-001` through `ADPKG-036` corpus before package implementation. That exact
+head passed normal CI #685 / run `34574938355` and exact pinned Harness rc5
+source-conformance #627 / run `34574938359`, including step 10 pinned-source
+typecheck and step 11 real rc5 runtime conformance.
+
+The final reviewed implementation head is
+`73ed70fe07d939f02d664162b799e40ff333c02d`. It makes
+`@dsh-safe/adapter-dsh@0.1.0-alpha.0` a real ESM package with one public root,
+matching declarations, `files: ["dist"]`, the repository Node engine, exact
+Cordis 4.0.1 / DSH 0.1.0-rc.5 peers, no install-time scripts, and a real
+`pnpm pack` archive audit. The publication build compiles against exact upstream
+source commit `47f943859bef60e4160492346772ded9b24f765a`; it does not substitute
+rc6, broaden compatibility, or ship Harness source.
+
+Exact implementation evidence:
+
+```text
+73ed70fe07d939f02d664162b799e40ff333c02d
+CI #689 / run 34633103705: PASS
+Harness #631 / run 34633103717: PASS
+Harness step 10 pinned-source typecheck: PASS
+Harness step 11 real rc5 runtime conformance: PASS
+R1-004 Adapter package audit: PASS (32 packed files)
+```
+
+Acceptance audit `docs/acceptance/r1-004-adapter-dsh-publishable-package.md` was
+recorded at `52956f24b3b6ac56bf64f013fb5d7d4bd272366a`. Acceptance synchronization
+exact head `705b67569890f51542934d0c0d48dd3b4accb4d1` then passed:
+
+```text
+CI #691 / run 34644280041: PASS
+Harness #633 / run 34644280031: PASS
+Harness job 103411193588 step 10 pinned-source typecheck: PASS
+Harness job 103411193588 step 11 real rc5 runtime conformance: PASS
+```
+
+The accepted claim is exactly `PACKAGE_ARTIFACT_VALID`. Current public registry
+resolution of the accepted exact rc5 peer coordinate was observed unavailable;
+R1-004 therefore does not claim `EXTERNAL_INSTALL_VERIFIED`, does not authorize
+rc6 substitution, and does not hide the peer-acquisition problem. R1-005 owns the
+external consumer/install-authority proof.
+
+This governance transition is intentionally restricted to CURRENT, this
+append-only HISTORY entry and only the R1-004 roadmap acceptance marker/details.
+No production source, source-conformance, Spec/corpus/Schema, Shared TCK,
+dependency/lockfile state, Harness baseline/workflow, R1-005 implementation,
+M5-003+ work, registry state, GitHub Release/tag state or PR merge/readiness
+state changes here.
+
+The resulting governance exact head must itself reach normal CI plus exact pinned
+Harness rc5 source-conformance dual-green, including step 10 and step 11. Only
+after that same exact SHA is dual-green is R1-004 GOVERNANCE CLOSED and R1-005
+P0 external-tarball-consumer protocol/design work newly authorized. R1-006+
+remains unauthorized; M5-003+ remains paused; registry publish, GitHub Release,
+tag creation and PR #3 merge/Ready remain unauthorized without explicit user
+authorization.
