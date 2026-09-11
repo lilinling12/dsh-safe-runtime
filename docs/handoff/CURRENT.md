@@ -13,8 +13,8 @@
 - Base: `main@57430273e065be8d38807d67b175fa154c801d43`
 - R1-001 P0 Alpha readiness reconciliation: **GOVERNANCE CLOSED**
 - R1-002 P0 public DeepSeek Adapter API: **GOVERNANCE CLOSED**
-- R1-003 P0 DeepSeek plugin/bootstrap integration: **IMPLEMENTATION ACCEPTED / GOVERNANCE CLOSURE CANDIDATE**
-- R1-004 P0 publishable Adapter package: **NOT AUTHORIZED UNTIL THIS GOVERNANCE EXACT HEAD IS DUAL-GREEN**
+- R1-003 P0 DeepSeek plugin/bootstrap integration: **GOVERNANCE CLOSED**
+- R1-004 P0 publishable Adapter package: **PROTOCOL-FIRST CANDIDATE / IMPLEMENTATION NOT AUTHORIZED UNTIL THIS EXACT HEAD IS DUAL-GREEN**
 - R1-005+: **NOT AUTHORIZED by the current Gate**
 - M5-003+: **PAUSED until R1 Alpha release governance closes**
 - npm/registry publish and GitHub Release: **NOT AUTHORIZED**
@@ -22,198 +22,229 @@
 
 Live GitHub state overrides this snapshot.
 
-## R1-003 accepted authority chain
+## R1-003 closure authority
 
-R1-002 predecessor governance authority:
+R1-003 final governance exact head:
 
 ```text
-3a5e8e780a09c6764eb4d966c4a42348817e0780
-CI #677 / run 34394030179: PASS
-Harness #619 / run 34394030180: PASS
+463cc6d8b8811245cfb8f44eaebb16cba502d974
+CI #684 / run 34574349469: PASS
+Harness #626 / run 34574349464: PASS
 Harness step 10 pinned-source typecheck: PASS
 Harness step 11 real rc5 runtime conformance: PASS
 ```
 
-R1-003 protocol-first authority:
-
-```text
-fa89e3993c812aafa0325fab6b33dc339d7323dc
-CI #678 / run 34425239915: PASS
-Harness #620 / run 34425239924: PASS
-```
-
-Normative artifacts:
-
-```text
-specs/0057-r1-dsh-plugin-bootstrap-integration.md
-fixtures/dsh-plugin-bootstrap/cases.json
-profile: R1-003_DSH_PLUGIN_BOOTSTRAP_V1
-cases: DPB-001..DPB-032
-```
-
-Final reviewed implementation/conformance head:
-
-```text
-bbe3f18625de565564e57073599efd66baafd826
-CI #681 / run 34445638834: PASS
-Harness #623 / run 34445638813: PASS
-Harness step 10 pinned-source typecheck: PASS
-Harness step 11 real rc5 runtime conformance: PASS
-```
-
-Acceptance audit:
-
-```text
-docs/acceptance/r1-003-plugin-bootstrap-integration.md
-head: fea37f8574585813f6c6c264a9d2c548286a6a41
-CI #682 / run 34446201887: PASS
-Harness #624 / run 34446201886: PASS
-Harness step 10 pinned-source typecheck: PASS
-Harness step 11 real rc5 runtime conformance: PASS
-```
-
-The implementation line descends from the accepted protocol-first head. No
-protocol authority was rebased, squashed or force-rewritten.
-
-## Accepted R1-003 public bootstrap boundary
-
-The package root adds exactly one bootstrap factory and its narrowly required
-public types:
-
-```text
-createDshRc5Plugin(options): DshRc5Plugin
-DshRc5Plugin
-DshRc5PluginOptions
-DshRc5PluginPolicy
-```
-
-The plugin is installed through the native Cordis seam:
-
-```text
-const plugin = createDshRc5Plugin(options)
-const fiber = await ctx.plugin(plugin)
-```
-
-It reuses the accepted R1-002 Adapter surface rather than deep-importing the
-package-private binding or creating another runtime subsystem.
-
-The programmatic Alpha policy modes remain exactly:
-
-```text
-DENY_ALL
-HANDLER(handler, optional monotonicGuard)
-```
-
-Omitted policy is `DENY_ALL`.
-
-## Fail-closed and approval behavior
-
-`DENY_ALL` installs both an Adapter tool-policy DENY and a monotonic-guard DENY
-using the same stable internal reason:
-
-```text
-safe-runtime plugin default deny
-```
-
-Both `toolsPreExecute` and `toolsMonotonicGuard` are required for successful
-DENY_ALL activation. Missing required support fails activation explicitly; the
-plugin does not downgrade silently to a reorderable-only listener.
-
-HANDLER mode installs the caller-supplied policy handler exactly once. An optional
-monotonic guard is installed only when explicitly supplied. The plugin does not
-derive a synchronous guard from an async policy handler and does not turn ASK into
-a hard guard.
-
-A reached ASK remains owned by the native Harness path:
-
-```text
-Adapter ASK -> ToolRuntime.serviceAsk() -> ctx.approval.request(...)
-```
-
-The plugin does not automatically call Adapter `requestApproval()` for the same
-ToolRuntime ASK and does not add another approval provider/state machine.
-Agent-less ASK remains fail closed.
-
-## Lifecycle ownership
-
-Each mount constructs exactly one R1-002 Adapter. Failed post-construction
-activation awaits Adapter rollback before propagating failure. Successful Cordis
-Fiber cleanup awaits `adapter.dispose()`.
-
-Therefore:
-
-```text
-await fiber.dispose()
-```
-
-settles only after plugin-owned Adapter teardown. Root Context, sessions, agents,
-services, independent listeners and independent approval providers remain
-caller-owned. Disposed plugin handlers do not survive a later remount, and no
-process-global singleton is introduced.
-
-## Preserved security and package boundaries
-
-R1-003 does not:
-
-- claim arbitrary in-process plugin sandboxing or process isolation;
-- claim complete direct Node filesystem/process/network/secret mediation;
-- invent provider/resource identity or containment;
-- map unresolved `EXECUTION_ROOT` / `ARGUMENT_WORKDIR` into guessed authority;
-- automatically compose a serialized CapabilityPolicy into a complete PEP;
-- add a second approval/policy/runtime/lifecycle subsystem;
-- expose R1-002 filesystem/subprocess internal ports;
-- remove `private: true`;
-- finalize package `exports`, `types`, `files`, `engines`, license/repository or
-  peer-dependency publication metadata;
-- claim bare `cordis.yml` package loading is release-ready;
-- perform R1-005 external tarball smoke;
-- define R1-006 compatibility/install ranges;
-- implement R1-007 release/provenance automation;
-- resume M5-003+;
-- publish to npm/registry or create a GitHub Release;
-- authorize PR #3 merge or Ready-for-review transition.
-
-Pinned `0.1.0-rc.5@47f943859bef60e4160492346772ded9b24f765a`
-remains Adapter compatibility evidence only and does not redefine portable
-safe-runtime protocol semantics.
-
-## Governance-closure delta boundary
-
-The final R1-003 governance transition is restricted to exactly:
+The exact governance delta from accepted audit head
+`fea37f8574585813f6c6c264a9d2c548286a6a41` was one direct-child commit and
+exactly three governance files:
 
 ```text
 docs/handoff/CURRENT.md
-docs/handoff/HISTORY.md   # append-only
-docs/roadmap.md           # only R1-003 acceptance marker/details
+docs/handoff/HISTORY.md   # +74/-0 append-only
+docs/roadmap.md           # R1-003 marker +1/-1 only
 ```
 
-This transition must not change production code, source-conformance tests,
-Spec/corpus/Schema, Shared TCK, dependency/lockfile state, Harness baseline or
-workflow, package publication metadata, R1-004+ implementation, M5-003+ work,
-registry state, GitHub Release state or PR merge/readiness state.
+Therefore R1-003 is **GOVERNANCE CLOSED** and R1-004 is the sole newly authorized
+engineering Gate.
+
+PR #3 remained Open / Draft / unmerged at closure.
+
+## R1-004 recovered package facts
+
+Current Adapter manifest:
+
+```text
+name: @dsh-safe/adapter-dsh
+version: 0.1.0-alpha.0
+private: true
+type: module
+license: MIT
+```
+
+Current exact peers:
+
+```text
+@deepseek-ai/cordis             4.0.1
+@deepseek-ai/dsh-agent          0.1.0-rc.5
+@deepseek-ai/dsh-llm            0.1.0-rc.5
+@deepseek-ai/dsh-session        0.1.0-rc.5
+@deepseek-ai/dsh-tools          0.1.0-rc.5
+@deepseek-ai/dsh-user-approval  0.1.0-rc.5
+```
+
+Source dependency:
+
+```text
+@dsh-safe/protocol: workspace:*
+```
+
+`@dsh-safe/protocol` already has a built ESM root, declaration export, `files:
+["dist"]` and a real build script. R1-004 does not redesign that package.
+
+## Publication-build blocker discovered before implementation
+
+`packages/adapter-dsh/tsconfig.json` currently excludes:
+
+```text
+src/binding.ts
+src/public-api.ts
+src/plugin.ts
+src/index.ts
+```
+
+That exclusion is deliberate for ordinary monorepo typecheck because those files
+belong to the exact pinned Harness compile topology.
+
+Consequently, simply removing `private: true` and adding an `exports` entry to
+`dist/index.js` would produce a false publishability claim: the ordinary Adapter
+compile path does not currently emit the package-root runtime/declarations.
+
+R1-004 MUST establish a separate truthful publication build graph for the
+accepted public root. It MUST NOT publish TS source, point metadata at missing
+files, use ambient Harness shims, or depend on source-conformance projection at
+consumer runtime.
+
+## R1-004 normative candidate
+
+Normative candidate:
+
+```text
+specs/0058-r1-adapter-dsh-publishable-package.md
+```
+
+Contract corpus:
+
+```text
+fixtures/adapter-dsh-package/cases.json
+profile: R1-004_ADAPTER_DSH_PACKAGE_V1
+cases: ADPKG-001..ADPKG-036
+```
+
+Pinned compatibility baseline remains exactly:
+
+```text
+0.1.0-rc.5@47f943859bef60e4160492346772ded9b24f765a
+```
+
+DeepSeek Harness/Cordis remains compatibility evidence only. Packaging does not
+redefine portable Subject/Capability/Resource/policy/Lease/approval/guarantee or
+M4 security semantics.
+
+## Candidate package contract
+
+R1-004 defines publishability as a real artifact property, not a manifest flag.
+The implementation must eventually prove all of the following on one exact head:
+
+```text
+clean deterministic publication build
+built ESM package root exists
+matching .d.ts root exists
+single curated root export
+explicit files allowlist
+actual .tgz generated and inspected
+no workspace:* survives packed manifest
+exact rc5/Cordis peers preserved
+explicit supported Node engine
+license/repository/description/keywords coherent
+no internal source/test/workflow/secret content in tarball
+normal CI green
+exact pinned Harness source/runtime conformance green
+```
+
+The likely ESM root shape is:
+
+```json
+{
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  }
+}
+```
+
+but implementation may use an equivalent single-root shape only if the generated
+artifact proves the same semantics.
+
+## R1-004 versus R1-005
+
+R1-004 MAY generate and inspect a real tarball and MAY perform repository-local
+built-root smoke. It does **not** establish external-consumer acceptance.
+
+R1-005 separately owns:
+
+```text
+consumer outside monorepo/workspace
+install same tarball
+install exact supported Harness
+ALLOW / DENY / ASK smoke
+default deny
+unsupported-feature fail closed
+dispose/lifecycle smoke
+no workspace-link/source-path cheating
+```
+
+Therefore R1-004 acceptance may claim `PACKAGE_ARTIFACT_VALID`, but not
+`EXTERNAL_INSTALL_VERIFIED`.
+
+## Package security / release non-claims
+
+R1-004 MUST NOT:
+
+- publish to npm/registry;
+- create a GitHub Release or release tag;
+- add registry credentials;
+- claim the registry scope is already reserved;
+- broaden rc5 peer ranges to untested Harness versions;
+- add install-time scripts merely to make the package work;
+- expose binding/provider/source-conformance/internal subpaths;
+- claim arbitrary in-process plugin sandboxing or process isolation;
+- claim complete host filesystem/process/network/secret mediation;
+- resume M5-003+;
+- implement R1-005+;
+- merge or mark PR #3 Ready.
+
+## Protocol-first delta boundary
+
+Before exact-head dual-green, the repository delta is restricted to exactly:
+
+```text
+specs/0058-r1-adapter-dsh-publishable-package.md
+fixtures/adapter-dsh-package/cases.json
+docs/handoff/CURRENT.md
+```
+
+Not authorized in this candidate:
+
+```text
+packages/adapter-dsh/package.json
+packages/adapter-dsh build config/scripts
+pnpm-lock.yaml
+root package scripts
+production TypeScript
+source-conformance implementation
+HISTORY
+roadmap R1-004 acceptance marker
+R1-005+
+M5-003+
+registry publish / GitHub Release / release tag
+PR #3 merge or Ready transition
+```
 
 ## Next allowed action
 
-Verify the resulting governance exact head through both normal CI and exact
-pinned Harness rc5 source-conformance.
+Verify this exact R1-004 protocol-first head through both normal CI and exact
+pinned Harness rc5 source-conformance, including step 10 pinned-source TypeScript
+and step 11 real runtime conformance.
 
-The same SHA must pass:
-
-```text
-normal CI
-Harness pinned-source TypeScript step 10
-Harness real rc5 runtime conformance step 11
-```
-
-Only after that same exact governance SHA is dual-green may repository state be
-interpreted as:
+Only if the same exact SHA is dual-green may the smallest R1-004 package/build
+implementation begin. Until then:
 
 ```text
-R1-003 GOVERNANCE CLOSED
-R1-004 P0 PUBLISHABLE PACKAGE AUTHORIZED FOR PROTOCOL-FIRST / DESIGN-FIRST WORK
+R1-004 IMPLEMENTATION NOT AUTHORIZED
 R1-005+ NOT AUTHORIZED
 M5-003+ PAUSED
+REGISTRY PUBLISH NOT AUTHORIZED
 PR #3 REMAINS OPEN / DRAFT / UNMERGED
 ```
-
-Until that evidence exists, R1-004 repository modification remains unauthorized.
