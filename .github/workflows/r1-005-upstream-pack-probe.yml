@@ -7,7 +7,7 @@ on:
 
 jobs:
   probe:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Enable pinned pnpm
         run: |
@@ -26,13 +26,20 @@ jobs:
           git -C "$root" checkout --detach FETCH_HEAD
           test "$(git -C "$root" rev-parse HEAD)" = "47f943859bef60e4160492346772ded9b24f765a"
 
-      - name: Frozen install and host library build
+      - name: Install and verify release baseline
         shell: bash
         run: |
           set -euo pipefail
           root="$RUNNER_TEMP/deepseek-harness"
           pnpm --dir "$root" install --frozen-lockfile
-          pnpm --dir "$root" run build:lib:host
+          RELEASE_PUBLISH=false pnpm --dir "$root" run release:verify --family dsh
+
+      - name: Build exact upstream release inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="$RUNNER_TEMP/deepseek-harness"
+          pnpm --dir "$root" run build
 
       - name: Pack exact dsh and vendor release families
         shell: bash
@@ -42,12 +49,23 @@ jobs:
           dsh="$RUNNER_TEMP/dsh-pack"
           vendor="$RUNNER_TEMP/vendor-pack"
           cd "$root"
-          pnpm exec tsx scripts/release/pack.ts --family dsh --out "$dsh"
-          pnpm exec tsx scripts/release/pack.ts --family vendor --out "$vendor"
+          pnpm run release:pack --family dsh --out "$dsh"
+          pnpm run release:pack --family vendor --out "$vendor"
           test -n "$(find "$dsh" -maxdepth 1 -name '*.tgz' -print -quit)"
           test -n "$(find "$vendor" -maxdepth 1 -name '*.tgz' -print -quit)"
           echo "DSH_TARBALL_COUNT=$(find "$dsh" -maxdepth 1 -name '*.tgz' | wc -l)"
           echo "VENDOR_TARBALL_COUNT=$(find "$vendor" -maxdepth 1 -name '*.tgz' | wc -l)"
+
+      - name: Pack Landlock entry used by upstream verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="$RUNNER_TEMP/deepseek-harness"
+          landlock="$RUNNER_TEMP/landlock-pack"
+          cd "$root"
+          pnpm --dir native/landlock-run run build:ts
+          pnpm --dir native/landlock-run/packages/entry pack --pack-destination "$landlock"
+          test -n "$(find "$landlock" -maxdepth 1 -name '*.tgz' -print -quit)"
 
       - name: Verify packed install outside source workspace
         shell: bash
@@ -55,7 +73,7 @@ jobs:
           set -euo pipefail
           root="$RUNNER_TEMP/deepseek-harness"
           cd "$root"
-          pnpm exec tsx scripts/release/verify-packed-install.ts \
-            --family dsh \
+          pnpm run release:verify-packed-install --family dsh \
             --from "$RUNNER_TEMP/dsh-pack" \
-            --from "$RUNNER_TEMP/vendor-pack"
+            --from "$RUNNER_TEMP/vendor-pack" \
+            --from "$RUNNER_TEMP/landlock-pack"
