@@ -1,4 +1,4 @@
-name: R1-004 lockgen evidence
+name: R1-004 source-backed build evidence
 
 on:
   push:
@@ -9,11 +9,19 @@ permissions:
   contents: read
 
 jobs:
-  lockgen:
+  source-backed-build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout evidence branch
         uses: actions/checkout@v4
+
+      - name: Checkout exact DeepSeek Harness source baseline
+        uses: actions/checkout@v4
+        with:
+          repository: deepseek-ai/deepseek-harness
+          ref: 47f943859bef60e4160492346772ded9b24f765a
+          path: .tmp/deepseek-harness
+          fetch-depth: 1
 
       - name: Set up Node 22.19.0
         uses: actions/setup-node@v4
@@ -24,53 +32,57 @@ jobs:
         run: |
           corepack enable
           corepack prepare pnpm@11.7.0 --activate
-          pnpm --version
+          test "$(pnpm --version)" = "11.7.0"
 
-      - name: Add exact rc5 build-time copies in working tree only
+      - name: Build pinned Harness public type surface
+        working-directory: .tmp/deepseek-harness
         run: |
-          node --input-type=module <<'NODE'
-          import { readFile, writeFile } from 'node:fs/promises'
+          pnpm install --frozen-lockfile
+          pnpm run build:lib:host
 
-          const path = 'packages/adapter-dsh/package.json'
-          const manifest = JSON.parse(await readFile(path, 'utf8'))
-          manifest.devDependencies = {
-            ...manifest.devDependencies,
-            '@deepseek-ai/cordis': '4.0.1',
-            '@deepseek-ai/dsh-agent': '0.1.0-rc.5',
-            '@deepseek-ai/dsh-llm': '0.1.0-rc.5',
-            '@deepseek-ai/dsh-session': '0.1.0-rc.5',
-            '@deepseek-ai/dsh-tools': '0.1.0-rc.5',
-            '@deepseek-ai/dsh-user-approval': '0.1.0-rc.5'
-          }
-          await writeFile(path, `${JSON.stringify(manifest, null, 2)}\n`)
-          NODE
+      - name: Install safe-runtime dependencies reproducibly
+        run: pnpm install --frozen-lockfile
 
+      - name: Project exact pinned Harness workspace packages
+        run: |
+          node packages/adapter-dsh/scripts/project-pinned-harness-workspace.mjs \
+            --source-root .tmp/deepseek-harness \
+            --consumer-root . \
+            --consumer-root .tmp/deepseek-harness \
+            --manifest .tmp/harness-workspace-projection.json
+
+      - name: Emit publication source graph against exact pinned source
+        run: |
           cat > packages/adapter-dsh/tsconfig.publish-probe.json <<'JSON'
           {
             "extends": "./tsconfig.json",
             "compilerOptions": {
               "composite": false,
               "rootDir": "src",
-              "noEmit": true
+              "outDir": ".tmp/r1-004-dist",
+              "noEmit": false,
+              "declaration": true,
+              "declarationMap": false,
+              "sourceMap": false
             },
             "include": ["src/**/*.ts"],
             "exclude": []
           }
           JSON
 
-      - name: Generate real pnpm lockfile resolution
-        run: pnpm install --no-frozen-lockfile
+          rm -rf packages/adapter-dsh/.tmp/r1-004-dist
+          pnpm --filter @dsh-safe/adapter-dsh exec tsc -p tsconfig.publish-probe.json
+          test -f packages/adapter-dsh/.tmp/r1-004-dist/index.js
+          test -f packages/adapter-dsh/.tmp/r1-004-dist/index.d.ts
+          find packages/adapter-dsh/.tmp/r1-004-dist -type f -print | sort
 
-      - name: Probe publication source graph against registry rc5 packages
-        run: pnpm --filter @dsh-safe/adapter-dsh exec tsc -p tsconfig.publish-probe.json
-
-      - name: Upload generated lock evidence
+      - name: Upload source-backed build evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: r1-004-lockgen-evidence
+          name: r1-004-source-backed-build-evidence
           if-no-files-found: error
           path: |
-            pnpm-lock.yaml
-            packages/adapter-dsh/package.json
+            .tmp/harness-workspace-projection.json
             packages/adapter-dsh/tsconfig.publish-probe.json
+            packages/adapter-dsh/.tmp/r1-004-dist
