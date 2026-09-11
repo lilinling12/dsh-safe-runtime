@@ -1,0 +1,32 @@
+name: R1-005 External Consumer Evidence
+
+on:
+  push:
+    branches:
+      - evidence/r1-005-external-consumer
+
+jobs:
+  external-consumer:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Enable pinned pnpm
+        shell: bash
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.7.0 --activate
+          test "$(pnpm --version)" = "11.7.0"
+
+      - name: Install safe-runtime dependencies reproducibly
+        run: pnpm install --frozen-lockfile
+
+      - name: Execute R1-005 external tarball consumer candidate
+        run: node scripts/check-adapter-dsh-external-consumer.mjs
