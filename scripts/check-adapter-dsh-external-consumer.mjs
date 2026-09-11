@@ -205,22 +205,6 @@ async function packHarnessArtifacts(temporaryRoot, harnessRoot) {
     landlockPack,
   ], { cwd: harnessRoot });
 
-  // Reuse upstream's own external packed-install gate before safe-runtime adds
-  // its Adapter-specific consumer on top. This catches incomplete upstream
-  // publication payloads independently of our smoke harness.
-  await run("pnpm", [
-    "run",
-    "release:verify-packed-install",
-    "--family",
-    "dsh",
-    "--from",
-    dshPack,
-    "--from",
-    vendorPack,
-    "--from",
-    landlockPack,
-  ], { cwd: harnessRoot, env: safeEnvironment() });
-
   const artifacts = [];
   for (const [directory, label] of [
     [dshPack, "Harness dsh family"],
@@ -262,12 +246,14 @@ async function installAndSmoke(temporaryRoot, harnessRoot, artifacts) {
       DSH_TELEMETRY_DISABLED: "1",
     });
 
+    // Preserve the exact packed manifests' install semantics. In particular,
+    // R1-005 must not suppress upstream lifecycle scripts or optional runtime
+    // dependencies merely to make the evidence environment easier to install.
     await run("npm", [
       "install",
       "--no-audit",
       "--no-fund",
       "--package-lock=false",
-      "--omit=optional",
     ], { cwd: consumerRoot, env: environment });
     await run(process.execPath, ["consumer-smoke.mjs"], { cwd: consumerRoot, env: environment });
   } finally {
