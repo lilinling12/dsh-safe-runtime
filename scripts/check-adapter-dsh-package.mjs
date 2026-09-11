@@ -1,21 +1,15 @@
 #!/usr/bin/env node
 
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, join, resolve } from "node:path";
 import process from "node:process";
-import { pathToFileURL } from "node:url";
 import { spawn } from "node:child_process";
 
 const ROOT = process.cwd();
 const PACKAGE_NAME = "@dsh-safe/adapter-dsh";
 const EXPECTED_VERSION = "0.1.0-alpha.0";
 const EXPECTED_ENGINE = "^22.19.0 || >=24.0.0";
-const EXPECTED_RUNTIME_EXPORTS = [
-  "DshAdapterError",
-  "createDshRc5Adapter",
-  "createDshRc5Plugin",
-];
 const EXPECTED_PEERS = {
   "@deepseek-ai/cordis": "4.0.1",
   "@deepseek-ai/dsh-agent": "0.1.0-rc.5",
@@ -58,16 +52,6 @@ function run(command, args, options = {}) {
 
 function fail(message) {
   throw new Error(message);
-}
-
-async function assertRuntimeRoot() {
-  const entry = resolve(ROOT, "packages/adapter-dsh/dist/index.js");
-  const module = await import(`${pathToFileURL(entry).href}?audit=${Date.now()}`);
-  const actual = Object.keys(module).sort();
-  const expected = [...EXPECTED_RUNTIME_EXPORTS].sort();
-  if (JSON.stringify(actual) !== JSON.stringify(expected)) {
-    fail(`unexpected built runtime export surface: ${JSON.stringify(actual)}`);
-  }
 }
 
 function auditManifest(manifest) {
@@ -132,8 +116,11 @@ function auditFiles(files) {
 async function main() {
   const temporaryRoot = await mkdtemp(join(tmpdir(), "dsh-safe-adapter-pack-"));
   try {
+    // The publication build performs the runtime-root smoke while the exact
+    // pinned Harness projection still exists, then removes only links it owns.
+    // Re-importing the built root here would require recreating peer state and
+    // would blur the package-content audit with build-time compatibility setup.
     await run("pnpm", ["--filter", PACKAGE_NAME, "build"]);
-    await assertRuntimeRoot();
 
     const packResult = await run("pnpm", [
       "--filter",
