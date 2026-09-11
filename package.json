@@ -17,7 +17,8 @@
     "check:schemas": "node scripts/check-schema-shape.mjs",
     "check:testkit-package": "node scripts/check-testkit-package.mjs",
     "check:adapter-dsh-package": "node scripts/check-adapter-dsh-package.mjs",
-    "check:all": "pnpm check:boundaries && pnpm check:schemas && pnpm check:schema-baseline && pnpm typecheck && pnpm test && pnpm lint && pnpm check:testkit-package && pnpm check:adapter-dsh-package",
+    "check:adapter-dsh-external-consumer": "node scripts/check-adapter-dsh-external-consumer.mjs",
+    "check:all": "pnpm check:boundaries && pnpm check:schemas && pnpm check:schema-baseline && pnpm typecheck && pnpm test && pnpm lint && pnpm check:testkit-package && pnpm check:adapter-dsh-package && pnpm check:adapter-dsh-external-consumer",
     "check:schema-baseline": "node scripts/check-schema-baseline.mjs"
   },
   "devDependencies": {

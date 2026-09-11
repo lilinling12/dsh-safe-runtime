@@ -15,7 +15,7 @@
 - R1-002: **GOVERNANCE CLOSED**
 - R1-003: **GOVERNANCE CLOSED**
 - R1-004: **GOVERNANCE CLOSED**
-- R1-005: **PROTOCOL-FIRST CORRECTION CANDIDATE / EXACT-HEAD VERIFICATION REQUIRED**
+- R1-005: **IMPLEMENTATION CANDIDATE / EXACT-HEAD VERIFICATION REQUIRED**
 - R1-006+: **NOT AUTHORIZED**
 - M5-003+: **PAUSED until R1 Alpha release governance closes**
 - npm/registry publish, release tag and GitHub Release: **NOT AUTHORIZED**
@@ -35,19 +35,6 @@ Harness job 103430059925 step 10 pinned-source typecheck: PASS
 Harness job 103430059925 step 11 real rc5 runtime conformance: PASS
 ```
 
-The governance delta from acceptance exact head
-`705b67569890f51542934d0c0d48dd3b4accb4d1` is restricted to:
-
-```text
-docs/handoff/CURRENT.md
-docs/handoff/HISTORY.md   +61/-0 append-only
-docs/roadmap.md           only R1-004 marker/details
-```
-
-No production code, Spec/corpus/Schema, Shared TCK, dependency/lockfile,
-Harness baseline/workflow, R1-005 implementation, M5-003+, registry/release or PR
-merge/readiness state changed in that governance transition.
-
 Therefore:
 
 ```text
@@ -55,7 +42,7 @@ R1-004 GOVERNANCE CLOSED
 R1-005 P0 PROTOCOL/DESIGN-FIRST WORK AUTHORIZED
 ```
 
-## R1-005 authority
+## R1-005 normative authority
 
 Roadmap Gate:
 
@@ -63,7 +50,7 @@ Roadmap Gate:
 R1-005 P0 — external tarball consumer + real Harness smoke gate
 ```
 
-New normative candidate:
+Normative contract:
 
 ```text
 specs/0059-r1-external-tarball-consumer-harness-smoke.md
@@ -89,88 +76,83 @@ real pnpm-pack tarball
 no Adapter install-time scripts
 ```
 
-## External-consumer boundary
+## Protocol-first exact-head authorization
 
-R1-005 defines a clean consumer as a new directory outside both the safe-runtime
-repository/workspace and the pinned Harness source workspace. Runtime resolution
-must come from that consumer's installed package tree.
+Initial protocol-first head `0591e7af8f6b7f2f258d86cfff6fe973a516f699`
+was dual-green, then source review corrected the rc5 feature-smoke boundary without
+adding implementation.
 
-Forbidden consumer shortcuts include:
-
-```text
-workspace: links
-source-directory file:/link: dependencies
-npm link / pnpm link
-NODE_PATH source injection
-safe-runtime source/deep imports
-Harness source imports
-safe-runtime repository node_modules runtime reuse
-```
-
-The Adapter under test must be the real R1-004 `.tgz` and must be imported only
-through installed `@dsh-safe/adapter-dsh`.
-
-## Exact rc5 acquisition boundary
-
-The accepted baseline MUST NOT be changed to rc6/latest/next/ranges merely because
-registry state has moved.
-
-The current external evidence still shows public npm centered on newer Harness
-coordinates while the accepted exact source commit contains package manifests for
-the rc5 family. For example, exact pinned upstream
-`packages/core/agent/package.json` declares:
+Corrected protocol-first exact head:
 
 ```text
-@deepseek-ai/dsh-agent 0.1.0-rc.5
+045c9b4ecadd2be88a43053976e8507f80d6b7eb
+CI #696: PASS
+Harness #638: PASS
 ```
 
-and upstream workspace peer dependencies.
+The corrected contract requires the installed exact rc5 Adapter to report its real
+required public features as present. It forbids manufacturing an unsupported rc5
+runtime merely to exercise a negative branch that belongs to a future separately
+accepted compatibility baseline.
 
-R1-005 therefore separates:
+Because that exact corrected protocol-first SHA is normal-CI + exact-Harness
+dual-green, R1-005 executable implementation is authorized.
+
+## External-consumer implementation boundary
+
+The implementation creates a clean temporary consumer outside both the
+safe-runtime repository and the pinned Harness source checkout. It uses only real
+packed package artifacts as consumer dependency inputs.
+
+The implementation:
+
+1. builds and packs `@dsh-safe/protocol@0.1.0-alpha.0`;
+2. reuses the accepted R1-004 Adapter publication build and real `pnpm pack`;
+3. checks out and verifies exactly Harness commit `47f943...`;
+4. performs the upstream frozen install and official release verification/build;
+5. uses official upstream DSH/vendor pack paths plus the required Landlock entry pack;
+6. audits every local tarball name/version, SHA-256, dependency/peer summary and
+   rejects surviving `workspace:` locators;
+7. rejects conflicting duplicate package identities;
+8. installs the resulting local tarball closure into a fresh external consumer
+   with a normal `npm install`;
+9. does not suppress upstream lifecycle scripts or optional runtime dependencies;
+10. proves runtime resolution occurs under the consumer `node_modules`, never
+    from either source checkout;
+11. asserts all Adapter-declared direct Cordis/Harness peer versions exactly;
+12. imports only the installed public `@dsh-safe/adapter-dsh` package root;
+13. executes real rc5 ALLOW, DENY, ASK allowed-once/rejected/cancelled/unavailable,
+    omitted-policy default deny, required-feature and disposal/no-stale-registration
+    smokes.
+
+The upstream `release:verify-packed-install` helper is deliberately not part of
+this Gate. Disposable investigation proved that helper can fail after successful
+exact-source build/pack because it performs a fresh mutable-registry resolution
+for unrelated public dependencies. R1-005 instead validates the Spec 0059-owned
+external consumer using the exact local tarball closure while preserving upstream
+packed-manifest install semantics.
+
+## Hardened disposable evidence
+
+Before formalizing the implementation, a disposable evidence branch validated the
+strict install semantics without changing PR #3.
 
 ```text
-EXTERNAL_TARBALL_CONSUMER_VERIFIED   # required by this Gate
-PUBLIC_REGISTRY_INSTALL_VERIFIED     # separate optional fact
+evidence head: 97c8e23b29d2093e6e2953022c512ca9971b02a3
+workflow run: 34656668759
+job: 103450484256
+Install safe-runtime dependencies reproducibly: PASS
+Execute R1-005 external tarball consumer candidate: PASS
 ```
 
-If any exact rc5 runtime package is unavailable publicly, R1-005 permits a
-bounded exact-source peer-tarball bridge only when it:
+The hardened evidence uses ordinary `npm install --no-audit --no-fund
+--package-lock=false`; it does not use `--omit=optional` and does not disable
+install scripts. The disposable workflow itself is evidence-only and MUST NOT
+enter the product branch.
 
-1. checks out and verifies exactly `47f943...`;
-2. uses reproducible upstream install/build inputs;
-3. computes the complete runtime workspace-package dependency closure;
-4. packs every required unavailable workspace package into a real `.tgz`;
-5. verifies packed name/version and rejects surviving `workspace:` locators;
-6. installs only those tarballs into the external consumer;
-7. records archive SHA-256 and source authority.
+## Claim boundary
 
-This bridge does not establish public-registry installability and does not
-broaden compatibility.
-
-## Required external runtime smoke
-
-The installed package root must be tested against the real installed rc5
-Cordis/Harness path for at least:
-
-```text
-HANDLER ALLOW
-HANDLER DENY with body non-entry
-HANDLER ASK + ALLOWED_ONCE
-HANDLER ASK + REJECTED
-omitted policy -> DENY_ALL/default deny
-installed required features -> exact rc5 public feature matrix reports present
-await fiber.dispose() -> no stale Adapter registration
-```
-
-CANCELLED and UNAVAILABLE ASK outcomes should be included in the same external
-suite where practical and remain fail closed.
-
-The smoke may use only minimal test-owned Cordis services/agents/tools. It must
-not replace the actual ToolRuntime/approval pipeline with a structural fake.
-
-## R1-005 claim boundary
-
-R1-005 acceptance may establish only:
+R1-005 implementation acceptance may establish only:
 
 ```text
 R1_005_EXTERNAL_TARBALL_CONSUMER_ACCEPTED
@@ -178,7 +160,13 @@ EXTERNAL_TARBALL_CONSUMER_VERIFIED
 EXACT_RC5_RUNTIME_SMOKE_VERIFIED
 ```
 
-It does not automatically establish:
+The implementation records:
+
+```text
+publicRegistryInstallVerified: false
+```
+
+and therefore does not claim:
 
 ```text
 PUBLIC_REGISTRY_INSTALL_VERIFIED
@@ -192,87 +180,52 @@ COMPLETE_HOST_EFFECT_MEDIATION_VERIFIED
 R1-006 owns compatibility/install UX. R1-007/R1-008 own release/provenance and
 actual publication. M14 remains the future process-isolated Plugin Host.
 
-## Protocol-first correction rationale
+## Formal implementation candidate delta
 
-Initial R1-005 protocol-first head:
-
-```text
-0591e7af8f6b7f2f258d86cfff6fe973a516f699
-CI #695 / run 34650647529: PASS
-Harness #637 / run 34650647706: PASS
-Harness job 103431757382 step 10: PASS
-Harness job 103431757382 step 11: PASS
-```
-
-Post-green source review found one draft-only overconstraint: Spec 0059 had
-required the exact rc5 external consumer to manufacture an unsupported-feature
-activation attempt, while the accepted rc5 public `AdapterFeatureMatrix` fixes
-`toolsPreExecute` and `toolsMonotonicGuard` as present compatibility facts.
-
-The correction preserves the inherited R1-003 fail-closed rule for any future
-separately accepted baseline that truthfully lacks a required feature, but forbids
-monkey-patching/faking rc5 solely to create that negative case. Current rc5 smoke
-must instead assert the installed public feature matrix reports every selected-mode
-requirement present.
-
-This correction is protocol-only. R1-005 executable implementation remains
-unauthorized until the corrected exact head is again normal-CI + Harness dual-green.
-
-## Protocol-first delta boundary
-
-Before R1-005 implementation begins, the repository delta from the R1-004
-closure head is restricted to exactly:
+This candidate is intentionally test/build infrastructure only:
 
 ```text
-specs/0059-r1-external-tarball-consumer-harness-smoke.md
-fixtures/adapter-dsh-external-consumer/cases.json
+scripts/check-adapter-dsh-external-consumer.mjs
+scripts/r1-005-external-consumer-smoke.mjs
+package.json
 docs/handoff/CURRENT.md
 ```
 
-Not authorized until this exact protocol-first head is dual-green:
+`package.json` only adds the R1-005 checker command and appends it to the existing
+`check:all` chain. The existing CI workflow already executes `pnpm check:all`, so
+no disposable evidence workflow enters product history.
 
-```text
-external-consumer executable scripts/tests
-package.json scripts
-pnpm-lock.yaml
-production TypeScript
-source-conformance implementation
-HISTORY
-roadmap R1-005 acceptance marker
-R1-006+
-M5-003+
-registry publish
-GitHub Release/tag
-PR #3 merge / Ready
-```
+This candidate changes no production TypeScript, pnpm lockfile, Spec/corpus,
+Schema/validator, Shared TCK, Harness baseline/source-conformance workflow,
+HISTORY, roadmap acceptance marker, R1-006+, M5-003+, registry/release/tag or PR
+merge/readiness state.
 
-## Required protocol-first verification
+## Required implementation exact-head verification
 
-The new protocol-first exact head must pass on one SHA:
+The formal implementation exact head must itself pass on the same SHA:
 
 ```text
 normal CI
+  including R1-005 real external tarball consumer gate
 +
-Harness rc5 source-conformance
+exact pinned Harness rc5 source-conformance
   step 10 pinned-source TypeScript
   step 11 real rc5 runtime
 ```
 
-If either fails, inspect only the current exact-head failed job/step before
-editing. Do not weaken the fixture/spec boundary or reuse older green evidence.
+Until that exact formal implementation SHA is dual-green, this remains only an
+implementation candidate and no R1-005 acceptance/governance claim is established.
 
-After the protocol-first exact head is dual-green, R1-005 implementation may begin
-in the sequence frozen by Spec 0059: Adapter tarball reuse -> exact peer
-acquisition/closure audit -> source-tarball bridge only if necessary -> external
-install -> source-leak/version audit -> real runtime smokes -> independent
-acceptance review.
+After dual-green, perform independent R1-005 acceptance review before any HISTORY
+or roadmap governance marker change.
 
 ## Current authorization
 
 ```text
 R1-004 GOVERNANCE CLOSED
-R1-005 PROTOCOL-FIRST CORRECTION CANDIDATE: VERIFY EXACT HEAD
-R1-005 IMPLEMENTATION: NOT YET AUTHORIZED
+R1-005 PROTOCOL-FIRST: ACCEPTED / DUAL-GREEN
+R1-005 IMPLEMENTATION: CANDIDATE / EXACT-HEAD VERIFICATION REQUIRED
+R1-005 ACCEPTANCE / GOVERNANCE: NOT YET ESTABLISHED
 R1-006+ NOT AUTHORIZED
 M5-003+ PAUSED
 REGISTRY PUBLISH / GITHUB RELEASE / TAG NOT AUTHORIZED
