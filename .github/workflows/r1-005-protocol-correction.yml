@@ -1,0 +1,152 @@
+name: R1-005 Protocol Correction Evidence
+
+on:
+  push:
+    branches:
+      - evidence/r1-005-protocol-correction
+
+permissions:
+  contents: write
+
+jobs:
+  correct-protocol:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply exact normative correction
+        shell: python
+        run: |
+          from pathlib import Path
+          import json
+
+          spec_path = Path('specs/0059-r1-external-tarball-consumer-harness-smoke.md')
+          spec = spec_path.read_text(encoding='utf-8')
+          old = '''## 17. Unsupported-feature fail-closed smoke
+
+The external suite MUST include at least one activation attempt whose declared
+runtime feature set lacks a feature required by the selected plugin mode.
+
+The attempt MUST:
+
+- fail activation explicitly through the accepted unsupported-feature boundary;
+- leave no usable partially active plugin;
+- clean up Adapter-owned registrations created by the failed attempt;
+- never degrade silently to a weaker path while reporting success.
+
+For DENY_ALL, missing `toolsPreExecute` or `toolsMonotonicGuard` is sufficient.
+'''
+          new = '''## 17. Required-feature compatibility assertion
+
+The external suite MUST inspect the installed Adapter's public feature matrix and
+prove that every feature required by the selected plugin mode is present on the
+accepted exact rc5 baseline.
+
+For the currently accepted baseline, `toolsPreExecute` and
+`toolsMonotonicGuard` are fixed compatibility facts and are both `true`.
+R1-005 MUST NOT monkey-patch the Adapter, substitute a fake feature matrix or
+fabricate a different runtime merely to manufacture an unsupported-feature case.
+
+The fail-closed unsupported-feature branch accepted by R1-003 remains normative:
+if a future separately accepted Harness baseline truthfully reports a required
+feature as unavailable, its external-consumer suite MUST prove activation fails
+explicitly, leaves no partially active plugin, cleans Adapter-owned registrations
+and never silently downgrades to a weaker path. Such a future baseline requires
+its own compatibility authority under R1-006 or later governance.
+
+For rc5 R1-005 evidence, the correct result is therefore
+`REQUIRED_FEATURES_PRESENT`; an artificial unsupported-feature negative case is
+not applicable and MUST NOT be fabricated.
+'''
+          if spec.count(old) != 1:
+              raise SystemExit(f'expected exactly one Spec §17 block, found {spec.count(old)}')
+          spec = spec.replace(old, new)
+          old_evidence = '''12. unsupported-feature fail-closed smoke PASS;
+13. disposal/no-stale-registration smoke PASS.'''
+          new_evidence = '''12. installed required-feature compatibility assertion PASS;
+13. disposal/no-stale-registration smoke PASS.'''
+          if spec.count(old_evidence) != 1:
+              raise SystemExit('required acceptance evidence block drifted')
+          spec = spec.replace(old_evidence, new_evidence)
+          spec_path.write_text(spec, encoding='utf-8')
+
+          cases_path = Path('fixtures/adapter-dsh-external-consumer/cases.json')
+          doc = json.loads(cases_path.read_text(encoding='utf-8'))
+          matches = [case for case in doc['cases'] if case['id'] == 'ATCON-029']
+          if len(matches) != 1:
+              raise SystemExit(f'expected one ATCON-029, found {len(matches)}')
+          matches[0]['class'] = 'FEATURE_COMPATIBILITY'
+          matches[0]['requirement'] = (
+              'The installed exact rc5 Adapter publicly reports every feature required by the selected plugin mode as present; '
+              'R1-005 must not fabricate a missing-feature runtime. A future separately accepted baseline that truthfully lacks '
+              'a required feature must exercise the inherited fail-closed activation branch.'
+          )
+          cases_path.write_text(json.dumps(doc, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
+
+          current_path = Path('docs/handoff/CURRENT.md')
+          current = current_path.read_text(encoding='utf-8')
+          current = current.replace(
+              '- R1-005: **PROTOCOL-FIRST CANDIDATE / EXACT-HEAD VERIFICATION REQUIRED**',
+              '- R1-005: **PROTOCOL-FIRST CORRECTION CANDIDATE / EXACT-HEAD VERIFICATION REQUIRED**',
+          )
+          current = current.replace(
+              '## Required external runtime smoke\n\nThe installed package root must be tested against the real installed rc5\nCordis/Harness path for at least:\n\n```text\nHANDLER ALLOW\nHANDLER DENY with body non-entry\nHANDLER ASK + ALLOWED_ONCE\nHANDLER ASK + REJECTED\nomitted policy -> DENY_ALL/default deny\nunsupported required feature -> activation fails closed\nawait fiber.dispose() -> no stale Adapter registration\n```',
+              '## Required external runtime smoke\n\nThe installed package root must be tested against the real installed rc5\nCordis/Harness path for at least:\n\n```text\nHANDLER ALLOW\nHANDLER DENY with body non-entry\nHANDLER ASK + ALLOWED_ONCE\nHANDLER ASK + REJECTED\nomitted policy -> DENY_ALL/default deny\ninstalled required features -> exact rc5 public feature matrix reports present\nawait fiber.dispose() -> no stale Adapter registration\n```',
+          )
+          marker = '## Protocol-first delta boundary\n'
+          insertion = '''## Protocol-first correction rationale
+
+Initial R1-005 protocol-first head:
+
+```text
+0591e7af8f6b7f2f258d86cfff6fe973a516f699
+CI #695 / run 34650647529: PASS
+Harness #637 / run 34650647706: PASS
+Harness job 103431757382 step 10: PASS
+Harness job 103431757382 step 11: PASS
+```
+
+Post-green source review found one draft-only overconstraint: Spec 0059 had
+required the exact rc5 external consumer to manufacture an unsupported-feature
+activation attempt, while the accepted rc5 public `AdapterFeatureMatrix` fixes
+`toolsPreExecute` and `toolsMonotonicGuard` as present compatibility facts.
+
+The correction preserves the inherited R1-003 fail-closed rule for any future
+separately accepted baseline that truthfully lacks a required feature, but forbids
+monkey-patching/faking rc5 solely to create that negative case. Current rc5 smoke
+must instead assert the installed public feature matrix reports every selected-mode
+requirement present.
+
+This correction is protocol-only. R1-005 executable implementation remains
+unauthorized until the corrected exact head is again normal-CI + Harness dual-green.
+
+'''
+          if marker not in current:
+              raise SystemExit('CURRENT protocol boundary marker missing')
+          if '## Protocol-first correction rationale' not in current:
+              current = current.replace(marker, insertion + marker)
+          current = current.replace(
+              'R1-005 PROTOCOL-FIRST CANDIDATE: VERIFY EXACT HEAD\nR1-005 IMPLEMENTATION: NOT YET AUTHORIZED',
+              'R1-005 PROTOCOL-FIRST CORRECTION CANDIDATE: VERIFY EXACT HEAD\nR1-005 IMPLEMENTATION: NOT YET AUTHORIZED',
+          )
+          current_path.write_text(current, encoding='utf-8')
+
+      - name: Verify correction scope and self-remove workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/r1-005-protocol-correction.yml
+          git diff --check
+          changed="$(git diff --name-only HEAD | sort)"
+          expected="$(printf '%s\n' \
+            'docs/handoff/CURRENT.md' \
+            'fixtures/adapter-dsh-external-consumer/cases.json' \
+            'specs/0059-r1-external-tarball-consumer-harness-smoke.md' | sort)"
+          test "$changed" = "$expected"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/handoff/CURRENT.md fixtures/adapter-dsh-external-consumer/cases.json specs/0059-r1-external-tarball-consumer-harness-smoke.md .github/workflows/r1-005-protocol-correction.yml
+          git commit -m 'spec(r1-005): correct rc5 feature smoke boundary'
+          git push origin HEAD:evidence/r1-005-protocol-correction
