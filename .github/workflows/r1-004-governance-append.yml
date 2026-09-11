@@ -10,7 +10,6 @@ permissions:
 
 jobs:
   append-history:
-    if: github.event.head_commit.message == 'evidence(r1-004): materialize append-only governance history'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout evidence branch
