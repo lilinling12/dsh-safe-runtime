@@ -1,0 +1,76 @@
+name: R1-004 lockgen evidence
+
+on:
+  push:
+    branches:
+      - evidence/r1-004-lockgen
+
+permissions:
+  contents: read
+
+jobs:
+  lockgen:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout evidence branch
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22.19.0
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.19.0
+
+      - name: Enable pinned pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.7.0 --activate
+          pnpm --version
+
+      - name: Add exact rc5 build-time copies in working tree only
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFile, writeFile } from 'node:fs/promises'
+
+          const path = 'packages/adapter-dsh/package.json'
+          const manifest = JSON.parse(await readFile(path, 'utf8'))
+          manifest.devDependencies = {
+            ...manifest.devDependencies,
+            '@deepseek-ai/cordis': '4.0.1',
+            '@deepseek-ai/dsh-agent': '0.1.0-rc.5',
+            '@deepseek-ai/dsh-llm': '0.1.0-rc.5',
+            '@deepseek-ai/dsh-session': '0.1.0-rc.5',
+            '@deepseek-ai/dsh-tools': '0.1.0-rc.5',
+            '@deepseek-ai/dsh-user-approval': '0.1.0-rc.5'
+          }
+          await writeFile(path, `${JSON.stringify(manifest, null, 2)}\n`)
+          NODE
+
+          cat > packages/adapter-dsh/tsconfig.publish-probe.json <<'JSON'
+          {
+            "extends": "./tsconfig.json",
+            "compilerOptions": {
+              "composite": false,
+              "rootDir": "src",
+              "noEmit": true
+            },
+            "include": ["src/**/*.ts"],
+            "exclude": []
+          }
+          JSON
+
+      - name: Generate real pnpm lockfile resolution
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Probe publication source graph against registry rc5 packages
+        run: pnpm --filter @dsh-safe/adapter-dsh exec tsc -p tsconfig.publish-probe.json
+
+      - name: Upload generated lock evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r1-004-lockgen-evidence
+          if-no-files-found: error
+          path: |
+            pnpm-lock.yaml
+            packages/adapter-dsh/package.json
+            packages/adapter-dsh/tsconfig.publish-probe.json
