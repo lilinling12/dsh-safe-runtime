@@ -16,7 +16,8 @@
     "check:boundaries": "node scripts/verify-boundaries.mjs",
     "check:schemas": "node scripts/check-schema-shape.mjs",
     "check:testkit-package": "node scripts/check-testkit-package.mjs",
-    "check:all": "pnpm check:boundaries && pnpm check:schemas && pnpm check:schema-baseline && pnpm typecheck && pnpm test && pnpm lint && pnpm check:testkit-package",
+    "check:adapter-dsh-package": "node scripts/check-adapter-dsh-package.mjs",
+    "check:all": "pnpm check:boundaries && pnpm check:schemas && pnpm check:schema-baseline && pnpm typecheck && pnpm test && pnpm lint && pnpm check:testkit-package && pnpm check:adapter-dsh-package",
     "check:schema-baseline": "node scripts/check-schema-baseline.mjs"
   },
   "devDependencies": {

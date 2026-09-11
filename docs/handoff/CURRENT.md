@@ -11,61 +11,35 @@
 - Active PR: `#3 — feat(policy): begin M4 capability broker`
 - Branch: `feat/m4-capability-broker`
 - Base: `main@57430273e065be8d38807d67b175fa154c801d43`
-- R1-001 P0 Alpha readiness reconciliation: **GOVERNANCE CLOSED**
-- R1-002 P0 public DeepSeek Adapter API: **GOVERNANCE CLOSED**
-- R1-003 P0 DeepSeek plugin/bootstrap integration: **GOVERNANCE CLOSED**
-- R1-004 P0 publishable Adapter package: **PROTOCOL-FIRST DUAL-GREEN / IMPLEMENTATION AUTHORIZED**
-- R1-005+: **NOT AUTHORIZED by the current Gate**
+- R1-001: **GOVERNANCE CLOSED**
+- R1-002: **GOVERNANCE CLOSED**
+- R1-003: **GOVERNANCE CLOSED**
+- R1-004: **IMPLEMENTATION CANDIDATE / EXACT-HEAD VERIFICATION REQUIRED**
+- R1-005+: **NOT AUTHORIZED**
 - M5-003+: **PAUSED until R1 Alpha release governance closes**
-- npm/registry publish and GitHub Release: **NOT AUTHORIZED**
-- PR #3 merge / Ready-for-review transition: **NOT AUTHORIZED without explicit user authorization**
+- npm/registry publish, release tag and GitHub Release: **NOT AUTHORIZED**
+- PR #3 merge / Ready transition: **NOT AUTHORIZED without explicit user authorization**
 
 Live GitHub state overrides this snapshot.
 
-## R1-003 closure authority
+## R1-004 authority
 
-R1-003 final governance exact head:
-
-```text
-463cc6d8b8811245cfb8f44eaebb16cba502d974
-CI #684 / run 34574349469: PASS
-Harness #626 / run 34574349464: PASS
-Harness step 10 pinned-source typecheck: PASS
-Harness step 11 real rc5 runtime conformance: PASS
-```
-
-R1-003 is **GOVERNANCE CLOSED** and R1-004 is the sole active engineering Gate.
-PR #3 remains Open / Draft / unmerged.
-
-## R1-004 normative authority
-
-Normative candidate:
+Normative contract:
 
 ```text
 specs/0058-r1-adapter-dsh-publishable-package.md
-```
-
-Contract corpus:
-
-```text
 fixtures/adapter-dsh-package/cases.json
 profile: R1-004_ADAPTER_DSH_PACKAGE_V1
-cases: ADPKG-001..ADPKG-036
+ADPKG-001..ADPKG-036
 ```
 
-Pinned compatibility baseline remains exactly:
+Pinned Harness compatibility/type authority remains exactly:
 
 ```text
 0.1.0-rc.5@47f943859bef60e4160492346772ded9b24f765a
 ```
 
-DeepSeek Harness/Cordis remains compatibility evidence only. Packaging does not
-redefine portable Subject/Capability/Resource/policy/Lease/approval/guarantee or
-M4 security semantics.
-
-## R1-004 protocol-first exact-head verification
-
-The protocol-first exact head is:
+Protocol-first exact head:
 
 ```text
 3ce15c7796bd32ecebcb220207fad3ccd03b7834
@@ -75,211 +49,140 @@ Harness step 10 pinned-source typecheck: PASS
 Harness step 11 real rc5 runtime conformance: PASS
 ```
 
-Therefore the protocol-first prerequisite is satisfied and R1-004 package/build
-implementation is authorized.
-
-## Corrected upstream release evidence
-
-A transient handoff-only head `158dd5df41ae56c8dd038d14db70f1573f3ca9ba`
-recorded a suspected source-versus-registry coordinate blocker after public npm
-searches failed to surface an exact `0.1.0-rc.5` lock/tarball record. Further
-upstream authority review disproved that inference before package implementation
-began.
-
-The exact pinned upstream commit itself is:
+The later handoff correction head `e3d438dadf3e08b3f0fd82d5d3df3b6fe6ee274d`
+was also exact-head dual-green:
 
 ```text
-47f943859bef60e4160492346772ded9b24f765a
-Merge pull request #2519 from deepseek-harness/feat/npm-public
-release: dsh@0.1.0-rc.5 & publish the dsh family publicly
+CI #687 / run 34631333150: PASS
+Harness #629 / run 34631333146: PASS
 ```
 
-The same upstream history contains the direct release commit:
+## Registry diagnostic and build authority
+
+A disposable evidence branch proved that current npm resolution cannot be used as
+the exact rc5 build-time authority:
 
 ```text
-abe560f81edebe5f6a5b62706ff502daa0dccd40
-release(dsh): 0.1.0-rc.5
+ERR_PNPM_NO_MATCHING_VERSION
+No matching version found for @deepseek-ai/dsh-agent@0.1.0-rc.5
 ```
 
-and the pinned package manifests declare `0.1.0-rc.5` for the exact Adapter
-compile authority, including:
+This does not authorize changing the accepted baseline. Upstream commit
+`47f943859bef60e4160492346772ded9b24f765a` is the release/publication source
+commit for the `0.1.0-rc.5` family, and direct release commit
+`abe560f81edebe5f6a5b62706ff502daa0dccd40` records `release(dsh): 0.1.0-rc.5`.
+
+R1-004 therefore uses the exact pinned upstream source only as deterministic
+publication-compilation type input. Runtime ownership remains the existing exact
+peer dependency contract. No rc6 substitution, peer broadening or registry
+facsimile is permitted.
+
+## Disposable evidence completed
+
+The isolated branch `evidence/r1-004-lockgen` is evidence tooling only and MUST
+NOT enter PR #3 product history.
+
+Source-backed publication compile evidence passed on its disposable workflow:
 
 ```text
-@deepseek-ai/dsh-agent          0.1.0-rc.5
-@deepseek-ai/dsh-llm            0.1.0-rc.5
-@deepseek-ai/dsh-session        0.1.0-rc.5
-@deepseek-ai/dsh-tools          0.1.0-rc.5
-@deepseek-ai/dsh-user-approval  0.1.0-rc.5
+exact upstream checkout
+upstream frozen install
+upstream build:lib:host
+safe-runtime frozen install
+exact @deepseek-ai workspace projection
+public-root TypeScript emit
+dist/index.js exists
+dist/index.d.ts exists
 ```
 
-Therefore absence of a convenient Git tag or third-party lockfile is **not** a
-valid basis for changing the accepted rc5 authority. The earlier suspected
-blocker is cleared. No Spec, corpus, peer version, compatibility baseline,
-package manifest, lockfile or production code was changed while investigating it.
-
-## Recovered package/build facts
-
-Current Adapter manifest remains:
+A later disposable package probe also passed:
 
 ```text
-name: @dsh-safe/adapter-dsh
-version: 0.1.0-alpha.0
-private: true
-type: module
-license: MIT
-```
-
-Current exact runtime peers remain:
-
-```text
-@deepseek-ai/cordis             4.0.1
-@deepseek-ai/dsh-agent          0.1.0-rc.5
-@deepseek-ai/dsh-llm            0.1.0-rc.5
-@deepseek-ai/dsh-session        0.1.0-rc.5
-@deepseek-ai/dsh-tools          0.1.0-rc.5
-@deepseek-ai/dsh-user-approval  0.1.0-rc.5
-```
-
-Source dependency remains:
-
-```text
-@dsh-safe/protocol: workspace:*
-```
-
-`packages/adapter-dsh/tsconfig.json` intentionally excludes:
-
-```text
-src/binding.ts
-src/public-api.ts
-src/plugin.ts
-src/index.ts
-```
-
-because ordinary monorepo typecheck is narrower than the exact pinned Harness
-compile topology. R1-004 therefore needs a separate truthful publication build
-graph that emits the accepted package root and all reachable runtime/declaration
-modules.
-
-`pnpm-workspace.yaml` has `autoInstallPeers: false`. A clean publication compile
-must therefore make the exact pinned Harness/Cordis build-time type inputs
-available reproducibly rather than relying on the source-conformance workflow's
-temporary workspace projection. Runtime ownership remains peer-based; build-time
-copies must not broaden or replace those peers.
-
-## Candidate package contract
-
-R1-004 implementation must prove all of the following on one exact implementation
-head:
-
-```text
-clean deterministic publication build
-built ESM package root exists
-matching .d.ts root exists
-single curated root export
-explicit files allowlist
-actual .tgz generated and inspected
-no workspace:* survives packed manifest
+files: [src/index.ts] publication graph
+built-root runtime export smoke
+real pnpm pack
+packed-manifest inspection
+workspace protocol dependency transformed to a non-workspace registry version
 exact rc5/Cordis peers preserved
-explicit supported Node engine
-license/repository/description/keywords coherent
-no internal source/test/workflow/secret content in tarball
-normal CI green
-exact pinned Harness source/runtime conformance green
+single root export
+required JS/declaration roots present
+forbidden source/test/workflow/secret content absent
+R1-004 tarball evidence audit: PASS
 ```
 
-Expected single-root export shape is:
+## Implementation candidate boundary
 
-```json
-{
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    }
-  }
-}
-```
-
-An equivalent root-only shape is acceptable only if the generated artifact proves
-the same semantics.
-
-R1-004 MAY add the minimum exact development-time Harness packages required for
-clean publication compilation, with a reviewed frozen-lockfile delta and no
-unrelated version/integrity churn. It MUST keep Harness/Cordis runtime ownership
-in exact peerDependencies.
-
-## Lockfile-generation rule
-
-Do not hand-author pnpm registry resolution/integrity data. Generate the R1-004
-manifest/lock candidate with the repository-pinned package manager in an isolated
-branch or equivalent disposable environment, inspect the exact delta, and only
-then apply the verified package/build/check delta to the product branch.
-
-The isolation branch/workflow is evidence tooling only. It must not become part of
-PR #3 product history and must not publish packages, use registry credentials,
-create release tags or create a GitHub Release.
-
-## R1-004 versus R1-005
-
-R1-004 MAY generate and inspect a real tarball and MAY perform repository-local
-built-root smoke. It does **not** establish external-consumer acceptance.
-
-R1-005 separately owns:
+The product candidate is intentionally package/build/check focused:
 
 ```text
-consumer outside monorepo/workspace
-install same tarball
-install exact supported Harness
-ALLOW / DENY / ASK smoke
-default deny
-unsupported-feature fail closed
-dispose/lifecycle smoke
-no workspace-link/source-path cheating
+packages/adapter-dsh/package.json
+packages/adapter-dsh/tsconfig.publish.json
+packages/adapter-dsh/scripts/build-publication.mjs
+scripts/check-adapter-dsh-package.mjs
+package.json
+docs/handoff/CURRENT.md
 ```
 
-Therefore R1-004 acceptance may claim `PACKAGE_ARTIFACT_VALID`, but not
-`EXTERNAL_INSTALL_VERIFIED`.
-
-## Security / release non-claims
-
-R1-004 MUST NOT:
-
-- publish to npm/registry;
-- create a GitHub Release or release tag;
-- add registry credentials;
-- broaden rc5 peer ranges to untested Harness versions;
-- add preinstall/install/postinstall scripts merely to make the package work;
-- expose binding/provider/source-conformance/internal subpaths;
-- claim arbitrary in-process plugin sandboxing or process isolation;
-- claim complete host filesystem/process/network/secret mediation;
-- resume M5-003+;
-- implement R1-005+;
-- merge or mark PR #3 Ready.
-
-## Next allowed action
-
-Generate and review the smallest truthful R1-004 publication build/package
-candidate using exact rc5/Cordis build-time authority and a real pnpm-generated
-lockfile delta. Then apply only the verified product delta to PR #3 and require
-that new exact implementation head to pass:
+It does not change:
 
 ```text
-normal CI
-+
-exact pinned Harness source typecheck/runtime conformance
-+
-clean publication build
-+
-actual tarball audit
+pnpm-lock.yaml
+production runtime TypeScript
+protocol schemas / validators
+Shared TCK
+R1-004 Spec or corpus
+HISTORY.md
+roadmap acceptance markers
+GitHub workflows
+R1-005+
+M5-003+
 ```
 
-Until an implementation head is accepted:
+The package remains `0.1.0-alpha.0`, exposes exactly one ESM root, emits matching
+declarations, uses `files: ["dist"]`, declares the repository-supported Node
+engine, preserves exact rc5/Cordis peers, and removes package-level `private` only
+with the complete publication build and artifact audit.
+
+`build-publication.mjs` clones only exact upstream commit `47f943...` into a
+temporary directory, builds its public type surface with the pinned package
+manager, projects the exact source packages only for compilation, emits the
+accepted package-root graph, verifies runtime root exports, and cleans only
+projection entries it created. It does not publish or persist Harness source in
+the Adapter artifact.
+
+`check-adapter-dsh-package.mjs` performs a real `pnpm pack` and rejects malformed
+metadata, broadened peers, surviving `workspace:` protocol locators, extra public
+subpaths, install-time scripts, source/test/workflow content and common secret or
+local-artifact classes.
+
+## Required exact-head verification
+
+Do not accept this implementation until the same new exact SHA passes:
 
 ```text
-R1-004 PROTOCOL-FIRST: DUAL-GREEN
-R1-004 IMPLEMENTATION: AUTHORIZED / NOT YET ACCEPTED
+normal CI, including check:adapter-dsh-package
++
+Harness rc5 source-conformance
+  step 10 pinned-source TypeScript
+  step 11 real rc5 runtime
+```
+
+If either workflow fails, inspect the real current-head failed job/step/log before
+editing. Do not infer failure from the disposable evidence workflow or an older
+run.
+
+After an implementation exact head becomes dual-green, independently review the
+changed-file scope, lockfile/package manifest, tarball audit output and non-claims,
+then create the separate R1-004 acceptance audit. Do not update HISTORY or the
+roadmap acceptance marker before acceptance/governance.
+
+## Current authorization
+
+```text
+R1-004 IMPLEMENTATION CANDIDATE: VERIFY EXACT HEAD
 R1-005+ NOT AUTHORIZED
 M5-003+ PAUSED
 REGISTRY PUBLISH NOT AUTHORIZED
+GITHUB RELEASE / TAG NOT AUTHORIZED
 PR #3 REMAINS OPEN / DRAFT / UNMERGED
 ```
