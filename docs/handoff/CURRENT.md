@@ -14,10 +14,8 @@
 - R1-001: **GOVERNANCE CLOSED**
 - R1-002: **GOVERNANCE CLOSED**
 - R1-003: **GOVERNANCE CLOSED**
-- R1-004 implementation: **ACCEPTED**
-- R1-004 acceptance audit: **ACCEPTED / EXACT-HEAD DUAL-GREEN**
-- R1-004 governance: **CLOSURE CANDIDATE — THIS GOVERNANCE EXACT HEAD MUST BE DUAL-GREEN**
-- R1-005: **NOT AUTHORIZED UNTIL R1-004 GOVERNANCE EXACT HEAD IS DUAL-GREEN**
+- R1-004: **GOVERNANCE CLOSED**
+- R1-005: **PROTOCOL-FIRST CANDIDATE / EXACT-HEAD VERIFICATION REQUIRED**
 - R1-006+: **NOT AUTHORIZED**
 - M5-003+: **PAUSED until R1 Alpha release governance closes**
 - npm/registry publish, release tag and GitHub Release: **NOT AUTHORIZED**
@@ -25,217 +23,232 @@
 
 Live GitHub state overrides this snapshot.
 
-## R1-004 accepted authority chain
+## R1-004 governance closure authority
 
-R1-003 predecessor governance head:
-
-```text
-463cc6d8b8811245cfb8f44eaebb16cba502d974
-CI #684 / run 34574349469: PASS
-Harness #626 / run 34574349464: PASS
-```
-
-R1-004 protocol-first exact head:
+R1-004 final governance exact head:
 
 ```text
-3ce15c7796bd32ecebcb220207fad3ccd03b7834
-CI #685 / run 34574938355: PASS
-Harness #627 / run 34574938359: PASS
-Harness step 10 pinned-source typecheck: PASS
-Harness step 11 real rc5 runtime conformance: PASS
+2eb227f2fb54f9249ddde9739bb7e2e515d96ba8
+CI #694 / run 34650123869: PASS
+Harness #636 / run 34650123861: PASS
+Harness job 103430059925 step 10 pinned-source typecheck: PASS
+Harness job 103430059925 step 11 real rc5 runtime conformance: PASS
 ```
 
-Normative artifacts:
+The governance delta from acceptance exact head
+`705b67569890f51542934d0c0d48dd3b4accb4d1` is restricted to:
 
 ```text
-specs/0058-r1-adapter-dsh-publishable-package.md
-fixtures/adapter-dsh-package/cases.json
-profile: R1-004_ADAPTER_DSH_PACKAGE_V1
-cases: ADPKG-001..ADPKG-036
+docs/handoff/CURRENT.md
+docs/handoff/HISTORY.md   +61/-0 append-only
+docs/roadmap.md           only R1-004 marker/details
 ```
 
-Pinned Harness compatibility/type authority remains exactly:
+No production code, Spec/corpus/Schema, Shared TCK, dependency/lockfile,
+Harness baseline/workflow, R1-005 implementation, M5-003+, registry/release or PR
+merge/readiness state changed in that governance transition.
+
+Therefore:
+
+```text
+R1-004 GOVERNANCE CLOSED
+R1-005 P0 PROTOCOL/DESIGN-FIRST WORK AUTHORIZED
+```
+
+## R1-005 authority
+
+Roadmap Gate:
+
+```text
+R1-005 P0 — external tarball consumer + real Harness smoke gate
+```
+
+New normative candidate:
+
+```text
+specs/0059-r1-external-tarball-consumer-harness-smoke.md
+fixtures/adapter-dsh-external-consumer/cases.json
+profile: R1-005_EXTERNAL_TARBALL_CONSUMER_V1
+cases: ATCON-001..ATCON-040
+```
+
+Pinned compatibility/runtime authority remains exactly:
 
 ```text
 0.1.0-rc.5@47f943859bef60e4160492346772ded9b24f765a
 ```
 
-## Final reviewed implementation
-
-Final reviewed implementation head:
-
-```text
-73ed70fe07d939f02d664162b799e40ff333c02d
-CI #689 / run 34633103705: PASS
-Harness #631 / run 34633103717: PASS
-Harness step 10 pinned-source typecheck: PASS
-Harness step 11 real rc5 runtime conformance: PASS
-```
-
-The reviewed product delta is package/build/check focused:
-
-```text
-packages/adapter-dsh/package.json
-packages/adapter-dsh/tsconfig.publish.json
-packages/adapter-dsh/scripts/build-publication.mjs
-scripts/check-adapter-dsh-package.mjs
-package.json
-docs/handoff/CURRENT.md
-```
-
-It does not change production runtime TypeScript, `pnpm-lock.yaml`, protocol
-schemas/validators, Shared TCK, R1-004 Spec/corpus, GitHub workflows or later
-R1/M5 implementation.
-
-The package contract remains:
+R1-005 inherits the accepted R1-004 Adapter artifact contract:
 
 ```text
 @dsh-safe/adapter-dsh@0.1.0-alpha.0
-ESM only
-single public package root
-exports.types -> ./dist/index.d.ts
-exports.import -> ./dist/index.js
-files -> ["dist"]
-Node -> ^22.19.0 || >=24.0.0
-exact Cordis 4.0.1 + exact DSH 0.1.0-rc.5 peers
-no install-time scripts
+single public ESM package root
+built JS + declarations
+exact Cordis/Harness peer versions
+real pnpm-pack tarball
+no Adapter install-time scripts
 ```
 
-The publication build uses only exact upstream source commit `47f943...` as the
-build-time Harness type authority, emits the accepted root graph, performs the
-built-root runtime export smoke while the exact source projection exists and
-removes only projection entries it owns.
+## External-consumer boundary
 
-The real tarball audit performs `pnpm pack` and verifies package identity,
-metadata, exact peer baseline, single-root exports, required JS/declaration
-artifacts, transformed non-workspace protocol dependency, and exclusion of
-source/test/workflow/secret/local-artifact classes.
+R1-005 defines a clean consumer as a new directory outside both the safe-runtime
+repository/workspace and the pinned Harness source workspace. Runtime resolution
+must come from that consumer's installed package tree.
 
-Normal CI at the reviewed implementation head includes:
+Forbidden consumer shortcuts include:
 
 ```text
-frozen-lockfile install: PASS
-supply-chain policy: PASS (126 entries)
-architecture boundaries: PASS
-schema shape: PASS (16 schemas)
-schema compatibility baseline: PASS
-strict workspace typecheck: PASS
-75 test files / 1448 tests: PASS
-oxlint: 0 errors
-packed Shared TCK external consumer: PASS (44 assets)
-R1-004 Adapter package audit: PASS (32 packed files)
+workspace: links
+source-directory file:/link: dependencies
+npm link / pnpm link
+NODE_PATH source injection
+safe-runtime source/deep imports
+Harness source imports
+safe-runtime repository node_modules runtime reuse
 ```
 
-## Registry condition and exact-source authority
+The Adapter under test must be the real R1-004 `.tgz` and must be imported only
+through installed `@dsh-safe/adapter-dsh`.
 
-A disposable evidence probe found that current npm resolution does not provide the
-accepted exact rc5 coordinate:
+## Exact rc5 acquisition boundary
+
+The accepted baseline MUST NOT be changed to rc6/latest/next/ranges merely because
+registry state has moved.
+
+The current external evidence still shows public npm centered on newer Harness
+coordinates while the accepted exact source commit contains package manifests for
+the rc5 family. For example, exact pinned upstream
+`packages/core/agent/package.json` declares:
 
 ```text
-ERR_PNPM_NO_MATCHING_VERSION
-No matching version found for @deepseek-ai/dsh-agent@0.1.0-rc.5
+@deepseek-ai/dsh-agent 0.1.0-rc.5
 ```
 
-That fact does not authorize rc6 substitution or compatibility broadening. The
-accepted baseline remains exact rc5 at `47f943...`; runtime ownership remains the
-exact peer contract.
+and upstream workspace peer dependencies.
 
-This registry condition is deliberately carried forward as an R1-005 external
-consumer/install-authority issue. R1-004 does not claim a clean external consumer
-can currently obtain every exact peer from the public registry.
-
-## Acceptance audit and exact-head verification
-
-Acceptance audit:
+R1-005 therefore separates:
 
 ```text
-docs/acceptance/r1-004-adapter-dsh-publishable-package.md
-commit: 52956f24b3b6ac56bf64f013fb5d7d4bd272366a
+EXTERNAL_TARBALL_CONSUMER_VERIFIED   # required by this Gate
+PUBLIC_REGISTRY_INSTALL_VERIFIED     # separate optional fact
 ```
 
-The audit reconciles ADPKG-001..ADPKG-036 and records the accepted claim only as:
+If any exact rc5 runtime package is unavailable publicly, R1-005 permits a
+bounded exact-source peer-tarball bridge only when it:
+
+1. checks out and verifies exactly `47f943...`;
+2. uses reproducible upstream install/build inputs;
+3. computes the complete runtime workspace-package dependency closure;
+4. packs every required unavailable workspace package into a real `.tgz`;
+5. verifies packed name/version and rejects surviving `workspace:` locators;
+6. installs only those tarballs into the external consumer;
+7. records archive SHA-256 and source authority.
+
+This bridge does not establish public-registry installability and does not
+broaden compatibility.
+
+## Required external runtime smoke
+
+The installed package root must be tested against the real installed rc5
+Cordis/Harness path for at least:
 
 ```text
-R1_004_IMPLEMENTATION_ACCEPTED
-PACKAGE_ARTIFACT_VALID
-R1_004_GOVERNANCE_CLOSURE_PENDING
-R1_005_NOT_YET_AUTHORIZED
+HANDLER ALLOW
+HANDLER DENY with body non-entry
+HANDLER ASK + ALLOWED_ONCE
+HANDLER ASK + REJECTED
+omitted policy -> DENY_ALL/default deny
+unsupported required feature -> activation fails closed
+await fiber.dispose() -> no stale Adapter registration
 ```
 
-Acceptance synchronization exact head:
+CANCELLED and UNAVAILABLE ASK outcomes should be included in the same external
+suite where practical and remain fail closed.
+
+The smoke may use only minimal test-owned Cordis services/agents/tools. It must
+not replace the actual ToolRuntime/approval pipeline with a structural fake.
+
+## R1-005 claim boundary
+
+R1-005 acceptance may establish only:
 
 ```text
-705b67569890f51542934d0c0d48dd3b4accb4d1
-CI #691 / run 34644280041: PASS
-Harness #633 / run 34644280031: PASS
-Harness job 103411193588 step 10 pinned-source typecheck: PASS
-Harness job 103411193588 step 11 real rc5 runtime conformance: PASS
+R1_005_EXTERNAL_TARBALL_CONSUMER_ACCEPTED
+EXTERNAL_TARBALL_CONSUMER_VERIFIED
+EXACT_RC5_RUNTIME_SMOKE_VERIFIED
 ```
 
-Therefore the implementation and acceptance record are independently exact-head
-dual-green and R1-004 governance transition is authorized.
-
-## Preserved non-claims
-
-R1-004 does not establish:
+It does not automatically establish:
 
 ```text
-EXTERNAL_INSTALL_VERIFIED
-registry namespace ownership
-npm/registry publication
-GitHub Release or release tag readiness
-npm provenance / signed release / SBOM completeness
-future Harness-version compatibility
-arbitrary in-process plugin sandboxing
-process isolation
-complete host-effect mediation
-external-effect rollback
-M5-003+ resumption
-PR #3 merge / Ready authorization
+PUBLIC_REGISTRY_INSTALL_VERIFIED
+FUTURE_HARNESS_COMPATIBILITY_VERIFIED
+RELEASE_REPRODUCIBILITY_VERIFIED
+REGISTRY_PROVENANCE_VERIFIED
+PROCESS_ISOLATION_VERIFIED
+COMPLETE_HOST_EFFECT_MEDIATION_VERIFIED
 ```
 
-Package build cleanup is build-environment hygiene, not runtime isolation.
+R1-006 owns compatibility/install UX. R1-007/R1-008 own release/provenance and
+actual publication. M14 remains the future process-isolated Plugin Host.
 
-## Governance-closure delta boundary
+## Protocol-first delta boundary
 
-The authorized R1-004 governance transition is restricted to exactly:
+Before R1-005 implementation begins, the repository delta from the R1-004
+closure head is restricted to exactly:
 
 ```text
+specs/0059-r1-external-tarball-consumer-harness-smoke.md
+fixtures/adapter-dsh-external-consumer/cases.json
 docs/handoff/CURRENT.md
-docs/handoff/HISTORY.md   # append-only
-docs/roadmap.md           # only R1-004 acceptance marker/details
 ```
 
-It must not change production code, source-conformance, Spec/corpus/Schema,
-Shared TCK, dependencies/lockfile, Harness baseline/workflow, R1-005+
-implementation, M5-003+ work, registry state, GitHub Release/tag state or PR
-merge/readiness state.
+Not authorized until this exact protocol-first head is dual-green:
 
-## Next allowed action
+```text
+external-consumer executable scripts/tests
+package.json scripts
+pnpm-lock.yaml
+production TypeScript
+source-conformance implementation
+HISTORY
+roadmap R1-005 acceptance marker
+R1-006+
+M5-003+
+registry publish
+GitHub Release/tag
+PR #3 merge / Ready
+```
 
-Verify the resulting governance exact head through both normal CI and exact
-pinned Harness rc5 source-conformance on the same SHA.
+## Required protocol-first verification
 
-Required evidence:
+The new protocol-first exact head must pass on one SHA:
 
 ```text
 normal CI
-Harness pinned-source TypeScript step 10
-Harness real rc5 runtime conformance step 11
++
+Harness rc5 source-conformance
+  step 10 pinned-source TypeScript
+  step 11 real rc5 runtime
 ```
 
-Only after that same governance SHA is dual-green may repository state be
-interpreted as:
+If either fails, inspect only the current exact-head failed job/step before
+editing. Do not weaken the fixture/spec boundary or reuse older green evidence.
+
+After the protocol-first exact head is dual-green, R1-005 implementation may begin
+in the sequence frozen by Spec 0059: Adapter tarball reuse -> exact peer
+acquisition/closure audit -> source-tarball bridge only if necessary -> external
+install -> source-leak/version audit -> real runtime smokes -> independent
+acceptance review.
+
+## Current authorization
 
 ```text
 R1-004 GOVERNANCE CLOSED
-R1-005 P0 EXTERNAL TARBALL CONSUMER AUTHORIZED FOR PROTOCOL-FIRST / DESIGN-FIRST WORK
+R1-005 PROTOCOL-FIRST CANDIDATE: VERIFY EXACT HEAD
+R1-005 IMPLEMENTATION: NOT YET AUTHORIZED
 R1-006+ NOT AUTHORIZED
 M5-003+ PAUSED
 REGISTRY PUBLISH / GITHUB RELEASE / TAG NOT AUTHORIZED
 PR #3 REMAINS OPEN / DRAFT / UNMERGED
 ```
-
-R1-005 must resolve its external consumer's exact peer acquisition/install
-authority explicitly. The current rc5 registry-resolution condition cannot be
-papered over by silently using rc6 or workspace/source-path shortcuts.
