@@ -1,0 +1,33 @@
+{
+  "profile": "M4-040_DSH_PRE_EXECUTE_REGISTRATION_V1",
+  "pinnedHarness": {
+    "version": "0.1.0-rc.5",
+    "commit": "47f943859bef60e4160492346772ded9b24f765a"
+  },
+  "cases": [
+    {"id":"DPER-001","scenario":"agent request projection","input":{"callRef":"call:1","rootCallRef":"call:1","toolName":"read","scope":{"kind":"agent","sessionRef":"session:1","agentRef":"agent:1"}},"expected":{"projection":"EXACT"}},
+    {"id":"DPER-002","scenario":"host request projection","input":{"callRef":"call:2","rootCallRef":"call:2","toolName":"host_tool","scope":{"kind":"host"}},"expected":{"projection":"EXACT"}},
+    {"id":"DPER-003","scenario":"nested root identity preserved","input":{"callRef":"call:child","rootCallRef":"call:root","toolName":"read","scope":{"kind":"agent","sessionRef":"session:1","agentRef":"agent:1"}},"expected":{"callRef":"call:child","rootCallRef":"call:root"}},
+    {"id":"DPER-004","scenario":"opaque tool name preserved","input":{"toolName":"tool/--opaque-😀"},"expected":{"toolName":"tool/--opaque-😀"}},
+    {"id":"DPER-005","scenario":"arguments reference is observation-only","input":{"arguments":{"path":"./a"}},"expected":{"argumentRewrite":false}},
+    {"id":"DPER-006","scenario":"ALLOW delegates","input":{"safeRuntimeDecision":"ALLOW","downstream":"ALLOW"},"expected":{"safeRuntimeCallsNext":true,"final":"ALLOW"}},
+    {"id":"DPER-007","scenario":"downstream deny after ALLOW","input":{"safeRuntimeDecision":"ALLOW","downstream":"DENY"},"expected":{"safeRuntimeCallsNext":true,"final":"DENY"}},
+    {"id":"DPER-008","scenario":"downstream ask after ALLOW","input":{"safeRuntimeDecision":"ALLOW","downstream":"ASK"},"expected":{"safeRuntimeCallsNext":true,"final":"ASK"}},
+    {"id":"DPER-009","scenario":"safe-runtime DENY short-circuits","input":{"safeRuntimeDecision":{"kind":"DENY","reason":"blocked"},"downstream":"ALLOW"},"expected":{"safeRuntimeCallsNext":false,"harnessDecision":{"kind":"deny","reason":"blocked"}}},
+    {"id":"DPER-010","scenario":"safe-runtime ASK short-circuits","input":{"safeRuntimeDecision":{"kind":"ASK","reason":"approval required"},"downstream":"ALLOW"},"expected":{"safeRuntimeCallsNext":false,"harnessDecision":{"kind":"ask","reason":"approval required"}}},
+    {"id":"DPER-011","scenario":"ASK without reason preserved","input":{"safeRuntimeDecision":{"kind":"ASK"}},"expected":{"harnessDecision":{"kind":"ask"}}},
+    {"id":"DPER-012","scenario":"handler throw fails closed","input":{"handler":"THROW","message":"secret backend detail"},"expected":{"harnessDecision":{"kind":"deny","reason":"safe-runtime policy evaluation failed closed"},"callsNext":false,"leaksMessage":false}},
+    {"id":"DPER-013","scenario":"handler rejection fails closed","input":{"handler":"REJECT","message":"secret backend detail"},"expected":{"harnessDecision":{"kind":"deny","reason":"safe-runtime policy evaluation failed closed"},"callsNext":false,"leaksMessage":false}},
+    {"id":"DPER-014","scenario":"registration disposal","input":{"dispose":true,"laterCall":true},"expected":{"handlerCalledAfterDispose":false}},
+    {"id":"DPER-015","scenario":"missing pre-execute feature","input":{"toolsPreExecute":false},"expected":{"registration":"UNSUPPORTED","silentSuccess":false}},
+    {"id":"DPER-016","scenario":"earlier listener short-circuit","input":{"earlier":"DENY","safeRuntimeRegistered":true},"expected":{"safeRuntimeHandlerCalled":false,"hardEnforcementClaim":false}},
+    {"id":"DPER-017","scenario":"registration alone is not tool-enforced","input":{"safeRuntimeRegistered":true,"monotonicGuard":false},"expected":{"mayClaimToolEnforced":false}},
+    {"id":"DPER-018","scenario":"no direct approval call","input":{"safeRuntimeDecision":{"kind":"ASK"}},"expected":{"adapterRequestApprovalCalls":0}},
+    {"id":"DPER-019","scenario":"no result observation claim","input":{"safeRuntimeDecision":"ALLOW"},"expected":{"executionSuccessClaim":false,"authoritativeResultObserved":false}},
+    {"id":"DPER-020","scenario":"no classifier requirement aggregation claim","input":{"requirements":["fs.stat","fs.read"]},"expected":{"aggregatedByM4040":false}},
+    {"id":"DPER-021","scenario":"host scope is not synthesized agent","input":{"scope":{"kind":"host"}},"expected":{"subjectSynthesized":false}},
+    {"id":"DPER-022","scenario":"agent scope preserves session and agent refs","input":{"scope":{"kind":"agent","sessionRef":"session:A","agentRef":"agent:B"}},"expected":{"scope":{"kind":"agent","sessionRef":"session:A","agentRef":"agent:B"}}},
+    {"id":"DPER-023","scenario":"no turnRef inference","input":{"scope":{"kind":"agent","sessionRef":"session:A","agentRef":"agent:B"}},"expected":{"turnRefInferred":false}},
+    {"id":"DPER-024","scenario":"no guarantee inference","input":{"safeRuntimeRegistered":true},"expected":{"guaranteeLevelInferred":false}}
+  ]
+}

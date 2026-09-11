@@ -1,0 +1,142 @@
+{
+  "version": 1,
+  "schema": "schemas/v1alpha1/capability-policy.schema.json",
+  "cases": [
+    {
+      "id": "minimal-valid",
+      "path": "valid/minimal.json",
+      "expected": { "valid": true }
+    },
+    {
+      "id": "lease-ref-valid",
+      "path": "valid/lease.json",
+      "expected": { "valid": true }
+    },
+    {
+      "id": "missing-default-effect",
+      "path": "invalid/missing-default-effect.json",
+      "expected": {
+        "valid": false,
+        "reason": "POLICY_SCHEMA_INVALID",
+        "issue": { "instancePath": "/spec/defaultEffect", "keyword": "required" }
+      }
+    },
+    {
+      "id": "default-effect-allow",
+      "path": "invalid/default-effect-allow.json",
+      "expected": {
+        "valid": false,
+        "reason": "POLICY_SCHEMA_INVALID",
+        "issue": { "instancePath": "/spec/defaultEffect", "keyword": "const" }
+      }
+    },
+    {
+      "id": "wrong-api-version",
+      "path": "invalid/wrong-api-version.json",
+      "expected": {
+        "valid": false,
+        "reason": "POLICY_SCHEMA_INVALID",
+        "issue": { "instancePath": "/apiVersion", "keyword": "const" }
+      }
+    },
+    {
+      "id": "wrong-kind",
+      "path": "invalid/wrong-kind.json",
+      "expected": {
+        "valid": false,
+        "reason": "POLICY_SCHEMA_INVALID",
+        "issue": { "instancePath": "/kind", "keyword": "const" }
+      }
+    },
+    {
+      "id": "empty-name",
+      "path": "invalid/empty-name.json",
+      "expected": {
+        "valid": false,
+        "reason": "POLICY_SCHEMA_INVALID",
+        "issue": { "instancePath": "/metadata/name", "keyword": "minLength" }
+      }
+    },
+    {
+      "id": "missing-name",
+      "path": "invalid/missing-name.json",
+      "expected": {
+        "valid": false,
+        "reason": "POLICY_SCHEMA_INVALID",
+        "issue": { "instancePath": "/metadata/name", "keyword": "required" }
+      }
+    },
+    {
+      "id": "top-level-extra",
+      "path": "invalid/top-level-extra.json",
+      "expected": {
+        "valid": false,
+        "reason": "POLICY_SCHEMA_INVALID",
+        "issue": { "instancePath": "/unexpected", "keyword": "additionalProperties" }
+      }
+    },
+    {
+      "id": "spec-extra",
+      "path": "invalid/spec-extra.json",
+      "expected": {
+        "valid": false,
+        "reason": "POLICY_SCHEMA_INVALID",
+        "issue": { "instancePath": "/spec/unexpected", "keyword": "additionalProperties" }
+      }
+    },
+    {
+      "id": "rule-missing-resources",
+      "path": "invalid/rule-missing-resources.json",
+      "expected": {
+        "valid": false,
+        "reason": "POLICY_SCHEMA_INVALID",
+        "issue": { "instancePath": "/spec/rules/0/resources", "keyword": "required" }
+      }
+    },
+    {
+      "id": "unknown-rule-effect",
+      "path": "invalid/unknown-rule-effect.json",
+      "expected": {
+        "valid": false,
+        "reason": "POLICY_SCHEMA_INVALID",
+        "issue": { "instancePath": "/spec/rules/0/effect", "keyword": "enum" }
+      }
+    },
+    {
+      "id": "duplicate-capability",
+      "path": "invalid/duplicate-capability.json",
+      "expected": {
+        "valid": false,
+        "reason": "POLICY_SCHEMA_INVALID",
+        "issue": { "instancePath": "/spec/rules/0/capabilities", "keyword": "uniqueItems" }
+      }
+    },
+    {
+      "id": "duplicate-resource",
+      "path": "invalid/duplicate-resource.json",
+      "expected": {
+        "valid": false,
+        "reason": "POLICY_SCHEMA_INVALID",
+        "issue": { "instancePath": "/spec/rules/0/resources", "keyword": "uniqueItems" }
+      }
+    },
+    {
+      "id": "invalid-lease",
+      "path": "invalid/invalid-lease.json",
+      "expected": {
+        "valid": false,
+        "reason": "POLICY_SCHEMA_INVALID",
+        "issue": { "instancePath": "/spec/rules/0/lease/ttlMs", "keyword": "minimum" }
+      }
+    },
+    {
+      "id": "rule-extra",
+      "path": "invalid/rule-extra.json",
+      "expected": {
+        "valid": false,
+        "reason": "POLICY_SCHEMA_INVALID",
+        "issue": { "instancePath": "/spec/rules/0/unexpected", "keyword": "additionalProperties" }
+      }
+    }
+  ]
+}

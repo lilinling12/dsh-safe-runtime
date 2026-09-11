@@ -1,0 +1,293 @@
+{
+  "profile": "M4-024_DECISION_RECEIPT_V1",
+  "description": "Portable deterministic CapabilityDecision plus broker decision-Receipt construction cases for Spec 0035.",
+  "cases": [
+    {
+      "id": "DR-001",
+      "description": "Policy-routed allow constructs allow/allowed records.",
+      "input": {
+        "routing": { "status": "ROUTED", "effect": "allow", "routeSource": "POLICY", "reasonCode": "APPROVAL_NOT_REQUIRED_POLICY_ALLOW" },
+        "issuance": { "requestRef": "capreq:1", "decisionRef": "capdec:1", "receiptRef": "receipt:1", "guaranteeLevel": "advisory", "decidedAt": "2026-08-31T09:00:00Z", "observedAt": "2026-08-31T09:00:01Z" }
+      },
+      "expected": {
+        "status": "CONSTRUCTED",
+        "decision": { "apiVersion": "safe-runtime.dev/v1alpha1", "kind": "CapabilityDecision", "decisionId": "capdec:1", "requestId": "capreq:1", "effect": "allow", "guaranteeLevel": "advisory", "reasonCode": "APPROVAL_NOT_REQUIRED_POLICY_ALLOW", "decidedAt": "2026-08-31T09:00:00Z" },
+        "receipt": { "apiVersion": "safe-runtime.dev/v1alpha1", "kind": "CapabilityReceipt", "receiptRef": "receipt:1", "requestRef": "capreq:1", "decisionRef": "capdec:1", "effect": "allowed", "guaranteeLevel": "advisory", "observedAt": "2026-08-31T09:00:01Z" }
+      }
+    },
+    {
+      "id": "DR-002",
+      "description": "Policy-routed deny constructs deny/denied records.",
+      "input": {
+        "routing": { "status": "ROUTED", "effect": "deny", "routeSource": "POLICY", "reasonCode": "APPROVAL_NOT_REQUIRED_POLICY_DENY" },
+        "issuance": { "requestRef": "capreq:2", "decisionRef": "capdec:2", "receiptRef": "receipt:2", "guaranteeLevel": "tool-enforced", "decidedAt": "2026-08-31T09:01:00Z", "observedAt": "2026-08-31T09:01:00Z" }
+      },
+      "expected": {
+        "status": "CONSTRUCTED",
+        "decision": { "apiVersion": "safe-runtime.dev/v1alpha1", "kind": "CapabilityDecision", "decisionId": "capdec:2", "requestId": "capreq:2", "effect": "deny", "guaranteeLevel": "tool-enforced", "reasonCode": "APPROVAL_NOT_REQUIRED_POLICY_DENY", "decidedAt": "2026-08-31T09:01:00Z" },
+        "receipt": { "apiVersion": "safe-runtime.dev/v1alpha1", "kind": "CapabilityReceipt", "receiptRef": "receipt:2", "requestRef": "capreq:2", "decisionRef": "capdec:2", "effect": "denied", "guaranteeLevel": "tool-enforced", "observedAt": "2026-08-31T09:01:00Z" }
+      }
+    },
+    {
+      "id": "DR-003",
+      "description": "Approval ALLOWED_ONCE constructs allow/allowed and preserves reason code.",
+      "input": {
+        "routing": { "status": "ROUTED", "effect": "allow", "routeSource": "APPROVAL", "reasonCode": "APPROVAL_ALLOWED_ONCE", "approvalOutcome": "ALLOWED_ONCE" },
+        "issuance": { "requestRef": "capreq:3", "decisionRef": "capdec:3", "receiptRef": "receipt:3", "guaranteeLevel": "tool-enforced", "decidedAt": "2026-08-31T09:02:00Z", "observedAt": "2026-08-31T09:02:01Z" }
+      },
+      "expected": {
+        "status": "CONSTRUCTED",
+        "decision": { "apiVersion": "safe-runtime.dev/v1alpha1", "kind": "CapabilityDecision", "decisionId": "capdec:3", "requestId": "capreq:3", "effect": "allow", "guaranteeLevel": "tool-enforced", "reasonCode": "APPROVAL_ALLOWED_ONCE", "decidedAt": "2026-08-31T09:02:00Z" },
+        "receipt": { "apiVersion": "safe-runtime.dev/v1alpha1", "kind": "CapabilityReceipt", "receiptRef": "receipt:3", "requestRef": "capreq:3", "decisionRef": "capdec:3", "effect": "allowed", "guaranteeLevel": "tool-enforced", "observedAt": "2026-08-31T09:02:01Z" }
+      }
+    },
+    {
+      "id": "DR-004",
+      "description": "Approval REJECTED constructs deny/denied.",
+      "input": {
+        "routing": { "status": "ROUTED", "effect": "deny", "routeSource": "APPROVAL", "reasonCode": "APPROVAL_REJECTED", "approvalOutcome": "REJECTED" },
+        "issuance": { "requestRef": "capreq:4", "decisionRef": "capdec:4", "receiptRef": "receipt:4", "guaranteeLevel": "advisory", "decidedAt": "2026-08-31T09:03:00Z", "observedAt": "2026-08-31T09:03:01Z" }
+      },
+      "expected": {
+        "status": "CONSTRUCTED",
+        "decision": { "apiVersion": "safe-runtime.dev/v1alpha1", "kind": "CapabilityDecision", "decisionId": "capdec:4", "requestId": "capreq:4", "effect": "deny", "guaranteeLevel": "advisory", "reasonCode": "APPROVAL_REJECTED", "decidedAt": "2026-08-31T09:03:00Z" },
+        "receipt": { "apiVersion": "safe-runtime.dev/v1alpha1", "kind": "CapabilityReceipt", "receiptRef": "receipt:4", "requestRef": "capreq:4", "decisionRef": "capdec:4", "effect": "denied", "guaranteeLevel": "advisory", "observedAt": "2026-08-31T09:03:01Z" }
+      }
+    },
+    {
+      "id": "DR-005",
+      "description": "Approval CANCELLED constructs deny/denied and keeps distinct reason code.",
+      "input": {
+        "routing": { "status": "ROUTED", "effect": "deny", "routeSource": "APPROVAL", "reasonCode": "APPROVAL_CANCELLED", "approvalOutcome": "CANCELLED" },
+        "issuance": { "requestRef": "capreq:5", "decisionRef": "capdec:5", "receiptRef": "receipt:5", "guaranteeLevel": "advisory", "decidedAt": "2026-08-31T09:04:00Z", "observedAt": "2026-08-31T09:04:02Z" }
+      },
+      "expected": {
+        "status": "CONSTRUCTED",
+        "decision": { "apiVersion": "safe-runtime.dev/v1alpha1", "kind": "CapabilityDecision", "decisionId": "capdec:5", "requestId": "capreq:5", "effect": "deny", "guaranteeLevel": "advisory", "reasonCode": "APPROVAL_CANCELLED", "decidedAt": "2026-08-31T09:04:00Z" },
+        "receipt": { "apiVersion": "safe-runtime.dev/v1alpha1", "kind": "CapabilityReceipt", "receiptRef": "receipt:5", "requestRef": "capreq:5", "decisionRef": "capdec:5", "effect": "denied", "guaranteeLevel": "advisory", "observedAt": "2026-08-31T09:04:02Z" }
+      }
+    },
+    {
+      "id": "DR-006",
+      "description": "Approval UNAVAILABLE constructs deny/denied and keeps distinct reason code.",
+      "input": {
+        "routing": { "status": "ROUTED", "effect": "deny", "routeSource": "APPROVAL", "reasonCode": "APPROVAL_UNAVAILABLE", "approvalOutcome": "UNAVAILABLE" },
+        "issuance": { "requestRef": "capreq:6", "decisionRef": "capdec:6", "receiptRef": "receipt:6", "guaranteeLevel": "advisory", "decidedAt": "2026-08-31T09:05:00Z", "observedAt": "2026-08-31T09:05:01Z" }
+      },
+      "expected": {
+        "status": "CONSTRUCTED",
+        "decision": { "apiVersion": "safe-runtime.dev/v1alpha1", "kind": "CapabilityDecision", "decisionId": "capdec:6", "requestId": "capreq:6", "effect": "deny", "guaranteeLevel": "advisory", "reasonCode": "APPROVAL_UNAVAILABLE", "decidedAt": "2026-08-31T09:05:00Z" },
+        "receipt": { "apiVersion": "safe-runtime.dev/v1alpha1", "kind": "CapabilityReceipt", "receiptRef": "receipt:6", "requestRef": "capreq:6", "decisionRef": "capdec:6", "effect": "denied", "guaranteeLevel": "advisory", "observedAt": "2026-08-31T09:05:01Z" }
+      }
+    },
+    {
+      "id": "DR-007",
+      "description": "Accepted routing fail-closed produces deny Decision and error Receipt.",
+      "input": {
+        "routing": { "status": "FAIL_CLOSED", "effect": "deny", "stage": "APPROVAL_SERVICE", "reasonCode": "APPROVAL_ROUTING_SERVICE_ERROR" },
+        "issuance": { "requestRef": "capreq:7", "decisionRef": "capdec:7", "receiptRef": "receipt:7", "guaranteeLevel": "advisory", "decidedAt": "2026-08-31T09:06:00Z", "observedAt": "2026-08-31T09:06:01Z" }
+      },
+      "expected": {
+        "status": "CONSTRUCTED",
+        "decision": { "apiVersion": "safe-runtime.dev/v1alpha1", "kind": "CapabilityDecision", "decisionId": "capdec:7", "requestId": "capreq:7", "effect": "deny", "guaranteeLevel": "advisory", "reasonCode": "APPROVAL_ROUTING_SERVICE_ERROR", "decidedAt": "2026-08-31T09:06:00Z" },
+        "receipt": { "apiVersion": "safe-runtime.dev/v1alpha1", "kind": "CapabilityReceipt", "receiptRef": "receipt:7", "requestRef": "capreq:7", "decisionRef": "capdec:7", "effect": "error", "guaranteeLevel": "advisory", "observedAt": "2026-08-31T09:06:01Z" }
+      }
+    },
+    {
+      "id": "DR-008",
+      "description": "Post-routing ask-like tuple is invalid and does not construct records.",
+      "input": {
+        "routing": { "status": "ROUTED", "effect": "ask", "routeSource": "POLICY", "reasonCode": "HUMAN_APPROVAL_REQUIRED" },
+        "issuance": { "requestRef": "capreq:8", "decisionRef": "capdec:8", "receiptRef": "receipt:8", "guaranteeLevel": "advisory", "decidedAt": "2026-08-31T09:07:00Z", "observedAt": "2026-08-31T09:07:01Z" }
+      },
+      "expected": { "status": "FAIL_CLOSED", "stage": "ROUTING", "reasonCode": "DECISION_RECEIPT_ROUTING_INVALID" }
+    },
+    {
+      "id": "DR-009",
+      "description": "Incoherent approval tuple is invalid.",
+      "input": {
+        "routing": { "status": "ROUTED", "effect": "allow", "routeSource": "APPROVAL", "reasonCode": "APPROVAL_REJECTED", "approvalOutcome": "REJECTED" },
+        "issuance": { "requestRef": "capreq:9", "decisionRef": "capdec:9", "receiptRef": "receipt:9", "guaranteeLevel": "advisory", "decidedAt": "2026-08-31T09:08:00Z", "observedAt": "2026-08-31T09:08:01Z" }
+      },
+      "expected": { "status": "FAIL_CLOSED", "stage": "ROUTING", "reasonCode": "DECISION_RECEIPT_ROUTING_INVALID" }
+    },
+    {
+      "id": "DR-010",
+      "description": "Exact requestRef is copied to both records.",
+      "input": {
+        "routing": { "status": "ROUTED", "effect": "allow", "routeSource": "POLICY", "reasonCode": "APPROVAL_NOT_REQUIRED_POLICY_ALLOW" },
+        "issuance": { "requestRef": "capreq:α/原样", "decisionRef": "capdec:10", "receiptRef": "receipt:10", "guaranteeLevel": "advisory", "decidedAt": "2026-08-31T09:09:00Z", "observedAt": "2026-08-31T09:09:00Z" }
+      },
+      "expected": {
+        "status": "CONSTRUCTED",
+        "decision": { "apiVersion": "safe-runtime.dev/v1alpha1", "kind": "CapabilityDecision", "decisionId": "capdec:10", "requestId": "capreq:α/原样", "effect": "allow", "guaranteeLevel": "advisory", "reasonCode": "APPROVAL_NOT_REQUIRED_POLICY_ALLOW", "decidedAt": "2026-08-31T09:09:00Z" },
+        "receipt": { "apiVersion": "safe-runtime.dev/v1alpha1", "kind": "CapabilityReceipt", "receiptRef": "receipt:10", "requestRef": "capreq:α/原样", "decisionRef": "capdec:10", "effect": "allowed", "guaranteeLevel": "advisory", "observedAt": "2026-08-31T09:09:00Z" }
+      }
+    },
+    {
+      "id": "DR-011",
+      "description": "Exact decisionRef is shared by Decision identity and Receipt decisionRef.",
+      "input": {
+        "routing": { "status": "ROUTED", "effect": "deny", "routeSource": "POLICY", "reasonCode": "APPROVAL_NOT_REQUIRED_POLICY_DENY" },
+        "issuance": { "requestRef": "capreq:11", "decisionRef": "decision:opaque:11", "receiptRef": "receipt:11", "guaranteeLevel": "advisory", "decidedAt": "2026-08-31T09:10:00Z", "observedAt": "2026-08-31T09:10:00Z" }
+      },
+      "expected": {
+        "status": "CONSTRUCTED",
+        "decision": { "apiVersion": "safe-runtime.dev/v1alpha1", "kind": "CapabilityDecision", "decisionId": "decision:opaque:11", "requestId": "capreq:11", "effect": "deny", "guaranteeLevel": "advisory", "reasonCode": "APPROVAL_NOT_REQUIRED_POLICY_DENY", "decidedAt": "2026-08-31T09:10:00Z" },
+        "receipt": { "apiVersion": "safe-runtime.dev/v1alpha1", "kind": "CapabilityReceipt", "receiptRef": "receipt:11", "requestRef": "capreq:11", "decisionRef": "decision:opaque:11", "effect": "denied", "guaranteeLevel": "advisory", "observedAt": "2026-08-31T09:10:00Z" }
+      }
+    },
+    {
+      "id": "DR-012",
+      "description": "Exact receiptRef is preserved.",
+      "input": {
+        "routing": { "status": "ROUTED", "effect": "allow", "routeSource": "POLICY", "reasonCode": "APPROVAL_NOT_REQUIRED_POLICY_ALLOW" },
+        "issuance": { "requestRef": "capreq:12", "decisionRef": "capdec:12", "receiptRef": " receipt:opaque:12 ", "guaranteeLevel": "advisory", "decidedAt": "2026-08-31T09:11:00Z", "observedAt": "2026-08-31T09:11:00Z" }
+      },
+      "expected": {
+        "status": "CONSTRUCTED",
+        "decision": { "apiVersion": "safe-runtime.dev/v1alpha1", "kind": "CapabilityDecision", "decisionId": "capdec:12", "requestId": "capreq:12", "effect": "allow", "guaranteeLevel": "advisory", "reasonCode": "APPROVAL_NOT_REQUIRED_POLICY_ALLOW", "decidedAt": "2026-08-31T09:11:00Z" },
+        "receipt": { "apiVersion": "safe-runtime.dev/v1alpha1", "kind": "CapabilityReceipt", "receiptRef": " receipt:opaque:12 ", "requestRef": "capreq:12", "decisionRef": "capdec:12", "effect": "allowed", "guaranteeLevel": "advisory", "observedAt": "2026-08-31T09:11:00Z" }
+      }
+    },
+    {
+      "id": "DR-013",
+      "description": "Leading/trailing whitespace in schema-valid opaque refs is not trimmed.",
+      "input": {
+        "routing": { "status": "ROUTED", "effect": "allow", "routeSource": "POLICY", "reasonCode": "APPROVAL_NOT_REQUIRED_POLICY_ALLOW" },
+        "issuance": { "requestRef": " req ", "decisionRef": " dec ", "receiptRef": " rec ", "guaranteeLevel": "advisory", "decidedAt": "2026-08-31T09:12:00Z", "observedAt": "2026-08-31T09:12:00Z" }
+      },
+      "expected": {
+        "status": "CONSTRUCTED",
+        "decision": { "apiVersion": "safe-runtime.dev/v1alpha1", "kind": "CapabilityDecision", "decisionId": " dec ", "requestId": " req ", "effect": "allow", "guaranteeLevel": "advisory", "reasonCode": "APPROVAL_NOT_REQUIRED_POLICY_ALLOW", "decidedAt": "2026-08-31T09:12:00Z" },
+        "receipt": { "apiVersion": "safe-runtime.dev/v1alpha1", "kind": "CapabilityReceipt", "receiptRef": " rec ", "requestRef": " req ", "decisionRef": " dec ", "effect": "allowed", "guaranteeLevel": "advisory", "observedAt": "2026-08-31T09:12:00Z" }
+      }
+    },
+    {
+      "id": "DR-014",
+      "description": "Empty requestRef fails closed.",
+      "input": {
+        "routing": { "status": "ROUTED", "effect": "allow", "routeSource": "POLICY", "reasonCode": "APPROVAL_NOT_REQUIRED_POLICY_ALLOW" },
+        "issuance": { "requestRef": "", "decisionRef": "capdec:14", "receiptRef": "receipt:14", "guaranteeLevel": "advisory", "decidedAt": "2026-08-31T09:13:00Z", "observedAt": "2026-08-31T09:13:00Z" }
+      },
+      "expected": { "status": "FAIL_CLOSED", "stage": "ISSUANCE", "reasonCode": "DECISION_RECEIPT_REQUEST_REF_INVALID" }
+    },
+    {
+      "id": "DR-015",
+      "description": "Overlong decisionRef fails closed.",
+      "input": {
+        "routing": { "status": "ROUTED", "effect": "allow", "routeSource": "POLICY", "reasonCode": "APPROVAL_NOT_REQUIRED_POLICY_ALLOW" },
+        "issuance": { "requestRef": "capreq:15", "decisionRef": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "receiptRef": "receipt:15", "guaranteeLevel": "advisory", "decidedAt": "2026-08-31T09:14:00Z", "observedAt": "2026-08-31T09:14:00Z" }
+      },
+      "expected": { "status": "FAIL_CLOSED", "stage": "ISSUANCE", "reasonCode": "DECISION_RECEIPT_DECISION_REF_INVALID" }
+    },
+    {
+      "id": "DR-016",
+      "description": "Non-string receiptRef fails closed.",
+      "input": {
+        "routing": { "status": "ROUTED", "effect": "allow", "routeSource": "POLICY", "reasonCode": "APPROVAL_NOT_REQUIRED_POLICY_ALLOW" },
+        "issuance": { "requestRef": "capreq:16", "decisionRef": "capdec:16", "receiptRef": 16, "guaranteeLevel": "advisory", "decidedAt": "2026-08-31T09:15:00Z", "observedAt": "2026-08-31T09:15:00Z" }
+      },
+      "expected": { "status": "FAIL_CLOSED", "stage": "ISSUANCE", "reasonCode": "DECISION_RECEIPT_RECEIPT_REF_INVALID" }
+    },
+    {
+      "id": "DR-017",
+      "description": "advisory guarantee is copied identically to both records.",
+      "input": {
+        "routing": { "status": "ROUTED", "effect": "allow", "routeSource": "POLICY", "reasonCode": "APPROVAL_NOT_REQUIRED_POLICY_ALLOW" },
+        "issuance": { "requestRef": "capreq:17", "decisionRef": "capdec:17", "receiptRef": "receipt:17", "guaranteeLevel": "advisory", "decidedAt": "2026-08-31T09:16:00Z", "observedAt": "2026-08-31T09:16:00Z" }
+      },
+      "expectedGuaranteeLevel": "advisory"
+    },
+    {
+      "id": "DR-018",
+      "description": "provider-enforced guarantee is copied without inference.",
+      "input": {
+        "routing": { "status": "ROUTED", "effect": "deny", "routeSource": "APPROVAL", "reasonCode": "APPROVAL_REJECTED", "approvalOutcome": "REJECTED" },
+        "issuance": { "requestRef": "capreq:18", "decisionRef": "capdec:18", "receiptRef": "receipt:18", "guaranteeLevel": "provider-enforced", "decidedAt": "2026-08-31T09:17:00Z", "observedAt": "2026-08-31T09:17:00Z" }
+      },
+      "expectedGuaranteeLevel": "provider-enforced"
+    },
+    {
+      "id": "DR-019",
+      "description": "process-isolated guarantee is copied even on deny; routing does not downgrade it.",
+      "input": {
+        "routing": { "status": "ROUTED", "effect": "deny", "routeSource": "POLICY", "reasonCode": "APPROVAL_NOT_REQUIRED_POLICY_DENY" },
+        "issuance": { "requestRef": "capreq:19", "decisionRef": "capdec:19", "receiptRef": "receipt:19", "guaranteeLevel": "process-isolated", "decidedAt": "2026-08-31T09:18:00Z", "observedAt": "2026-08-31T09:18:00Z" }
+      },
+      "expectedGuaranteeLevel": "process-isolated"
+    },
+    {
+      "id": "DR-020",
+      "description": "Unknown guarantee fails closed rather than defaulting to advisory.",
+      "input": {
+        "routing": { "status": "ROUTED", "effect": "allow", "routeSource": "POLICY", "reasonCode": "APPROVAL_NOT_REQUIRED_POLICY_ALLOW" },
+        "issuance": { "requestRef": "capreq:20", "decisionRef": "capdec:20", "receiptRef": "receipt:20", "guaranteeLevel": "magic-enforced", "decidedAt": "2026-08-31T09:19:00Z", "observedAt": "2026-08-31T09:19:00Z" }
+      },
+      "expected": { "status": "FAIL_CLOSED", "stage": "ISSUANCE", "reasonCode": "DECISION_RECEIPT_GUARANTEE_INVALID" }
+    },
+    {
+      "id": "DR-021",
+      "description": "Explicit valid timestamps are preserved exactly, including numeric offset.",
+      "input": {
+        "routing": { "status": "ROUTED", "effect": "allow", "routeSource": "POLICY", "reasonCode": "APPROVAL_NOT_REQUIRED_POLICY_ALLOW" },
+        "issuance": { "requestRef": "capreq:21", "decisionRef": "capdec:21", "receiptRef": "receipt:21", "guaranteeLevel": "tool-enforced", "decidedAt": "2026-08-31T17:20:00+08:00", "observedAt": "2026-08-31T17:20:00.250+08:00" }
+      },
+      "expectedTimestamps": { "decidedAt": "2026-08-31T17:20:00+08:00", "observedAt": "2026-08-31T17:20:00.250+08:00" }
+    },
+    {
+      "id": "DR-022",
+      "description": "Malformed decidedAt fails closed.",
+      "input": {
+        "routing": { "status": "ROUTED", "effect": "allow", "routeSource": "POLICY", "reasonCode": "APPROVAL_NOT_REQUIRED_POLICY_ALLOW" },
+        "issuance": { "requestRef": "capreq:22", "decisionRef": "capdec:22", "receiptRef": "receipt:22", "guaranteeLevel": "advisory", "decidedAt": "2026-02-30T09:00:00Z", "observedAt": "2026-08-31T09:20:00Z" }
+      },
+      "expected": { "status": "FAIL_CLOSED", "stage": "ISSUANCE", "reasonCode": "DECISION_RECEIPT_DECIDED_AT_INVALID" }
+    },
+    {
+      "id": "DR-023",
+      "description": "Malformed observedAt fails closed.",
+      "input": {
+        "routing": { "status": "ROUTED", "effect": "allow", "routeSource": "POLICY", "reasonCode": "APPROVAL_NOT_REQUIRED_POLICY_ALLOW" },
+        "issuance": { "requestRef": "capreq:23", "decisionRef": "capdec:23", "receiptRef": "receipt:23", "guaranteeLevel": "advisory", "decidedAt": "2026-08-31T09:21:00Z", "observedAt": "not-a-timestamp" }
+      },
+      "expected": { "status": "FAIL_CLOSED", "stage": "ISSUANCE", "reasonCode": "DECISION_RECEIPT_OBSERVED_AT_INVALID" }
+    },
+    {
+      "id": "DR-024",
+      "description": "Output omits optional policy/rule/free-text provenance fields.",
+      "input": {
+        "routing": { "status": "ROUTED", "effect": "allow", "routeSource": "APPROVAL", "reasonCode": "APPROVAL_ALLOWED_ONCE", "approvalOutcome": "ALLOWED_ONCE" },
+        "issuance": { "requestRef": "capreq:24", "decisionRef": "capdec:24", "receiptRef": "receipt:24", "guaranteeLevel": "advisory", "decidedAt": "2026-08-31T09:22:00Z", "observedAt": "2026-08-31T09:22:00Z" }
+      },
+      "expectedAbsentDecisionFields": ["policyRef", "matchedRuleRefs", "reason"]
+    },
+    {
+      "id": "DR-025",
+      "description": "Broker decision Receipt omits Lease and digest claims before lifecycle/PEP work.",
+      "input": {
+        "routing": { "status": "ROUTED", "effect": "allow", "routeSource": "POLICY", "reasonCode": "APPROVAL_NOT_REQUIRED_POLICY_ALLOW" },
+        "issuance": { "requestRef": "capreq:25", "decisionRef": "capdec:25", "receiptRef": "receipt:25", "guaranteeLevel": "advisory", "decidedAt": "2026-08-31T09:23:00Z", "observedAt": "2026-08-31T09:23:00Z" }
+      },
+      "expectedAbsentReceiptFields": ["leaseRef", "resourceDigest", "argumentDigest", "resultDigest"]
+    },
+    {
+      "id": "DR-026",
+      "description": "Unexpected issuance field fails closed rather than becoming hidden provenance.",
+      "input": {
+        "routing": { "status": "ROUTED", "effect": "allow", "routeSource": "POLICY", "reasonCode": "APPROVAL_NOT_REQUIRED_POLICY_ALLOW" },
+        "issuance": { "requestRef": "capreq:26", "decisionRef": "capdec:26", "receiptRef": "receipt:26", "guaranteeLevel": "advisory", "decidedAt": "2026-08-31T09:24:00Z", "observedAt": "2026-08-31T09:24:00Z", "approvalRef": "approval:fake" }
+      },
+      "expected": { "status": "FAIL_CLOSED", "stage": "ISSUANCE", "reasonCode": "DECISION_RECEIPT_ISSUANCE_INVALID" }
+    },
+    {
+      "id": "DR-027",
+      "description": "Failure output does not echo attacker-controlled issuance values.",
+      "input": {
+        "routing": { "status": "ROUTED", "effect": "allow", "routeSource": "POLICY", "reasonCode": "APPROVAL_NOT_REQUIRED_POLICY_ALLOW" },
+        "issuance": { "requestRef": "SECRET-REQUEST-VALUE", "decisionRef": "", "receiptRef": "SECRET-RECEIPT-VALUE", "guaranteeLevel": "advisory", "decidedAt": "2026-08-31T09:25:00Z", "observedAt": "2026-08-31T09:25:00Z" }
+      },
+      "expected": { "status": "FAIL_CLOSED", "stage": "ISSUANCE", "reasonCode": "DECISION_RECEIPT_DECISION_REF_INVALID" }
+    }
+  ]
+}

@@ -1,0 +1,245 @@
+{
+  "profile": "M5-002_CANONICAL_JSON_RFC8785_V1",
+  "gate": "M5-002 P0 — canonical JSON",
+  "canonicalization": "RFC 8785 JSON Canonicalization Scheme (JCS)",
+  "pinnedHarness": {
+    "version": "0.1.0-rc.5",
+    "commit": "47f943859bef60e4160492346772ded9b24f765a"
+  },
+  "cases": [
+    {
+      "id": "CJ-001",
+      "class": "LITERALS",
+      "requirement": "JSON null canonicalizes exactly to the UTF-8 bytes for null with no surrounding whitespace or BOM.",
+      "expectedCanonicalText": "null",
+      "evidence": "Spec 0054 sections 6, 11-12."
+    },
+    {
+      "id": "CJ-002",
+      "class": "LITERALS",
+      "requirement": "JSON true canonicalizes exactly to true.",
+      "expectedCanonicalText": "true",
+      "evidence": "Spec 0054 section 6."
+    },
+    {
+      "id": "CJ-003",
+      "class": "LITERALS",
+      "requirement": "JSON false canonicalizes exactly to false.",
+      "expectedCanonicalText": "false",
+      "evidence": "Spec 0054 section 6."
+    },
+    {
+      "id": "CJ-004",
+      "class": "STRINGS_AND_ESCAPING",
+      "requirement": "An empty JSON string canonicalizes exactly to two quotation-mark delimiters.",
+      "expectedCanonicalText": "\"\"",
+      "evidence": "Spec 0054 section 7."
+    },
+    {
+      "id": "CJ-005",
+      "class": "STRINGS_AND_ESCAPING",
+      "requirement": "U+0008, U+0009, U+000A, U+000C, and U+000D use the RFC 8785 predefined JSON escapes b, t, n, f, and r.",
+      "evidence": "Spec 0054 section 7."
+    },
+    {
+      "id": "CJ-006",
+      "class": "STRINGS_AND_ESCAPING",
+      "requirement": "ASCII control characters without a predefined short escape use lowercase \\uhhhh notation.",
+      "evidence": "Spec 0054 section 7."
+    },
+    {
+      "id": "CJ-007",
+      "class": "STRINGS_AND_ESCAPING",
+      "requirement": "Quotation mark and reverse solidus are escaped exactly as required by RFC 8785.",
+      "evidence": "Spec 0054 section 7."
+    },
+    {
+      "id": "CJ-008",
+      "class": "STRINGS_AND_ESCAPING",
+      "requirement": "Solidus is not escaped merely as a presentation preference.",
+      "expectedCanonicalText": "\"/\"",
+      "evidence": "Spec 0054 section 7."
+    },
+    {
+      "id": "CJ-009",
+      "class": "UNICODE_PRESERVATION",
+      "requirement": "Valid non-ASCII Unicode content is preserved as supplied and emitted as UTF-8 after JSON string serialization.",
+      "evidence": "Spec 0054 sections 7 and 12."
+    },
+    {
+      "id": "CJ-010",
+      "class": "UNICODE_PRESERVATION",
+      "requirement": "Canonically equivalent Unicode strings in different normalization forms are not normalized or collapsed by M5-002.",
+      "evidence": "Spec 0054 sections 5.2, 7 and 13."
+    },
+    {
+      "id": "CJ-011",
+      "class": "INVALID_UNICODE",
+      "requirement": "A string containing a lone high surrogate fails canonicalization rather than emitting replacement data.",
+      "expectedError": "INVALID_UNICODE",
+      "evidence": "Spec 0054 sections 5.2, 7 and 14."
+    },
+    {
+      "id": "CJ-012",
+      "class": "INVALID_UNICODE",
+      "requirement": "A string containing a lone low surrogate fails canonicalization rather than emitting replacement data.",
+      "expectedError": "INVALID_UNICODE",
+      "evidence": "Spec 0054 sections 5.2, 7 and 14."
+    },
+    {
+      "id": "CJ-013",
+      "class": "ARRAY_ORDER",
+      "requirement": "An empty array canonicalizes exactly to [].",
+      "expectedCanonicalText": "[]",
+      "evidence": "Spec 0054 sections 10-11."
+    },
+    {
+      "id": "CJ-014",
+      "class": "ARRAY_ORDER",
+      "requirement": "Array element order is preserved exactly and is never sorted by the canonicalizer.",
+      "evidence": "Spec 0054 section 10."
+    },
+    {
+      "id": "CJ-015",
+      "class": "RECURSIVE_SORTING",
+      "requirement": "Objects nested inside arrays have their own properties recursively canonicalized while the surrounding array order remains unchanged.",
+      "evidence": "Spec 0054 sections 9-10."
+    },
+    {
+      "id": "CJ-016",
+      "class": "OBJECT_SORTING",
+      "requirement": "An empty object canonicalizes exactly to {}.",
+      "expectedCanonicalText": "{}",
+      "evidence": "Spec 0054 sections 9 and 11."
+    },
+    {
+      "id": "CJ-017",
+      "class": "OBJECT_SORTING",
+      "requirement": "ASCII property names sort lexicographically by raw UTF-16 code-unit values independent of insertion order.",
+      "evidence": "Spec 0054 section 9."
+    },
+    {
+      "id": "CJ-018",
+      "class": "OBJECT_SORTING",
+      "requirement": "Property sorting uses raw unescaped names, so control characters participate by their underlying UTF-16 code-unit values rather than their escape spelling.",
+      "evidence": "Spec 0054 section 9."
+    },
+    {
+      "id": "CJ-019",
+      "class": "OBJECT_SORTING",
+      "requirement": "Non-ASCII property ordering follows RFC 8785 UTF-16 code-unit ordering rather than UTF-8 byte order or locale collation.",
+      "evidence": "Spec 0054 section 9 and RFC 8785 section 3.2.3."
+    },
+    {
+      "id": "CJ-020",
+      "class": "RECURSIVE_SORTING",
+      "requirement": "Property sorting is applied recursively to every nested object regardless of the parent object's original insertion order.",
+      "evidence": "Spec 0054 section 9."
+    },
+    {
+      "id": "CJ-021",
+      "class": "WHITESPACE_FREE",
+      "requirement": "Canonical output contains no insignificant spaces, indentation, line breaks, comments, or trailing commas.",
+      "evidence": "Spec 0054 section 11."
+    },
+    {
+      "id": "CJ-022",
+      "class": "BINARY64_NUMBER_SERIALIZATION",
+      "requirement": "Negative zero canonicalizes to the same number text as zero, namely 0.",
+      "expectedCanonicalText": "0",
+      "evidence": "Spec 0054 section 8."
+    },
+    {
+      "id": "CJ-023",
+      "class": "BINARY64_NUMBER_SERIALIZATION",
+      "requirement": "Ordinary finite integral binary64 values use RFC 8785/ECMAScript number serialization with no locale-specific separators or suffixes.",
+      "evidence": "Spec 0054 section 8."
+    },
+    {
+      "id": "CJ-024",
+      "class": "BINARY64_NUMBER_SERIALIZATION",
+      "requirement": "The finite binary64 value 1e30 canonicalizes to 1e+30.",
+      "expectedCanonicalText": "1e+30",
+      "evidence": "Spec 0054 section 8 and RFC 8785 number serialization."
+    },
+    {
+      "id": "CJ-025",
+      "class": "BINARY64_NUMBER_SERIALIZATION",
+      "requirement": "The finite binary64 value 0.002 canonicalizes to 0.002.",
+      "expectedCanonicalText": "0.002",
+      "evidence": "Spec 0054 section 8."
+    },
+    {
+      "id": "CJ-026",
+      "class": "BINARY64_NUMBER_SERIALIZATION",
+      "requirement": "The finite binary64 value 1e-27 canonicalizes to 1e-27.",
+      "expectedCanonicalText": "1e-27",
+      "evidence": "Spec 0054 section 8."
+    },
+    {
+      "id": "CJ-027",
+      "class": "BINARY64_NUMBER_SERIALIZATION",
+      "requirement": "RFC 8785 binary64 rounding/serialization samples are reproduced exactly rather than reformatted with host-language decimal preferences.",
+      "evidence": "Spec 0054 section 8 and RFC 8785 sections 3.2.2.3 / Appendix B."
+    },
+    {
+      "id": "CJ-028",
+      "class": "NON_FINITE_REJECTION",
+      "requirement": "NaN presented through a host-language probe fails canonicalization.",
+      "expectedError": "NON_FINITE_NUMBER",
+      "evidence": "Spec 0054 sections 5.3, 8 and 14."
+    },
+    {
+      "id": "CJ-029",
+      "class": "NON_FINITE_REJECTION",
+      "requirement": "Positive Infinity presented through a host-language probe fails canonicalization.",
+      "expectedError": "NON_FINITE_NUMBER",
+      "evidence": "Spec 0054 sections 5.3, 8 and 14."
+    },
+    {
+      "id": "CJ-030",
+      "class": "NON_FINITE_REJECTION",
+      "requirement": "Negative Infinity presented through a host-language probe fails canonicalization.",
+      "expectedError": "NON_FINITE_NUMBER",
+      "evidence": "Spec 0054 sections 5.3, 8 and 14."
+    },
+    {
+      "id": "CJ-031",
+      "class": "HOST_VALUE_REJECTION",
+      "requirement": "Host-only values such as undefined, functions, symbols, unmapped BigInt/arbitrary-precision values, Date objects, Map/Set, and non-JSON class instances are rejected rather than silently omitted, stringified, coerced, or converted to null.",
+      "expectedError": "UNSUPPORTED_VALUE",
+      "evidence": "Spec 0054 section 5.4."
+    },
+    {
+      "id": "CJ-032",
+      "class": "CYCLIC_REJECTION",
+      "requirement": "A cyclic object or array graph fails canonicalization rather than recursing indefinitely or returning partial bytes.",
+      "expectedError": "CYCLIC_STRUCTURE",
+      "evidence": "Spec 0054 sections 5.4, 14 and 18."
+    },
+    {
+      "id": "CJ-033",
+      "class": "UTF8_BYTES",
+      "requirement": "The canonical artifact is exact UTF-8 bytes with no BOM, trailing newline, NUL terminator, UTF-16/UTF-32 output, or lossy replacement transcoding.",
+      "evidence": "Spec 0054 sections 3 and 12."
+    },
+    {
+      "id": "CJ-034",
+      "class": "DETERMINISM",
+      "requirement": "Two semantically equal JSON objects that differ only in property insertion order canonicalize to exactly the same UTF-8 bytes, independent of locale and host map iteration order.",
+      "evidence": "Spec 0054 section 13."
+    },
+    {
+      "id": "CJ-035",
+      "class": "NO_DIGEST_SEMANTICS",
+      "requirement": "M5-002 produces canonical bytes only and does not compute SHA-256, format digest strings, attach digest fields, build hash chains, or claim tamper evidence.",
+      "evidence": "Spec 0054 sections 1, 2 and 16; M5-003/M5-004 own digest/hash-chain behavior."
+    },
+    {
+      "id": "CJ-036",
+      "class": "PROTOCOL_FIRST_BOUNDARY",
+      "requirement": "Protocol-first scope contains only Spec 0054, this corpus, and CURRENT; production/dependency/lockfile/Schema/TCK/HISTORY/roadmap/workflow and M5-003+ changes remain unauthorized until exact-head dual-green.",
+      "evidence": "Spec 0054 sections 19-21 and CURRENT."
+    }
+  ]
+}

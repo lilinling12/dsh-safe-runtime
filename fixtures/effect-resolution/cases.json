@@ -1,0 +1,243 @@
+{
+  "profile": "M4-005",
+  "kind": "EffectResolutionCases",
+  "description": "Language-independent effect resolution over fully-applicable M4-004 structural bands.",
+  "cases": [
+    {
+      "id": "single-allow",
+      "bands": [
+        { "specificity": { "literalCodePoints": 10, "globstarCount": 0, "starCount": 0 }, "effectivePriority": 0, "ruleIds": ["allow-rule"] }
+      ],
+      "effects": [{ "ruleId": "allow-rule", "effect": "allow" }],
+      "expect": { "status": "RESOLVED", "effect": "allow" }
+    },
+    {
+      "id": "single-ask",
+      "bands": [
+        { "specificity": { "literalCodePoints": 10, "globstarCount": 0, "starCount": 0 }, "effectivePriority": 0, "ruleIds": ["ask-rule"] }
+      ],
+      "effects": [{ "ruleId": "ask-rule", "effect": "ask" }],
+      "expect": { "status": "RESOLVED", "effect": "ask" }
+    },
+    {
+      "id": "single-deny",
+      "bands": [
+        { "specificity": { "literalCodePoints": 10, "globstarCount": 0, "starCount": 0 }, "effectivePriority": 0, "ruleIds": ["deny-rule"] }
+      ],
+      "effects": [{ "ruleId": "deny-rule", "effect": "deny" }],
+      "expect": { "status": "RESOLVED", "effect": "deny" }
+    },
+    {
+      "id": "lower-band-deny-beats-higher-band-allow",
+      "bands": [
+        { "specificity": { "literalCodePoints": 20, "globstarCount": 0, "starCount": 0 }, "effectivePriority": 100, "ruleIds": ["high-allow"] },
+        { "specificity": { "literalCodePoints": 2, "globstarCount": 1, "starCount": 0 }, "effectivePriority": -100, "ruleIds": ["low-deny"] }
+      ],
+      "effects": [
+        { "ruleId": "high-allow", "effect": "allow" },
+        { "ruleId": "low-deny", "effect": "deny" }
+      ],
+      "expect": { "status": "RESOLVED", "effect": "deny" }
+    },
+    {
+      "id": "lower-band-deny-beats-higher-band-ask",
+      "bands": [
+        { "specificity": { "literalCodePoints": 20, "globstarCount": 0, "starCount": 0 }, "effectivePriority": 100, "ruleIds": ["high-ask"] },
+        { "specificity": { "literalCodePoints": 2, "globstarCount": 1, "starCount": 0 }, "effectivePriority": -100, "ruleIds": ["low-deny"] }
+      ],
+      "effects": [
+        { "ruleId": "low-deny", "effect": "deny" },
+        { "ruleId": "high-ask", "effect": "ask" }
+      ],
+      "expect": { "status": "RESOLVED", "effect": "deny" }
+    },
+    {
+      "id": "higher-band-allow-beats-lower-band-ask",
+      "bands": [
+        { "specificity": { "literalCodePoints": 20, "globstarCount": 0, "starCount": 0 }, "effectivePriority": 0, "ruleIds": ["high-allow"] },
+        { "specificity": { "literalCodePoints": 10, "globstarCount": 0, "starCount": 1 }, "effectivePriority": 999, "ruleIds": ["low-ask"] }
+      ],
+      "effects": [
+        { "ruleId": "high-allow", "effect": "allow" },
+        { "ruleId": "low-ask", "effect": "ask" }
+      ],
+      "expect": { "status": "RESOLVED", "effect": "allow" }
+    },
+    {
+      "id": "higher-band-ask-beats-lower-band-allow",
+      "bands": [
+        { "specificity": { "literalCodePoints": 20, "globstarCount": 0, "starCount": 0 }, "effectivePriority": 0, "ruleIds": ["high-ask"] },
+        { "specificity": { "literalCodePoints": 10, "globstarCount": 0, "starCount": 1 }, "effectivePriority": 999, "ruleIds": ["low-allow"] }
+      ],
+      "effects": [
+        { "ruleId": "low-allow", "effect": "allow" },
+        { "ruleId": "high-ask", "effect": "ask" }
+      ],
+      "expect": { "status": "RESOLVED", "effect": "ask" }
+    },
+    {
+      "id": "ask-beats-allow-inside-equal-band",
+      "bands": [
+        { "specificity": { "literalCodePoints": 12, "globstarCount": 0, "starCount": 1 }, "effectivePriority": 5, "ruleIds": ["allow-rule", "ask-rule"] }
+      ],
+      "effects": [
+        { "ruleId": "allow-rule", "effect": "allow" },
+        { "ruleId": "ask-rule", "effect": "ask" }
+      ],
+      "expect": { "status": "RESOLVED", "effect": "ask" }
+    },
+    {
+      "id": "all-allows-in-highest-band-resolve-allow",
+      "bands": [
+        { "specificity": { "literalCodePoints": 12, "globstarCount": 0, "starCount": 1 }, "effectivePriority": 5, "ruleIds": ["allow-a", "allow-b"] },
+        { "specificity": { "literalCodePoints": 1, "globstarCount": 1, "starCount": 0 }, "effectivePriority": 0, "ruleIds": ["lower-allow"] }
+      ],
+      "effects": [
+        { "ruleId": "allow-b", "effect": "allow" },
+        { "ruleId": "lower-allow", "effect": "allow" },
+        { "ruleId": "allow-a", "effect": "allow" }
+      ],
+      "expect": { "status": "RESOLVED", "effect": "allow" }
+    },
+    {
+      "id": "empty-input-does-not-default-deny",
+      "bands": [],
+      "effects": [],
+      "expect": { "status": "NO_APPLICABLE_RULES" }
+    },
+    {
+      "id": "effect-binding-permutation-is-semantic-noop",
+      "bands": [
+        { "specificity": { "literalCodePoints": 12, "globstarCount": 0, "starCount": 1 }, "effectivePriority": 5, "ruleIds": ["allow", "ask"] },
+        { "specificity": { "literalCodePoints": 1, "globstarCount": 1, "starCount": 0 }, "effectivePriority": 0, "ruleIds": ["lower"] }
+      ],
+      "effects": [
+        { "ruleId": "allow", "effect": "allow" },
+        { "ruleId": "ask", "effect": "ask" },
+        { "ruleId": "lower", "effect": "allow" }
+      ],
+      "effectPermutations": [
+        ["lower", "ask", "allow"],
+        ["ask", "allow", "lower"]
+      ],
+      "expect": { "status": "RESOLVED", "effect": "ask" }
+    },
+    {
+      "id": "noncanonical-rule-id-order-fails",
+      "bands": [
+        { "specificity": { "literalCodePoints": 1, "globstarCount": 0, "starCount": 0 }, "effectivePriority": 0, "ruleIds": ["z", "a"] }
+      ],
+      "effects": [
+        { "ruleId": "z", "effect": "allow" },
+        { "ruleId": "a", "effect": "allow" }
+      ],
+      "expect": { "status": "ERROR", "reason": "EFFECT_RESOLUTION_BANDS_NONCANONICAL" }
+    },
+    {
+      "id": "nonbmp-rule-id-code-point-order-is-enforced",
+      "bands": [
+        { "specificity": { "literalCodePoints": 1, "globstarCount": 0, "starCount": 0 }, "effectivePriority": 0, "ruleIds": ["rule-😀", "rule-"] }
+      ],
+      "effects": [
+        { "ruleId": "rule-😀", "effect": "allow" },
+        { "ruleId": "rule-", "effect": "allow" }
+      ],
+      "expect": { "status": "ERROR", "reason": "EFFECT_RESOLUTION_BANDS_NONCANONICAL" }
+    },
+    {
+      "id": "reverse-band-order-fails",
+      "bands": [
+        { "specificity": { "literalCodePoints": 1, "globstarCount": 1, "starCount": 0 }, "effectivePriority": 0, "ruleIds": ["low"] },
+        { "specificity": { "literalCodePoints": 10, "globstarCount": 0, "starCount": 0 }, "effectivePriority": 0, "ruleIds": ["high"] }
+      ],
+      "effects": [
+        { "ruleId": "low", "effect": "allow" },
+        { "ruleId": "high", "effect": "allow" }
+      ],
+      "expect": { "status": "ERROR", "reason": "EFFECT_RESOLUTION_BANDS_NONCANONICAL" }
+    },
+    {
+      "id": "equal-structural-key-split-across-bands-fails",
+      "bands": [
+        { "specificity": { "literalCodePoints": 5, "globstarCount": 0, "starCount": 1 }, "effectivePriority": 2, "ruleIds": ["a"] },
+        { "specificity": { "literalCodePoints": 5, "globstarCount": 0, "starCount": 1 }, "effectivePriority": 2, "ruleIds": ["b"] }
+      ],
+      "effects": [
+        { "ruleId": "a", "effect": "allow" },
+        { "ruleId": "b", "effect": "ask" }
+      ],
+      "expect": { "status": "ERROR", "reason": "EFFECT_RESOLUTION_BANDS_NONCANONICAL" }
+    },
+    {
+      "id": "duplicate-rule-id-across-bands-fails",
+      "bands": [
+        { "specificity": { "literalCodePoints": 5, "globstarCount": 0, "starCount": 0 }, "effectivePriority": 0, "ruleIds": ["duplicate"] },
+        { "specificity": { "literalCodePoints": 1, "globstarCount": 1, "starCount": 0 }, "effectivePriority": 0, "ruleIds": ["duplicate"] }
+      ],
+      "effects": [{ "ruleId": "duplicate", "effect": "allow" }],
+      "expect": { "status": "ERROR", "reason": "EFFECT_RESOLUTION_INPUT_INVALID" }
+    },
+    {
+      "id": "duplicate-effect-binding-fails",
+      "bands": [
+        { "specificity": { "literalCodePoints": 5, "globstarCount": 0, "starCount": 0 }, "effectivePriority": 0, "ruleIds": ["rule"] }
+      ],
+      "effects": [
+        { "ruleId": "rule", "effect": "allow" },
+        { "ruleId": "rule", "effect": "ask" }
+      ],
+      "expect": { "status": "ERROR", "reason": "EFFECT_RESOLUTION_RULE_SET_MISMATCH" }
+    },
+    {
+      "id": "missing-effect-binding-fails",
+      "bands": [
+        { "specificity": { "literalCodePoints": 5, "globstarCount": 0, "starCount": 0 }, "effectivePriority": 0, "ruleIds": ["a", "b"] }
+      ],
+      "effects": [{ "ruleId": "a", "effect": "allow" }],
+      "expect": { "status": "ERROR", "reason": "EFFECT_RESOLUTION_RULE_SET_MISMATCH" }
+    },
+    {
+      "id": "extra-effect-binding-fails",
+      "bands": [
+        { "specificity": { "literalCodePoints": 5, "globstarCount": 0, "starCount": 0 }, "effectivePriority": 0, "ruleIds": ["a"] }
+      ],
+      "effects": [
+        { "ruleId": "a", "effect": "allow" },
+        { "ruleId": "extra", "effect": "deny" }
+      ],
+      "expect": { "status": "ERROR", "reason": "EFFECT_RESOLUTION_RULE_SET_MISMATCH" }
+    },
+    {
+      "id": "unknown-effect-fails",
+      "bands": [
+        { "specificity": { "literalCodePoints": 5, "globstarCount": 0, "starCount": 0 }, "effectivePriority": 0, "ruleIds": ["rule"] }
+      ],
+      "effects": [{ "ruleId": "rule", "effect": "ALLOW" }],
+      "expect": { "status": "ERROR", "reason": "EFFECT_RESOLUTION_EFFECT_INVALID" }
+    },
+    {
+      "id": "negative-specificity-fails",
+      "bands": [
+        { "specificity": { "literalCodePoints": -1, "globstarCount": 0, "starCount": 0 }, "effectivePriority": 0, "ruleIds": ["rule"] }
+      ],
+      "effects": [{ "ruleId": "rule", "effect": "allow" }],
+      "expect": { "status": "ERROR", "reason": "EFFECT_RESOLUTION_INPUT_INVALID" }
+    },
+    {
+      "id": "unsafe-specificity-integer-fails",
+      "bands": [
+        { "specificity": { "literalCodePoints": 9007199254740992, "globstarCount": 0, "starCount": 0 }, "effectivePriority": 0, "ruleIds": ["rule"] }
+      ],
+      "effects": [{ "ruleId": "rule", "effect": "allow" }],
+      "expect": { "status": "ERROR", "reason": "EFFECT_RESOLUTION_INPUT_INVALID" }
+    },
+    {
+      "id": "out-of-range-priority-fails",
+      "bands": [
+        { "specificity": { "literalCodePoints": 5, "globstarCount": 0, "starCount": 0 }, "effectivePriority": 1000001, "ruleIds": ["rule"] }
+      ],
+      "effects": [{ "ruleId": "rule", "effect": "allow" }],
+      "expect": { "status": "ERROR", "reason": "EFFECT_RESOLUTION_INPUT_INVALID" }
+    }
+  ]
+}

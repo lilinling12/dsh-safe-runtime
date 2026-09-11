@@ -1,0 +1,466 @@
+{
+  "profile": {
+    "id": "m4-builtin-shell-rc5",
+    "harnessVersion": "0.1.0-rc.5",
+    "harnessCommit": "47f943859bef60e4160492346772ded9b24f765a",
+    "spec": "specs/0027-m4-builtin-shell-tool-classification.md"
+  },
+  "cases": [
+    {
+      "id": "SHELL-CLS-001",
+      "description": "bash foreground command without workdir uses unresolved execution root",
+      "toolName": "bash",
+      "arguments": {
+        "command": "git status",
+        "description": "Show working tree status"
+      },
+      "expected": {
+        "status": "CLASSIFIED",
+        "requirements": [
+          {
+            "capability": "process.exec",
+            "operand": {
+              "source": "SHELL_COMMAND",
+              "dialect": "BASH",
+              "rawCommand": "git status",
+              "executionMode": "FOREGROUND",
+              "workdir": {
+                "source": "EXECUTION_ROOT"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "SHELL-CLS-002",
+      "description": "bash preserves an explicit relative workdir without resolving it",
+      "toolName": "bash",
+      "arguments": {
+        "command": "pnpm test",
+        "description": "Run project test suite",
+        "workdir": "packages/core"
+      },
+      "expected": {
+        "status": "CLASSIFIED",
+        "requirements": [
+          {
+            "capability": "process.exec",
+            "operand": {
+              "source": "SHELL_COMMAND",
+              "dialect": "BASH",
+              "rawCommand": "pnpm test",
+              "executionMode": "FOREGROUND",
+              "workdir": {
+                "source": "ARGUMENT_WORKDIR",
+                "argumentName": "workdir",
+                "rawWorkdir": "packages/core"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "SHELL-CLS-003",
+      "description": "bash true run_in_background records background execution intent",
+      "toolName": "bash",
+      "arguments": {
+        "command": "pnpm dev",
+        "description": "Start development server",
+        "run_in_background": true
+      },
+      "expected": {
+        "status": "CLASSIFIED",
+        "requirements": [
+          {
+            "capability": "process.exec",
+            "operand": {
+              "source": "SHELL_COMMAND",
+              "dialect": "BASH",
+              "rawCommand": "pnpm dev",
+              "executionMode": "BACKGROUND",
+              "workdir": {
+                "source": "EXECUTION_ROOT"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "SHELL-CLS-004",
+      "description": "bash explicit false run_in_background remains foreground",
+      "toolName": "bash",
+      "arguments": {
+        "command": "echo done",
+        "description": "Print completion marker",
+        "run_in_background": false
+      },
+      "expected": {
+        "status": "CLASSIFIED",
+        "requirements": [
+          {
+            "capability": "process.exec",
+            "operand": {
+              "source": "SHELL_COMMAND",
+              "dialect": "BASH",
+              "rawCommand": "echo done",
+              "executionMode": "FOREGROUND",
+              "workdir": {
+                "source": "EXECUTION_ROOT"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "SHELL-CLS-005",
+      "description": "pwsh foreground command maps to process.exec only",
+      "toolName": "pwsh",
+      "arguments": {
+        "command": "Get-Process",
+        "description": "List running processes"
+      },
+      "expected": {
+        "status": "CLASSIFIED",
+        "requirements": [
+          {
+            "capability": "process.exec",
+            "operand": {
+              "source": "SHELL_COMMAND",
+              "dialect": "POWERSHELL",
+              "rawCommand": "Get-Process",
+              "executionMode": "FOREGROUND",
+              "workdir": {
+                "source": "EXECUTION_ROOT"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "SHELL-CLS-006",
+      "description": "pwsh preserves native Windows workdir text exactly",
+      "toolName": "pwsh",
+      "arguments": {
+        "command": "Get-ChildItem",
+        "description": "List directory contents",
+        "workdir": "C:\\work\\repo"
+      },
+      "expected": {
+        "status": "CLASSIFIED",
+        "requirements": [
+          {
+            "capability": "process.exec",
+            "operand": {
+              "source": "SHELL_COMMAND",
+              "dialect": "POWERSHELL",
+              "rawCommand": "Get-ChildItem",
+              "executionMode": "FOREGROUND",
+              "workdir": {
+                "source": "ARGUMENT_WORKDIR",
+                "argumentName": "workdir",
+                "rawWorkdir": "C:\\work\\repo"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "SHELL-CLS-007",
+      "description": "pwsh background mode preserves command and workdir evidence",
+      "toolName": "pwsh",
+      "arguments": {
+        "command": "Start-Sleep -Seconds 30",
+        "description": "Sleep for thirty seconds",
+        "workdir": ".\\scripts\\..\\scripts",
+        "run_in_background": true
+      },
+      "expected": {
+        "status": "CLASSIFIED",
+        "requirements": [
+          {
+            "capability": "process.exec",
+            "operand": {
+              "source": "SHELL_COMMAND",
+              "dialect": "POWERSHELL",
+              "rawCommand": "Start-Sleep -Seconds 30",
+              "executionMode": "BACKGROUND",
+              "workdir": {
+                "source": "ARGUMENT_WORKDIR",
+                "argumentName": "workdir",
+                "rawWorkdir": ".\\scripts\\..\\scripts"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "SHELL-CLS-008",
+      "description": "shell command text that names filesystem effects is kept opaque",
+      "toolName": "bash",
+      "arguments": {
+        "command": "cat ./secret.txt && rm -f ./generated.txt",
+        "description": "Inspect and remove generated file"
+      },
+      "expected": {
+        "status": "CLASSIFIED",
+        "requirements": [
+          {
+            "capability": "process.exec",
+            "operand": {
+              "source": "SHELL_COMMAND",
+              "dialect": "BASH",
+              "rawCommand": "cat ./secret.txt && rm -f ./generated.txt",
+              "executionMode": "FOREGROUND",
+              "workdir": {
+                "source": "EXECUTION_ROOT"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "SHELL-CLS-009",
+      "description": "shell command text that names network effects is kept opaque",
+      "toolName": "bash",
+      "arguments": {
+        "command": "curl https://example.test/api",
+        "description": "Call example API endpoint"
+      },
+      "expected": {
+        "status": "CLASSIFIED",
+        "requirements": [
+          {
+            "capability": "process.exec",
+            "operand": {
+              "source": "SHELL_COMMAND",
+              "dialect": "BASH",
+              "rawCommand": "curl https://example.test/api",
+              "executionMode": "FOREGROUND",
+              "workdir": {
+                "source": "EXECUTION_ROOT"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "SHELL-CLS-010",
+      "description": "accepted command whitespace is preserved after non-blank validation",
+      "toolName": "bash",
+      "arguments": {
+        "command": "  printf 'x'  ",
+        "description": "Print one character"
+      },
+      "expected": {
+        "status": "CLASSIFIED",
+        "requirements": [
+          {
+            "capability": "process.exec",
+            "operand": {
+              "source": "SHELL_COMMAND",
+              "dialect": "BASH",
+              "rawCommand": "  printf 'x'  ",
+              "executionMode": "FOREGROUND",
+              "workdir": {
+                "source": "EXECUTION_ROOT"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "SHELL-CLS-011",
+      "description": "unicode command and workdir values are preserved exactly",
+      "toolName": "pwsh",
+      "arguments": {
+        "command": "Write-Output '资料'",
+        "description": "Print unicode text",
+        "workdir": "C:\\工作\\项目"
+      },
+      "expected": {
+        "status": "CLASSIFIED",
+        "requirements": [
+          {
+            "capability": "process.exec",
+            "operand": {
+              "source": "SHELL_COMMAND",
+              "dialect": "POWERSHELL",
+              "rawCommand": "Write-Output '资料'",
+              "executionMode": "FOREGROUND",
+              "workdir": {
+                "source": "ARGUMENT_WORKDIR",
+                "argumentName": "workdir",
+                "rawWorkdir": "C:\\工作\\项目"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "SHELL-CLS-012",
+      "description": "classification ignores unrelated display timeout and escalation metadata",
+      "toolName": "bash",
+      "arguments": {
+        "command": "make build",
+        "description": "Build project artifacts",
+        "timeoutMs": 30000,
+        "sandbox_permissions": "workspace-write",
+        "justification": "Required by an upstream approval flow",
+        "unrelated": {
+          "nested": "not retained"
+        }
+      },
+      "expected": {
+        "status": "CLASSIFIED",
+        "requirements": [
+          {
+            "capability": "process.exec",
+            "operand": {
+              "source": "SHELL_COMMAND",
+              "dialect": "BASH",
+              "rawCommand": "make build",
+              "executionMode": "FOREGROUND",
+              "workdir": {
+                "source": "EXECUTION_ROOT"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "SHELL-CLS-013",
+      "description": "recognized tool requires an argument object",
+      "toolName": "bash",
+      "arguments": null,
+      "expected": {
+        "status": "ERROR",
+        "reason": "SHELL_TOOL_ARGUMENTS_INVALID"
+      }
+    },
+    {
+      "id": "SHELL-CLS-014",
+      "description": "recognized tool requires command",
+      "toolName": "pwsh",
+      "arguments": {
+        "description": "Missing command"
+      },
+      "expected": {
+        "status": "ERROR",
+        "reason": "SHELL_TOOL_COMMAND_INVALID"
+      }
+    },
+    {
+      "id": "SHELL-CLS-015",
+      "description": "recognized command may not be blank",
+      "toolName": "bash",
+      "arguments": {
+        "command": "   ",
+        "description": "Blank command"
+      },
+      "expected": {
+        "status": "ERROR",
+        "reason": "SHELL_TOOL_COMMAND_INVALID"
+      }
+    },
+    {
+      "id": "SHELL-CLS-016",
+      "description": "recognized command must be a string",
+      "toolName": "bash",
+      "arguments": {
+        "command": 42,
+        "description": "Invalid command type"
+      },
+      "expected": {
+        "status": "ERROR",
+        "reason": "SHELL_TOOL_COMMAND_INVALID"
+      }
+    },
+    {
+      "id": "SHELL-CLS-017",
+      "description": "explicit workdir may not be blank",
+      "toolName": "pwsh",
+      "arguments": {
+        "command": "Get-Date",
+        "description": "Show current date",
+        "workdir": "   "
+      },
+      "expected": {
+        "status": "ERROR",
+        "reason": "SHELL_TOOL_WORKDIR_INVALID"
+      }
+    },
+    {
+      "id": "SHELL-CLS-018",
+      "description": "explicit workdir must be a string",
+      "toolName": "bash",
+      "arguments": {
+        "command": "pwd",
+        "description": "Print working directory",
+        "workdir": 123
+      },
+      "expected": {
+        "status": "ERROR",
+        "reason": "SHELL_TOOL_WORKDIR_INVALID"
+      }
+    },
+    {
+      "id": "SHELL-CLS-019",
+      "description": "explicit background flag must be boolean",
+      "toolName": "bash",
+      "arguments": {
+        "command": "sleep 1",
+        "description": "Sleep for one second",
+        "run_in_background": "true"
+      },
+      "expected": {
+        "status": "ERROR",
+        "reason": "SHELL_TOOL_BACKGROUND_INVALID"
+      }
+    },
+    {
+      "id": "SHELL-CLS-020",
+      "description": "unknown shell-like tool remains not applicable until M4-013",
+      "toolName": "sh",
+      "arguments": {
+        "command": "echo x"
+      },
+      "expected": {
+        "status": "NOT_APPLICABLE"
+      }
+    },
+    {
+      "id": "SHELL-CLS-021",
+      "description": "powershell alias is not inferred from pwsh",
+      "toolName": "powershell",
+      "arguments": {
+        "command": "Get-Date"
+      },
+      "expected": {
+        "status": "NOT_APPLICABLE"
+      }
+    },
+    {
+      "id": "SHELL-CLS-022",
+      "description": "known shell tool names are exact and case-sensitive",
+      "toolName": "Bash",
+      "arguments": {
+        "command": "echo x"
+      },
+      "expected": {
+        "status": "NOT_APPLICABLE"
+      }
+    }
+  ]
+}

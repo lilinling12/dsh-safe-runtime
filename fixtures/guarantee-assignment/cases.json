@@ -1,0 +1,520 @@
+{
+  "profile": "M4-025_GUARANTEE_ASSIGNMENT_V1",
+  "description": "Portable deterministic action-scoped GuaranteeLevel assignment cases for Spec 0036.",
+  "cases": [
+    {
+      "id": "GA-001",
+      "description": "No enforcement evidence assigns advisory.",
+      "input": {
+        "profile": "M4-025_GUARANTEE_ASSIGNMENT_V1",
+        "evidence": {
+          "isolation": { "state": "NONE" },
+          "provider": { "state": "NONE" },
+          "tool": { "state": "NONE" }
+        }
+      },
+      "expected": { "status": "ASSIGNED", "guaranteeLevel": "advisory", "reasonCode": "GUARANTEE_ASSIGNED_ADVISORY" }
+    },
+    {
+      "id": "GA-002",
+      "description": "Tool seam availability alone remains advisory.",
+      "input": {
+        "profile": "M4-025_GUARANTEE_ASSIGNMENT_V1",
+        "evidence": {
+          "isolation": { "state": "NONE" },
+          "provider": { "state": "NONE" },
+          "tool": { "state": "AVAILABLE_ONLY" }
+        }
+      },
+      "expected": { "status": "ASSIGNED", "guaranteeLevel": "advisory", "reasonCode": "GUARANTEE_ASSIGNED_ADVISORY" }
+    },
+    {
+      "id": "GA-003",
+      "description": "Exact-action mandatory tool enforcement assigns tool-enforced.",
+      "input": {
+        "profile": "M4-025_GUARANTEE_ASSIGNMENT_V1",
+        "evidence": {
+          "isolation": { "state": "NONE" },
+          "provider": { "state": "NONE" },
+          "tool": { "state": "ENFORCING", "authorizationBinding": "EXACT_ACTION", "dispatchControl": "MANDATORY" }
+        }
+      },
+      "expected": { "status": "ASSIGNED", "guaranteeLevel": "tool-enforced", "reasonCode": "GUARANTEE_ASSIGNED_TOOL_ENFORCED" }
+    },
+    {
+      "id": "GA-004",
+      "description": "Provider mediation without enforcement does not upgrade a qualifying tool boundary.",
+      "input": {
+        "profile": "M4-025_GUARANTEE_ASSIGNMENT_V1",
+        "evidence": {
+          "isolation": { "state": "NONE" },
+          "provider": { "state": "MEDIATED_ONLY" },
+          "tool": { "state": "ENFORCING", "authorizationBinding": "EXACT_ACTION", "dispatchControl": "MANDATORY" }
+        }
+      },
+      "expected": { "status": "ASSIGNED", "guaranteeLevel": "tool-enforced", "reasonCode": "GUARANTEE_ASSIGNED_TOOL_ENFORCED" }
+    },
+    {
+      "id": "GA-005",
+      "description": "Complete canonical mandatory verified provider enforcement assigns provider-enforced.",
+      "input": {
+        "profile": "M4-025_GUARANTEE_ASSIGNMENT_V1",
+        "evidence": {
+          "isolation": { "state": "NONE" },
+          "provider": {
+            "state": "ENFORCING",
+            "authorizationBinding": "EXACT_CAPABILITY_RESOURCE",
+            "traversal": "MANDATORY",
+            "coverage": "COMPLETE",
+            "resourceIdentity": "PROVIDER_CANONICAL",
+            "deploymentEvidence": "VERIFIED"
+          },
+          "tool": { "state": "NONE" }
+        }
+      },
+      "expected": { "status": "ASSIGNED", "guaranteeLevel": "provider-enforced", "reasonCode": "GUARANTEE_ASSIGNED_PROVIDER_ENFORCED" }
+    },
+    {
+      "id": "GA-006",
+      "description": "Partial provider coverage cannot upgrade a qualifying tool boundary.",
+      "input": {
+        "profile": "M4-025_GUARANTEE_ASSIGNMENT_V1",
+        "evidence": {
+          "isolation": { "state": "NONE" },
+          "provider": {
+            "state": "ENFORCING",
+            "authorizationBinding": "EXACT_CAPABILITY_RESOURCE",
+            "traversal": "MANDATORY",
+            "coverage": "PARTIAL",
+            "resourceIdentity": "PROVIDER_CANONICAL",
+            "deploymentEvidence": "VERIFIED"
+          },
+          "tool": { "state": "ENFORCING", "authorizationBinding": "EXACT_ACTION", "dispatchControl": "MANDATORY" }
+        }
+      },
+      "expected": { "status": "ASSIGNED", "guaranteeLevel": "tool-enforced", "reasonCode": "GUARANTEE_ASSIGNED_TOOL_ENFORCED" }
+    },
+    {
+      "id": "GA-007",
+      "description": "Bypassable provider traversal cannot produce provider-enforced.",
+      "input": {
+        "profile": "M4-025_GUARANTEE_ASSIGNMENT_V1",
+        "evidence": {
+          "isolation": { "state": "NONE" },
+          "provider": {
+            "state": "ENFORCING",
+            "authorizationBinding": "EXACT_CAPABILITY_RESOURCE",
+            "traversal": "BYPASSABLE",
+            "coverage": "COMPLETE",
+            "resourceIdentity": "PROVIDER_CANONICAL",
+            "deploymentEvidence": "VERIFIED"
+          },
+          "tool": { "state": "NONE" }
+        }
+      },
+      "expected": { "status": "ASSIGNED", "guaranteeLevel": "advisory", "reasonCode": "GUARANTEE_ASSIGNED_ADVISORY" }
+    },
+    {
+      "id": "GA-008",
+      "description": "Non-canonical provider identity cannot produce provider-enforced.",
+      "input": {
+        "profile": "M4-025_GUARANTEE_ASSIGNMENT_V1",
+        "evidence": {
+          "isolation": { "state": "NONE" },
+          "provider": {
+            "state": "ENFORCING",
+            "authorizationBinding": "EXACT_CAPABILITY_RESOURCE",
+            "traversal": "MANDATORY",
+            "coverage": "COMPLETE",
+            "resourceIdentity": "NON_CANONICAL",
+            "deploymentEvidence": "VERIFIED"
+          },
+          "tool": { "state": "NONE" }
+        }
+      },
+      "expected": { "status": "ASSIGNED", "guaranteeLevel": "advisory", "reasonCode": "GUARANTEE_ASSIGNED_ADVISORY" }
+    },
+    {
+      "id": "GA-009",
+      "description": "Unverified deployment evidence cannot produce provider-enforced.",
+      "input": {
+        "profile": "M4-025_GUARANTEE_ASSIGNMENT_V1",
+        "evidence": {
+          "isolation": { "state": "NONE" },
+          "provider": {
+            "state": "ENFORCING",
+            "authorizationBinding": "EXACT_CAPABILITY_RESOURCE",
+            "traversal": "MANDATORY",
+            "coverage": "COMPLETE",
+            "resourceIdentity": "PROVIDER_CANONICAL",
+            "deploymentEvidence": "UNVERIFIED"
+          },
+          "tool": { "state": "NONE" }
+        }
+      },
+      "expected": { "status": "ASSIGNED", "guaranteeLevel": "advisory", "reasonCode": "GUARANTEE_ASSIGNED_ADVISORY" }
+    },
+    {
+      "id": "GA-010",
+      "description": "Verified complete isolation with blocked direct-host bypass assigns process-isolated.",
+      "input": {
+        "profile": "M4-025_GUARANTEE_ASSIGNMENT_V1",
+        "evidence": {
+          "isolation": {
+            "state": "ENFORCING",
+            "boundary": "MICROVM",
+            "authorizationBinding": "EXACT_CAPABILITY_RESOURCE",
+            "coverage": "COMPLETE",
+            "directHostBypass": "BLOCKED",
+            "deploymentEvidence": "VERIFIED"
+          },
+          "provider": { "state": "NONE" },
+          "tool": { "state": "NONE" }
+        }
+      },
+      "expected": { "status": "ASSIGNED", "guaranteeLevel": "process-isolated", "reasonCode": "GUARANTEE_ASSIGNED_PROCESS_ISOLATED" }
+    },
+    {
+      "id": "GA-011",
+      "description": "Partial process isolation falls through to qualifying provider enforcement.",
+      "input": {
+        "profile": "M4-025_GUARANTEE_ASSIGNMENT_V1",
+        "evidence": {
+          "isolation": {
+            "state": "ENFORCING",
+            "boundary": "CONTAINER",
+            "authorizationBinding": "EXACT_CAPABILITY_RESOURCE",
+            "coverage": "PARTIAL",
+            "directHostBypass": "BLOCKED",
+            "deploymentEvidence": "VERIFIED"
+          },
+          "provider": {
+            "state": "ENFORCING",
+            "authorizationBinding": "EXACT_CAPABILITY_RESOURCE",
+            "traversal": "MANDATORY",
+            "coverage": "COMPLETE",
+            "resourceIdentity": "PROVIDER_CANONICAL",
+            "deploymentEvidence": "VERIFIED"
+          },
+          "tool": { "state": "NONE" }
+        }
+      },
+      "expected": { "status": "ASSIGNED", "guaranteeLevel": "provider-enforced", "reasonCode": "GUARANTEE_ASSIGNED_PROVIDER_ENFORCED" }
+    },
+    {
+      "id": "GA-012",
+      "description": "Process boundary that does not block direct host bypass cannot produce process-isolated.",
+      "input": {
+        "profile": "M4-025_GUARANTEE_ASSIGNMENT_V1",
+        "evidence": {
+          "isolation": {
+            "state": "ENFORCING",
+            "boundary": "OS_PROCESS_SANDBOX",
+            "authorizationBinding": "EXACT_CAPABILITY_RESOURCE",
+            "coverage": "COMPLETE",
+            "directHostBypass": "NOT_BLOCKED",
+            "deploymentEvidence": "VERIFIED"
+          },
+          "provider": { "state": "NONE" },
+          "tool": { "state": "NONE" }
+        }
+      },
+      "expected": { "status": "ASSIGNED", "guaranteeLevel": "advisory", "reasonCode": "GUARANTEE_ASSIGNED_ADVISORY" }
+    },
+    {
+      "id": "GA-013",
+      "description": "Unverified container category does not produce process-isolated.",
+      "input": {
+        "profile": "M4-025_GUARANTEE_ASSIGNMENT_V1",
+        "evidence": {
+          "isolation": {
+            "state": "ENFORCING",
+            "boundary": "CONTAINER",
+            "authorizationBinding": "EXACT_CAPABILITY_RESOURCE",
+            "coverage": "COMPLETE",
+            "directHostBypass": "BLOCKED",
+            "deploymentEvidence": "UNVERIFIED"
+          },
+          "provider": { "state": "NONE" },
+          "tool": { "state": "NONE" }
+        }
+      },
+      "expected": { "status": "ASSIGNED", "guaranteeLevel": "advisory", "reasonCode": "GUARANTEE_ASSIGNED_ADVISORY" }
+    },
+    {
+      "id": "GA-014",
+      "description": "Plain child process is explicitly not a process-isolation guarantee.",
+      "input": {
+        "profile": "M4-025_GUARANTEE_ASSIGNMENT_V1",
+        "evidence": {
+          "isolation": { "state": "NON_SECURITY_BOUNDARY", "mechanism": "PLAIN_PROCESS" },
+          "provider": { "state": "NONE" },
+          "tool": { "state": "NONE" }
+        }
+      },
+      "expected": { "status": "ASSIGNED", "guaranteeLevel": "advisory", "reasonCode": "GUARANTEE_ASSIGNED_ADVISORY" }
+    },
+    {
+      "id": "GA-015",
+      "description": "Worker thread is explicitly not a process-isolation guarantee.",
+      "input": {
+        "profile": "M4-025_GUARANTEE_ASSIGNMENT_V1",
+        "evidence": {
+          "isolation": { "state": "NON_SECURITY_BOUNDARY", "mechanism": "WORKER_THREAD" },
+          "provider": { "state": "NONE" },
+          "tool": { "state": "NONE" }
+        }
+      },
+      "expected": { "status": "ASSIGNED", "guaranteeLevel": "advisory", "reasonCode": "GUARANTEE_ASSIGNED_ADVISORY" }
+    },
+    {
+      "id": "GA-016",
+      "description": "Same-world sandbox alone is not a process-isolation guarantee.",
+      "input": {
+        "profile": "M4-025_GUARANTEE_ASSIGNMENT_V1",
+        "evidence": {
+          "isolation": { "state": "NON_SECURITY_BOUNDARY", "mechanism": "SAME_WORLD_SANDBOX" },
+          "provider": { "state": "MEDIATED_ONLY" },
+          "tool": { "state": "NONE" }
+        }
+      },
+      "expected": { "status": "ASSIGNED", "guaranteeLevel": "advisory", "reasonCode": "GUARANTEE_ASSIGNED_ADVISORY" }
+    },
+    {
+      "id": "GA-017",
+      "description": "Strongest qualifying process boundary wins over provider and tool boundaries.",
+      "input": {
+        "profile": "M4-025_GUARANTEE_ASSIGNMENT_V1",
+        "evidence": {
+          "isolation": {
+            "state": "ENFORCING",
+            "boundary": "REMOTE_ISOLATED_RUNTIME",
+            "authorizationBinding": "EXACT_CAPABILITY_RESOURCE",
+            "coverage": "COMPLETE",
+            "directHostBypass": "BLOCKED",
+            "deploymentEvidence": "VERIFIED"
+          },
+          "provider": {
+            "state": "ENFORCING",
+            "authorizationBinding": "EXACT_CAPABILITY_RESOURCE",
+            "traversal": "MANDATORY",
+            "coverage": "COMPLETE",
+            "resourceIdentity": "PROVIDER_CANONICAL",
+            "deploymentEvidence": "VERIFIED"
+          },
+          "tool": { "state": "ENFORCING", "authorizationBinding": "EXACT_ACTION", "dispatchControl": "MANDATORY" }
+        }
+      },
+      "expected": { "status": "ASSIGNED", "guaranteeLevel": "process-isolated", "reasonCode": "GUARANTEE_ASSIGNED_PROCESS_ISOLATED" }
+    },
+    {
+      "id": "GA-018",
+      "description": "Qualifying provider boundary wins over qualifying tool boundary.",
+      "input": {
+        "profile": "M4-025_GUARANTEE_ASSIGNMENT_V1",
+        "evidence": {
+          "isolation": { "state": "NONE" },
+          "provider": {
+            "state": "ENFORCING",
+            "authorizationBinding": "EXACT_CAPABILITY_RESOURCE",
+            "traversal": "MANDATORY",
+            "coverage": "COMPLETE",
+            "resourceIdentity": "PROVIDER_CANONICAL",
+            "deploymentEvidence": "VERIFIED"
+          },
+          "tool": { "state": "ENFORCING", "authorizationBinding": "EXACT_ACTION", "dispatchControl": "MANDATORY" }
+        }
+      },
+      "expected": { "status": "ASSIGNED", "guaranteeLevel": "provider-enforced", "reasonCode": "GUARANTEE_ASSIGNED_PROVIDER_ENFORCED" }
+    },
+    {
+      "id": "GA-019",
+      "description": "Unknown profile fails closed.",
+      "input": {
+        "profile": "M4-025_FUTURE",
+        "evidence": {
+          "isolation": { "state": "NONE" },
+          "provider": { "state": "NONE" },
+          "tool": { "state": "NONE" }
+        }
+      },
+      "expected": { "status": "FAIL_CLOSED", "stage": "INPUT", "reasonCode": "GUARANTEE_ASSIGNMENT_PROFILE_INVALID" }
+    },
+    {
+      "id": "GA-020",
+      "description": "Unknown isolation state fails closed instead of falling through.",
+      "input": {
+        "profile": "M4-025_GUARANTEE_ASSIGNMENT_V1",
+        "evidence": {
+          "isolation": { "state": "FUTURE" },
+          "provider": { "state": "NONE" },
+          "tool": { "state": "NONE" }
+        }
+      },
+      "expected": { "status": "FAIL_CLOSED", "stage": "ISOLATION", "reasonCode": "GUARANTEE_ASSIGNMENT_ISOLATION_EVIDENCE_INVALID" }
+    },
+    {
+      "id": "GA-021",
+      "description": "Unknown provider state fails closed.",
+      "input": {
+        "profile": "M4-025_GUARANTEE_ASSIGNMENT_V1",
+        "evidence": {
+          "isolation": { "state": "NONE" },
+          "provider": { "state": "FUTURE" },
+          "tool": { "state": "NONE" }
+        }
+      },
+      "expected": { "status": "FAIL_CLOSED", "stage": "PROVIDER", "reasonCode": "GUARANTEE_ASSIGNMENT_PROVIDER_EVIDENCE_INVALID" }
+    },
+    {
+      "id": "GA-022",
+      "description": "Unknown tool state fails closed.",
+      "input": {
+        "profile": "M4-025_GUARANTEE_ASSIGNMENT_V1",
+        "evidence": {
+          "isolation": { "state": "NONE" },
+          "provider": { "state": "NONE" },
+          "tool": { "state": "FUTURE" }
+        }
+      },
+      "expected": { "status": "FAIL_CLOSED", "stage": "TOOL", "reasonCode": "GUARANTEE_ASSIGNMENT_TOOL_EVIDENCE_INVALID" }
+    },
+    {
+      "id": "GA-023",
+      "description": "Missing evidence slot fails closed rather than implying NONE.",
+      "input": {
+        "profile": "M4-025_GUARANTEE_ASSIGNMENT_V1",
+        "evidence": {
+          "isolation": { "state": "NONE" },
+          "provider": { "state": "NONE" }
+        }
+      },
+      "expected": { "status": "FAIL_CLOSED", "stage": "EVIDENCE", "reasonCode": "GUARANTEE_ASSIGNMENT_EVIDENCE_INVALID" }
+    },
+    {
+      "id": "GA-024",
+      "description": "Unexpected evidence slot fails closed.",
+      "input": {
+        "profile": "M4-025_GUARANTEE_ASSIGNMENT_V1",
+        "evidence": {
+          "isolation": { "state": "NONE" },
+          "provider": { "state": "NONE" },
+          "tool": { "state": "NONE" },
+          "network": { "state": "ENFORCING" }
+        }
+      },
+      "expected": { "status": "FAIL_CLOSED", "stage": "EVIDENCE", "reasonCode": "GUARANTEE_ASSIGNMENT_EVIDENCE_INVALID" }
+    },
+    {
+      "id": "GA-025",
+      "description": "Malformed qualifying provider record fails closed rather than falling through to tool enforcement.",
+      "input": {
+        "profile": "M4-025_GUARANTEE_ASSIGNMENT_V1",
+        "evidence": {
+          "isolation": { "state": "NONE" },
+          "provider": {
+            "state": "ENFORCING",
+            "authorizationBinding": "EXACT_CAPABILITY_RESOURCE",
+            "traversal": "MANDATORY",
+            "coverage": "COMPLETE",
+            "resourceIdentity": "PROVIDER_CANONICAL"
+          },
+          "tool": { "state": "ENFORCING", "authorizationBinding": "EXACT_ACTION", "dispatchControl": "MANDATORY" }
+        }
+      },
+      "expected": { "status": "FAIL_CLOSED", "stage": "PROVIDER", "reasonCode": "GUARANTEE_ASSIGNMENT_PROVIDER_EVIDENCE_INVALID" }
+    },
+    {
+      "id": "GA-026",
+      "description": "Malformed isolation record fails closed rather than falling through to provider enforcement.",
+      "input": {
+        "profile": "M4-025_GUARANTEE_ASSIGNMENT_V1",
+        "evidence": {
+          "isolation": {
+            "state": "ENFORCING",
+            "boundary": "VM",
+            "authorizationBinding": "EXACT_CAPABILITY_RESOURCE",
+            "coverage": "COMPLETE",
+            "deploymentEvidence": "VERIFIED"
+          },
+          "provider": {
+            "state": "ENFORCING",
+            "authorizationBinding": "EXACT_CAPABILITY_RESOURCE",
+            "traversal": "MANDATORY",
+            "coverage": "COMPLETE",
+            "resourceIdentity": "PROVIDER_CANONICAL",
+            "deploymentEvidence": "VERIFIED"
+          },
+          "tool": { "state": "NONE" }
+        }
+      },
+      "expected": { "status": "FAIL_CLOSED", "stage": "ISOLATION", "reasonCode": "GUARANTEE_ASSIGNMENT_ISOLATION_EVIDENCE_INVALID" }
+    },
+    {
+      "id": "GA-027",
+      "description": "Unexpected tool field fails closed.",
+      "input": {
+        "profile": "M4-025_GUARANTEE_ASSIGNMENT_V1",
+        "evidence": {
+          "isolation": { "state": "NONE" },
+          "provider": { "state": "NONE" },
+          "tool": { "state": "ENFORCING", "authorizationBinding": "EXACT_ACTION", "dispatchControl": "MANDATORY", "priority": 1 }
+        }
+      },
+      "expected": { "status": "FAIL_CLOSED", "stage": "TOOL", "reasonCode": "GUARANTEE_ASSIGNMENT_TOOL_EVIDENCE_INVALID" }
+    },
+    {
+      "id": "GA-028",
+      "description": "Unknown process-isolation boundary fails closed.",
+      "input": {
+        "profile": "M4-025_GUARANTEE_ASSIGNMENT_V1",
+        "evidence": {
+          "isolation": {
+            "state": "ENFORCING",
+            "boundary": "FUTURE_SANDBOX",
+            "authorizationBinding": "EXACT_CAPABILITY_RESOURCE",
+            "coverage": "COMPLETE",
+            "directHostBypass": "BLOCKED",
+            "deploymentEvidence": "VERIFIED"
+          },
+          "provider": { "state": "NONE" },
+          "tool": { "state": "NONE" }
+        }
+      },
+      "expected": { "status": "FAIL_CLOSED", "stage": "ISOLATION", "reasonCode": "GUARANTEE_ASSIGNMENT_ISOLATION_EVIDENCE_INVALID" }
+    },
+    {
+      "id": "GA-029",
+      "description": "Unknown non-security mechanism fails closed.",
+      "input": {
+        "profile": "M4-025_GUARANTEE_ASSIGNMENT_V1",
+        "evidence": {
+          "isolation": { "state": "NON_SECURITY_BOUNDARY", "mechanism": "FUTURE" },
+          "provider": { "state": "NONE" },
+          "tool": { "state": "NONE" }
+        }
+      },
+      "expected": { "status": "FAIL_CLOSED", "stage": "ISOLATION", "reasonCode": "GUARANTEE_ASSIGNMENT_ISOLATION_EVIDENCE_INVALID" }
+    },
+    {
+      "id": "GA-030",
+      "description": "Provider-reported completeness without deployment verification remains advisory.",
+      "input": {
+        "profile": "M4-025_GUARANTEE_ASSIGNMENT_V1",
+        "evidence": {
+          "isolation": { "state": "NON_SECURITY_BOUNDARY", "mechanism": "SAME_WORLD_SANDBOX" },
+          "provider": {
+            "state": "ENFORCING",
+            "authorizationBinding": "EXACT_CAPABILITY_RESOURCE",
+            "traversal": "MANDATORY",
+            "coverage": "COMPLETE",
+            "resourceIdentity": "PROVIDER_CANONICAL",
+            "deploymentEvidence": "UNVERIFIED"
+          },
+          "tool": { "state": "NONE" }
+        }
+      },
+      "expected": { "status": "ASSIGNED", "guaranteeLevel": "advisory", "reasonCode": "GUARANTEE_ASSIGNED_ADVISORY" }
+    }
+  ]
+}

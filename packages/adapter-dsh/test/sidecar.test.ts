@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 
+import type { CorrelationRecord } from "../src/correlation.js";
+import { DshAdapterError } from "../src/errors.js";
 import {
   createSidecarEvidenceRecord,
-  DshAdapterError,
-  type CorrelationRecord,
   type SidecarEvidenceAnchor,
-} from "../src/index.js";
+} from "../src/sidecar.js";
 
 const evidence = (eventRef: string): SidecarEvidenceAnchor => ({
   evidenceRef: "evidence:tool-result:1",

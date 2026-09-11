@@ -1,0 +1,41 @@
+{
+  "profile": "M4-043_DSH_AUTHORITATIVE_TOOL_RESULT_V1",
+  "pinnedHarness": {
+    "version": "0.1.0-rc.5",
+    "commit": "47f943859bef60e4160492346772ded9b24f765a"
+  },
+  "cases": [
+    {"id":"DATR-001","requirement":"Conformance targets only the exact pinned Harness rc5 baseline; newer/default-branch behavior is not protocol authority.","evidence":"SOURCE_CONTRACT"},
+    {"id":"DATR-002","requirement":"The deployment explicitly requires toolsFinalResultObserver support before relying on M4-043.","evidence":"REAL_RUNTIME"},
+    {"id":"DATR-003","requirement":"For Adapter DSH, live tools/result is the authoritative final ToolRuntime outcome source.","evidence":"SOURCE_AND_RUNTIME"},
+    {"id":"DATR-004","requirement":"A direct tool-body return is intermediate evidence and cannot be used as final result authority.","evidence":"REAL_RUNTIME"},
+    {"id":"DATR-005","requirement":"A tools/post-execute replacement precedes final authority and the replaced materialized result is what tools/result exposes.","evidence":"REAL_RUNTIME"},
+    {"id":"DATR-006","requirement":"Definition-owned final-content transformation occurs before tools/result authority when the public rc5 seam exercises it.","evidence":"SOURCE_AND_RUNTIME"},
+    {"id":"DATR-007","requirement":"ToolRuntime notifies tools/result with the exact finalResult object that its finalization path returns.","evidence":"SOURCE_AND_RUNTIME"},
+    {"id":"DATR-008","requirement":"Adapter resultDigest is computed from the exact authoritative tools/result result rather than the body return or an earlier candidate.","evidence":"REAL_RUNTIME"},
+    {"id":"DATR-009","requirement":"A final successful result maps to one correlated tool.completed success event.","evidence":"REAL_RUNTIME"},
+    {"id":"DATR-010","requirement":"A real body throw is materialized and observed through tools/result as final error authority.","evidence":"REAL_RUNTIME"},
+    {"id":"DATR-011","requirement":"A post-execute block/failure cannot leave an earlier successful body result authoritative.","evidence":"REAL_RUNTIME"},
+    {"id":"DATR-012","requirement":"A finalization/materialization failure becomes the authoritative materialized error rather than falling back to an earlier success.","evidence":"SOURCE_AND_RUNTIME"},
+    {"id":"DATR-013","requirement":"Policy ALLOW, approval allowed-once, hard-guard abstention, or body entry cannot by themselves synthesize execution success.","evidence":"ARCHITECTURE_NON_CLAIM"},
+    {"id":"DATR-014","requirement":"Policy/guard/approval disposition metadata may classify an authoritative final result but does not replace the final result or its digest source.","evidence":"ARCHITECTURE_AND_RUNTIME"},
+    {"id":"DATR-015","requirement":"One agent-backed native tools/result notification observed by one active Adapter subscription emits one live normalized tool.completed, absent normalization failure.","evidence":"REAL_RUNTIME"},
+    {"id":"DATR-016","requirement":"The later durable session tool/result fact does not produce a second live tool.completed for the same native completion.","evidence":"EXISTING_CONFORMANCE"},
+    {"id":"DATR-017","requirement":"Final-result correlation uses exact sessionRef from exec.agent.session.id, callRef from exec.callId, and toolName from exec.name.","evidence":"REAL_RUNTIME"},
+    {"id":"DATR-018","requirement":"M4-043 does not infer portable actionRef, Subject lineage, or replacement call identity from Harness execution ids.","evidence":"ARCHITECTURE_NON_CLAIM"},
+    {"id":"DATR-019","requirement":"An agent-less tools/result does not cause the Adapter to synthesize a session-scoped tool.completed event.","evidence":"REAL_RUNTIME"},
+    {"id":"DATR-020","requirement":"Harness freezes the live execution object before tools/result observers receive it.","evidence":"SOURCE_AND_RUNTIME"},
+    {"id":"DATR-021","requirement":"tools/result is an emit-style observation seam and cannot replace the already-final ToolRuntime result.","evidence":"SOURCE_CONTRACT"},
+    {"id":"DATR-022","requirement":"A synchronous tools/result observer throw is contained and does not alter the returned final result.","evidence":"REAL_RUNTIME"},
+    {"id":"DATR-023","requirement":"An asynchronous tools/result observer rejection is contained and does not alter the returned final result.","evidence":"REAL_RUNTIME"},
+    {"id":"DATR-024","requirement":"Adapter normalization/reporting failure is observation failure and must not mutate ToolRuntime's authoritative result.","evidence":"EXISTING_CONFORMANCE"},
+    {"id":"DATR-025","requirement":"Disposing an Adapter observation subscription prevents future tools/result delivery through that subscription.","evidence":"EXISTING_CONFORMANCE"},
+    {"id":"DATR-026","requirement":"Replay reconciliation and durable recovery remain separate from the live tools/result authority path.","evidence":"ARCHITECTURE_NON_CLAIM"},
+    {"id":"DATR-027","requirement":"M4-043 does not standardize the result digest algorithm; it standardizes only the authoritative digest input source.","evidence":"ARCHITECTURE_NON_CLAIM"},
+    {"id":"DATR-028","requirement":"Observing a final result does not authorize raw-result persistence or weaken M4-045 audit-redaction requirements.","evidence":"ARCHITECTURE_NON_CLAIM"},
+    {"id":"DATR-029","requirement":"A successful ToolRuntime result does not prove every claimed external effect occurred or that every host effect traversed ToolRuntime.","evidence":"ARCHITECTURE_NON_CLAIM"},
+    {"id":"DATR-030","requirement":"A failed ToolRuntime result does not prove external side effects were rolled back or absent.","evidence":"ARCHITECTURE_NON_CLAIM"},
+    {"id":"DATR-031","requirement":"M4-043 does not establish provider/process isolation or complete system-wide tool-enforced coverage.","evidence":"ARCHITECTURE_NON_CLAIM"},
+    {"id":"DATR-032","requirement":"M4-043 does not implement M4-044 approval uniqueness, M4-045 redaction, later negative-boundary tests, or PR merge authority.","evidence":"ARCHITECTURE_NON_CLAIM"}
+  ]
+}

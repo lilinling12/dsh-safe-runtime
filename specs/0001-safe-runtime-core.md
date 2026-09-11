@@ -460,23 +460,29 @@ PEP-SECRET    Secret broker
 
 # 13. Audit Receipt
 
-每个受治理 Action MUST 产生 Receipt：
+每个受治理 Action MUST 产生 Receipt。v1alpha1 wire shape 与
+`schemas/v1alpha1/capability-receipt.schema.json` 一致：
 
 ```json
 {
+  "apiVersion": "safe-runtime.dev/v1alpha1",
+  "kind": "CapabilityReceipt",
   "receiptRef": "receipt_01",
   "requestRef": "capreq_01",
   "decisionRef": "capdec_01",
   "leaseRef": "lease_01",
-  "actionRef": "tool:438",
-  "outcome": "success",
+  "effect": "allowed",
   "guaranteeLevel": "tool-enforced",
   "resourceDigest": "sha256:...",
-  "argumentsDigest": "sha256:...",
+  "argumentDigest": "sha256:...",
   "resultDigest": "sha256:...",
   "observedAt": "2026-08-17T03:05:00Z"
 }
 ```
+
+Receipt 通过 `requestRef` 关联对应的 `CapabilityRequest`；实际 Action
+身份由该 Request 的 `actionRef` 关联，不在 Receipt 中重复定义第二个
+action identity field。
 
 Receipt MUST 在 Redaction 后持久化。
 

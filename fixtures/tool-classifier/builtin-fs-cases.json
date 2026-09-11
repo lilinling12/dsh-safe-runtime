@@ -1,0 +1,245 @@
+{
+  "profile": {
+    "id": "m4-builtin-fs-rc5",
+    "harnessVersion": "0.1.0-rc.5",
+    "harnessCommit": "47f943859bef60e4160492346772ded9b24f765a",
+    "spec": "specs/0026-m4-builtin-filesystem-tool-classification.md"
+  },
+  "cases": [
+    {
+      "id": "FS-CLS-001",
+      "description": "read requires stat and read for the exact file operand",
+      "toolName": "read",
+      "arguments": { "file_path": "/workspace/src/main.ts" },
+      "expected": {
+        "status": "CLASSIFIED",
+        "requirements": [
+          { "capability": "fs.stat", "operand": { "source": "ARGUMENT_PATH", "argumentName": "file_path", "rawPath": "/workspace/src/main.ts", "reach": "EXACT" } },
+          { "capability": "fs.read", "operand": { "source": "ARGUMENT_PATH", "argumentName": "file_path", "rawPath": "/workspace/src/main.ts", "reach": "EXACT" } }
+        ]
+      }
+    },
+    {
+      "id": "FS-CLS-002",
+      "description": "read_image has the same filesystem read envelope as read",
+      "toolName": "read_image",
+      "arguments": { "file_path": "/workspace/assets/logo.png" },
+      "expected": {
+        "status": "CLASSIFIED",
+        "requirements": [
+          { "capability": "fs.stat", "operand": { "source": "ARGUMENT_PATH", "argumentName": "file_path", "rawPath": "/workspace/assets/logo.png", "reach": "EXACT" } },
+          { "capability": "fs.read", "operand": { "source": "ARGUMENT_PATH", "argumentName": "file_path", "rawPath": "/workspace/assets/logo.png", "reach": "EXACT" } }
+        ]
+      }
+    },
+    {
+      "id": "FS-CLS-003",
+      "description": "write conservatively covers create and overwrite branches",
+      "toolName": "write",
+      "arguments": { "file_path": "/workspace/out.txt", "content": "not retained by classifier" },
+      "expected": {
+        "status": "CLASSIFIED",
+        "requirements": [
+          { "capability": "fs.create", "operand": { "source": "ARGUMENT_PATH", "argumentName": "file_path", "rawPath": "/workspace/out.txt", "reach": "EXACT" } },
+          { "capability": "fs.write", "operand": { "source": "ARGUMENT_PATH", "argumentName": "file_path", "rawPath": "/workspace/out.txt", "reach": "EXACT" } }
+        ]
+      }
+    },
+    {
+      "id": "FS-CLS-004",
+      "description": "edit maps to the provider edit capability",
+      "toolName": "edit",
+      "arguments": { "file_path": "/workspace/a.txt", "old_string": "secret", "new_string": "replacement" },
+      "expected": {
+        "status": "CLASSIFIED",
+        "requirements": [
+          { "capability": "fs.edit", "operand": { "source": "ARGUMENT_PATH", "argumentName": "file_path", "rawPath": "/workspace/a.txt", "reach": "EXACT" } }
+        ]
+      }
+    },
+    {
+      "id": "FS-CLS-005",
+      "description": "glob with a path classifies subtree discovery",
+      "toolName": "glob",
+      "arguments": { "pattern": "**/*.ts", "path": "/workspace/src" },
+      "expected": {
+        "status": "CLASSIFIED",
+        "requirements": [
+          { "capability": "fs.list", "operand": { "source": "ARGUMENT_PATH", "argumentName": "path", "rawPath": "/workspace/src", "reach": "SELF_OR_DESCENDANTS" } }
+        ]
+      }
+    },
+    {
+      "id": "FS-CLS-006",
+      "description": "glob without path uses unresolved execution root",
+      "toolName": "glob",
+      "arguments": { "pattern": "*.md" },
+      "expected": {
+        "status": "CLASSIFIED",
+        "requirements": [
+          { "capability": "fs.list", "operand": { "source": "EXECUTION_ROOT", "reach": "SELF_OR_DESCENDANTS" } }
+        ]
+      }
+    },
+    {
+      "id": "FS-CLS-007",
+      "description": "grep with a path classifies subtree content read",
+      "toolName": "grep",
+      "arguments": { "regexp": "TODO", "path": "/workspace/src", "include": "*.ts" },
+      "expected": {
+        "status": "CLASSIFIED",
+        "requirements": [
+          { "capability": "fs.read", "operand": { "source": "ARGUMENT_PATH", "argumentName": "path", "rawPath": "/workspace/src", "reach": "SELF_OR_DESCENDANTS" } }
+        ]
+      }
+    },
+    {
+      "id": "FS-CLS-008",
+      "description": "grep without path uses unresolved execution root",
+      "toolName": "grep",
+      "arguments": { "regexp": "FIXME" },
+      "expected": {
+        "status": "CLASSIFIED",
+        "requirements": [
+          { "capability": "fs.read", "operand": { "source": "EXECUTION_ROOT", "reach": "SELF_OR_DESCENDANTS" } }
+        ]
+      }
+    },
+    {
+      "id": "FS-CLS-009",
+      "description": "str_replace_editor view covers file-read and directory-list branches",
+      "toolName": "str_replace_editor",
+      "arguments": { "command": "view", "path": "/workspace/src" },
+      "expected": {
+        "status": "CLASSIFIED",
+        "requirements": [
+          { "capability": "fs.stat", "operand": { "source": "ARGUMENT_PATH", "argumentName": "path", "rawPath": "/workspace/src", "reach": "SELF_OR_DESCENDANTS" } },
+          { "capability": "fs.read", "operand": { "source": "ARGUMENT_PATH", "argumentName": "path", "rawPath": "/workspace/src", "reach": "SELF_OR_DESCENDANTS" } },
+          { "capability": "fs.list", "operand": { "source": "ARGUMENT_PATH", "argumentName": "path", "rawPath": "/workspace/src", "reach": "SELF_OR_DESCENDANTS" } }
+        ]
+      }
+    },
+    {
+      "id": "FS-CLS-010",
+      "description": "str_replace_editor create stats for absence then creates",
+      "toolName": "str_replace_editor",
+      "arguments": { "command": "create", "path": "/workspace/new.txt", "file_text": "not retained" },
+      "expected": {
+        "status": "CLASSIFIED",
+        "requirements": [
+          { "capability": "fs.stat", "operand": { "source": "ARGUMENT_PATH", "argumentName": "path", "rawPath": "/workspace/new.txt", "reach": "EXACT" } },
+          { "capability": "fs.create", "operand": { "source": "ARGUMENT_PATH", "argumentName": "path", "rawPath": "/workspace/new.txt", "reach": "EXACT" } }
+        ]
+      }
+    },
+    {
+      "id": "FS-CLS-011",
+      "description": "str_replace_editor replacement exposes its actual stat-read-write envelope",
+      "toolName": "str_replace_editor",
+      "arguments": { "command": "str_replace", "path": "/workspace/a.txt", "old_str": "not retained", "new_str": "not retained" },
+      "expected": {
+        "status": "CLASSIFIED",
+        "requirements": [
+          { "capability": "fs.stat", "operand": { "source": "ARGUMENT_PATH", "argumentName": "path", "rawPath": "/workspace/a.txt", "reach": "EXACT" } },
+          { "capability": "fs.read", "operand": { "source": "ARGUMENT_PATH", "argumentName": "path", "rawPath": "/workspace/a.txt", "reach": "EXACT" } },
+          { "capability": "fs.write", "operand": { "source": "ARGUMENT_PATH", "argumentName": "path", "rawPath": "/workspace/a.txt", "reach": "EXACT" } }
+        ]
+      }
+    },
+    {
+      "id": "FS-CLS-012",
+      "description": "str_replace_editor insertion exposes its actual stat-read-write envelope",
+      "toolName": "str_replace_editor",
+      "arguments": { "command": "insert", "path": "/workspace/a.txt", "insert_line": 2, "new_str": "not retained" },
+      "expected": {
+        "status": "CLASSIFIED",
+        "requirements": [
+          { "capability": "fs.stat", "operand": { "source": "ARGUMENT_PATH", "argumentName": "path", "rawPath": "/workspace/a.txt", "reach": "EXACT" } },
+          { "capability": "fs.read", "operand": { "source": "ARGUMENT_PATH", "argumentName": "path", "rawPath": "/workspace/a.txt", "reach": "EXACT" } },
+          { "capability": "fs.write", "operand": { "source": "ARGUMENT_PATH", "argumentName": "path", "rawPath": "/workspace/a.txt", "reach": "EXACT" } }
+        ]
+      }
+    },
+    {
+      "id": "FS-CLS-013",
+      "description": "recognized tool with missing arguments object fails closed",
+      "toolName": "read",
+      "arguments": null,
+      "expected": { "status": "ERROR", "reason": "FS_TOOL_ARGUMENTS_INVALID" }
+    },
+    {
+      "id": "FS-CLS-014",
+      "description": "recognized required path may not be missing",
+      "toolName": "read",
+      "arguments": {},
+      "expected": { "status": "ERROR", "reason": "FS_TOOL_PATH_INVALID" }
+    },
+    {
+      "id": "FS-CLS-015",
+      "description": "recognized required path may not be blank",
+      "toolName": "write",
+      "arguments": { "file_path": "   ", "content": "ignored" },
+      "expected": { "status": "ERROR", "reason": "FS_TOOL_PATH_INVALID" }
+    },
+    {
+      "id": "FS-CLS-016",
+      "description": "optional search path is invalid when explicitly non-string",
+      "toolName": "glob",
+      "arguments": { "pattern": "*.ts", "path": 42 },
+      "expected": { "status": "ERROR", "reason": "FS_TOOL_PATH_INVALID" }
+    },
+    {
+      "id": "FS-CLS-017",
+      "description": "editor requires an exact supported command",
+      "toolName": "str_replace_editor",
+      "arguments": { "command": "delete", "path": "/workspace/a.txt" },
+      "expected": { "status": "ERROR", "reason": "FS_TOOL_COMMAND_INVALID" }
+    },
+    {
+      "id": "FS-CLS-018",
+      "description": "editor command case is not folded",
+      "toolName": "str_replace_editor",
+      "arguments": { "command": "View", "path": "/workspace/a.txt" },
+      "expected": { "status": "ERROR", "reason": "FS_TOOL_COMMAND_INVALID" }
+    },
+    {
+      "id": "FS-CLS-019",
+      "description": "unknown tool is non-authoritative not-applicable until M4-013",
+      "toolName": "delete_file",
+      "arguments": { "path": "/workspace/a.txt" },
+      "expected": { "status": "NOT_APPLICABLE" }
+    },
+    {
+      "id": "FS-CLS-020",
+      "description": "known tool names are exact and case-sensitive",
+      "toolName": "Read",
+      "arguments": { "file_path": "/workspace/a.txt" },
+      "expected": { "status": "NOT_APPLICABLE" }
+    },
+    {
+      "id": "FS-CLS-021",
+      "description": "accepted raw path is preserved rather than normalized",
+      "toolName": "read",
+      "arguments": { "file_path": "../workspace/./a.txt" },
+      "expected": {
+        "status": "CLASSIFIED",
+        "requirements": [
+          { "capability": "fs.stat", "operand": { "source": "ARGUMENT_PATH", "argumentName": "file_path", "rawPath": "../workspace/./a.txt", "reach": "EXACT" } },
+          { "capability": "fs.read", "operand": { "source": "ARGUMENT_PATH", "argumentName": "file_path", "rawPath": "../workspace/./a.txt", "reach": "EXACT" } }
+        ]
+      }
+    },
+    {
+      "id": "FS-CLS-022",
+      "description": "unicode path is preserved exactly",
+      "toolName": "edit",
+      "arguments": { "file_path": "/workspace/资料/说明.txt", "old_string": "x", "new_string": "y" },
+      "expected": {
+        "status": "CLASSIFIED",
+        "requirements": [
+          { "capability": "fs.edit", "operand": { "source": "ARGUMENT_PATH", "argumentName": "file_path", "rawPath": "/workspace/资料/说明.txt", "reach": "EXACT" } }
+        ]
+      }
+    }
+  ]
+}

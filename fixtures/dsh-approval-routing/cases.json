@@ -1,0 +1,169 @@
+{
+  "profile": "M4-042_DSH_NATIVE_APPROVAL_ROUTING_V1",
+  "pinnedHarness": {
+    "version": "0.1.0-rc.5",
+    "commit": "47f943859bef60e4160492346772ded9b24f765a"
+  },
+  "cases": [
+    {
+      "id": "DAPR-001",
+      "requirement": "The Adapter conformance target is the exact pinned Harness rc5 baseline; newer/default-branch behavior is not protocol authority.",
+      "evidence": "SOURCE_CONTRACT"
+    },
+    {
+      "id": "DAPR-002",
+      "requirement": "A safe-runtime ALLOW decision delegates through tools/pre-execute and does not itself originate an approval request.",
+      "evidence": "REAL_RUNTIME"
+    },
+    {
+      "id": "DAPR-003",
+      "requirement": "A safe-runtime DENY decision terminates pre-execute without originating approval and prevents tool-body entry.",
+      "evidence": "REAL_RUNTIME"
+    },
+    {
+      "id": "DAPR-004",
+      "requirement": "ASK without reason projects exactly to Harness {kind: ask}.",
+      "evidence": "REAL_RUNTIME"
+    },
+    {
+      "id": "DAPR-005",
+      "requirement": "ASK with reason projects that exact reason to Harness ask without trimming, coercion, or reinterpretation as authority.",
+      "evidence": "REAL_RUNTIME"
+    },
+    {
+      "id": "DAPR-006",
+      "requirement": "When ASK is the final pre-execute decision, ToolRuntime uses its native serviceAsk path rather than an Adapter-created approval orchestrator.",
+      "evidence": "SOURCE_AND_RUNTIME"
+    },
+    {
+      "id": "DAPR-007",
+      "requirement": "One reached ToolRuntime ASK invokes ApprovalService.request at most once; safe-runtime does not additionally call Adapter requestApproval for that ASK.",
+      "evidence": "REAL_RUNTIME"
+    },
+    {
+      "id": "DAPR-008",
+      "requirement": "Native approval receives the exact execution agent.",
+      "evidence": "REAL_RUNTIME"
+    },
+    {
+      "id": "DAPR-009",
+      "requirement": "Native approval receives exec.name as toolName and exec.callId as callId without generating or translating call identity.",
+      "evidence": "REAL_RUNTIME"
+    },
+    {
+      "id": "DAPR-010",
+      "requirement": "Native approval receives the ASK reason only when present and receives the execution signal.",
+      "evidence": "REAL_RUNTIME"
+    },
+    {
+      "id": "DAPR-011",
+      "requirement": "allowed-once is the only native approval outcome that permits progress beyond approval.",
+      "evidence": "REAL_RUNTIME"
+    },
+    {
+      "id": "DAPR-012",
+      "requirement": "allowed-once does not bypass monotonic guards; a later M4-041 hard denial still prevents body entry.",
+      "evidence": "REAL_RUNTIME"
+    },
+    {
+      "id": "DAPR-013",
+      "requirement": "With allowed-once and no later denial/cancellation, the tool body may enter exactly through ordinary ToolRuntime dispatch.",
+      "evidence": "REAL_RUNTIME"
+    },
+    {
+      "id": "DAPR-014",
+      "requirement": "rejected maps to pre-dispatch denial and the tool body does not enter.",
+      "evidence": "REAL_RUNTIME"
+    },
+    {
+      "id": "DAPR-015",
+      "requirement": "cancelled does not permit dispatch; a late answer after approval cancellation cannot reopen the cancelled approval.",
+      "evidence": "SOURCE_AND_RUNTIME"
+    },
+    {
+      "id": "DAPR-016",
+      "requirement": "ApprovalService present with no composed answerer resolves unavailable, records the native audit pair, and prevents body entry.",
+      "evidence": "REAL_RUNTIME"
+    },
+    {
+      "id": "DAPR-017",
+      "requirement": "A throwing or rejected approval answerer is contained by ApprovalService to unavailable and cannot permit body entry.",
+      "evidence": "REAL_RUNTIME"
+    },
+    {
+      "id": "DAPR-018",
+      "requirement": "A non-vocabulary approval answerer return is normalized by ApprovalService to unavailable and cannot permit body entry.",
+      "evidence": "REAL_RUNTIME"
+    },
+    {
+      "id": "DAPR-019",
+      "requirement": "When the approval service is absent, a reached ASK fails closed before dispatch and no approval audit pair is fabricated.",
+      "evidence": "REAL_RUNTIME"
+    },
+    {
+      "id": "DAPR-020",
+      "requirement": "An agent-less ASK fails closed without synthesizing an agent/session/Subject or invoking ApprovalService.",
+      "evidence": "REAL_RUNTIME"
+    },
+    {
+      "id": "DAPR-021",
+      "requirement": "One actual ApprovalService request appends one approval/asked followed by one approval/decided with the same Harness-generated ApprovalRequestId.",
+      "evidence": "REAL_RUNTIME"
+    },
+    {
+      "id": "DAPR-022",
+      "requirement": "The native approval/asked event carries the exact ToolRuntime toolName, callId when present, and reason when present; safe-runtime does not fabricate ApprovalRequestId.",
+      "evidence": "REAL_RUNTIME"
+    },
+    {
+      "id": "DAPR-023",
+      "requirement": "The Adapter's existing normalized approval.decided evidence correlates to the Harness-generated approval id and call id on the native ToolRuntime ASK path.",
+      "evidence": "REAL_RUNTIME"
+    },
+    {
+      "id": "DAPR-024",
+      "requirement": "Approval policy never deterministically rejects before answerer dispatch while still producing the service-owned asked/decided audit pair.",
+      "evidence": "REAL_RUNTIME"
+    },
+    {
+      "id": "DAPR-025",
+      "requirement": "ApprovalService requires an open turn; failure of that precondition cannot cause tool-body dispatch.",
+      "evidence": "SOURCE_AND_RUNTIME"
+    },
+    {
+      "id": "DAPR-026",
+      "requirement": "Failure to commit required approval audit state rejects the approval request rather than returning an unlogged grant; ToolRuntime does not dispatch the body from that failure.",
+      "evidence": "SOURCE_CONTRACT"
+    },
+    {
+      "id": "DAPR-027",
+      "requirement": "A pre-execute listener that terminates before safe-runtime can prevent the safe-runtime ASK handler from running; M4-042 does not classify this as approval bypass with dispatch.",
+      "evidence": "REAL_RUNTIME"
+    },
+    {
+      "id": "DAPR-028",
+      "requirement": "Because tools/pre-execute is a waterfall, an outer listener may replace a downstream ASK before the final gate reaches ToolRuntime; M4-042 does not claim every intermediate ASK necessarily reaches approval.",
+      "evidence": "SOURCE_AND_RUNTIME"
+    },
+    {
+      "id": "DAPR-029",
+      "requirement": "Portable protocol actionRef is not inferred to equal Harness callId/callRef; M4-042 preserves the accepted M4-023 correlation boundary.",
+      "evidence": "ARCHITECTURE_NON_CLAIM"
+    },
+    {
+      "id": "DAPR-030",
+      "requirement": "The standalone Adapter requestApproval port remains separate and is not invoked as a second step for a ToolRuntime ASK.",
+      "evidence": "ARCHITECTURE_AND_RUNTIME"
+    },
+    {
+      "id": "DAPR-031",
+      "requirement": "M4-042 does not own authoritative tools/result composition, duplicate-subsystem repository audit, audit redaction, Lease consumption, Decision/Receipt construction, or final GuaranteeLevel assignment.",
+      "evidence": "ARCHITECTURE_NON_CLAIM"
+    },
+    {
+      "id": "DAPR-032",
+      "requirement": "Native ASK routing proves only the supported ToolRuntime approval seam and does not imply every host effect traverses ToolRuntime or complete system-wide tool-enforced coverage.",
+      "evidence": "ARCHITECTURE_NON_CLAIM"
+    }
+  ]
+}

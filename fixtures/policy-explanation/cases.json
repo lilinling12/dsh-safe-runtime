@@ -1,0 +1,645 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "id": "single-explicit-deny",
+      "bands": [
+        {
+          "specificity": {
+            "literalCodePoints": 8,
+            "globstarCount": 0,
+            "starCount": 0
+          },
+          "effectivePriority": 0,
+          "ruleIds": [
+            "deny-rule"
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "ruleId": "deny-rule",
+          "effect": "deny"
+        }
+      ],
+      "policySpec": {
+        "defaultEffect": "deny"
+      },
+      "expect": {
+        "status": "EXPLAINED",
+        "effect": "deny",
+        "basis": "EXPLICIT_DENY",
+        "reasonCode": "POLICY_EXPLICIT_DENY",
+        "contributingRuleIds": [
+          "deny-rule"
+        ]
+      }
+    },
+    {
+      "id": "lower-band-deny-overrides-higher-allow",
+      "bands": [
+        {
+          "specificity": {
+            "literalCodePoints": 10,
+            "globstarCount": 0,
+            "starCount": 0
+          },
+          "effectivePriority": 0,
+          "ruleIds": [
+            "allow-high"
+          ]
+        },
+        {
+          "specificity": {
+            "literalCodePoints": 5,
+            "globstarCount": 0,
+            "starCount": 1
+          },
+          "effectivePriority": 0,
+          "ruleIds": [
+            "deny-low"
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "ruleId": "allow-high",
+          "effect": "allow"
+        },
+        {
+          "ruleId": "deny-low",
+          "effect": "deny"
+        }
+      ],
+      "policySpec": {
+        "defaultEffect": "deny"
+      },
+      "expect": {
+        "status": "EXPLAINED",
+        "effect": "deny",
+        "basis": "EXPLICIT_DENY",
+        "reasonCode": "POLICY_EXPLICIT_DENY",
+        "contributingRuleIds": [
+          "deny-low"
+        ]
+      }
+    },
+    {
+      "id": "multiple-denies-use-global-code-point-presentation",
+      "bands": [
+        {
+          "specificity": {
+            "literalCodePoints": 10,
+            "globstarCount": 0,
+            "starCount": 0
+          },
+          "effectivePriority": 0,
+          "ruleIds": [
+            "z-deny"
+          ]
+        },
+        {
+          "specificity": {
+            "literalCodePoints": 5,
+            "globstarCount": 0,
+            "starCount": 1
+          },
+          "effectivePriority": 0,
+          "ruleIds": [
+            "a-deny",
+            "allow-low"
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "ruleId": "z-deny",
+          "effect": "deny"
+        },
+        {
+          "ruleId": "a-deny",
+          "effect": "deny"
+        },
+        {
+          "ruleId": "allow-low",
+          "effect": "allow"
+        }
+      ],
+      "policySpec": {
+        "defaultEffect": "deny"
+      },
+      "expect": {
+        "status": "EXPLAINED",
+        "effect": "deny",
+        "basis": "EXPLICIT_DENY",
+        "reasonCode": "POLICY_EXPLICIT_DENY",
+        "contributingRuleIds": [
+          "a-deny",
+          "z-deny"
+        ]
+      }
+    },
+    {
+      "id": "highest-band-ask-beats-allow",
+      "bands": [
+        {
+          "specificity": {
+            "literalCodePoints": 7,
+            "globstarCount": 0,
+            "starCount": 1
+          },
+          "effectivePriority": 2,
+          "ruleIds": [
+            "allow-rule",
+            "ask-rule"
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "ruleId": "allow-rule",
+          "effect": "allow"
+        },
+        {
+          "ruleId": "ask-rule",
+          "effect": "ask"
+        }
+      ],
+      "policySpec": {
+        "defaultEffect": "deny"
+      },
+      "expect": {
+        "status": "EXPLAINED",
+        "effect": "ask",
+        "basis": "HIGHEST_BAND_ASK",
+        "reasonCode": "POLICY_HIGHEST_BAND_ASK",
+        "contributingRuleIds": [
+          "ask-rule"
+        ]
+      }
+    },
+    {
+      "id": "multiple-highest-band-asks",
+      "bands": [
+        {
+          "specificity": {
+            "literalCodePoints": 7,
+            "globstarCount": 0,
+            "starCount": 1
+          },
+          "effectivePriority": 2,
+          "ruleIds": [
+            "ask-a",
+            "ask-z",
+            "permit"
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "ruleId": "permit",
+          "effect": "allow"
+        },
+        {
+          "ruleId": "ask-z",
+          "effect": "ask"
+        },
+        {
+          "ruleId": "ask-a",
+          "effect": "ask"
+        }
+      ],
+      "policySpec": {
+        "defaultEffect": "deny"
+      },
+      "expect": {
+        "status": "EXPLAINED",
+        "effect": "ask",
+        "basis": "HIGHEST_BAND_ASK",
+        "reasonCode": "POLICY_HIGHEST_BAND_ASK",
+        "contributingRuleIds": [
+          "ask-a",
+          "ask-z"
+        ]
+      }
+    },
+    {
+      "id": "highest-band-allow-beats-lower-ask",
+      "bands": [
+        {
+          "specificity": {
+            "literalCodePoints": 9,
+            "globstarCount": 0,
+            "starCount": 0
+          },
+          "effectivePriority": 0,
+          "ruleIds": [
+            "allow-high"
+          ]
+        },
+        {
+          "specificity": {
+            "literalCodePoints": 4,
+            "globstarCount": 0,
+            "starCount": 1
+          },
+          "effectivePriority": 10,
+          "ruleIds": [
+            "ask-low"
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "ruleId": "ask-low",
+          "effect": "ask"
+        },
+        {
+          "ruleId": "allow-high",
+          "effect": "allow"
+        }
+      ],
+      "policySpec": {
+        "defaultEffect": "deny"
+      },
+      "expect": {
+        "status": "EXPLAINED",
+        "effect": "allow",
+        "basis": "HIGHEST_BAND_ALLOW",
+        "reasonCode": "POLICY_HIGHEST_BAND_ALLOW",
+        "contributingRuleIds": [
+          "allow-high"
+        ]
+      }
+    },
+    {
+      "id": "multiple-highest-band-allows",
+      "bands": [
+        {
+          "specificity": {
+            "literalCodePoints": 9,
+            "globstarCount": 0,
+            "starCount": 0
+          },
+          "effectivePriority": 0,
+          "ruleIds": [
+            "allow-a",
+            "allow-z"
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "ruleId": "allow-z",
+          "effect": "allow"
+        },
+        {
+          "ruleId": "allow-a",
+          "effect": "allow"
+        }
+      ],
+      "policySpec": {
+        "defaultEffect": "deny"
+      },
+      "expect": {
+        "status": "EXPLAINED",
+        "effect": "allow",
+        "basis": "HIGHEST_BAND_ALLOW",
+        "reasonCode": "POLICY_HIGHEST_BAND_ALLOW",
+        "contributingRuleIds": [
+          "allow-a",
+          "allow-z"
+        ]
+      }
+    },
+    {
+      "id": "no-applicable-rules-default-deny",
+      "bands": [],
+      "effects": [],
+      "policySpec": {
+        "defaultEffect": "deny"
+      },
+      "expect": {
+        "status": "EXPLAINED",
+        "effect": "deny",
+        "basis": "DEFAULT_DENY",
+        "reasonCode": "POLICY_DEFAULT_DENY",
+        "contributingRuleIds": []
+      }
+    },
+    {
+      "id": "invalid-default-explains-fail-closed",
+      "bands": [
+        {
+          "specificity": {
+            "literalCodePoints": 5,
+            "globstarCount": 0,
+            "starCount": 0
+          },
+          "effectivePriority": 0,
+          "ruleIds": [
+            "allow"
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "ruleId": "allow",
+          "effect": "allow"
+        }
+      ],
+      "policySpec": {},
+      "expect": {
+        "status": "EXPLAINED",
+        "effect": "deny",
+        "basis": "FAIL_CLOSED",
+        "reasonCode": "DEFAULT_EFFECT_CONFIG_INVALID",
+        "contributingRuleIds": []
+      }
+    },
+    {
+      "id": "invalid-default-outranks-explicit-deny-explanation",
+      "bands": [
+        {
+          "specificity": {
+            "literalCodePoints": 5,
+            "globstarCount": 0,
+            "starCount": 0
+          },
+          "effectivePriority": 0,
+          "ruleIds": [
+            "deny"
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "ruleId": "deny",
+          "effect": "deny"
+        }
+      ],
+      "policySpec": {
+        "defaultEffect": "allow"
+      },
+      "expect": {
+        "status": "EXPLAINED",
+        "effect": "deny",
+        "basis": "FAIL_CLOSED",
+        "reasonCode": "DEFAULT_EFFECT_CONFIG_INVALID",
+        "contributingRuleIds": []
+      }
+    },
+    {
+      "id": "invalid-effect-is-explain-failure",
+      "bands": [
+        {
+          "specificity": {
+            "literalCodePoints": 5,
+            "globstarCount": 0,
+            "starCount": 0
+          },
+          "effectivePriority": 0,
+          "ruleIds": [
+            "rule"
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "ruleId": "rule",
+          "effect": "ALLOW"
+        }
+      ],
+      "policySpec": {
+        "defaultEffect": "deny"
+      },
+      "expect": {
+        "status": "EXPLAIN_FAILED",
+        "reasonCode": "EFFECT_RESOLUTION_EFFECT_INVALID"
+      }
+    },
+    {
+      "id": "missing-effect-binding-is-explain-failure",
+      "bands": [
+        {
+          "specificity": {
+            "literalCodePoints": 5,
+            "globstarCount": 0,
+            "starCount": 0
+          },
+          "effectivePriority": 0,
+          "ruleIds": [
+            "rule"
+          ]
+        }
+      ],
+      "effects": [],
+      "policySpec": {
+        "defaultEffect": "deny"
+      },
+      "expect": {
+        "status": "EXPLAIN_FAILED",
+        "reasonCode": "EFFECT_RESOLUTION_RULE_SET_MISMATCH"
+      }
+    },
+    {
+      "id": "extra-effect-binding-is-explain-failure",
+      "bands": [],
+      "effects": [
+        {
+          "ruleId": "extra",
+          "effect": "allow"
+        }
+      ],
+      "policySpec": {
+        "defaultEffect": "deny"
+      },
+      "expect": {
+        "status": "EXPLAIN_FAILED",
+        "reasonCode": "EFFECT_RESOLUTION_RULE_SET_MISMATCH"
+      }
+    },
+    {
+      "id": "reverse-band-order-is-explain-failure",
+      "bands": [
+        {
+          "specificity": {
+            "literalCodePoints": 4,
+            "globstarCount": 0,
+            "starCount": 1
+          },
+          "effectivePriority": 0,
+          "ruleIds": [
+            "low"
+          ]
+        },
+        {
+          "specificity": {
+            "literalCodePoints": 9,
+            "globstarCount": 0,
+            "starCount": 0
+          },
+          "effectivePriority": 0,
+          "ruleIds": [
+            "high"
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "ruleId": "low",
+          "effect": "allow"
+        },
+        {
+          "ruleId": "high",
+          "effect": "allow"
+        }
+      ],
+      "policySpec": {
+        "defaultEffect": "deny"
+      },
+      "expect": {
+        "status": "EXPLAIN_FAILED",
+        "reasonCode": "EFFECT_RESOLUTION_BANDS_NONCANONICAL"
+      }
+    },
+    {
+      "id": "malformed-band-is-explain-failure",
+      "bands": [
+        {
+          "specificity": {
+            "literalCodePoints": 5,
+            "globstarCount": 0,
+            "starCount": 0
+          },
+          "effectivePriority": 0,
+          "ruleIds": []
+        }
+      ],
+      "effects": [],
+      "policySpec": {
+        "defaultEffect": "deny"
+      },
+      "expect": {
+        "status": "EXPLAIN_FAILED",
+        "reasonCode": "EFFECT_RESOLUTION_INPUT_INVALID"
+      }
+    },
+    {
+      "id": "effect-binding-permutation-is-non-semantic",
+      "bands": [
+        {
+          "specificity": {
+            "literalCodePoints": 7,
+            "globstarCount": 0,
+            "starCount": 1
+          },
+          "effectivePriority": 1,
+          "ruleIds": [
+            "allow",
+            "ask-a",
+            "ask-b"
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "ruleId": "ask-b",
+          "effect": "ask"
+        },
+        {
+          "ruleId": "allow",
+          "effect": "allow"
+        },
+        {
+          "ruleId": "ask-a",
+          "effect": "ask"
+        }
+      ],
+      "effectPermutations": [
+        [
+          "allow",
+          "ask-a",
+          "ask-b"
+        ],
+        [
+          "ask-a",
+          "ask-b",
+          "allow"
+        ]
+      ],
+      "policySpec": {
+        "defaultEffect": "deny"
+      },
+      "expect": {
+        "status": "EXPLAINED",
+        "effect": "ask",
+        "basis": "HIGHEST_BAND_ASK",
+        "reasonCode": "POLICY_HIGHEST_BAND_ASK",
+        "contributingRuleIds": [
+          "ask-a",
+          "ask-b"
+        ]
+      }
+    },
+    {
+      "id": "astral-rule-id-code-point-order",
+      "bands": [
+        {
+          "specificity": {
+            "literalCodePoints": 7,
+            "globstarCount": 0,
+            "starCount": 1
+          },
+          "effectivePriority": 1,
+          "ruleIds": [
+            "a-rule",
+            "😀-rule"
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "ruleId": "😀-rule",
+          "effect": "ask"
+        },
+        {
+          "ruleId": "a-rule",
+          "effect": "ask"
+        }
+      ],
+      "policySpec": {
+        "defaultEffect": "deny"
+      },
+      "expect": {
+        "status": "EXPLAINED",
+        "effect": "ask",
+        "basis": "HIGHEST_BAND_ASK",
+        "reasonCode": "POLICY_HIGHEST_BAND_ASK",
+        "contributingRuleIds": [
+          "a-rule",
+          "😀-rule"
+        ]
+      }
+    },
+    {
+      "id": "policy-spec-extra-fields-do-not-become-explanation",
+      "bands": [],
+      "effects": [],
+      "policySpec": {
+        "defaultEffect": "deny",
+        "rules": [],
+        "delegation": {
+          "enabled": false
+        }
+      },
+      "expect": {
+        "status": "EXPLAINED",
+        "effect": "deny",
+        "basis": "DEFAULT_DENY",
+        "reasonCode": "POLICY_DEFAULT_DENY",
+        "contributingRuleIds": []
+      }
+    }
+  ]
+}

@@ -32,6 +32,7 @@ for (const packageName of [
   "workspace-tx",
   "acceptance-engine",
   "avp-bridge",
+  "storage",
 ]) {
   const dir = join(root, "packages", packageName);
   for (const file of await walk(dir)) {

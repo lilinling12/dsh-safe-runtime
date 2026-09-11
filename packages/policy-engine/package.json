@@ -4,7 +4,20 @@
   "private": true,
   "type": "module",
   "license": "MIT",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "pnpm --filter @dsh-safe/protocol build && tsc -p tsconfig.json --noEmit"
+  },
   "dependencies": {
-    "@dsh-safe/protocol": "workspace:*"
+    "@dsh-safe/protocol": "workspace:*",
+    "ajv": "8.20.0",
+    "yaml": "2.9.0"
   }
 }

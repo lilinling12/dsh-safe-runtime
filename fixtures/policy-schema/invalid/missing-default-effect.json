@@ -1,0 +1,6 @@
+{
+  "apiVersion": "safe-runtime.dev/v1alpha1",
+  "kind": "CapabilityPolicy",
+  "metadata": { "name": "missing-default" },
+  "spec": { "rules": [] }
+}

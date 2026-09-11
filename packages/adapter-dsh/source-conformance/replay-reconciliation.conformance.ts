@@ -12,10 +12,10 @@ import ApprovalService, { type ApprovalOutcome } from "@deepseek-ai/dsh-user-app
 
 import { createDshRc5Adapter } from "../src/binding.js";
 import {
-  createSidecarEvidenceRecord,
   reconcileReplayEvidence,
   type ReplayDurableFact,
-} from "../src/index.js";
+} from "../src/replay-reconciliation.js";
+import { createSidecarEvidenceRecord } from "../src/sidecar.js";
 import type { RuntimeEvent } from "../src/runtime-events.js";
 import {
   createAgentFixture,

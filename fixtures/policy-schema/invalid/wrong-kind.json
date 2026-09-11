@@ -1,0 +1,6 @@
+{
+  "apiVersion": "safe-runtime.dev/v1alpha1",
+  "kind": "OtherPolicy",
+  "metadata": { "name": "wrong-kind" },
+  "spec": { "defaultEffect": "deny", "rules": [] }
+}

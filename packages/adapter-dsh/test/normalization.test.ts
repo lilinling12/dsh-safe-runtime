@@ -1,13 +1,15 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { OrderedRuntimeEventDispatcher } from "../src/dispatcher.js";
 import {
   DSH_RC5_FEATURES,
-  OrderedRuntimeEventDispatcher,
+  requireAdapterFeatures,
+} from "../src/feature-matrix.js";
+import {
   normalizeDurableEvent,
   normalizeFinalToolResult,
-  requireAdapterFeatures,
-  type RuntimeEvent,
-} from "../src/index.js";
+} from "../src/normalize.js";
+import type { RuntimeEvent } from "../src/runtime-events.js";
 
 const digest = (value: unknown): string => `digest:${String(value)}`;
 
