@@ -1,0 +1,61 @@
+name: R1-005 Node 22 Log Capture
+
+on:
+  push:
+    branches:
+      - evidence/r1-005-node-ab-diagnostic
+
+permissions:
+  contents: read
+
+jobs:
+  capture:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout exact formal candidate
+        uses: actions/checkout@v4
+        with:
+          ref: d1b34e0036f8564b6820ce5077a77f5f717aee69
+          fetch-depth: 1
+
+      - name: Assert exact candidate SHA
+        shell: bash
+        run: test "$(git rev-parse HEAD)" = "d1b34e0036f8564b6820ce5077a77f5f717aee69"
+
+      - name: Setup Node 22.19.0
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.19.0'
+
+      - name: Enable pinned pnpm
+        shell: bash
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.7.0 --activate
+          test "$(pnpm --version)" = "11.7.0"
+
+      - name: Install safe-runtime dependencies reproducibly
+        run: pnpm install --frozen-lockfile
+
+      - name: Execute exact-head R1-005 external consumer with captured output
+        id: diagnostic
+        shell: bash
+        run: |
+          set -o pipefail
+          log_file="${RUNNER_TEMP}/r1-005-node22.log"
+          set +e
+          node scripts/check-adapter-dsh-external-consumer.mjs 2>&1 | tee "${log_file}"
+          test_exit=${PIPESTATUS[0]}
+          set -e
+          echo "exit_code=${test_exit}" >> "${GITHUB_OUTPUT}"
+          exit "${test_exit}"
+
+      - name: Upload diagnostic log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r1-005-node22-diagnostic
+          path: ${{ runner.temp }}/r1-005-node22.log
+          if-no-files-found: error
+          retention-days: 1
