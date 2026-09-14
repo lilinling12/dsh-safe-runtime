@@ -1,4 +1,4 @@
-name: R1-005 Node 22 Log Capture
+name: R1-005 Node 22 npm 11 Diagnostic
 
 on:
   push:
@@ -38,14 +38,27 @@ jobs:
       - name: Install safe-runtime dependencies reproducibly
         run: pnpm install --frozen-lockfile
 
+      - name: Pin diagnostic npm 11.6.0
+        shell: bash
+        run: |
+          echo "before=$(npm --version)"
+          npm install --global npm@11.6.0 --no-audit --no-fund
+          test "$(npm --version)" = "11.6.0"
+          echo "after=$(npm --version)"
+
       - name: Execute exact-head R1-005 external consumer with captured output
         id: diagnostic
         shell: bash
         run: |
           set -o pipefail
-          log_file="${RUNNER_TEMP}/r1-005-node22.log"
+          log_file="${RUNNER_TEMP}/r1-005-node22-npm11.log"
+          {
+            echo "node=$(node --version)"
+            echo "npm=$(npm --version)"
+            echo "pnpm=$(pnpm --version)"
+          } | tee "${log_file}"
           set +e
-          node scripts/check-adapter-dsh-external-consumer.mjs 2>&1 | tee "${log_file}"
+          node scripts/check-adapter-dsh-external-consumer.mjs 2>&1 | tee -a "${log_file}"
           test_exit=${PIPESTATUS[0]}
           set -e
           echo "exit_code=${test_exit}" >> "${GITHUB_OUTPUT}"
@@ -55,7 +68,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: r1-005-node22-diagnostic
-          path: ${{ runner.temp }}/r1-005-node22.log
-          if-no-files-found: error
+          name: r1-005-node22-npm11-diagnostic
+          path: ${{ runner.temp }}/r1-005-node22-npm11.log
+          if-no-files-found: warn
           retention-days: 1

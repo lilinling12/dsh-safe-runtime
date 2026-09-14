@@ -1,9 +1,7 @@
 name: R1-005 Node A/B Diagnostic
 
 on:
-  push:
-    branches:
-      - evidence/r1-005-node-ab-diagnostic
+  workflow_dispatch:
 
 permissions:
   contents: read
