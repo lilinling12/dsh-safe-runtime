@@ -1,0 +1,50 @@
+name: R1-005 Node A/B Diagnostic
+
+on:
+  push:
+    branches:
+      - evidence/r1-005-node-ab-diagnostic
+
+permissions:
+  contents: read
+
+jobs:
+  external-consumer:
+    name: external-consumer-node-${{ matrix.node }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        node:
+          - '22.19.0'
+          - '24'
+
+    steps:
+      - name: Checkout exact formal candidate
+        uses: actions/checkout@v4
+        with:
+          ref: d1b34e0036f8564b6820ce5077a77f5f717aee69
+          fetch-depth: 1
+
+      - name: Assert exact candidate SHA
+        shell: bash
+        run: test "$(git rev-parse HEAD)" = "d1b34e0036f8564b6820ce5077a77f5f717aee69"
+
+      - name: Setup Node ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Enable pinned pnpm
+        shell: bash
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.7.0 --activate
+          test "$(pnpm --version)" = "11.7.0"
+
+      - name: Install safe-runtime dependencies reproducibly
+        run: pnpm install --frozen-lockfile
+
+      - name: Execute exact-head R1-005 external consumer
+        run: node scripts/check-adapter-dsh-external-consumer.mjs
