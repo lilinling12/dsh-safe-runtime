@@ -125,6 +125,7 @@ async function auditTarball(tarball, sourceAuthority) {
     archive: basename(tarball),
     sha256: await sha256(tarball),
     dependencySummary: dependencySummary(manifest),
+    manifest,
   };
 }
 
@@ -136,6 +137,38 @@ function addArtifact(artifacts, artifact) {
     return;
   }
   artifacts.set(artifact.name, artifact);
+}
+
+function localRuntimeReferences(artifact, artifacts) {
+  const manifest = artifact.manifest;
+  const references = new Set([
+    ...Object.keys(manifest.dependencies ?? {}),
+    ...Object.keys(manifest.optionalDependencies ?? {}),
+    ...Object.keys(manifest.peerDependencies ?? {}).filter(
+      (name) => manifest.peerDependenciesMeta?.[name]?.optional !== true,
+    ),
+  ]);
+  return [...references].filter((name) => artifacts.has(name));
+}
+
+function selectConsumerArtifacts(artifacts) {
+  const selected = new Map();
+  const pending = [ADAPTER_NAME, PROTOCOL_NAME, ...Object.keys(DIRECT_PEERS)];
+
+  while (pending.length > 0) {
+    const name = pending.pop();
+    if (selected.has(name)) continue;
+
+    const artifact = artifacts.get(name);
+    assert(artifact !== undefined, `required consumer tarball is missing: ${name}`);
+    selected.set(name, artifact);
+
+    for (const dependencyName of localRuntimeReferences(artifact, artifacts)) {
+      if (!selected.has(dependencyName)) pending.push(dependencyName);
+    }
+  }
+
+  return selected;
 }
 
 async function cloneExactHarness(harnessRoot) {
@@ -286,21 +319,29 @@ async function main() {
       assert.equal(artifact.version, version, `source bridge version drifted for ${name}`);
     }
 
+    // Upstream release families intentionally contain more than this Adapter's
+    // runtime. Audit every packed artifact, but install only the transitive local
+    // runtime closure rooted at the Adapter contract. Promoting unrelated family
+    // artifacts to consumer top-level dependencies changes their peer graph and
+    // can make npm resolve test/support-only packages that R1-005 does not use.
+    const consumerArtifacts = selectConsumerArtifacts(artifacts);
+
     const provenance = [...artifacts.values()]
       .sort((left, right) => left.name.localeCompare(right.name))
-      .map(({ path: _path, ...entry }) => entry);
+      .map(({ path: _path, manifest: _manifest, ...entry }) => entry);
     process.stdout.write(`${JSON.stringify({
       profile: "R1-005_EXTERNAL_TARBALL_CONSUMER_V1",
       safeRuntimeHead,
       harnessCommit: HARNESS_COMMIT,
       publicRegistryInstallVerified: false,
       packageCount: provenance.length,
+      consumerPackageCount: consumerArtifacts.size,
       packages: provenance,
     }, null, 2)}\n`);
 
-    await installAndSmoke(temporaryRoot, harnessRoot, artifacts);
+    await installAndSmoke(temporaryRoot, harnessRoot, consumerArtifacts);
     process.stdout.write(
-      `R1-005 external tarball consumer PASS (${artifacts.size} local package artifacts, exact rc5 runtime).\n`,
+      `R1-005 external tarball consumer PASS (${consumerArtifacts.size} consumer artifacts from ${artifacts.size} audited artifacts, exact rc5 runtime).\n`,
     );
   } finally {
     await rm(temporaryRoot, { recursive: true, force: true });
