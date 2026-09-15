@@ -56,11 +56,14 @@
           "$ref": "#/$defs/ref"
         },
         "parent": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "minLength": 1
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ref"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "sessionRef": {
           "$ref": "#/$defs/ref"
@@ -81,11 +84,7 @@
           "then": {
             "properties": {
               "parent": {
-                "type": [
-                  "string",
-                  "null"
-                ],
-                "minLength": 1
+                "$ref": "#/$defs/ref"
               }
             },
             "required": [

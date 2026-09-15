@@ -6,9 +6,24 @@ import type { Session, SessionEvent } from "@deepseek-ai/dsh-session";
 import type { ToolExecution } from "@deepseek-ai/dsh-tools";
 import type {} from "@deepseek-ai/dsh-user-approval";
 
+import { OrderedAuditEventDispatcher } from "./audit-dispatcher.js";
+import type {
+  AuditProjectionResult,
+  DshAuditEventSink,
+  DshAuditObservationExtension,
+} from "./audit-events.js";
+import {
+  projectAuditApprovalDecided,
+  projectAuditDurableEvent,
+  projectAuditFinalToolResult,
+  projectAuditModelRequestFailed,
+  projectAuditSessionStarted,
+  projectAuditTurnCompletionRequested,
+} from "./audit-projection.js";
 import { OrderedRuntimeEventDispatcher } from "./dispatcher.js";
 import { dshAdapterError } from "./errors.js";
 import { DSH_RC5_FEATURES, DSH_TESTED_BASELINE } from "./feature-matrix.js";
+import { evaluateToolGuardHandler } from "./monotonic-tool-guard.js";
 import {
   normalizeDurableEvent,
   normalizeFinalToolResult,
@@ -24,7 +39,6 @@ import type {
   HarnessRuntimeAdapter,
   ObservationSubscription,
   ToolExecutionScope,
-  ToolGuardDecision,
   ToolGuardHandler,
   ToolPolicyDecision,
   ToolPolicyHandler,
@@ -42,6 +56,8 @@ export interface DshRc5AdapterOptions {
   readonly now?: () => string;
   readonly onObservationFailure?: (event: RuntimeEvent | undefined, error: unknown) => void;
 }
+
+export type DshRc5Adapter = HarnessRuntimeAdapter & DshAuditObservationExtension;
 
 type CorrelatedDisposition = "denied" | "cancelled";
 
@@ -75,6 +91,10 @@ function toolPolicyRequest(exec: Readonly<ToolExecution>): ToolPolicyRequest {
 
 function callKey(sessionRef: string, callRef: string): string {
   return `${sessionRef}\u0000${callRef}`;
+}
+
+function auditApprovalCorrelationKey(sessionRef: string, approvalRef: string): string {
+  return `${sessionRef}\u0000${approvalRef}`;
 }
 
 function normalizeApprovalOutcome(outcome: string): ApprovalDecision {
@@ -138,14 +158,34 @@ function validateCompletionSteerBudget(request: CompletionSteerRequest): void {
 export function createDshRc5Adapter(
   ctx: Context,
   options: DshRc5AdapterOptions,
-): HarnessRuntimeAdapter {
+): DshRc5Adapter {
   const now = options.now ?? (() => new Date().toISOString());
   const dispositions = new Map<string, CorrelatedDisposition>();
   const approvalCalls = new Map<string, { sessionRef: string; callRef?: string }>();
+  const finalClassifications = new WeakMap<object, FinalToolClassification>();
+  const auditSubscribers = new Set<OrderedAuditEventDispatcher>();
+  const auditApprovalCalls = new Map<string, unknown>();
   let liveSequence = 0;
+  let auditLiveSequence = 0;
 
   const nextLiveRef = (sessionRef: string, kind: string): string =>
     `${sessionRef}/live:${kind}:${++liveSequence}`;
+  const nextAuditLiveRef = (sessionRef: string, kind: string): string =>
+    `${sessionRef}/audit-live:${kind}:${++auditLiveSequence}`;
+
+  const broadcastAudit = (project: () => AuditProjectionResult): void => {
+    if (auditSubscribers.size === 0) return;
+    let result: AuditProjectionResult;
+    try {
+      result = project();
+    } catch {
+      result = Object.freeze({
+        kind: "rejected" as const,
+        code: "AUDIT_INPUT_UNSUPPORTED" as const,
+      });
+    }
+    for (const dispatcher of auditSubscribers) dispatcher.capture(result);
+  };
 
   // Internal classification is independent of optional evidence subscribers.
   ctx.on("session/event", (session, event) => {
@@ -171,6 +211,121 @@ export function createDshRc5Adapter(
         dispositions.set(key, "denied");
         break;
     }
+  });
+
+  // Consume one-shot disposition exactly once, before any ordinary or audit
+  // subscriber sees the authoritative final result. The WeakMap shares that
+  // classification without making subscriber order part of semantics.
+  ctx.on("tools/result", (exec) => {
+    const agent = exec.agent;
+    if (agent === undefined) return;
+    const sessionRef = sessionRefOf(agent);
+    const key = callKey(sessionRef, String(exec.callId));
+    const disposition = dispositions.get(key);
+    dispositions.delete(key);
+    finalClassifications.set(
+      exec,
+      disposition === "denied"
+        ? { policyDenied: true }
+        : disposition === "cancelled"
+          ? { policyCancelled: true }
+          : {},
+    );
+  });
+
+  // Audit owns one source capture per native fact, then fans the same detached
+  // projection out to each per-subscription bounded dispatcher.
+  ctx.on("agent/session-start", ({ agent, source }) => {
+    if (auditSubscribers.size === 0) return;
+    const sessionRef = sessionRefOf(agent);
+    const eventRef = nextAuditLiveRef(sessionRef, "session-started");
+    broadcastAudit(() => projectAuditSessionStarted(sessionRef, eventRef, now(), source));
+  });
+
+  ctx.on("session/event", (session, event) => {
+    if (auditSubscribers.size === 0) return;
+    const sessionRef = String(session.id);
+    if (event.type === "approval/asked") {
+      const approvalRef = event.data.id;
+      if (typeof approvalRef === "string" && approvalRef.length > 0) {
+        auditApprovalCalls.set(auditApprovalCorrelationKey(sessionRef, approvalRef), event.data.callId);
+      }
+      return;
+    }
+    if (event.type === "approval/decided") {
+      const approvalRef = event.data.id;
+      const callRef = typeof approvalRef === "string"
+        ? auditApprovalCalls.get(auditApprovalCorrelationKey(sessionRef, approvalRef))
+        : undefined;
+      if (typeof approvalRef === "string") {
+        auditApprovalCalls.delete(auditApprovalCorrelationKey(sessionRef, approvalRef));
+      }
+      broadcastAudit(() => projectAuditApprovalDecided(
+        sessionRef,
+        event.seq,
+        event.time,
+        approvalRef,
+        callRef,
+        event.data.outcome,
+      ));
+      return;
+    }
+    switch (event.type) {
+      case "turn/start":
+      case "turn/end":
+      case "step/start":
+      case "tool/call":
+        broadcastAudit(() => projectAuditDurableEvent(sessionRef, event));
+        return;
+      default:
+        return;
+    }
+  });
+
+  ctx.on("tools/result", (exec, result) => {
+    if (auditSubscribers.size === 0) return;
+    const agent = exec.agent;
+    if (agent === undefined) return;
+    const sessionRef = sessionRefOf(agent);
+    const eventRef = nextAuditLiveRef(sessionRef, "tool-result");
+    const classification = finalClassifications.get(exec) ?? {};
+    broadcastAudit(() => projectAuditFinalToolResult(
+      sessionRef,
+      eventRef,
+      now(),
+      exec.callId,
+      exec.name,
+      result,
+      classification,
+    ));
+  });
+
+  ctx.on("agent/request-error", async ({ agent, turn, step, failure }, next) => {
+    if (auditSubscribers.size > 0) {
+      const sessionRef = sessionRefOf(agent);
+      const eventRef = nextAuditLiveRef(sessionRef, "request-error");
+      broadcastAudit(() => projectAuditModelRequestFailed(
+        sessionRef,
+        eventRef,
+        now(),
+        turn,
+        step,
+        failure,
+      ));
+    }
+    return next();
+  });
+
+  ctx.on("agent/turn-stopping", ({ agent, turn }) => {
+    if (auditSubscribers.size === 0) return;
+    const sessionRef = sessionRefOf(agent);
+    const eventRef = nextAuditLiveRef(sessionRef, "turn-stopping");
+    broadcastAudit(() => projectAuditTurnCompletionRequested(
+      sessionRef,
+      eventRef,
+      now(),
+      turn,
+    ));
   });
 
   const requireLiveAgent = (sessionRef: string): Agent => {
@@ -212,14 +367,9 @@ export function createDshRc5Adapter(
   };
 
   const registerMonotonicToolGuard = (handler: ToolGuardHandler): Disposable => {
-    const dispose = ctx.tools.guard((exec) => {
+    const dispose = ctx.tools.guard((exec: Readonly<ToolExecution>) => {
       const request = toolPolicyRequest(exec);
-      let decision: ToolGuardDecision;
-      try {
-        decision = handler(request);
-      } catch {
-        decision = { kind: "DENY", reason: "safe-runtime monotonic guard failed closed" };
-      }
+      const decision = evaluateToolGuardHandler(handler, request);
       if (decision.kind === "ALLOW") return undefined;
       if (request.scope.kind === "agent") {
         dispositions.set(callKey(request.scope.sessionRef, request.callRef), "denied");
@@ -293,14 +443,7 @@ export function createDshRc5Adapter(
       const agent = exec.agent;
       if (agent === undefined) return;
       const sessionRef = sessionRefOf(agent);
-      const key = callKey(sessionRef, String(exec.callId));
-      const disposition = dispositions.get(key);
-      dispositions.delete(key);
-      const classification: FinalToolClassification = disposition === "denied"
-        ? { policyDenied: true }
-        : disposition === "cancelled"
-          ? { policyCancelled: true }
-          : {};
+      const classification = finalClassifications.get(exec) ?? {};
       try {
         report(normalizeFinalToolResult(
           sessionRef,
@@ -353,6 +496,24 @@ export function createDshRc5Adapter(
         }
         dispatcher.close();
         await dispatcher.drain();
+      },
+    };
+  };
+
+  const observeAudit = (sink: DshAuditEventSink) => {
+    const dispatcher = new OrderedAuditEventDispatcher(sink);
+    auditSubscribers.add(dispatcher);
+    let disposed = false;
+    return {
+      drain: () => dispatcher.drain(),
+      async dispose() {
+        if (!disposed) {
+          disposed = true;
+          auditSubscribers.delete(dispatcher);
+          dispatcher.closeCapture();
+          if (auditSubscribers.size === 0) auditApprovalCalls.clear();
+        }
+        return dispatcher.drain();
       },
     };
   };
@@ -410,6 +571,7 @@ export function createDshRc5Adapter(
     harnessCommit: DSH_TESTED_BASELINE.commit,
     features: DSH_RC5_FEATURES,
     observe,
+    observeAudit,
     registerToolPolicy,
     registerMonotonicToolGuard,
     registerTurnStopping,

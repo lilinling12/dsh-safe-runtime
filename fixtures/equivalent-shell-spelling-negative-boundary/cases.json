@@ -1,0 +1,129 @@
+{
+  "profile": "M4-051_EQUIVALENT_SHELL_SPELLING_NEGATIVE_BOUNDARY_V1",
+  "pinnedHarness": {
+    "version": "0.1.0-rc.5",
+    "commit": "47f943859bef60e4160492346772ded9b24f765a"
+  },
+  "cases": [
+    {
+      "id": "ESSM-001",
+      "requirement": "M4-051 preserves Spec 0027 authority: recognized bash/pwsh command text remains opaque SHELL_COMMAND evidence and the enclosing accepted shell call classifies as process.exec only.",
+      "evidence": "REUSED_M4_011_AUTHORITY"
+    },
+    {
+      "id": "ESSM-002",
+      "requirement": "The negative boundary concerns a string-level matcher used to infer a nested shell effect; it does not claim that the enclosing recognized shell process escaped process.exec classification or ToolRuntime governance.",
+      "evidence": "SECURITY_BOUNDARY"
+    },
+    {
+      "id": "ESSM-003",
+      "requirement": "Repository architecture explicitly warns that equivalent shell spellings can bypass a string-level matcher and forbids Shell String as the sole security semantic.",
+      "evidence": "REPOSITORY_ARCHITECTURE"
+    },
+    {
+      "id": "ESSM-004",
+      "requirement": "The Gate-local LITERAL_DENY_SUBSTRING_V1 matcher performs exact substring presence only and does not trim, normalize, tokenize, parse, expand, emulate or execute shell text.",
+      "evidence": "SOURCE_CONTRACT"
+    },
+    {
+      "id": "ESSM-005",
+      "requirement": "The matcher configuration and literal are fixed before evaluating the reference and alternative spellings and are not adapted after observing the alternative command.",
+      "evidence": "EVIDENCE_VALIDATION"
+    },
+    {
+      "id": "ESSM-006",
+      "requirement": "The reference and alternative shell spellings are distinct exact strings; supplying the same command twice cannot establish equivalent-spelling bypass evidence.",
+      "evidence": "EVIDENCE_VALIDATION"
+    },
+    {
+      "id": "ESSM-007",
+      "requirement": "For the same fixed matcher, the reference spelling yields MATCH and the measured-effect-equivalent alternative yields NO_MATCH.",
+      "evidence": "REAL_RUNTIME_AND_TEST_ORACLE"
+    },
+    {
+      "id": "ESSM-008",
+      "requirement": "Each measured shell execution operates only on a test-owned disposable temporary target and proves its exact sentinel is absent immediately before that isolated execution.",
+      "evidence": "REAL_RUNTIME"
+    },
+    {
+      "id": "ESSM-009",
+      "requirement": "Both measured spellings use the same fixed synthetic non-secret payload and M4-051 does not require access to credentials, user secrets, production files or unrelated repository data.",
+      "evidence": "SECURITY_FIXTURE_CONTRACT"
+    },
+    {
+      "id": "ESSM-010",
+      "requirement": "In a supported reference environment, the reference spelling succeeds and produces the exact expected benign sentinel bytes.",
+      "evidence": "REAL_RUNTIME"
+    },
+    {
+      "id": "ESSM-011",
+      "requirement": "In the separately reset target state, the alternative spelling succeeds and produces exactly the same expected benign sentinel bytes as the reference spelling.",
+      "evidence": "REAL_RUNTIME"
+    },
+    {
+      "id": "ESSM-012",
+      "requirement": "Measured-effect equivalence is established from exact controlled observations rather than from textual similarity or an unsupported claim of universal shell-program semantic equivalence.",
+      "evidence": "EVIDENCE_VALIDATION"
+    },
+    {
+      "id": "ESSM-013",
+      "requirement": "When ESSM-005 through ESSM-012 are coherently proven for one supported witness, the exact Gate-local classification is EXPECTED_STRING_MATCHER_BYPASS.",
+      "evidence": "REAL_RUNTIME"
+    },
+    {
+      "id": "ESSM-014",
+      "requirement": "EXPECTED_STRING_MATCHER_BYPASS is a negative test/evidence classification and must not be relabeled as ALLOW, DENY, UNCLASSIFIED, EXPECTED_UNGOVERNED, SANDBOXED, TOOL_ENFORCED, PROVIDER_ENFORCED or PROCESS_ISOLATED.",
+      "evidence": "ARCHITECTURE_NON_CLAIM"
+    },
+    {
+      "id": "ESSM-015",
+      "requirement": "A NO_MATCH result from the test-only matcher is never policy allow and must not be retroactively represented as a CapabilityDecision, Lease, Receipt, approval or audit authorization fact.",
+      "evidence": "ARCHITECTURE_NON_CLAIM"
+    },
+    {
+      "id": "ESSM-016",
+      "requirement": "A matcher false negative does not erase or downgrade the enclosing process.exec requirement and does not prove that the accepted M4-040/M4-041 ToolRuntime guard was bypassed.",
+      "evidence": "REUSED_PEP_AUTHORITY"
+    },
+    {
+      "id": "ESSM-017",
+      "requirement": "If the required controlled shell or writable disposable target is unavailable because of an external CI/OS/container restriction, the result is ENVIRONMENT_UNSUPPORTED rather than safe-runtime DENY.",
+      "evidence": "BOUNDARY_CLASSIFICATION"
+    },
+    {
+      "id": "ESSM-018",
+      "requirement": "An ENVIRONMENT_UNSUPPORTED-only matrix cannot accept M4-051; at least one exact-head supported environment must produce EXPECTED_STRING_MATCHER_BYPASS.",
+      "evidence": "ACCEPTANCE_PROCESS"
+    },
+    {
+      "id": "ESSM-019",
+      "requirement": "Contradictory or incomplete matcher results, identical commands, pre-existing target state, mismatched bytes, differing measured effects, secret-bearing targets or false process-governance claims are INVALID_EVIDENCE and fail conformance.",
+      "evidence": "EVIDENCE_VALIDATION"
+    },
+    {
+      "id": "ESSM-020",
+      "requirement": "M4-051 must not add, widen or recommend a production raw-command substring/regex/word-list matcher, quote stripper, shell canonicalizer or parser merely to change the expected negative result.",
+      "evidence": "REPOSITORY_ARCHITECTURE"
+    },
+    {
+      "id": "ESSM-021",
+      "requirement": "M4-051 makes no shell-parser completeness claim; shell effects may depend on language semantics, executables, sourced code, variables, environment and providers outside a lexical matcher.",
+      "evidence": "ARCHITECTURE_NON_CLAIM"
+    },
+    {
+      "id": "ESSM-022",
+      "requirement": "M4-051 remains distinct from M4-050: M4-050 measures direct host API behavior outside ToolRuntime, while M4-051 preserves process.exec governance and measures incompleteness of nested-effect inference from raw shell spelling.",
+      "evidence": "GATE_SEPARATION"
+    },
+    {
+      "id": "ESSM-023",
+      "requirement": "Harness-specific assertions about recognized shell tool dispatch or ToolRuntime control flow use only pinned 0.1.0-rc.5 commit 47f943859bef60e4160492346772ded9b24f765a; Harness does not become portable shell-language authority.",
+      "evidence": "PINNED_SOURCE_CONTRACT"
+    },
+    {
+      "id": "ESSM-024",
+      "requirement": "The protocol-first M4-051 delta contains exactly the candidate Spec, this requirement corpus and CURRENT handoff state; it contains no production/executable tests, dependency/lockfile, schema/protocol wire, Shared TCK, workflow, HISTORY, roadmap acceptance marker, M4-052+ implementation or PR merge.",
+      "evidence": "GATE_PROCESS"
+    }
+  ]
+}

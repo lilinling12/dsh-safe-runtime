@@ -1,0 +1,42 @@
+{
+  "profile": "R1-003_DSH_PLUGIN_BOOTSTRAP_V1",
+  "gate": "R1-003 P0 — DeepSeek plugin/bootstrap integration",
+  "pinnedHarness": {
+    "version": "0.1.0-rc.5",
+    "commit": "47f943859bef60e4160492346772ded9b24f765a"
+  },
+  "cases": [
+    {"id":"DPB-001","class":"PREDECESSOR","requirement":"R1-002 governance exact head 3a5e8e780a09c6764eb4d966c4a42348817e0780 is normal-CI and exact-Harness dual-green before R1-003 repository work begins."},
+    {"id":"DPB-002","class":"GOVERNANCE","requirement":"PR #3 remains Open/Draft/unmerged; R1-004+, M5-003+, registry publish, GitHub Release and merge remain unauthorized."},
+    {"id":"DPB-003","class":"PUBLIC_ENTRY","requirement":"The package root exposes createDshRc5Plugin(options) and the narrowly required public plugin types without exposing package-private binding internals."},
+    {"id":"DPB-004","class":"CORDIS_NATIVE","requirement":"The factory result is accepted by exact pinned Cordis ctx.plugin(plugin) as a native plugin object rather than by a safe-runtime-specific plugin manager."},
+    {"id":"DPB-005","class":"SIDE_EFFECT_FREE_FACTORY","requirement":"Creating the plugin object alone installs no Harness listener, guard or other Adapter-owned registration."},
+    {"id":"DPB-006","class":"OPTIONS","requirement":"Plugin-owned option validation rejects malformed, accessor-backed, unexpected, symbol-authority and unreadable runtime configuration with INVALID_PLUGIN_OPTIONS without executing accessors or coercion hooks."},
+    {"id":"DPB-007","class":"OPTIONS","requirement":"Nested Adapter option validation remains owned by R1-002 and preserves INVALID_ADAPTER_OPTIONS before Adapter-owned Harness registration."},
+    {"id":"DPB-008","class":"OPTIONS","requirement":"Plugin factory materializes detached mode/handler identity so later mutation of the source options cannot silently rewrite the mounted plugin configuration."},
+    {"id":"DPB-009","class":"DEFAULT_DENY","requirement":"Omitted policy is semantically identical to explicit DENY_ALL."},
+    {"id":"DPB-010","class":"DEFAULT_DENY","requirement":"DENY_ALL installs exactly one Adapter tool-policy DENY and one monotonic-guard DENY using the stable text safe-runtime plugin default deny."},
+    {"id":"DPB-011","class":"DEFAULT_DENY","requirement":"DENY_ALL requires toolsPreExecute and toolsMonotonicGuard; missing support fails activation explicitly instead of silently degrading the claimed hard-veto property."},
+    {"id":"DPB-012","class":"DEFAULT_DENY","requirement":"A prepended or surrounding pre-execute listener cannot cause tool-body entry around DENY_ALL when the exact pinned ToolRuntime reaches the monotonic guard."},
+    {"id":"DPB-013","class":"HANDLER","requirement":"HANDLER mode installs the exact supplied ToolPolicyHandler once through R1-002 registerToolPolicy without duplicating or rewriting its policy logic."},
+    {"id":"DPB-014","class":"HANDLER","requirement":"HANDLER ALLOW preserves M4-040 delegation semantics and is not relabeled as final authorization."},
+    {"id":"DPB-015","class":"HANDLER","requirement":"HANDLER DENY prevents body entry when it is the final/reached ToolRuntime decision and handler throw/rejection preserves Adapter fail-closed denial."},
+    {"id":"DPB-016","class":"APPROVAL","requirement":"HANDLER ASK is projected to the exact pinned native ToolRuntime approval path and does not automatically call Adapter requestApproval for the same request."},
+    {"id":"DPB-017","class":"APPROVAL","requirement":"One reached HANDLER ASK causes exactly one native ApprovalService request; rejected, cancelled and unavailable outcomes do not enter the tool body."},
+    {"id":"DPB-018","class":"APPROVAL","requirement":"Agent-less ASK remains fail closed; the plugin does not synthesize an agent, session or approval owner."},
+    {"id":"DPB-019","class":"GUARD","requirement":"An optional HANDLER monotonicGuard is installed exactly once only when supplied and requires toolsMonotonicGuard support."},
+    {"id":"DPB-020","class":"GUARD","requirement":"The plugin never derives a synchronous monotonic guard automatically from an asynchronous policy handler or converts ASK into a hard-guard decision."},
+    {"id":"DPB-021","class":"ACTIVATION","requirement":"Plugin activation constructs exactly one R1-002 Adapter and publishes no successfully active plugin when a required registration fails."},
+    {"id":"DPB-022","class":"ACTIVATION","requirement":"Failure after Adapter construction triggers Adapter disposal and leaves no plugin-owned policy/guard registration live."},
+    {"id":"DPB-023","class":"LIFECYCLE","requirement":"The Cordis plugin Fiber owns asynchronous cleanup that awaits Adapter aggregate dispose completion."},
+    {"id":"DPB-024","class":"LIFECYCLE","requirement":"After fiber disposal, old plugin policy/guard handlers no longer participate while the caller root Context and independent registrations remain usable."},
+    {"id":"DPB-025","class":"LIFECYCLE","requirement":"A fully disposed plugin may be remounted as an independent new instance without relying on a process-global singleton."},
+    {"id":"DPB-026","class":"POLICY_BOUNDARY","requirement":"R1-003 does not guess EXECUTION_ROOT, provider identity, workspace/hostfs locators, executable identity or workdir authority in order to auto-compose CapabilityPolicy evaluation."},
+    {"id":"DPB-027","class":"POLICY_BOUNDARY","requirement":"The plugin does not create a second policy engine, approval subsystem, event bus, plugin registry, Fiber manager or Adapter runtime."},
+    {"id":"DPB-028","class":"SECURITY","requirement":"The integration continues to state that arbitrary in-process plugins and direct Node host effects are not sandboxed or completely mediated."},
+    {"id":"DPB-029","class":"PUBLIC_EXPORTS","requirement":"R1-002 root allowlist remains curated; internal plugin helpers, test fixtures, source-conformance helpers and package-stage markers do not become public Alpha commitments."},
+    {"id":"DPB-030","class":"PACKAGING_BOUNDARY","requirement":"R1-003 does not remove private:true, finalize exports/types/files/engines, claim bare cordis.yml package loading is release-ready, or otherwise perform R1-004/R1-006 work."},
+    {"id":"DPB-031","class":"BASELINE","requirement":"Implementation/conformance claims about mounting, Fiber disposal, ToolRuntime default deny and ASK use the exact 0.1.0-rc.5 commit and real source/runtime evidence, not fake-only behavior."},
+    {"id":"DPB-032","class":"PROTOCOL_FIRST_BOUNDARY","requirement":"Protocol-first delta contains only Spec 0057, this corpus and CURRENT; no production/source-conformance/package metadata/HISTORY/roadmap/R1-004+/M5-003+/publish/merge change occurs before exact-head dual-green."}
+  ]
+}

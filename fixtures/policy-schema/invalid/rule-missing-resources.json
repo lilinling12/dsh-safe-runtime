@@ -1,0 +1,15 @@
+{
+  "apiVersion": "safe-runtime.dev/v1alpha1",
+  "kind": "CapabilityPolicy",
+  "metadata": { "name": "missing-resources" },
+  "spec": {
+    "defaultEffect": "deny",
+    "rules": [
+      {
+        "id": "read",
+        "effect": "allow",
+        "capabilities": ["fs.read"]
+      }
+    ]
+  }
+}

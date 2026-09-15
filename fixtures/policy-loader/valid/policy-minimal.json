@@ -1,0 +1,11 @@
+{
+  "apiVersion": "safe-runtime.dev/v1alpha1",
+  "kind": "CapabilityPolicy",
+  "metadata": {
+    "name": "minimal"
+  },
+  "spec": {
+    "defaultEffect": "deny",
+    "rules": []
+  }
+}

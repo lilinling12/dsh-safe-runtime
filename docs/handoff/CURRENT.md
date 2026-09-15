@@ -1,211 +1,233 @@
 # Current Engineering Handoff
 
-> Non-normative operational snapshot. Refresh live GitHub state before making
-> changes; normative specs/RFCs/schemas/TCK and accepted exact-head evidence
-> remain semantic authority.
+> Non-normative operational snapshot. Refresh live GitHub state before changes;
+> normative specs/schemas/TCK and accepted exact-head evidence remain authority.
 
 ## Snapshot
 
-- Recorded at: `2026-08-21`
+- Recorded at: `2026-09-12`
 - Repository: `lilinling12/dsh-safe-runtime`
-- Phase: `M3 — Shared TCK Foundation (ACCEPTED)`
-- Pull request: `#2 — feat(testkit): establish M3 shared TCK foundation`
-- PR state at acceptance closure: `OPEN / DRAFT`
-- Branch: `feat/m3-shared-tck-foundation`
-- Stacked base: `feat/m2-harness-adapter@6a9c64155ec6c376908e64d70f2b50d5b8de1285`
-- M2 acceptance: **ACCEPTED**
-- M3 acceptance: **ACCEPTED**
-- M3 acceptance record: `docs/acceptance/m3-acceptance-audit.md`
-- Accepted M3 remediation implementation head: `e6522a18760268b56b09f9ac5d9c822671c41666`
-- Acceptance-record commit: `37ac802df729f2a5f9f3b96082aeea6082e6b8b5`
-- Current next gate: **M4-001 P0 — Capability Broker YAML/JSON loader, protocol/spec first**
+- Phase: `R1 — DeepSeek Harness Plugin Alpha Release`
+- Active PR: `#3 — feat(policy): begin M4 capability broker`
+- Branch: `feat/m4-capability-broker`
+- Base: `main@57430273e065be8d38807d67b175fa154c801d43`
+- R1-001: **GOVERNANCE CLOSED**
+- R1-002: **GOVERNANCE CLOSED**
+- R1-003: **GOVERNANCE CLOSED**
+- R1-004: **GOVERNANCE CLOSED**
+- R1-005: **IMPLEMENTATION CANDIDATE / EXACT-HEAD VERIFICATION REQUIRED**
+- R1-006+: **NOT AUTHORIZED**
+- M5-003+: **PAUSED until R1 Alpha release governance closes**
+- npm/registry publish, release tag and GitHub Release: **NOT AUTHORIZED**
+- PR #3 merge / Ready transition: **NOT AUTHORIZED without explicit user authorization**
 
-Live GitHub state always overrides this file. PR #2 remains intentionally stacked
-on the accepted M2 branch. M3 acceptance does not authorize skipping ahead within
-M4 and does not authorize M6 Workspace Transaction work.
+Live GitHub state overrides this snapshot.
 
-## Accepted compatibility baseline
+## R1-004 governance closure authority
 
-DeepSeek Harness remains an Adapter compatibility target, never protocol authority:
-
-```text
-version: 0.1.0-rc.5
-commit: 47f943859bef60e4160492346772ded9b24f765a
-distribution: distribution-blocked
-```
-
-M2 acceptance authority remains `docs/acceptance/m2-acceptance-audit.md`.
-M3 acceptance authority is `docs/acceptance/m3-acceptance-audit.md`.
-
-## M3 final status
-
-All currently numbered M3 gates are complete and accepted:
+R1-004 final governance exact head:
 
 ```text
-M3-001  language-independent fixture format
-M3-002  shared runner contract
-M3-003  deterministic seed / logical clock
-M3-004  deterministic fake approval
-M3-005  deterministic fake tool runtime
-M3-006  deterministic fake filesystem / subprocess execution world
-M3-007  deterministic fault injection
-M3-010  Adapter DSH turn lifecycle Shared TCK
-M3-011  Adapter DSH tool ordering Shared TCK
-M3-012  denied tool call never enters body Shared TCK
-M3-013  authoritative final-result mapping Shared TCK
-M3-014  approval-unavailable Shared TCK
-M3-015  cancellation Shared TCK
-M3-016  disposal Shared TCK
-M3-017  replay reconciliation Shared TCK
+2eb227f2fb54f9249ddde9739bb7e2e515d96ba8
+CI #694 / run 34650123869: PASS
+Harness #636 / run 34650123861: PASS
+Harness job 103430059925 step 10 pinned-source typecheck: PASS
+Harness job 103430059925 step 11 real rc5 runtime conformance: PASS
 ```
 
-There is no M3-018 gate in the current roadmap.
-
-### M3 Definition of Done
-
-All three M3 DoD requirements now have direct evidence:
-
-1. **Independent publication — PASS.** `@dsh-safe/testkit` has a package-local
-   build, explicit exports/files, canonical generated TCK assets, real tarball
-   inspection and normal-CI gating.
-2. **External dummy consumer — PASS.** A generated consumer outside the
-   repository/workspace installs the same-run `protocol.tgz` and `testkit.tgz`
-   with npm 10.9.3 in offline mode, imports only installed testkit public exports,
-   loads all 44 registered assets, and exercises PASS/FAIL/ERROR without Adapter
-   or Reference Runtime internals.
-3. **No TypeScript-only fixture semantics — PASS.** Portable TCK fixtures remain
-   JSON/schema-defined; TypeScript is a projection, not the fixture authority.
-
-## Final M3 acceptance evidence
-
-Accepted remediation implementation head:
+Therefore:
 
 ```text
-e6522a18760268b56b09f9ac5d9c822671c41666
+R1-004 GOVERNANCE CLOSED
+R1-005 P0 PROTOCOL/DESIGN-FIRST WORK AUTHORIZED
 ```
 
-Exact-head normal CI:
+## R1-005 normative authority
 
-- CI #218 / run `32482908193`: **PASS**;
-- `pnpm install --frozen-lockfile`: **PASS**;
-- architecture boundaries: **PASS**;
-- schema shape: **PASS** (`16 schemas`);
-- schema compatibility baseline: **PASS**;
-- strict TypeScript typecheck: **PASS**;
-- tests: **PASS** (`24 files / 261 tests`);
-- oxlint: **PASS** (`0 warnings / 0 errors`);
-- actual protocol/testkit tarball build and inspection: **PASS**;
-- external non-workspace offline dummy consumer: **PASS**;
-- installed TCK assets: **44**;
-- dummy implementation PASS/FAIL/ERROR behavior: **PASS**.
-
-Exact-head DeepSeek Harness compatibility evidence:
-
-- Harness rc5 source-conformance #177 / run `32482908210`: **PASS**;
-- exact baseline checkout `47f943859bef60e4160492346772ded9b24f765a`: **PASS**;
-- pinned Harness public type-surface build: **PASS**;
-- reproducible safe-runtime install: **PASS**;
-- exact workspace projection: **PASS**;
-- projection idempotence: **PASS**;
-- exact pinned binding typecheck: **PASS**;
-- real rc5 runtime conformance: **PASS**.
-
-The Harness result is compatibility evidence only. The accepted M3 protocol/TCK
-semantics continue to come from repository specs, schemas and portable fixtures.
-
-## M3 package-boundary remediation record
-
-The acceptance audit originally identified two real P0 blockers:
+Roadmap Gate:
 
 ```text
-M3-A1 — Publishable Shared TCK artifact
-M3-A2 — External dummy consumer conformance
+R1-005 P0 — external tarball consumer + real Harness smoke gate
 ```
 
-They were closed without weakening existing gates.
-
-### M3-A1
-
-The final package boundary proves the actual generated `.tgz` content rather than
-a package-manager dry-run prediction. Required public `dist` files, manifest,
-fixture schema and all registered TCK fixtures are present. Source files,
-source-conformance internals, node_modules, build cache, temporary staging and test
-sources are rejected from the artifact boundary.
-
-Generated package assets are derived from canonical repository fixtures/schemas
-and checked before consumption; they are not an independent semantic source of
-truth.
-
-### M3-A2
-
-The final accepted consumer is created under the OS temporary directory outside
-the repository. It intentionally does **not** create a `pnpm-workspace.yaml` and
-therefore is not accepted through workspace linking.
-
-Repository build/pack remains pinned to pnpm 11.7.0. External-consumer installation
-uses npm 10.9.3 with:
+Normative contract:
 
 ```text
---offline
---ignore-scripts
---package-lock=false
---no-audit
---no-fund
+specs/0059-r1-external-tarball-consumer-harness-smoke.md
+fixtures/adapter-dsh-external-consumer/cases.json
+profile: R1-005_EXTERNAL_TARBALL_CONSUMER_V1
+cases: ATCON-001..ATCON-040
 ```
 
-Both local tarballs are declared as direct file dependencies. npm installs exactly
-those same-run artifacts and resolves the testkit protocol dependency from the
-installed local protocol package. Registry availability cannot mask a missing
-publication dependency.
-
-The consumer additionally asserts that `@dsh-safe/testkit` resolves from its own
-installed `node_modules`, not from repository source paths.
-
-## Boundaries that remain enforced
-
-- Spec/Schema/fixtures define shared semantics before implementation.
-- `packages/testkit` is one implementation/projection; it does not define portable
-  semantics.
-- Shared TCK fixtures must remain consumable by a non-TypeScript implementation.
-- DeepSeek Harness is an Adapter and must not define protocol/core semantics.
-- Shared contracts must not leak concrete Harness package paths.
-- No host wall-clock or ambient randomness may decide a fixture result.
-- Unknown versions/profiles/operations/semantics fail explicitly.
-- Do not weaken TypeScript strictness, schemas, compatibility baseline,
-  validators, conformance tests, frozen installs, architecture/security gates, or
-  security claims for CI.
-- M6 Workspace Transaction semantics remain out of scope.
-
-## Current gate — M4-001 P0
-
-M3 acceptance authorizes entry into M4, but only at the first uncompleted M4 gate:
+Pinned compatibility/runtime authority remains exactly:
 
 ```text
-M4-001 P0 — YAML/JSON loader
+0.1.0-rc.5@47f943859bef60e4160492346772ded9b24f765a
 ```
 
-The next engineering work must remain protocol-first. Before production loader
-implementation, determine and document the normative M4 policy-document contract
-needed by M4-001. Reuse existing M1 Capability semantics where they are already
-normative; do not silently redefine them in loader code.
+R1-005 inherits the accepted R1-004 Adapter artifact contract:
 
-Do not pull forward M4-002+ behavior merely for convenience. In particular:
+```text
+@dsh-safe/adapter-dsh@0.1.0-alpha.0
+single public ESM package root
+built JS + declarations
+exact Cordis/Harness peer versions
+real pnpm-pack tarball
+no Adapter install-time scripts
+```
 
-- validation semantics belong to their explicit schema/validation gate;
-- canonical resource normalization and deterministic rule ordering remain their
-  own later gates;
-- deny/ask/allow and default-deny behavior must not be invented by the parser;
-- DeepSeek Harness behavior must not define Capability Broker policy syntax or
-  semantics.
+## Protocol-first exact-head authorization
 
-## Resume instruction
+Initial protocol-first head `0591e7af8f6b7f2f258d86cfff6fe973a516f699`
+was dual-green, then source review corrected the rc5 feature-smoke boundary without
+adding implementation.
 
-On the next work session:
+Corrected protocol-first exact head:
 
-1. read `docs/handoff/README.md` and this file;
-2. fetch PR #2 live state, branch head and exact-head workflow results;
-3. live GitHub evidence overrides this snapshot;
-4. if the latest governance head is not green, inspect that exact job/step/log and
-   repair it without weakening any gate;
-5. otherwise continue only with **M4-001 P0** from its protocol/spec boundary;
-6. do not start M4-002+ or M6 work early.
+```text
+045c9b4ecadd2be88a43053976e8507f80d6b7eb
+CI #696: PASS
+Harness #638: PASS
+```
+
+The corrected contract requires the installed exact rc5 Adapter to report its real
+required public features as present. It forbids manufacturing an unsupported rc5
+runtime merely to exercise a negative branch that belongs to a future separately
+accepted compatibility baseline.
+
+Because that exact corrected protocol-first SHA is normal-CI + exact-Harness
+dual-green, R1-005 executable implementation is authorized.
+
+## External-consumer implementation boundary
+
+The implementation creates a clean temporary consumer outside both the
+safe-runtime repository and the pinned Harness source checkout. It uses only real
+packed package artifacts as consumer dependency inputs.
+
+The implementation:
+
+1. builds and packs `@dsh-safe/protocol@0.1.0-alpha.0`;
+2. reuses the accepted R1-004 Adapter publication build and real `pnpm pack`;
+3. checks out and verifies exactly Harness commit `47f943...`;
+4. performs the upstream frozen install and official release verification/build;
+5. uses official upstream DSH/vendor pack paths plus the required Landlock entry pack;
+6. audits every local tarball name/version, SHA-256, dependency/peer summary and
+   rejects surviving `workspace:` locators;
+7. rejects conflicting duplicate package identities;
+8. installs the resulting local tarball closure into a fresh external consumer
+   with a normal `npm install`;
+9. does not suppress upstream lifecycle scripts or optional runtime dependencies;
+10. proves runtime resolution occurs under the consumer `node_modules`, never
+    from either source checkout;
+11. asserts all Adapter-declared direct Cordis/Harness peer versions exactly;
+12. imports only the installed public `@dsh-safe/adapter-dsh` package root;
+13. executes real rc5 ALLOW, DENY, ASK allowed-once/rejected/cancelled/unavailable,
+    omitted-policy default deny, required-feature and disposal/no-stale-registration
+    smokes.
+
+The upstream `release:verify-packed-install` helper is deliberately not part of
+this Gate. Disposable investigation proved that helper can fail after successful
+exact-source build/pack because it performs a fresh mutable-registry resolution
+for unrelated public dependencies. R1-005 instead validates the Spec 0059-owned
+external consumer using the exact local tarball closure while preserving upstream
+packed-manifest install semantics.
+
+## Hardened disposable evidence
+
+Before formalizing the implementation, a disposable evidence branch validated the
+strict install semantics without changing PR #3.
+
+```text
+evidence head: 97c8e23b29d2093e6e2953022c512ca9971b02a3
+workflow run: 34656668759
+job: 103450484256
+Install safe-runtime dependencies reproducibly: PASS
+Execute R1-005 external tarball consumer candidate: PASS
+```
+
+The hardened evidence uses ordinary `npm install --no-audit --no-fund
+--package-lock=false`; it does not use `--omit=optional` and does not disable
+install scripts. The disposable workflow itself is evidence-only and MUST NOT
+enter the product branch.
+
+## Claim boundary
+
+R1-005 implementation acceptance may establish only:
+
+```text
+R1_005_EXTERNAL_TARBALL_CONSUMER_ACCEPTED
+EXTERNAL_TARBALL_CONSUMER_VERIFIED
+EXACT_RC5_RUNTIME_SMOKE_VERIFIED
+```
+
+The implementation records:
+
+```text
+publicRegistryInstallVerified: false
+```
+
+and therefore does not claim:
+
+```text
+PUBLIC_REGISTRY_INSTALL_VERIFIED
+FUTURE_HARNESS_COMPATIBILITY_VERIFIED
+RELEASE_REPRODUCIBILITY_VERIFIED
+REGISTRY_PROVENANCE_VERIFIED
+PROCESS_ISOLATION_VERIFIED
+COMPLETE_HOST_EFFECT_MEDIATION_VERIFIED
+```
+
+R1-006 owns compatibility/install UX. R1-007/R1-008 own release/provenance and
+actual publication. M14 remains the future process-isolated Plugin Host.
+
+## Formal implementation candidate delta
+
+This candidate is intentionally test/build infrastructure only:
+
+```text
+scripts/check-adapter-dsh-external-consumer.mjs
+scripts/r1-005-external-consumer-smoke.mjs
+package.json
+docs/handoff/CURRENT.md
+```
+
+`package.json` only adds the R1-005 checker command and appends it to the existing
+`check:all` chain. The existing CI workflow already executes `pnpm check:all`, so
+no disposable evidence workflow enters product history.
+
+This candidate changes no production TypeScript, pnpm lockfile, Spec/corpus,
+Schema/validator, Shared TCK, Harness baseline/source-conformance workflow,
+HISTORY, roadmap acceptance marker, R1-006+, M5-003+, registry/release/tag or PR
+merge/readiness state.
+
+## Required implementation exact-head verification
+
+The formal implementation exact head must itself pass on the same SHA:
+
+```text
+normal CI
+  including R1-005 real external tarball consumer gate
++
+exact pinned Harness rc5 source-conformance
+  step 10 pinned-source TypeScript
+  step 11 real rc5 runtime
+```
+
+Until that exact formal implementation SHA is dual-green, this remains only an
+implementation candidate and no R1-005 acceptance/governance claim is established.
+
+After dual-green, perform independent R1-005 acceptance review before any HISTORY
+or roadmap governance marker change.
+
+## Current authorization
+
+```text
+R1-004 GOVERNANCE CLOSED
+R1-005 PROTOCOL-FIRST: ACCEPTED / DUAL-GREEN
+R1-005 IMPLEMENTATION: CANDIDATE / EXACT-HEAD VERIFICATION REQUIRED
+R1-005 ACCEPTANCE / GOVERNANCE: NOT YET ESTABLISHED
+R1-006+ NOT AUTHORIZED
+M5-003+ PAUSED
+REGISTRY PUBLISH / GITHUB RELEASE / TAG NOT AUTHORIZED
+PR #3 REMAINS OPEN / DRAFT / UNMERGED
+```

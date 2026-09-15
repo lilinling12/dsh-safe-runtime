@@ -268,57 +268,57 @@ Acceptance evidence
 
 ## M4.1 Policy Engine
 
-- [ ] `M4-001 P0` YAML/JSON loader。
-- [ ] `M4-002 P0` schema validation。
-- [ ] `M4-003 P0` canonical resource normalization。
-- [ ] `M4-004 P0` deterministic rule ordering。
-- [ ] `M4-005 P0` deny/ask/allow。
-- [ ] `M4-006 P0` default deny。
-- [ ] `M4-007 P0` explain API。
-- [ ] `M4-008 P1` policy diagnostics。
-- [ ] `M4-009 P1` policy hot reload with atomic swap。
+- [x] `M4-001 P0` YAML/JSON loader。 **ACCEPTED：Spec 0017 + portable fixtures + bounded duplicate-aware JSON/YAML loader；accepted implementation head `9443d907...`，CI #248 / Harness #192 PASS；验收记录 `docs/acceptance/m4-001-acceptance-audit.md`。**
+- [x] `M4-002 P0` schema validation。 **ACCEPTED：Spec 0018 + portable fixtures + strict Draft 2020-12 validator；accepted implementation head `7b87c812...`，CI #260 / Harness #204 PASS；验收记录 `docs/acceptance/m4-002-acceptance-audit.md`。**
+- [x] `M4-003 P0` canonical resource normalization。 **ACCEPTED：Spec 0019 + 35 portable cases + runtime fail-closed hardening；accepted implementation head `edd91190...`，CI #275 / Harness #219 PASS；验收记录 `docs/acceptance/m4-003-acceptance-audit.md`。**
+- [x] `M4-004 P0` deterministic rule ordering。 **ACCEPTED：Spec 0020 + 37 portable pattern/ordering cases + Unicode/code-point deterministic precedence bands；accepted implementation head `69934dd6...`，CI #291 / Harness #235 PASS；验收记录 `docs/acceptance/m4-004-acceptance-audit.md`。**
+- [x] `M4-005 P0` deny/ask/allow。 **ACCEPTED：Spec 0021 + 23 portable cases + runtime fail-closed hardening；accepted implementation head `81e09435...`，CI #304 / Harness #248 PASS；验收记录 `docs/acceptance/m4-005-acceptance-audit.md`。**
+- [x] `M4-006 P0` default deny。 **ACCEPTED：Spec 0022 + 20 portable cases + own-data-property/accessor fail-closed hardening；accepted implementation head `de614120...`，CI #320 / Harness #264 PASS；验收记录 `docs/acceptance/m4-006-acceptance-audit.md`。**
+- [x] `M4-007 P0` explain API。 **ACCEPTED：Spec 0023 + 18 portable cases + own-data materialization/getter-proxy fail-closed hardening；accepted implementation head `1c8bc9ef...`，CI #329 / Harness #271 PASS；验收记录 `docs/acceptance/m4-007-acceptance-audit.md`。**
+- [x] `M4-008 P1` policy diagnostics。 **ACCEPTED：Spec 0024 + 21 portable cases + deterministic bounded diagnostics + own-data/accessor/proxy fail-closed hardening；accepted implementation head `2aa8250f...`，CI #335 / Harness #277 PASS；验收记录 `docs/acceptance/m4-008-acceptance-audit.md`。**
+- [x] `M4-009 P1` policy hot reload with atomic swap。 **ACCEPTED：Spec 0025 + 16 portable cases + immutable last-known-good atomic publication + hostile-request fail-closed hardening；accepted implementation head `76dd50e7...`，CI #346 / Harness #288 PASS；验收记录 `docs/acceptance/m4-009-acceptance-audit.md`。**
 
 ## M4.2 Tool Classifier
 
-- [ ] `M4-010 P0` classify built-in FS tools。
-- [ ] `M4-011 P0` classify Bash/PowerShell。
-- [ ] `M4-012 P0` classify known MCP metadata。
-- [ ] `M4-013 P0` unknown tool → fail closed/profile decision。
-- [ ] `M4-014 P1` plugin-supplied classifier API。
+- [x] `M4-010 P0` classify built-in FS tools。 **ACCEPTED：Spec 0026 + 22 portable cases + exact rc5 source-backed built-in FS mapping + hostile-runtime fail-closed hardening；accepted implementation head `4be1fffc...`，CI #351 / Harness #293 PASS；验收记录 `docs/acceptance/m4-010-acceptance-audit.md`。**
+- [x] `M4-011 P0` classify Bash/PowerShell。 **ACCEPTED：Spec 0027 + 22 portable cases + exact rc5 source-backed Bash/PowerShell → process.exec mapping + hostile-runtime fail-closed hardening；accepted implementation head `c8a53182...`，CI #356 / Harness #298 PASS；验收记录 `docs/acceptance/m4-011-acceptance-audit.md`。**
+- [x] `M4-012 P0` classify known MCP metadata。 **ACCEPTED：Spec 0028 + MCP 2025-11-25 + 19 portable cases + advisory-only ToolAnnotations normalization + revoked-Proxy/descriptor hostile-runtime fail-closed hardening；accepted implementation head `debfce00...`，CI #366 / Harness #308 PASS；验收记录 `docs/acceptance/m4-012-acceptance-audit.md`。**
+- [x] `M4-013 P0` unknown tool → fail closed/profile decision。 **ACCEPTED：Spec 0029 + 22 portable cases + fixed `STRICT_DENY_V1` resolver + recognized classifier result preservation + hostile/opaque unknown-argument fail-closed hardening；accepted implementation head `bee673cb...`，CI #374 / Harness #316 PASS；验收记录 `docs/acceptance/m4-013-acceptance-audit.md`。**
+- [x] `M4-014 P1` plugin-supplied classifier API。 **ACCEPTED：Spec 0030 + 27 portable cases + immutable exact-owner plugin classifier registry + reserved built-in names + conflict rejection + validated/detached existing filesystem or shell/process evidence + hostile-runtime fail-closed hardening；accepted implementation head `4290249c...`，CI #388 / Harness #330 PASS；验收记录 `docs/acceptance/m4-014-acceptance-audit.md`。**
 
 ## M4.3 PDP
 
-- [ ] `M4-020 P0` Subject resolution。
-- [ ] `M4-021 P0` policy evaluation。
-- [ ] `M4-022 P0` lease lookup。
-- [ ] `M4-023 P0` approval routing。
-- [ ] `M4-024 P0` decision receipt。
-- [ ] `M4-025 P0` guarantee level。
+- [x] `M4-020 P0` Subject resolution。 **ACCEPTED：Spec 0031 + 30 portable cases + deterministic fail-closed Subject identity/context resolution + authoritative request-session consistency + hostile own-data/proxy hardening；accepted implementation head `31b3b190...`，CI #414 / Harness #356 PASS；验收记录 `docs/acceptance/m4-020-acceptance-audit.md`。**
+- [x] `M4-021 P0` policy evaluation。 **ACCEPTED：Spec 0032 + 31 portable cases + exact Subject/capability/resource applicability composition + global rule-ID preflight + fail-closed unsupported-constraint boundary + hostile-runtime hardening；accepted implementation head `21487cb2...`，CI #437 / Harness #379 PASS；验收记录 `docs/acceptance/m4-021-acceptance-audit.md`。**
+- [x] `M4-022 P0` lease lookup。 **ACCEPTED：Spec 0033 + 28 portable cases + exact Subject/capability/canonical-resource candidate lookup + duplicate leaseRef preflight + unsupported matching-constraint fail-closed boundary + hostile-runtime hardening；accepted implementation head `ef465fcf...`，CI #459 / Harness #401 PASS；验收记录 `docs/acceptance/m4-022-acceptance-audit.md`。**
+- [x] `M4-023 P0` approval routing。 **ACCEPTED：Spec 0034 + 25 portable cases + deterministic ask-only approval routing + policy-deny non-override + candidate-Lease non-bypass + four-outcome fail-closed mapping + runtime-neutral approval port + hostile-runtime/coercion hardening；accepted implementation head `98bb59e7...`，CI #474 / Harness #416 PASS；验收记录 `docs/acceptance/m4-023-acceptance-audit.md`。**
+- [x] `M4-024 P0` decision receipt。 **ACCEPTED：Spec 0035 + 27 portable cases + deterministic immutable CapabilityDecision/CapabilityReceipt construction + explicit identity/time inputs + guarantee copy-only boundary + Unicode/RFC3339/hostile-runtime hardening；accepted implementation head `8c12354c...`，CI #491 / Harness #433 PASS；验收记录 `docs/acceptance/m4-024-acceptance-audit.md`。**
+- [x] `M4-025 P0` guarantee level。 **ACCEPTED：Spec 0036 + 30 portable cases + deterministic action-scoped strongest-boundary GuaranteeLevel assignment + explicit availability/mediation/enforcement/isolation separation + valid-weak downgrade versus malformed-evidence fail-closed semantics + revoked-Proxy/short-circuit hostile-runtime hardening；accepted implementation head `0fb29644...`，CI #505 / Harness #447 PASS；验收记录 `docs/acceptance/m4-025-acceptance-audit.md`。**
 
 ## M4.4 Lease
 
-- [ ] `M4-030 P0` TTL。
-- [ ] `M4-031 P0` maxUses。
-- [ ] `M4-032 P0` atomic consume。
-- [ ] `M4-033 P0` revoke。
-- [ ] `M4-034 P0` parent-child attenuation。
-- [ ] `M4-035 P1` lease listing CLI。
-- [ ] `M4-036 P1` revoke CLI。
+- [x] `M4-030 P0` TTL。 **ACCEPTED：Spec 0037 + 32 portable cases + deterministic explicit-observedAt half-open Lease TTL validity + RFC3339/Gregorian/offset/fraction/leap-second ordering + hostile-runtime/no-host-clock hardening；accepted implementation head `e7c2832f...`，CI #515 / Harness #457 PASS；验收记录 `docs/acceptance/m4-030-acceptance-audit.md`。**
+- [x] `M4-031 P0` maxUses。 **ACCEPTED：Spec 0038 + 32 portable cases + deterministic read-only CapabilityLease usage validity + exact safe-integer/coherence semantics + hostile-runtime/no-coercion/no-consume hardening；accepted implementation head `4888db94...`，CI #520 / Harness #462 PASS；验收记录 `docs/acceptance/m4-031-acceptance-audit.md`。**
+- [x] `M4-032 P0` atomic consume。
+- [x] `M4-033 P0` revoke。
+- [x] `M4-034 P0` parent-child attenuation。 **ACCEPTED：Spec 0041 + 28 portable cases + authoritative target-to-root chain validation + exact provenance/capability/resource/constraint/time/maxUses attenuation + all-chain coupled usage decrement + ancestor revocation/exhaustion inheritance + process-local overlapping-chain/revoke-consume linearizability + hostile-runtime/store-evidence/failure-precedence hardening；accepted implementation head `6690dbc5...`，CI #553 / Harness #495 PASS；验收记录 `docs/acceptance/m4-034-acceptance-audit.md`。**
+- [x] `M4-035 P1` lease listing CLI。 **ACCEPTED：Spec 0042 + 35 portable cases + coherent bounded read-only Lease inventory + explicit observedAt + independent TTL/usage/revocation projection + constraints minimization + deterministic Unicode leaseRef ordering + terminal/bidi-safe rendering + gate-local CLI adapter + hostile-runtime/reference-snapshot hardening；accepted implementation head `959babf2...`，CI #564 / Harness #506 PASS；验收记录 `docs/acceptance/m4-035-acceptance-audit.md`。**
+- [x] `M4-036 P1` revoke CLI。 **ACCEPTED：Spec 0043 + 34 portable cases + exact opaque `--lease-ref` grammar + direct reuse of M4-033 authoritative revoke + no pre-list/automatic retry/bulk/cascade + minimized failure envelopes + hostile argv/Proxy hardening；accepted implementation head `b997dc88...`，CI #574 / Harness #516 PASS；验收记录 `docs/acceptance/m4-036-acceptance-audit.md`。**
 
 ## M4.5 DSH Plugin
 
-- [ ] `M4-040 P0` register `tools/pre-execute`。
-- [ ] `M4-041 P0` use `ctx.tools.guard()` for hard invariant where required。
-- [ ] `M4-042 P0` route ask to `ctx.approval`。
-- [ ] `M4-043 P0` observe authoritative `tools/result`。
-- [ ] `M4-044 P0` no duplicate approval subsystem。
-- [ ] `M4-045 P0` no raw secret in audit。
+- [x] `M4-040 P0` register `tools/pre-execute`。 **ACCEPTED：Spec 0044 + 24-case DPER source-conformance corpus + existing M2 `registerToolPolicy()` binding proven against exact rc5；final reviewed conformance head `46daba53...`，CI #582 / Harness #524 PASS；验收记录 `docs/acceptance/m4-040-acceptance-audit.md`。Registration alone does not claim `tool-enforced`; M4-041 separately owns the monotonic guard boundary.**
+- [x] `M4-041 P0` use `ctx.tools.guard()` for hard invariant where required。 **ACCEPTED：Spec 0045 + 32-case DMGR corpus + package-private malformed-runtime fail-closed materialization + exact rc5 monotonic/body-non-entry conformance；accepted implementation head `9e1372e2...`，CI #586 / Harness #528 PASS；验收记录 `docs/acceptance/m4-041-acceptance-audit.md`。This proves a reached ToolRuntime hard veto, not complete system-wide `tool-enforced` coverage.**
+- [x] `M4-042 P0` route ask to `ctx.approval`。 **ACCEPTED：Spec 0046 + 32-case DAPR source-conformance corpus + existing M2/M4-040 `registerToolPolicy()` ASK projection proven to use one native ToolRuntime→ApprovalService path with no duplicate Adapter approval call；final reviewed conformance head `72f88c3c...`，CI #590 / Harness #532 PASS；验收记录 `docs/acceptance/m4-042-acceptance-audit.md`。Approval is guaranteed only for a final/reached ASK; the reorderable pre-execute waterfall and M4-041 monotonic guard boundaries remain unchanged.**
+- [x] `M4-043 P0` observe authoritative `tools/result`。 **ACCEPTED：Spec 0047 + 32-case DATR source-conformance corpus + existing Adapter `tools/result` binding proven against the exact rc5 final materialized ToolRuntime result；final reviewed conformance head `f6811380...`，CI #597 / Harness #539 PASS；验收记录 `docs/acceptance/m4-043-acceptance-audit.md`。Body/post-execute/policy disposition are not final authority；observer failure is contained；this Gate does not claim complete host-effect mediation, rollback, isolation or raw-result audit safety.**
+- [x] `M4-044 P0` no duplicate approval subsystem。 **ACCEPTED：Spec 0048 + 24-case DAU corpus；existing approval ownership proven without production rewrite；reviewed conformance `333ac121...`, CI #613 / Harness #555 PASS；audit `docs/acceptance/m4-044-acceptance-audit.md` at `ab00b2be...`, CI #614 / Harness #556 PASS。One native ASK owns one native request/audit pair; explicit Adapter approval uses the same service without a second ToolRuntime entry. No arbitrary-caller deduplication, durable exactly-once, isolation or raw-audit secrecy claim.**
+- [x] `M4-045 P0` no raw secret in audit。 **ACCEPTED：Spec 0049 + DAP-001..036 + owned bounded JCS/SHA-256 digest + closed `observeAudit` projection/delivery + exact rc5 ordinary/audit coexistence；implementation/conformance head `19fe2261...`, CI #625 / Harness #567 PASS；验收记录 `docs/acceptance/m4-045-acceptance-audit.md` at `33ecd98c...`, CI #626 / Harness #568 PASS。This proves the owned Adapter audit-egress profile; it does not relabel native Harness history/ordinary observation as audit-safe or implement M5 detector/storage/retention.**
 
 ## M4.6 Negative Boundary Tests
 
-- [ ] `M4-050 P0` direct Node fs bypass → `EXPECTED_UNGOVERNED`。
-- [ ] `M4-051 P0` equivalent shell spelling bypass string matcher test。
-- [ ] `M4-052 P0` document that v0.1 is not plugin sandbox。
+- [x] `M4-050 P0` direct Node fs bypass → `EXPECTED_UNGOVERNED`。 **ACCEPTED：Spec 0050 + DHFS-001..024；reviewed conformance `a92a0fcf...`, CI #630 / Harness #572 PASS；audit `docs/acceptance/m4-050-acceptance-audit.md` at `44e3ce2d...`, CI #631 / Harness #573 PASS。This is truthful negative-boundary evidence only; it does not claim Node fs interception, complete mediation, plugin sandboxing or process isolation.**
+- [x] `M4-051 P0` equivalent shell spelling bypass string matcher test。 **ACCEPTED：Spec 0051 + ESSM-001..024；reviewed conformance `338aba9f...`, CI #636 / Harness #578 PASS；audit `docs/acceptance/m4-051-acceptance-audit.md` at `91b9dcef...`, CI #637 / Harness #579 PASS。This is a negative boundary for string-derived nested-effect inference only; recognized shell calls remain `process.exec` and no production shell matcher/parser or isolation claim is added.**
+- [x] `M4-052 P0` document that v0.1 is not plugin sandbox。 **ACCEPTED：Spec 0052 + PSDB-001..024 + README/architecture explicit v0.1 non-sandbox boundary + dedicated source-conformance；final reviewed head `eca1b63f...`, CI #643 / Harness #585 PASS；验收记录 `docs/acceptance/m4-052-acceptance-audit.md` at `3e2cd73d...`, CI #644 / Harness #586 PASS。Documentation/security boundary only；no arbitrary in-process plugin isolation or process-isolation claim.**
 
 ### M4 DoD
 
@@ -336,8 +336,10 @@ Acceptance evidence
 
 ## M5.1 Ledger
 
-- [ ] `M5-001 P0` append-only store。
-- [ ] `M5-002 P0` canonical JSON。
+- [x] `M5-001 P0` append-only store。 **ACCEPTED：Spec 0053 + AOS-001..028 + dependency-free `packages/storage` reference implementation；final reviewed head `4c42752b...`, CI #649 / Harness #591 PASS；验收记录 `docs/acceptance/m5-001-acceptance-audit.md` at `be616ba0...`, CI #650 / Harness #592 PASS。Append-only semantics only；canonical JSON / digest / hash chain remain M5-002/003/004.**
+- [x] `M5-002 P0` canonical JSON。 **ACCEPTED：Spec 0054 + CJ-001..036 + dependency-free `@dsh-safe/protocol` RFC 8785/JCS canonicalizer + host-value fail-loud hardening；final reviewed head `2bd329d9...`, CI #659 / Harness #601 PASS；验收记录 `docs/acceptance/m5-002-acceptance-audit.md` at `099d75ea...`, CI #660 / Harness #602 PASS。Canonical bytes only；M5-003 digest and later M5 work remain paused while R1 DeepSeek Plugin Alpha Release executes after governance closure.**
+
+> **Release sequencing override（2026-09-09）**：M5-002 完成 implementation / acceptance / governance closure 后，暂停 M5-003+；优先执行下方 `R1 — DeepSeek Harness Plugin Alpha Release`。R1 Alpha 发布完成并形成真实外部安装反馈后，再恢复 M5-003+。该调整不改变 M5-003+ 的既有语义或优先级，只改变首次 Alpha 发布前的执行顺序。
 - [ ] `M5-003 P0` record digest。
 - [ ] `M5-004 P1` hash chain。
 - [ ] `M5-005 P1` integrity verify CLI。
@@ -356,6 +358,90 @@ Acceptance evidence
 - [ ] `M5-020 P0` audit store unavailable policy。
 - [ ] `M5-021 P1` durable local spool。
 - [ ] `M5-022 P1` spool reconciliation。
+
+
+---
+
+# R1 — DeepSeek Harness Plugin Alpha Release
+
+目标：在不虚构 process isolation、不等待 M5-M19 全部完成的前提下，把已经经过真实 rc5 source-conformance 验证的 `adapter-dsh` 能力产品化为**可安装、可验证、可回滚发布的 DeepSeek Harness Alpha 插件/Adapter 包**，尽早获得真实用户安装与集成反馈。
+
+> **定位**：R1 是提前执行的 Alpha 产品化/发布轨道，不替代 M20 的最终 Release Gates，也不等于 M14 Process-isolated Plugin Host。
+>
+> **启动条件**：M5-002 governance closure exact-head dual-green。
+>
+> **后续顺序**：R1 Alpha release governance closed → 恢复 M5-003+。
+
+## R1.1 Alpha Readiness
+
+- [x] `R1-001 P0` Alpha readiness reconciliation。 **ACCEPTED：readiness audit `docs/acceptance/r1-001-alpha-readiness-reconciliation.md` at `0f91d744...`; CI #666 / Harness #608 exact-head PASS；R1 track blockers = 0；Alpha-release blockers remain owned by R1-002..007。**
+  - 重新核对 M0-M4 / M20 Alpha 的真实完成状态，不以旧 checkbox 代替 exact evidence；
+  - 处理 M0 fresh-clone、M1 Spec Review、M4 DoD 与事实验收之间的状态漂移；
+  - 明确 Alpha blocker / accepted-deferred / non-blocker；
+  - 产出独立 acceptance/readiness audit，不能通过回填历史伪造成早已完成。
+
+## R1.2 Public Plugin Surface
+
+- [x] `R1-002 P0` freeze public DeepSeek Adapter API。 **ACCEPTED：Spec 0056 + DPA-001..036 + curated package-root `createDshRc5Adapter` / `DshRc5Adapter` surface + aggregate lifecycle/dispose/construction rollback + explicit public export allowlist；final reviewed public-surface head `45d9f4cf...`, CI #675 / Harness #617 PASS；验收记录 `docs/acceptance/r1-002-public-adapter-api.md` at `97d7904d...`, CI #676 / Harness #618 PASS。Package publishability remains R1-004；R1-003 is not authorized until this governance exact head is dual-green.**
+  - 正式公开 `createDshRc5Adapter` 或经 Spec 评审后的更高层入口；
+  - 用户 API 不暴露内部 M2 port / source-conformance 细节；
+  - lifecycle、dispose、error/fail-closed semantics 明确；
+  - public exports / types / semver compatibility surface 有 contract tests。
+
+- [x] `R1-003 P0` DeepSeek plugin/bootstrap integration。 **ACCEPTED：Spec 0057 + DPB-001..032 + native Cordis programmatic bootstrap + default-deny/ASK/disposal lifecycle conformance；final reviewed implementation head `bbe3f186...`, CI #681 / Harness #623 PASS；验收记录 `docs/acceptance/r1-003-plugin-bootstrap-integration.md` at `fea37f857...`, CI #682 / Harness #624 PASS。Package publishability remains R1-004；same-process bootstrap remains non-sandbox and does not claim complete host-effect mediation.**
+  - 提供最小、可复制的 Harness/Cordis 安装入口；
+  - policy/config 装载路径、默认 deny、ASK/approval、shutdown/dispose 行为可测试；
+  - 不新增第二套 approval/policy/runtime subsystem；
+  - 不把 same-process Adapter 宣称为 plugin sandbox。
+
+## R1.3 Publishable Package
+
+- [x] `R1-004 P0` make `@dsh-safe/adapter-dsh` publishable。 **ACCEPTED：Spec 0058 + ADPKG-001..036 + exact-source-backed publication build + single-root ESM/declaration package + real `pnpm pack` tarball audit；final reviewed implementation head `73ed70fe...`, CI #689 / Harness #631 PASS；验收记录 `docs/acceptance/r1-004-adapter-dsh-publishable-package.md` at `52956f24...`；acceptance exact head `705b6756...`, CI #691 / Harness #633 PASS。Claim is `PACKAGE_ARTIFACT_VALID` only；external installation remains R1-005；registry publish remains unauthorized.**
+  - 移除 package-level `private: true` 前必须完成 package boundary / export audit；
+  - 正确设置 `exports`、`types`、`files`、`engines`、license、repository、keywords 与 peer dependency policy；
+  - 产物只包含运行所需文件，不发布测试夹具、临时 workflow、内部密钥或本地路径；
+  - package name / scope / ownership 必须在实际 publish 前再次确认。
+
+- [ ] `R1-005 P0` external tarball consumer + real Harness smoke gate。
+  - `pnpm pack` / equivalent 生成真实待发布 tarball；
+  - 在 workspace 外的全新 consumer 安装 tarball 与 exact supported DeepSeek Harness；
+  - 至少验证 ALLOW / DENY / ASK、default deny、dispose、unsupported-feature fail-closed；
+  - 外部 consumer 不得通过 monorepo workspace link、未声明文件或源码路径作弊。
+
+## R1.4 Compatibility / UX
+
+- [ ] `R1-006 P0` compatibility and installation contract。
+  - Alpha 首发支持矩阵至少包含当前 accepted baseline `0.1.0-rc.5`；
+  - 每个 Release 发布 DSH range / Adapter version / status compatibility matrix；
+  - unsupported / untested Harness version 必须明确拒绝或标记 unsupported，不静默声称兼容；
+  - Quickstart、policy sample、known limitations、non-sandbox statement 与 upgrade notes 完整。
+
+## R1.5 Release Engineering
+
+- [ ] `R1-007 P0` reproducible release pipeline。
+  - changeset/changelog/version/tag/GitHub Release 流程；
+  - clean checkout → frozen install → test/typecheck/TCK/Harness → pack → external consumer；
+  - npm provenance / package integrity / minimal SBOM 或等价供应链证据；
+  - publish credential 不进入仓库、日志、tarball 或 audit payload；
+  - 正式 publish 必须是显式授权动作，不由普通 PR CI 自动执行。
+
+- [ ] `R1-008 P0` DeepSeek plugin Alpha release acceptance。
+  - 对待发布 tarball 做独立 acceptance audit；
+  - exact package contents / integrity / version / compatibility evidence 固化；
+  - clean-machine installation + real Harness smoke dual-green；
+  - GitHub Release / registry metadata / install docs 一致；
+  - 只有在发布动作获得显式授权后，才执行首次 `0.1.0-alpha.x` registry publish。
+
+### R1 Alpha DoD
+
+- [ ] 独立用户无需 clone monorepo 即可安装已打包 Adapter。
+- [ ] public plugin/bootstrap API 有稳定 contract 与最小 Quickstart。
+- [ ] exact supported Harness baseline 的 source-conformance + external-consumer smoke 同时 green。
+- [ ] default deny / ASK / approval / no-silent-allow 在发布 tarball 上验证。
+- [ ] package contents、license、dependencies、provenance、integrity 与 compatibility matrix 可审计。
+- [ ] README/安装文档明确：v0.1 Alpha **不是 arbitrary in-process plugin sandbox**。
+- [ ] registry publish / GitHub Release 只有在显式发布授权后执行。
+- [ ] Alpha release acceptance/governance closed 后，恢复 M5-003+；M14 仍是未来 process-isolated Plugin Host。
 
 ---
 

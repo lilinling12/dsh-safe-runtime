@@ -14,6 +14,12 @@
       "expected": "invalid"
     },
     {
+      "id": "CAP-REQ-003",
+      "path": "capability/invalid/request-subagent-null-parent.json",
+      "schema": "capability-request.schema.json",
+      "expected": "invalid"
+    },
+    {
       "id": "CAP-POL-001",
       "path": "capability/valid/policy-default-deny.json",
       "schema": "capability-policy.schema.json",

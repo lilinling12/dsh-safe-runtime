@@ -1,0 +1,17 @@
+{
+  "apiVersion": "safe-runtime.dev/v1alpha1",
+  "kind": "CapabilityPolicy",
+  "metadata": { "name": "rule-extra" },
+  "spec": {
+    "defaultEffect": "deny",
+    "rules": [
+      {
+        "id": "read",
+        "effect": "allow",
+        "capabilities": ["fs.read"],
+        "resources": ["workspace://**"],
+        "unexpected": true
+      }
+    ]
+  }
+}

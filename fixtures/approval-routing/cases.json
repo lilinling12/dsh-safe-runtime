@@ -1,0 +1,447 @@
+{
+  "profile": "M4-023_APPROVAL_ROUTING_V1",
+  "description": "Portable deterministic approval-routing cases for Spec 0034. approvalBehavior is fixture control, not a production wire field.",
+  "cases": [
+    {
+      "id": "AR-001",
+      "description": "Policy allow passes through without consulting Lease lookup or approval.",
+      "input": {
+        "policyEvaluation": {
+          "status": "EVALUATED",
+          "effect": "allow",
+          "basis": "HIGHEST_BAND_ALLOW",
+          "reasonCode": "POLICY_HIGHEST_BAND_ALLOW",
+          "fullyApplicableRuleIds": ["rule-allow"],
+          "contributingRuleIds": ["rule-allow"]
+        },
+        "leaseLookup": { "status": "BROKEN" },
+        "approvalRequest": { "requestRef": null }
+      },
+      "approvalBehavior": { "type": "MUST_NOT_CALL" },
+      "expected": {
+        "result": {
+          "status": "ROUTED",
+          "effect": "allow",
+          "routeSource": "POLICY",
+          "reasonCode": "APPROVAL_NOT_REQUIRED_POLICY_ALLOW"
+        },
+        "approvalCalls": []
+      }
+    },
+    {
+      "id": "AR-002",
+      "description": "Policy deny passes through without consulting Lease lookup or approval.",
+      "input": {
+        "policyEvaluation": {
+          "status": "EVALUATED",
+          "effect": "deny",
+          "basis": "EXPLICIT_DENY",
+          "reasonCode": "POLICY_EXPLICIT_DENY",
+          "fullyApplicableRuleIds": ["rule-deny"],
+          "contributingRuleIds": ["rule-deny"]
+        },
+        "leaseLookup": { "status": "BROKEN" },
+        "approvalRequest": { "requestRef": null }
+      },
+      "approvalBehavior": { "type": "MUST_NOT_CALL" },
+      "expected": {
+        "result": {
+          "status": "ROUTED",
+          "effect": "deny",
+          "routeSource": "POLICY",
+          "reasonCode": "APPROVAL_NOT_REQUIRED_POLICY_DENY"
+        },
+        "approvalCalls": []
+      }
+    },
+    {
+      "id": "AR-003",
+      "description": "Policy fail-closed reason is preserved and approval is not called.",
+      "input": {
+        "policyEvaluation": {
+          "status": "FAIL_CLOSED",
+          "effect": "deny",
+          "stage": "CONSTRAINT",
+          "reasonCode": "POLICY_CONSTRAINT_PROFILE_UNSUPPORTED"
+        },
+        "leaseLookup": { "status": "BROKEN" },
+        "approvalRequest": { "requestRef": null }
+      },
+      "approvalBehavior": { "type": "MUST_NOT_CALL" },
+      "expected": {
+        "result": {
+          "status": "FAIL_CLOSED",
+          "effect": "deny",
+          "stage": "POLICY",
+          "reasonCode": "POLICY_CONSTRAINT_PROFILE_UNSUPPORTED"
+        },
+        "approvalCalls": []
+      }
+    },
+    {
+      "id": "AR-004",
+      "description": "Ask plus Lease lookup failure fails closed before approval.",
+      "input": {
+        "policyEvaluation": {
+          "status": "EVALUATED",
+          "effect": "ask",
+          "basis": "HIGHEST_BAND_ASK",
+          "reasonCode": "POLICY_HIGHEST_BAND_ASK",
+          "fullyApplicableRuleIds": ["rule-ask"],
+          "contributingRuleIds": ["rule-ask"]
+        },
+        "leaseLookup": {
+          "status": "FAIL_CLOSED",
+          "stage": "LEASE_SNAPSHOT",
+          "reasonCode": "LEASE_LOOKUP_DUPLICATE_LEASE_REF"
+        },
+        "approvalRequest": {
+          "requestRef": "capreq-1",
+          "actionRef": "action-1",
+          "reason": "Approval required"
+        }
+      },
+      "approvalBehavior": { "type": "MUST_NOT_CALL" },
+      "expected": {
+        "result": {
+          "status": "FAIL_CLOSED",
+          "effect": "deny",
+          "stage": "LEASE_LOOKUP",
+          "reasonCode": "LEASE_LOOKUP_DUPLICATE_LEASE_REF"
+        },
+        "approvalCalls": []
+      }
+    },
+    {
+      "id": "AR-005",
+      "description": "Ask with no Lease candidate and ALLOWED_ONCE resolves to allow.",
+      "input": {
+        "policyEvaluation": {
+          "status": "EVALUATED",
+          "effect": "ask",
+          "basis": "HIGHEST_BAND_ASK",
+          "reasonCode": "POLICY_HIGHEST_BAND_ASK",
+          "fullyApplicableRuleIds": ["rule-ask"],
+          "contributingRuleIds": ["rule-ask"]
+        },
+        "leaseLookup": { "status": "NO_CANDIDATE", "candidateLeaseRefs": [] },
+        "approvalRequest": {
+          "requestRef": "capreq-1",
+          "actionRef": "action-1",
+          "reason": "Approval required"
+        }
+      },
+      "approvalBehavior": { "type": "RETURN", "outcome": "ALLOWED_ONCE" },
+      "expected": {
+        "result": {
+          "status": "ROUTED",
+          "effect": "allow",
+          "routeSource": "APPROVAL",
+          "reasonCode": "APPROVAL_ALLOWED_ONCE",
+          "approvalOutcome": "ALLOWED_ONCE"
+        },
+        "approvalCalls": [{ "requestRef": "capreq-1", "actionRef": "action-1", "reason": "Approval required" }]
+      }
+    },
+    {
+      "id": "AR-006",
+      "description": "Ask with Lease candidates still requires approval because M4-022 candidates are not usable authority.",
+      "input": {
+        "policyEvaluation": {
+          "status": "EVALUATED",
+          "effect": "ask",
+          "basis": "HIGHEST_BAND_ASK",
+          "reasonCode": "POLICY_HIGHEST_BAND_ASK",
+          "fullyApplicableRuleIds": ["rule-ask"],
+          "contributingRuleIds": ["rule-ask"]
+        },
+        "leaseLookup": { "status": "CANDIDATES_FOUND", "candidateLeaseRefs": ["lease-a", "lease-b"] },
+        "approvalRequest": {
+          "requestRef": "capreq-1",
+          "actionRef": "action-1",
+          "reason": "Approval required"
+        }
+      },
+      "approvalBehavior": { "type": "RETURN", "outcome": "ALLOWED_ONCE" },
+      "expected": {
+        "result": {
+          "status": "ROUTED",
+          "effect": "allow",
+          "routeSource": "APPROVAL",
+          "reasonCode": "APPROVAL_ALLOWED_ONCE",
+          "approvalOutcome": "ALLOWED_ONCE"
+        },
+        "approvalCalls": [{ "requestRef": "capreq-1", "actionRef": "action-1", "reason": "Approval required" }]
+      }
+    },
+    {
+      "id": "AR-007",
+      "description": "REJECTED resolves ask to deny.",
+      "input": {
+        "policyEvaluation": {
+          "status": "EVALUATED",
+          "effect": "ask",
+          "basis": "HIGHEST_BAND_ASK",
+          "reasonCode": "POLICY_HIGHEST_BAND_ASK",
+          "fullyApplicableRuleIds": ["rule-ask"],
+          "contributingRuleIds": ["rule-ask"]
+        },
+        "leaseLookup": { "status": "CANDIDATES_FOUND", "candidateLeaseRefs": ["lease-a", "lease-b"] },
+        "approvalRequest": { "requestRef": "capreq-1", "actionRef": "action-1", "reason": "Approval required" }
+      },
+      "approvalBehavior": { "type": "RETURN", "outcome": "REJECTED" },
+      "expected": {
+        "result": { "status": "ROUTED", "effect": "deny", "routeSource": "APPROVAL", "reasonCode": "APPROVAL_REJECTED", "approvalOutcome": "REJECTED" },
+        "approvalCalls": [{ "requestRef": "capreq-1", "actionRef": "action-1", "reason": "Approval required" }]
+      }
+    },
+    {
+      "id": "AR-008",
+      "description": "CANCELLED resolves ask to deny while preserving the distinct approval outcome.",
+      "input": {
+        "policyEvaluation": {
+          "status": "EVALUATED",
+          "effect": "ask",
+          "basis": "HIGHEST_BAND_ASK",
+          "reasonCode": "POLICY_HIGHEST_BAND_ASK",
+          "fullyApplicableRuleIds": ["rule-ask"],
+          "contributingRuleIds": ["rule-ask"]
+        },
+        "leaseLookup": { "status": "NO_CANDIDATE", "candidateLeaseRefs": [] },
+        "approvalRequest": { "requestRef": "capreq-1", "actionRef": "action-1", "reason": "Approval required" }
+      },
+      "approvalBehavior": { "type": "RETURN", "outcome": "CANCELLED" },
+      "expected": {
+        "result": { "status": "ROUTED", "effect": "deny", "routeSource": "APPROVAL", "reasonCode": "APPROVAL_CANCELLED", "approvalOutcome": "CANCELLED" },
+        "approvalCalls": [{ "requestRef": "capreq-1", "actionRef": "action-1", "reason": "Approval required" }]
+      }
+    },
+    {
+      "id": "AR-009",
+      "description": "UNAVAILABLE resolves ask to explicit fail-closed deny, not implicit approval.",
+      "input": {
+        "policyEvaluation": {
+          "status": "EVALUATED",
+          "effect": "ask",
+          "basis": "HIGHEST_BAND_ASK",
+          "reasonCode": "POLICY_HIGHEST_BAND_ASK",
+          "fullyApplicableRuleIds": ["rule-ask"],
+          "contributingRuleIds": ["rule-ask"]
+        },
+        "leaseLookup": { "status": "NO_CANDIDATE", "candidateLeaseRefs": [] },
+        "approvalRequest": { "requestRef": "capreq-1", "actionRef": "action-1", "reason": "Approval required" }
+      },
+      "approvalBehavior": { "type": "RETURN", "outcome": "UNAVAILABLE" },
+      "expected": {
+        "result": { "status": "ROUTED", "effect": "deny", "routeSource": "APPROVAL", "reasonCode": "APPROVAL_UNAVAILABLE", "approvalOutcome": "UNAVAILABLE" },
+        "approvalCalls": [{ "requestRef": "capreq-1", "actionRef": "action-1", "reason": "Approval required" }]
+      }
+    },
+    {
+      "id": "AR-010",
+      "description": "Approval service exception fails closed and does not expose exception text.",
+      "input": {
+        "policyEvaluation": {
+          "status": "EVALUATED", "effect": "ask", "basis": "HIGHEST_BAND_ASK", "reasonCode": "POLICY_HIGHEST_BAND_ASK",
+          "fullyApplicableRuleIds": ["rule-ask"], "contributingRuleIds": ["rule-ask"]
+        },
+        "leaseLookup": { "status": "NO_CANDIDATE", "candidateLeaseRefs": [] },
+        "approvalRequest": { "requestRef": "capreq-1", "actionRef": "action-1", "reason": "Approval required" }
+      },
+      "approvalBehavior": { "type": "ERROR", "error": "sensitive backend detail" },
+      "expected": {
+        "result": { "status": "FAIL_CLOSED", "effect": "deny", "stage": "APPROVAL_SERVICE", "reasonCode": "APPROVAL_ROUTING_SERVICE_ERROR" },
+        "approvalCalls": [{ "requestRef": "capreq-1", "actionRef": "action-1", "reason": "Approval required" }]
+      }
+    },
+    {
+      "id": "AR-011",
+      "description": "Unsupported ALLOWED_ALWAYS-style outcome fails closed.",
+      "input": {
+        "policyEvaluation": { "status": "EVALUATED", "effect": "ask", "basis": "HIGHEST_BAND_ASK", "reasonCode": "POLICY_HIGHEST_BAND_ASK", "fullyApplicableRuleIds": ["rule-ask"], "contributingRuleIds": ["rule-ask"] },
+        "leaseLookup": { "status": "NO_CANDIDATE", "candidateLeaseRefs": [] },
+        "approvalRequest": { "requestRef": "capreq-1", "actionRef": "action-1", "reason": "Approval required" }
+      },
+      "approvalBehavior": { "type": "RETURN", "outcome": "ALLOWED_ALWAYS" },
+      "expected": {
+        "result": { "status": "FAIL_CLOSED", "effect": "deny", "stage": "APPROVAL_SERVICE", "reasonCode": "APPROVAL_ROUTING_OUTCOME_INVALID" },
+        "approvalCalls": [{ "requestRef": "capreq-1", "actionRef": "action-1", "reason": "Approval required" }]
+      }
+    },
+    {
+      "id": "AR-012",
+      "description": "Exact requestRef/actionRef/reason are forwarded once without capability/resource/Lease data.",
+      "input": {
+        "policyEvaluation": { "status": "EVALUATED", "effect": "ask", "basis": "HIGHEST_BAND_ASK", "reasonCode": "POLICY_HIGHEST_BAND_ASK", "fullyApplicableRuleIds": ["rule-ask"], "contributingRuleIds": ["rule-ask"] },
+        "leaseLookup": { "status": "CANDIDATES_FOUND", "candidateLeaseRefs": ["lease-a", "lease-b"] },
+        "approvalRequest": { "requestRef": "capreq:α", "actionRef": "tool:438", "reason": "Inspect repository status" }
+      },
+      "approvalBehavior": { "type": "RETURN", "outcome": "REJECTED" },
+      "expected": {
+        "result": { "status": "ROUTED", "effect": "deny", "routeSource": "APPROVAL", "reasonCode": "APPROVAL_REJECTED", "approvalOutcome": "REJECTED" },
+        "approvalCalls": [{ "requestRef": "capreq:α", "actionRef": "tool:438", "reason": "Inspect repository status" }]
+      }
+    },
+    {
+      "id": "AR-013",
+      "description": "Omitted reason remains omitted.",
+      "input": {
+        "policyEvaluation": { "status": "EVALUATED", "effect": "ask", "basis": "HIGHEST_BAND_ASK", "reasonCode": "POLICY_HIGHEST_BAND_ASK", "fullyApplicableRuleIds": ["rule-ask"], "contributingRuleIds": ["rule-ask"] },
+        "leaseLookup": { "status": "NO_CANDIDATE", "candidateLeaseRefs": [] },
+        "approvalRequest": { "requestRef": "capreq-2", "actionRef": "action-2" }
+      },
+      "approvalBehavior": { "type": "RETURN", "outcome": "REJECTED" },
+      "expected": {
+        "result": { "status": "ROUTED", "effect": "deny", "routeSource": "APPROVAL", "reasonCode": "APPROVAL_REJECTED", "approvalOutcome": "REJECTED" },
+        "approvalCalls": [{ "requestRef": "capreq-2", "actionRef": "action-2" }]
+      }
+    },
+    {
+      "id": "AR-014",
+      "description": "Empty reason is preserved because CapabilityRequest reason has no minLength.",
+      "input": {
+        "policyEvaluation": { "status": "EVALUATED", "effect": "ask", "basis": "HIGHEST_BAND_ASK", "reasonCode": "POLICY_HIGHEST_BAND_ASK", "fullyApplicableRuleIds": ["rule-ask"], "contributingRuleIds": ["rule-ask"] },
+        "leaseLookup": { "status": "NO_CANDIDATE", "candidateLeaseRefs": [] },
+        "approvalRequest": { "requestRef": "capreq-3", "actionRef": "action-3", "reason": "" }
+      },
+      "approvalBehavior": { "type": "RETURN", "outcome": "REJECTED" },
+      "expected": {
+        "result": { "status": "ROUTED", "effect": "deny", "routeSource": "APPROVAL", "reasonCode": "APPROVAL_REJECTED", "approvalOutcome": "REJECTED" },
+        "approvalCalls": [{ "requestRef": "capreq-3", "actionRef": "action-3", "reason": "" }]
+      }
+    },
+    {
+      "id": "AR-015",
+      "description": "Opaque refs are not trimmed or rewritten.",
+      "input": {
+        "policyEvaluation": { "status": "EVALUATED", "effect": "ask", "basis": "HIGHEST_BAND_ASK", "reasonCode": "POLICY_HIGHEST_BAND_ASK", "fullyApplicableRuleIds": ["rule-ask"], "contributingRuleIds": ["rule-ask"] },
+        "leaseLookup": { "status": "NO_CANDIDATE", "candidateLeaseRefs": [] },
+        "approvalRequest": { "requestRef": " request ", "actionRef": " action ", "reason": " exact " }
+      },
+      "approvalBehavior": { "type": "RETURN", "outcome": "ALLOWED_ONCE" },
+      "expected": {
+        "result": { "status": "ROUTED", "effect": "allow", "routeSource": "APPROVAL", "reasonCode": "APPROVAL_ALLOWED_ONCE", "approvalOutcome": "ALLOWED_ONCE" },
+        "approvalCalls": [{ "requestRef": " request ", "actionRef": " action ", "reason": " exact " }]
+      }
+    },
+    {
+      "id": "AR-016",
+      "description": "Empty requestRef fails closed before approval.",
+      "input": {
+        "policyEvaluation": { "status": "EVALUATED", "effect": "ask", "basis": "HIGHEST_BAND_ASK", "reasonCode": "POLICY_HIGHEST_BAND_ASK", "fullyApplicableRuleIds": ["rule-ask"], "contributingRuleIds": ["rule-ask"] },
+        "leaseLookup": { "status": "NO_CANDIDATE", "candidateLeaseRefs": [] },
+        "approvalRequest": { "requestRef": "", "actionRef": "action-4" }
+      },
+      "approvalBehavior": { "type": "MUST_NOT_CALL" },
+      "expected": { "result": { "status": "FAIL_CLOSED", "effect": "deny", "stage": "APPROVAL_REQUEST", "reasonCode": "APPROVAL_ROUTING_REQUEST_INVALID" }, "approvalCalls": [] }
+    },
+    {
+      "id": "AR-017",
+      "description": "Empty actionRef fails closed before approval.",
+      "input": {
+        "policyEvaluation": { "status": "EVALUATED", "effect": "ask", "basis": "HIGHEST_BAND_ASK", "reasonCode": "POLICY_HIGHEST_BAND_ASK", "fullyApplicableRuleIds": ["rule-ask"], "contributingRuleIds": ["rule-ask"] },
+        "leaseLookup": { "status": "NO_CANDIDATE", "candidateLeaseRefs": [] },
+        "approvalRequest": { "requestRef": "capreq-4", "actionRef": "" }
+      },
+      "approvalBehavior": { "type": "MUST_NOT_CALL" },
+      "expected": { "result": { "status": "FAIL_CLOSED", "effect": "deny", "stage": "APPROVAL_REQUEST", "reasonCode": "APPROVAL_ROUTING_REQUEST_INVALID" }, "approvalCalls": [] }
+    },
+    {
+      "id": "AR-018",
+      "description": "Non-string reason fails closed before approval.",
+      "input": {
+        "policyEvaluation": { "status": "EVALUATED", "effect": "ask", "basis": "HIGHEST_BAND_ASK", "reasonCode": "POLICY_HIGHEST_BAND_ASK", "fullyApplicableRuleIds": ["rule-ask"], "contributingRuleIds": ["rule-ask"] },
+        "leaseLookup": { "status": "NO_CANDIDATE", "candidateLeaseRefs": [] },
+        "approvalRequest": { "requestRef": "capreq-5", "actionRef": "action-5", "reason": 7 }
+      },
+      "approvalBehavior": { "type": "MUST_NOT_CALL" },
+      "expected": { "result": { "status": "FAIL_CLOSED", "effect": "deny", "stage": "APPROVAL_REQUEST", "reasonCode": "APPROVAL_ROUTING_REQUEST_INVALID" }, "approvalCalls": [] }
+    },
+    {
+      "id": "AR-019",
+      "description": "Unexpected approval request fields fail closed before approval.",
+      "input": {
+        "policyEvaluation": { "status": "EVALUATED", "effect": "ask", "basis": "HIGHEST_BAND_ASK", "reasonCode": "POLICY_HIGHEST_BAND_ASK", "fullyApplicableRuleIds": ["rule-ask"], "contributingRuleIds": ["rule-ask"] },
+        "leaseLookup": { "status": "NO_CANDIDATE", "candidateLeaseRefs": [] },
+        "approvalRequest": { "requestRef": "capreq-6", "actionRef": "action-6", "reason": "x", "capability": "process.exec" }
+      },
+      "approvalBehavior": { "type": "MUST_NOT_CALL" },
+      "expected": { "result": { "status": "FAIL_CLOSED", "effect": "deny", "stage": "APPROVAL_REQUEST", "reasonCode": "APPROVAL_ROUTING_REQUEST_INVALID" }, "approvalCalls": [] }
+    },
+    {
+      "id": "AR-020",
+      "description": "Malformed policy status fails closed without consulting Lease or approval.",
+      "input": {
+        "policyEvaluation": { "status": "UNKNOWN", "effect": "ask" },
+        "leaseLookup": { "status": "BROKEN" },
+        "approvalRequest": { "requestRef": null }
+      },
+      "approvalBehavior": { "type": "MUST_NOT_CALL" },
+      "expected": { "result": { "status": "FAIL_CLOSED", "effect": "deny", "stage": "POLICY", "reasonCode": "APPROVAL_ROUTING_POLICY_RESULT_INVALID" }, "approvalCalls": [] }
+    },
+    {
+      "id": "AR-021",
+      "description": "Malformed evaluated policy effect fails closed.",
+      "input": {
+        "policyEvaluation": { "status": "EVALUATED", "effect": "permit" },
+        "leaseLookup": { "status": "BROKEN" },
+        "approvalRequest": { "requestRef": null }
+      },
+      "approvalBehavior": { "type": "MUST_NOT_CALL" },
+      "expected": { "result": { "status": "FAIL_CLOSED", "effect": "deny", "stage": "POLICY", "reasonCode": "APPROVAL_ROUTING_POLICY_RESULT_INVALID" }, "approvalCalls": [] }
+    },
+    {
+      "id": "AR-022",
+      "description": "Malformed Lease lookup status on ask fails closed before approval.",
+      "input": {
+        "policyEvaluation": { "status": "EVALUATED", "effect": "ask", "basis": "HIGHEST_BAND_ASK", "reasonCode": "POLICY_HIGHEST_BAND_ASK", "fullyApplicableRuleIds": ["rule-ask"], "contributingRuleIds": ["rule-ask"] },
+        "leaseLookup": { "status": "UNKNOWN" },
+        "approvalRequest": { "requestRef": "capreq-1", "actionRef": "action-1", "reason": "Approval required" }
+      },
+      "approvalBehavior": { "type": "MUST_NOT_CALL" },
+      "expected": { "result": { "status": "FAIL_CLOSED", "effect": "deny", "stage": "LEASE_LOOKUP", "reasonCode": "APPROVAL_ROUTING_LEASE_LOOKUP_RESULT_INVALID" }, "approvalCalls": [] }
+    },
+    {
+      "id": "AR-023",
+      "description": "Candidate refs are not forwarded to approval.",
+      "input": {
+        "policyEvaluation": { "status": "EVALUATED", "effect": "ask", "basis": "HIGHEST_BAND_ASK", "reasonCode": "POLICY_HIGHEST_BAND_ASK", "fullyApplicableRuleIds": ["rule-ask"], "contributingRuleIds": ["rule-ask"] },
+        "leaseLookup": { "status": "CANDIDATES_FOUND", "candidateLeaseRefs": ["secret-looking-lease-ref"] },
+        "approvalRequest": { "requestRef": "capreq-7", "actionRef": "action-7", "reason": "Need approval" }
+      },
+      "approvalBehavior": { "type": "RETURN", "outcome": "REJECTED" },
+      "expected": {
+        "result": { "status": "ROUTED", "effect": "deny", "routeSource": "APPROVAL", "reasonCode": "APPROVAL_REJECTED", "approvalOutcome": "REJECTED" },
+        "approvalCalls": [{ "requestRef": "capreq-7", "actionRef": "action-7", "reason": "Need approval" }]
+      }
+    },
+    {
+      "id": "AR-024",
+      "description": "Policy rule ids are not forwarded to approval.",
+      "input": {
+        "policyEvaluation": { "status": "EVALUATED", "effect": "ask", "basis": "HIGHEST_BAND_ASK", "reasonCode": "POLICY_HIGHEST_BAND_ASK", "fullyApplicableRuleIds": ["rule-sensitive"], "contributingRuleIds": ["rule-sensitive"] },
+        "leaseLookup": { "status": "NO_CANDIDATE", "candidateLeaseRefs": [] },
+        "approvalRequest": { "requestRef": "capreq-8", "actionRef": "action-8" }
+      },
+      "approvalBehavior": { "type": "RETURN", "outcome": "ALLOWED_ONCE" },
+      "expected": {
+        "result": { "status": "ROUTED", "effect": "allow", "routeSource": "APPROVAL", "reasonCode": "APPROVAL_ALLOWED_ONCE", "approvalOutcome": "ALLOWED_ONCE" },
+        "approvalCalls": [{ "requestRef": "capreq-8", "actionRef": "action-8" }]
+      }
+    },
+    {
+      "id": "AR-025",
+      "description": "Approval is invoked exactly once for ask.",
+      "input": {
+        "policyEvaluation": { "status": "EVALUATED", "effect": "ask", "basis": "HIGHEST_BAND_ASK", "reasonCode": "POLICY_HIGHEST_BAND_ASK", "fullyApplicableRuleIds": ["rule-ask"], "contributingRuleIds": ["rule-ask"] },
+        "leaseLookup": { "status": "NO_CANDIDATE", "candidateLeaseRefs": [] },
+        "approvalRequest": { "requestRef": "capreq-9", "actionRef": "action-9" }
+      },
+      "approvalBehavior": { "type": "RETURN", "outcome": "ALLOWED_ONCE" },
+      "expected": {
+        "result": { "status": "ROUTED", "effect": "allow", "routeSource": "APPROVAL", "reasonCode": "APPROVAL_ALLOWED_ONCE", "approvalOutcome": "ALLOWED_ONCE" },
+        "approvalCalls": [{ "requestRef": "capreq-9", "actionRef": "action-9" }]
+      }
+    }
+  ]
+}

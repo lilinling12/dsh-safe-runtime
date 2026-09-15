@@ -1,0 +1,17 @@
+{
+  "apiVersion": "safe-runtime.dev/v1alpha1",
+  "kind": "CapabilityPolicy",
+  "metadata": { "name": "lease" },
+  "spec": {
+    "defaultEffect": "deny",
+    "rules": [
+      {
+        "id": "workspace-write",
+        "effect": "ask",
+        "capabilities": ["fs.write"],
+        "resources": ["workspace://src/**"],
+        "lease": { "ttlMs": 60000, "maxUses": 2 }
+      }
+    ]
+  }
+}

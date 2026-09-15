@@ -1,0 +1,515 @@
+{
+  "profile": {
+    "id": "m4-plugin-tool-classifier-v1",
+    "spec": "specs/0030-m4-plugin-tool-classifier-api.md",
+    "fallbackProfile": "STRICT_DENY_V1",
+    "limits": {
+      "maxPluginClassifiers": 128,
+      "maxPluginToolNamesPerClassifier": 128,
+      "maxPluginToolClaims": 1024,
+      "maxClassifierIdCodePoints": 128,
+      "maxToolNameCodePoints": 256
+    },
+    "reservedBuiltinToolNames": [
+      "read",
+      "read_image",
+      "write",
+      "edit",
+      "glob",
+      "grep",
+      "str_replace_editor",
+      "bash",
+      "pwsh"
+    ]
+  },
+  "cases": [
+    {
+      "id": "PLUGIN-CLASSIFIER-001",
+      "description": "an exact plugin-owned filesystem tool is classified with the existing filesystem family",
+      "operation": "RESOLVE",
+      "registrations": [
+        {
+          "classifierId": "example.fs",
+          "ownedToolNames": ["plugin_read"],
+          "behaviors": {
+            "plugin_read": {
+              "kind": "RETURN",
+              "value": {
+                "status": "CLASSIFIED",
+                "family": "FILESYSTEM",
+                "requirements": [
+                  {
+                    "capability": "fs.read",
+                    "operand": {
+                      "source": "ARGUMENT_PATH",
+                      "argumentName": "path",
+                      "rawPath": "docs/README.md",
+                      "reach": "EXACT"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "toolName": "plugin_read",
+      "arguments": {"path": "docs/README.md"},
+      "expectedInvokedClassifiers": ["example.fs"],
+      "expected": {
+        "status": "CLASSIFIED",
+        "requirements": [
+          {
+            "capability": "fs.read",
+            "operand": {
+              "source": "ARGUMENT_PATH",
+              "argumentName": "path",
+              "rawPath": "docs/README.md",
+              "reach": "EXACT"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "PLUGIN-CLASSIFIER-002",
+      "description": "an exact plugin-owned shell tool is classified with the existing shell process family",
+      "operation": "RESOLVE",
+      "registrations": [
+        {
+          "classifierId": "example.shell",
+          "ownedToolNames": ["plugin_shell"],
+          "behaviors": {
+            "plugin_shell": {
+              "kind": "RETURN",
+              "value": {
+                "status": "CLASSIFIED",
+                "family": "SHELL_PROCESS",
+                "requirements": [
+                  {
+                    "capability": "process.exec",
+                    "operand": {
+                      "source": "SHELL_COMMAND",
+                      "dialect": "BASH",
+                      "rawCommand": "git status",
+                      "executionMode": "FOREGROUND",
+                      "workdir": {"source": "EXECUTION_ROOT"}
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "toolName": "plugin_shell",
+      "arguments": {"command": "git status"},
+      "expectedInvokedClassifiers": ["example.shell"],
+      "expected": {
+        "status": "CLASSIFIED",
+        "requirements": [
+          {
+            "capability": "process.exec",
+            "operand": {
+              "source": "SHELL_COMMAND",
+              "dialect": "BASH",
+              "rawCommand": "git status",
+              "executionMode": "FOREGROUND",
+              "workdir": {"source": "EXECUTION_ROOT"}
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "PLUGIN-CLASSIFIER-003",
+      "description": "an unowned unknown tool reaches the strict M4-013 fallback without invoking plugins",
+      "operation": "RESOLVE",
+      "registrations": [
+        {
+          "classifierId": "example.fs",
+          "ownedToolNames": ["plugin_read"],
+          "behaviors": {}
+        }
+      ],
+      "toolName": "other_tool",
+      "arguments": {"secretLooking": "opaque"},
+      "expectedInvokedClassifiers": [],
+      "expected": {
+        "status": "UNCLASSIFIED",
+        "profile": "STRICT_DENY_V1",
+        "disposition": "BLOCK",
+        "reason": "NO_APPLICABLE_CLASSIFIER"
+      }
+    },
+    {
+      "id": "PLUGIN-CLASSIFIER-004",
+      "description": "plugin ownership is case-sensitive and a case variant remains unowned",
+      "operation": "RESOLVE",
+      "registrations": [
+        {
+          "classifierId": "example.fs",
+          "ownedToolNames": ["plugin_read"],
+          "behaviors": {}
+        }
+      ],
+      "toolName": "Plugin_Read",
+      "arguments": {},
+      "expectedInvokedClassifiers": [],
+      "expected": {
+        "status": "UNCLASSIFIED",
+        "profile": "STRICT_DENY_V1",
+        "disposition": "BLOCK",
+        "reason": "NO_APPLICABLE_CLASSIFIER"
+      }
+    },
+    {
+      "id": "PLUGIN-CLASSIFIER-005",
+      "description": "a plugin cannot claim a reserved built-in filesystem tool name",
+      "operation": "BUILD_REGISTRY",
+      "registrations": [
+        {
+          "classifierId": "shadow.fs",
+          "ownedToolNames": ["read"],
+          "behaviors": {}
+        }
+      ],
+      "expected": {"status": "ERROR", "reason": "PLUGIN_TOOL_NAME_RESERVED"}
+    },
+    {
+      "id": "PLUGIN-CLASSIFIER-006",
+      "description": "a plugin cannot claim a reserved built-in shell tool name",
+      "operation": "BUILD_REGISTRY",
+      "registrations": [
+        {
+          "classifierId": "shadow.shell",
+          "ownedToolNames": ["bash"],
+          "behaviors": {}
+        }
+      ],
+      "expected": {"status": "ERROR", "reason": "PLUGIN_TOOL_NAME_RESERVED"}
+    },
+    {
+      "id": "PLUGIN-CLASSIFIER-007",
+      "description": "two plugin classifiers cannot own the same exact tool name",
+      "operation": "BUILD_REGISTRY",
+      "registrations": [
+        {"classifierId": "plugin.a", "ownedToolNames": ["shared_tool"], "behaviors": {}},
+        {"classifierId": "plugin.b", "ownedToolNames": ["shared_tool"], "behaviors": {}}
+      ],
+      "expected": {"status": "ERROR", "reason": "PLUGIN_TOOL_OWNERSHIP_CONFLICT"}
+    },
+    {
+      "id": "PLUGIN-CLASSIFIER-008",
+      "description": "one classifier cannot repeat an exact owned tool name",
+      "operation": "BUILD_REGISTRY",
+      "registrations": [
+        {"classifierId": "plugin.a", "ownedToolNames": ["tool_a", "tool_a"], "behaviors": {}}
+      ],
+      "expected": {"status": "ERROR", "reason": "PLUGIN_TOOL_NAME_DUPLICATE"}
+    },
+    {
+      "id": "PLUGIN-CLASSIFIER-009",
+      "description": "classifier identifiers are unique registry identities",
+      "operation": "BUILD_REGISTRY",
+      "registrations": [
+        {"classifierId": "plugin.same", "ownedToolNames": ["tool_a"], "behaviors": {}},
+        {"classifierId": "plugin.same", "ownedToolNames": ["tool_b"], "behaviors": {}}
+      ],
+      "expected": {"status": "ERROR", "reason": "PLUGIN_CLASSIFIER_ID_DUPLICATE"}
+    },
+    {
+      "id": "PLUGIN-CLASSIFIER-010",
+      "description": "blank classifier identifiers are rejected",
+      "operation": "BUILD_REGISTRY",
+      "registrations": [
+        {"classifierId": "   ", "ownedToolNames": ["tool_a"], "behaviors": {}}
+      ],
+      "expected": {"status": "ERROR", "reason": "PLUGIN_CLASSIFIER_ID_INVALID"}
+    },
+    {
+      "id": "PLUGIN-CLASSIFIER-011",
+      "description": "classifier identifiers above the portable code-point limit are rejected",
+      "operation": "BUILD_REGISTRY",
+      "registrations": [
+        {
+          "classifierId": {"generatedString": {"codePoint": "x", "count": 129}},
+          "ownedToolNames": ["tool_a"],
+          "behaviors": {}
+        }
+      ],
+      "expected": {"status": "ERROR", "reason": "PLUGIN_CLASSIFIER_ID_INVALID"}
+    },
+    {
+      "id": "PLUGIN-CLASSIFIER-012",
+      "description": "a classifier must claim at least one exact tool name",
+      "operation": "BUILD_REGISTRY",
+      "registrations": [
+        {"classifierId": "plugin.empty", "ownedToolNames": [], "behaviors": {}}
+      ],
+      "expected": {"status": "ERROR", "reason": "PLUGIN_TOOL_NAMES_INVALID"}
+    },
+    {
+      "id": "PLUGIN-CLASSIFIER-013",
+      "description": "blank plugin tool names are rejected",
+      "operation": "BUILD_REGISTRY",
+      "registrations": [
+        {"classifierId": "plugin.blank", "ownedToolNames": ["\t  "], "behaviors": {}}
+      ],
+      "expected": {"status": "ERROR", "reason": "PLUGIN_TOOL_NAME_INVALID"}
+    },
+    {
+      "id": "PLUGIN-CLASSIFIER-014",
+      "description": "plugin tool names above the portable code-point limit are rejected",
+      "operation": "BUILD_REGISTRY",
+      "registrations": [
+        {
+          "classifierId": "plugin.long-name",
+          "ownedToolNames": [{"generatedString": {"codePoint": "t", "count": 257}}],
+          "behaviors": {}
+        }
+      ],
+      "expected": {"status": "ERROR", "reason": "PLUGIN_TOOL_NAME_INVALID"}
+    },
+    {
+      "id": "PLUGIN-CLASSIFIER-015",
+      "description": "the registry rejects more than the portable maximum number of classifiers",
+      "operation": "BUILD_REGISTRY",
+      "registrations": {
+        "generatedClassifiers": {
+          "count": 129,
+          "classifierIdTemplate": "plugin.{index}",
+          "ownedToolNameTemplate": "tool_{index}"
+        }
+      },
+      "expected": {"status": "ERROR", "reason": "PLUGIN_REGISTRY_LIMIT_EXCEEDED"}
+    },
+    {
+      "id": "PLUGIN-CLASSIFIER-016",
+      "description": "one classifier cannot claim more than the portable per-classifier tool-name limit",
+      "operation": "BUILD_REGISTRY",
+      "registrations": [
+        {
+          "classifierId": "plugin.too-many",
+          "ownedToolNames": {"generatedNames": {"count": 129, "template": "tool_{index}"}},
+          "behaviors": {}
+        }
+      ],
+      "expected": {"status": "ERROR", "reason": "PLUGIN_REGISTRY_LIMIT_EXCEEDED"}
+    },
+    {
+      "id": "PLUGIN-CLASSIFIER-017",
+      "description": "the registry rejects more than the portable total ownership claim limit",
+      "operation": "BUILD_REGISTRY",
+      "registrations": {
+        "generatedClassifiers": {
+          "count": 9,
+          "classifierIdTemplate": "plugin.{index}",
+          "generatedOwnedToolNames": {"count": 128, "template": "tool_{classifierIndex}_{index}"}
+        }
+      },
+      "expected": {"status": "ERROR", "reason": "PLUGIN_REGISTRY_LIMIT_EXCEEDED"}
+    },
+    {
+      "id": "PLUGIN-CLASSIFIER-018",
+      "description": "an exact owner rejection is a classification error and does not fall through",
+      "operation": "RESOLVE",
+      "registrations": [
+        {
+          "classifierId": "plugin.reject",
+          "ownedToolNames": ["owned_tool"],
+          "behaviors": {"owned_tool": {"kind": "RETURN", "value": {"status": "REJECTED"}}}
+        },
+        {
+          "classifierId": "plugin.other",
+          "ownedToolNames": ["other_tool"],
+          "behaviors": {}
+        }
+      ],
+      "toolName": "owned_tool",
+      "arguments": {},
+      "expectedInvokedClassifiers": ["plugin.reject"],
+      "expected": {"status": "ERROR", "reason": "PLUGIN_CLASSIFIER_REJECTED"}
+    },
+    {
+      "id": "PLUGIN-CLASSIFIER-019",
+      "description": "a malformed plugin classification fails closed",
+      "operation": "RESOLVE",
+      "registrations": [
+        {
+          "classifierId": "plugin.malformed",
+          "ownedToolNames": ["owned_tool"],
+          "behaviors": {
+            "owned_tool": {
+              "kind": "RETURN",
+              "value": {"status": "CLASSIFIED", "family": "FILESYSTEM", "requirements": []}
+            }
+          }
+        }
+      ],
+      "toolName": "owned_tool",
+      "arguments": {},
+      "expectedInvokedClassifiers": ["plugin.malformed"],
+      "expected": {"status": "ERROR", "reason": "PLUGIN_CLASSIFIER_RESULT_INVALID"}
+    },
+    {
+      "id": "PLUGIN-CLASSIFIER-020",
+      "description": "a plugin cannot invent a capability family that has no M4-014 normative classifier grammar",
+      "operation": "RESOLVE",
+      "registrations": [
+        {
+          "classifierId": "plugin.network",
+          "ownedToolNames": ["http_request"],
+          "behaviors": {
+            "http_request": {
+              "kind": "RETURN",
+              "value": {
+                "status": "CLASSIFIED",
+                "family": "FILESYSTEM",
+                "requirements": [
+                  {"capability": "network.http", "operand": {"source": "ARGUMENT_PATH", "rawPath": "https://example.test", "reach": "EXACT"}}
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "toolName": "http_request",
+      "arguments": {"url": "https://example.test"},
+      "expectedInvokedClassifiers": ["plugin.network"],
+      "expected": {"status": "ERROR", "reason": "PLUGIN_CLASSIFIER_RESULT_INVALID"}
+    },
+    {
+      "id": "PLUGIN-CLASSIFIER-021",
+      "description": "a built-in filesystem CLASSIFIED result is preserved and no plugin callback runs",
+      "operation": "RESOLVE",
+      "registrations": [
+        {"classifierId": "plugin.other", "ownedToolNames": ["plugin_read"], "behaviors": {}}
+      ],
+      "toolName": "read",
+      "arguments": {"file_path": "docs/README.md"},
+      "expectedInvokedClassifiers": [],
+      "expected": {
+        "status": "CLASSIFIED",
+        "requirements": [
+          {"capability": "fs.stat", "operand": {"source": "ARGUMENT_PATH", "argumentName": "file_path", "rawPath": "docs/README.md", "reach": "EXACT"}},
+          {"capability": "fs.read", "operand": {"source": "ARGUMENT_PATH", "argumentName": "file_path", "rawPath": "docs/README.md", "reach": "EXACT"}}
+        ]
+      }
+    },
+    {
+      "id": "PLUGIN-CLASSIFIER-022",
+      "description": "a built-in filesystem ERROR result is preserved and no plugin callback runs",
+      "operation": "RESOLVE",
+      "registrations": [
+        {"classifierId": "plugin.other", "ownedToolNames": ["plugin_read"], "behaviors": {}}
+      ],
+      "toolName": "read",
+      "arguments": {},
+      "expectedInvokedClassifiers": [],
+      "expected": {"status": "ERROR", "reason": "FS_TOOL_PATH_INVALID"}
+    },
+    {
+      "id": "PLUGIN-CLASSIFIER-023",
+      "description": "a built-in shell CLASSIFIED result is preserved and no plugin callback runs",
+      "operation": "RESOLVE",
+      "registrations": [
+        {"classifierId": "plugin.other", "ownedToolNames": ["plugin_shell"], "behaviors": {}}
+      ],
+      "toolName": "bash",
+      "arguments": {"command": "git status"},
+      "expectedInvokedClassifiers": [],
+      "expected": {
+        "status": "CLASSIFIED",
+        "requirements": [
+          {
+            "capability": "process.exec",
+            "operand": {
+              "source": "SHELL_COMMAND",
+              "dialect": "BASH",
+              "rawCommand": "git status",
+              "executionMode": "FOREGROUND",
+              "workdir": {"source": "EXECUTION_ROOT"}
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "PLUGIN-CLASSIFIER-024",
+      "description": "a built-in shell ERROR result is preserved and no plugin callback runs",
+      "operation": "RESOLVE",
+      "registrations": [
+        {"classifierId": "plugin.other", "ownedToolNames": ["plugin_shell"], "behaviors": {}}
+      ],
+      "toolName": "pwsh",
+      "arguments": {"command": "   "},
+      "expectedInvokedClassifiers": [],
+      "expected": {"status": "ERROR", "reason": "SHELL_TOOL_COMMAND_INVALID"}
+    },
+    {
+      "id": "PLUGIN-CLASSIFIER-025",
+      "description": "ownership resolution is independent of registration order",
+      "operation": "RESOLVE_ORDER_EQUIVALENCE",
+      "registrationOrders": [
+        [
+          {
+            "classifierId": "plugin.a",
+            "ownedToolNames": ["tool_a"],
+            "behaviors": {"tool_a": {"kind": "RETURN", "value": {"status": "REJECTED"}}}
+          },
+          {"classifierId": "plugin.b", "ownedToolNames": ["tool_b"], "behaviors": {}}
+        ],
+        [
+          {"classifierId": "plugin.b", "ownedToolNames": ["tool_b"], "behaviors": {}},
+          {
+            "classifierId": "plugin.a",
+            "ownedToolNames": ["tool_a"],
+            "behaviors": {"tool_a": {"kind": "RETURN", "value": {"status": "REJECTED"}}}
+          }
+        ]
+      ],
+      "toolName": "tool_a",
+      "arguments": {},
+      "expectedInvokedClassifiers": ["plugin.a"],
+      "expected": {"status": "ERROR", "reason": "PLUGIN_CLASSIFIER_REJECTED"}
+    },
+    {
+      "id": "PLUGIN-CLASSIFIER-026",
+      "description": "MCP-looking names are opaque exact plugin names rather than parsed namespaces",
+      "operation": "RESOLVE",
+      "registrations": [
+        {
+          "classifierId": "plugin.mcp-name",
+          "ownedToolNames": ["mcp__weather__forecast"],
+          "behaviors": {"mcp__weather__forecast": {"kind": "RETURN", "value": {"status": "REJECTED"}}}
+        }
+      ],
+      "toolName": "mcp__weather__forecast",
+      "arguments": {"annotations": {"readOnlyHint": true}},
+      "expectedInvokedClassifiers": ["plugin.mcp-name"],
+      "expected": {"status": "ERROR", "reason": "PLUGIN_CLASSIFIER_REJECTED"}
+    },
+    {
+      "id": "PLUGIN-CLASSIFIER-027",
+      "description": "a different MCP-looking public name is not inferred from the registered exact name",
+      "operation": "RESOLVE",
+      "registrations": [
+        {
+          "classifierId": "plugin.mcp-name",
+          "ownedToolNames": ["mcp__weather__forecast"],
+          "behaviors": {}
+        }
+      ],
+      "toolName": "mcp__weather__current",
+      "arguments": {"annotations": {"readOnlyHint": true}},
+      "expectedInvokedClassifiers": [],
+      "expected": {
+        "status": "UNCLASSIFIED",
+        "profile": "STRICT_DENY_V1",
+        "disposition": "BLOCK",
+        "reason": "NO_APPLICABLE_CLASSIFIER"
+      }
+    }
+  ]
+}

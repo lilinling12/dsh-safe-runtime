@@ -1,0 +1,6 @@
+{
+  "apiVersion": "safe-runtime.dev/v1alpha1",
+  "kind": "CapabilityPolicy",
+  "metadata": { "name": "spec-extra" },
+  "spec": { "defaultEffect": "deny", "rules": [], "unexpected": true }
+}

@@ -1,0 +1,150 @@
+{
+  "profile": "M5-001_APPEND_ONLY_AUDIT_STORE_V1",
+  "gate": "M5-001 P0 — append-only store",
+  "pinnedHarness": {
+    "version": "0.1.0-rc.5",
+    "commit": "47f943859bef60e4160492346772ded9b24f765a"
+  },
+  "cases": [
+    {
+      "id": "AOS-001",
+      "requirement": "Appending one record to an empty ledger produces exactly one entry at sequence 0.",
+      "evidence": "Spec 0053 sections 3-4."
+    },
+    {
+      "id": "AOS-002",
+      "requirement": "A successful append adds its entry only at the existing ledger tail.",
+      "evidence": "Spec 0053 section 4."
+    },
+    {
+      "id": "AOS-003",
+      "requirement": "A successful append preserves every pre-existing ledger entry unchanged.",
+      "evidence": "Spec 0053 section 4 immutable-prefix invariant."
+    },
+    {
+      "id": "AOS-004",
+      "requirement": "Successful appends assign unique per-ledger sequences in strictly increasing order.",
+      "evidence": "Spec 0053 sections 3.2 and 6."
+    },
+    {
+      "id": "AOS-005",
+      "requirement": "A snapshot lists the current ledger in strictly increasing gap-free sequence order beginning at 0.",
+      "evidence": "Spec 0053 section 10."
+    },
+    {
+      "id": "AOS-006",
+      "requirement": "One successful append invocation creates exactly one new ledger occurrence.",
+      "evidence": "Spec 0053 sections 4 and 7.1."
+    },
+    {
+      "id": "AOS-007",
+      "requirement": "Two successful invocations with structurally equal record payloads remain two distinct ledger occurrences with different sequences.",
+      "evidence": "Spec 0053 section 11."
+    },
+    {
+      "id": "AOS-008",
+      "requirement": "M5-001 exposes no portable update operation capable of rewriting an existing sequence.",
+      "evidence": "Spec 0053 section 5."
+    },
+    {
+      "id": "AOS-009",
+      "requirement": "M5-001 exposes no portable replace operation capable of replacing an existing ledger entry.",
+      "evidence": "Spec 0053 section 5."
+    },
+    {
+      "id": "AOS-010",
+      "requirement": "M5-001 exposes no portable delete operation capable of removing an existing ledger entry.",
+      "evidence": "Spec 0053 section 5."
+    },
+    {
+      "id": "AOS-011",
+      "requirement": "M5-001 exposes no portable truncate or clear operation capable of shortening ledger history.",
+      "evidence": "Spec 0053 section 5."
+    },
+    {
+      "id": "AOS-012",
+      "requirement": "M5-001 exposes no portable insert or move operation capable of reordering existing history.",
+      "evidence": "Spec 0053 section 5."
+    },
+    {
+      "id": "AOS-013",
+      "requirement": "APPENDED is returned only when the invocation authoritatively produced exactly one new immutable tail entry.",
+      "evidence": "Spec 0053 section 7.1."
+    },
+    {
+      "id": "AOS-014",
+      "requirement": "NOT_APPENDED authoritatively means the failed invocation produced no new ledger entry.",
+      "evidence": "Spec 0053 section 7.2."
+    },
+    {
+      "id": "AOS-015",
+      "requirement": "An append failure proven not to have published leaves that invocation's ledger contribution absent rather than partially visible.",
+      "evidence": "Spec 0053 sections 7.2 and 8."
+    },
+    {
+      "id": "AOS-016",
+      "requirement": "A failure whose publication state cannot be proven is represented as INDETERMINATE rather than false APPENDED or NOT_APPENDED authority.",
+      "evidence": "Spec 0053 sections 7.3 and 8."
+    },
+    {
+      "id": "AOS-017",
+      "requirement": "INDETERMINATE is not automatically retried by the M5-001 contract and does not imply exactly-once delivery.",
+      "evidence": "Spec 0053 section 7.3."
+    },
+    {
+      "id": "AOS-018",
+      "requirement": "The store never reports APPENDED for a record it silently drops before its declared publication boundary.",
+      "evidence": "Spec 0053 sections 8 and 13."
+    },
+    {
+      "id": "AOS-019",
+      "requirement": "Mutating caller-owned input after APPENDED cannot change the already stored logical entry.",
+      "evidence": "Spec 0053 section 9."
+    },
+    {
+      "id": "AOS-020",
+      "requirement": "Mutating a value obtained from snapshot observation cannot rewrite already stored ledger state.",
+      "evidence": "Spec 0053 sections 9-10."
+    },
+    {
+      "id": "AOS-021",
+      "requirement": "Two overlapping successful appends to one ledger are published in one total order with no duplicate sequence.",
+      "evidence": "Spec 0053 section 6."
+    },
+    {
+      "id": "AOS-022",
+      "requirement": "A successful append observed before another append begins has a lower sequence than the later successful append.",
+      "evidence": "Spec 0053 section 6 real-time ordering constraint."
+    },
+    {
+      "id": "AOS-023",
+      "requirement": "Sequence and ordering authority are scoped to one ledger and do not create a global cross-ledger order.",
+      "evidence": "Spec 0053 section 12."
+    },
+    {
+      "id": "AOS-024",
+      "requirement": "An append failure in one ledger does not mutate another ledger as hidden compensation.",
+      "evidence": "Spec 0053 section 12."
+    },
+    {
+      "id": "AOS-025",
+      "requirement": "M5-001 does not define canonical JSON or require a canonical byte representation for records.",
+      "evidence": "Spec 0053 sections 1, 3.1 and 15; M5-002 owns canonical JSON."
+    },
+    {
+      "id": "AOS-026",
+      "requirement": "M5-001 does not compute or require record digests, previous-record digests, or hash chains.",
+      "evidence": "Spec 0053 sections 1, 3.1 and 15; M5-003/M5-004 own those concerns."
+    },
+    {
+      "id": "AOS-027",
+      "requirement": "M5-001 does not redefine the M2 SidecarEvidenceRecord/Sink or make DeepSeek Harness storage the portable ledger authority.",
+      "evidence": "Spec 0053 section 14."
+    },
+    {
+      "id": "AOS-028",
+      "requirement": "Protocol-first scope contains only Spec 0053, this corpus, and CURRENT; production/package/Schema/TCK/HISTORY/roadmap/workflow and M5-002+ changes remain unauthorized until exact-head dual-green.",
+      "evidence": "Spec 0053 sections 18-19 and CURRENT."
+    }
+  ]
+}

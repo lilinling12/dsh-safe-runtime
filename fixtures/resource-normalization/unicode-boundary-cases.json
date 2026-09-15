@@ -1,0 +1,54 @@
+{
+  "apiVersion": "safe-runtime.dev/test-fixtures/v1alpha1",
+  "kind": "ResourceNormalizationCases",
+  "fixtureEncoding": {
+    "templateInput": "inputTemplate uses the same fixture-only materialization vocabulary as cases.json.",
+    "repeatCodePoint": "The value must contain exactly one Unicode code point; count is measured in code points, not UTF-16 code units."
+  },
+  "cases": [
+    {
+      "id": "exact-astral-code-point-at-limit",
+      "operation": "EXACT_RESOURCE",
+      "inputTemplate": {
+        "scheme": "external",
+        "locator": { "$repeatCodePoint": { "value": "😀", "count": 4096 } }
+      },
+      "expectTemplate": {
+        "status": "PASS",
+        "resource": {
+          "scheme": "external",
+          "locator": { "$repeatCodePoint": { "value": "😀", "count": 4096 } }
+        }
+      }
+    },
+    {
+      "id": "exact-astral-code-point-over-limit",
+      "operation": "EXACT_RESOURCE",
+      "inputTemplate": {
+        "scheme": "external",
+        "locator": { "$repeatCodePoint": { "value": "😀", "count": 4097 } }
+      },
+      "expect": {
+        "status": "ERROR",
+        "reason": "RESOURCE_LIMIT_EXCEEDED",
+        "field": "locator"
+      }
+    },
+    {
+      "id": "exact-delete-control-locator",
+      "operation": "EXACT_RESOURCE",
+      "input": {
+        "scheme": "workspace",
+        "locator": "/src/\u007fhidden"
+      },
+      "expect": {
+        "status": "ERROR",
+        "reason": "RESOURCE_LOCATOR_INVALID",
+        "field": "locator"
+      }
+    }
+  ],
+  "materialization": {
+    "scope": "This file uses the fixture-only $repeatCodePoint encoding defined by fixtures/resource-normalization/cases.json. Materialized values, never template objects, are passed to the protocol operation."
+  }
+}

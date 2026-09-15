@@ -1,0 +1,41 @@
+{
+  "profile": "M4-041_DSH_MONOTONIC_TOOL_GUARD_V1",
+  "pinnedHarness": {
+    "version": "0.1.0-rc.5",
+    "commit": "47f943859bef60e4160492346772ded9b24f765a"
+  },
+  "cases": [
+    {"id":"DMGR-001","scenario":"monotonic guard feature is explicitly required","input":{"toolsMonotonicGuard":false},"expected":{"registration":"UNSUPPORTED","silentFallbackToPreExecute":false}},
+    {"id":"DMGR-002","scenario":"host request projection is exact","input":{"callRef":"call:host","rootCallRef":"call:host","toolName":"host_tool","scope":{"kind":"host"}},"expected":{"projection":"EXACT"}},
+    {"id":"DMGR-003","scenario":"agent request projection is exact","input":{"callRef":"call:agent","rootCallRef":"call:agent","toolName":"read","scope":{"kind":"agent","sessionRef":"session:A","agentRef":"agent:A"}},"expected":{"projection":"EXACT"}},
+    {"id":"DMGR-004","scenario":"nested root identity is preserved","input":{"callRef":"call:child","rootCallRef":"call:root","toolName":"read"},"expected":{"callRef":"call:child","rootCallRef":"call:root"}},
+    {"id":"DMGR-005","scenario":"materialized frozen arguments are passed by exact reference","input":{"arguments":{"path":"./opaque"}},"expected":{"sameHarnessArgumentReference":true,"frozen":true,"rewrite":false}},
+    {"id":"DMGR-006","scenario":"safe-runtime ALLOW maps to guard abstention","input":{"safeRuntimeDecision":{"kind":"ALLOW"}},"expected":{"harnessGuardReturn":"UNDEFINED","finalAuthorizationClaim":false}},
+    {"id":"DMGR-007","scenario":"safe-runtime DENY maps exact reason","input":{"safeRuntimeDecision":{"kind":"DENY","reason":"hard invariant denied"}},"expected":{"harnessGuardReturn":"hard invariant denied","bodyEntered":false}},
+    {"id":"DMGR-008","scenario":"valid empty-string DENY reason remains a string denial","input":{"safeRuntimeDecision":{"kind":"DENY","reason":""}},"expected":{"harnessGuardReturn":"","decision":"DENY"}},
+    {"id":"DMGR-009","scenario":"handler throw fails closed","input":{"handler":"THROW","message":"secret backend detail"},"expected":{"harnessGuardReturn":"safe-runtime monotonic guard failed closed","bodyEntered":false,"leaksMessage":false}},
+    {"id":"DMGR-010","scenario":"null handler result fails closed","input":{"handlerResult":null},"expected":{"harnessGuardReturn":"safe-runtime monotonic guard failed closed","bodyEntered":false}},
+    {"id":"DMGR-011","scenario":"non-object handler result fails closed","input":{"handlerResult":true},"expected":{"harnessGuardReturn":"safe-runtime monotonic guard failed closed","bodyEntered":false}},
+    {"id":"DMGR-012","scenario":"Promise handler result is invalid for synchronous guard","input":{"handlerResult":"PROMISE"},"expected":{"harnessGuardReturn":"safe-runtime monotonic guard failed closed","awaited":false,"bodyEntered":false}},
+    {"id":"DMGR-013","scenario":"missing decision kind fails closed","input":{"handlerResult":{}},"expected":{"harnessGuardReturn":"safe-runtime monotonic guard failed closed","bodyEntered":false}},
+    {"id":"DMGR-014","scenario":"unknown decision kind fails closed","input":{"handlerResult":{"kind":"ASK"}},"expected":{"harnessGuardReturn":"safe-runtime monotonic guard failed closed","approvalCalls":0,"bodyEntered":false}},
+    {"id":"DMGR-015","scenario":"DENY with non-string reason fails closed","input":{"handlerResult":{"kind":"DENY","reason":42}},"expected":{"harnessGuardReturn":"safe-runtime monotonic guard failed closed","bodyEntered":false}},
+    {"id":"DMGR-016","scenario":"accessor-backed decision kind is rejected without getter execution","input":{"handlerResult":"ACCESSOR_KIND"},"expected":{"harnessGuardReturn":"safe-runtime monotonic guard failed closed","getterCalls":0,"bodyEntered":false}},
+    {"id":"DMGR-017","scenario":"accessor-backed DENY reason is rejected without getter execution","input":{"handlerResult":"ACCESSOR_REASON"},"expected":{"harnessGuardReturn":"safe-runtime monotonic guard failed closed","getterCalls":0,"bodyEntered":false}},
+    {"id":"DMGR-018","scenario":"revoked Proxy decision fails closed","input":{"handlerResult":"REVOKED_PROXY"},"expected":{"harnessGuardReturn":"safe-runtime monotonic guard failed closed","bodyEntered":false}},
+    {"id":"DMGR-019","scenario":"pre-execute ALLOW cannot reopen guard DENY","input":{"preExecute":"ALLOW","guard":{"kind":"DENY","reason":"terminal policy"}},"expected":{"final":"DENY","bodyEntered":false}},
+    {"id":"DMGR-020","scenario":"prepended pre-execute ALLOW cannot bypass guard DENY","input":{"preExecute":"PREPENDED_ALLOW","guard":{"kind":"DENY","reason":"terminal policy"}},"expected":{"final":"DENY","bodyEntered":false}},
+    {"id":"DMGR-021","scenario":"multiple guards compose monotonically","input":{"guards":[{"kind":"ALLOW"},{"kind":"DENY","reason":"second denied"}]},"expected":{"final":"DENY","reason":"second denied","bodyEntered":false}},
+    {"id":"DMGR-022","scenario":"agent-scoped guard does not govern another agent","input":{"registrationScope":"agent:A","calls":["agent:A","agent:B"]},"expected":{"agent:A":"GUARDED","agent:B":"NOT_GOVERNED_BY_THIS_REGISTRATION"}},
+    {"id":"DMGR-023","scenario":"agent-scoped guard does not govern host call","input":{"registrationScope":"agent:A","callScope":"host"},"expected":{"handlerCalled":false}},
+    {"id":"DMGR-024","scenario":"plain-context guard applies to host call","input":{"registrationScope":"global","callScope":"host","guard":{"kind":"DENY","reason":"global denied"}},"expected":{"final":"DENY","bodyEntered":false}},
+    {"id":"DMGR-025","scenario":"duplicate registrations are disposed independently","input":{"registrations":2,"dispose":1,"laterCall":true},"expected":{"remainingRegistrations":1,"final":"DENY"}},
+    {"id":"DMGR-026","scenario":"registration disposal removes the owned guard","input":{"dispose":true,"laterCall":true},"expected":{"handlerCalledAfterDispose":false}},
+    {"id":"DMGR-027","scenario":"hard guard exposes no ASK and makes no approval call","input":{"guardDecisionDomain":["ALLOW","DENY"]},"expected":{"askSupported":false,"approvalCalls":0}},
+    {"id":"DMGR-028","scenario":"M4-041 does not claim complete Capability Broker enforcement","input":{"monotonicGuardInstalled":true,"directHostEffectsCovered":false},"expected":{"mayClaimCompleteToolEnforced":false,"m4050BoundaryStillRequired":true}},
+    {"id":"DMGR-029","scenario":"guard ALLOW is abstention not final authorization","input":{"guard":{"kind":"ALLOW"}},"expected":{"hardVeto":false,"finalCapabilityDecisionClaim":false}},
+    {"id":"DMGR-030","scenario":"M4-041 does not aggregate classifier or PDP requirements","input":{"requirements":["fs.stat","fs.read"]},"expected":{"aggregatedByM4041":false}},
+    {"id":"DMGR-031","scenario":"M4-041 does not own authoritative final result","input":{"guard":{"kind":"ALLOW"}},"expected":{"executionSuccessClaim":false,"authoritativeResultObservedByGate":false}},
+    {"id":"DMGR-032","scenario":"guard-registration mutation during handler execution is not a portable dependency","input":{"handlerMutatesGuardRegistry":true},"expected":{"portableBehaviorRequired":false}}
+  ]
+}

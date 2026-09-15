@@ -1,0 +1,317 @@
+{
+  "profile": {
+    "id": "m4-mcp-tool-annotations-2025-11-25",
+    "mcpRevision": "2025-11-25",
+    "harnessVersion": "0.1.0-rc.5",
+    "harnessCommit": "47f943859bef60e4160492346772ded9b24f765a",
+    "spec": "specs/0028-m4-mcp-tool-metadata-classification.md"
+  },
+  "cases": [
+    {
+      "id": "MCP-META-001",
+      "description": "missing annotations uses all official MCP defaults",
+      "metadata": {},
+      "expected": {
+        "status": "CLASSIFIED",
+        "evidence": {
+          "kind": "MCP_TOOL_ANNOTATIONS",
+          "profile": "MCP_2025_11_25",
+          "authority": "ADVISORY_ONLY",
+          "trust": "UNVERIFIED_SERVER",
+          "hints": {
+            "readOnlyHint": { "value": false, "source": "MCP_DEFAULT" },
+            "destructiveHint": { "value": true, "source": "MCP_DEFAULT", "applicability": "APPLICABLE" },
+            "idempotentHint": { "value": false, "source": "MCP_DEFAULT", "applicability": "APPLICABLE" },
+            "openWorldHint": { "value": true, "source": "MCP_DEFAULT" }
+          }
+        }
+      }
+    },
+    {
+      "id": "MCP-META-002",
+      "description": "empty annotations also uses all official MCP defaults",
+      "metadata": { "annotations": {} },
+      "expected": {
+        "status": "CLASSIFIED",
+        "evidence": {
+          "kind": "MCP_TOOL_ANNOTATIONS",
+          "profile": "MCP_2025_11_25",
+          "authority": "ADVISORY_ONLY",
+          "trust": "UNVERIFIED_SERVER",
+          "hints": {
+            "readOnlyHint": { "value": false, "source": "MCP_DEFAULT" },
+            "destructiveHint": { "value": true, "source": "MCP_DEFAULT", "applicability": "APPLICABLE" },
+            "idempotentHint": { "value": false, "source": "MCP_DEFAULT", "applicability": "APPLICABLE" },
+            "openWorldHint": { "value": true, "source": "MCP_DEFAULT" }
+          }
+        }
+      }
+    },
+    {
+      "id": "MCP-META-003",
+      "description": "all standard risk hints preserve explicit provenance",
+      "metadata": {
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        }
+      },
+      "expected": {
+        "status": "CLASSIFIED",
+        "evidence": {
+          "kind": "MCP_TOOL_ANNOTATIONS",
+          "profile": "MCP_2025_11_25",
+          "authority": "ADVISORY_ONLY",
+          "trust": "UNVERIFIED_SERVER",
+          "hints": {
+            "readOnlyHint": { "value": false, "source": "EXPLICIT" },
+            "destructiveHint": { "value": false, "source": "EXPLICIT", "applicability": "APPLICABLE" },
+            "idempotentHint": { "value": true, "source": "EXPLICIT", "applicability": "APPLICABLE" },
+            "openWorldHint": { "value": false, "source": "EXPLICIT" }
+          }
+        }
+      }
+    },
+    {
+      "id": "MCP-META-004",
+      "description": "explicit values equal to defaults remain explicit rather than synthesized defaults",
+      "metadata": {
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": true,
+          "idempotentHint": false,
+          "openWorldHint": true
+        }
+      },
+      "expected": {
+        "status": "CLASSIFIED",
+        "evidence": {
+          "kind": "MCP_TOOL_ANNOTATIONS",
+          "profile": "MCP_2025_11_25",
+          "authority": "ADVISORY_ONLY",
+          "trust": "UNVERIFIED_SERVER",
+          "hints": {
+            "readOnlyHint": { "value": false, "source": "EXPLICIT" },
+            "destructiveHint": { "value": true, "source": "EXPLICIT", "applicability": "APPLICABLE" },
+            "idempotentHint": { "value": false, "source": "EXPLICIT", "applicability": "APPLICABLE" },
+            "openWorldHint": { "value": true, "source": "EXPLICIT" }
+          }
+        }
+      }
+    },
+    {
+      "id": "MCP-META-005",
+      "description": "read-only mode makes explicit destructive and idempotent hints not applicable without rewriting their values",
+      "metadata": {
+        "annotations": {
+          "readOnlyHint": true,
+          "destructiveHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        }
+      },
+      "expected": {
+        "status": "CLASSIFIED",
+        "evidence": {
+          "kind": "MCP_TOOL_ANNOTATIONS",
+          "profile": "MCP_2025_11_25",
+          "authority": "ADVISORY_ONLY",
+          "trust": "UNVERIFIED_SERVER",
+          "hints": {
+            "readOnlyHint": { "value": true, "source": "EXPLICIT" },
+            "destructiveHint": { "value": true, "source": "EXPLICIT", "applicability": "NOT_APPLICABLE_READ_ONLY" },
+            "idempotentHint": { "value": true, "source": "EXPLICIT", "applicability": "NOT_APPLICABLE_READ_ONLY" },
+            "openWorldHint": { "value": false, "source": "EXPLICIT" }
+          }
+        }
+      }
+    },
+    {
+      "id": "MCP-META-006",
+      "description": "read-only mode also marks default destructive and idempotent hints not applicable",
+      "metadata": { "annotations": { "readOnlyHint": true } },
+      "expected": {
+        "status": "CLASSIFIED",
+        "evidence": {
+          "kind": "MCP_TOOL_ANNOTATIONS",
+          "profile": "MCP_2025_11_25",
+          "authority": "ADVISORY_ONLY",
+          "trust": "UNVERIFIED_SERVER",
+          "hints": {
+            "readOnlyHint": { "value": true, "source": "EXPLICIT" },
+            "destructiveHint": { "value": true, "source": "MCP_DEFAULT", "applicability": "NOT_APPLICABLE_READ_ONLY" },
+            "idempotentHint": { "value": false, "source": "MCP_DEFAULT", "applicability": "NOT_APPLICABLE_READ_ONLY" },
+            "openWorldHint": { "value": true, "source": "MCP_DEFAULT" }
+          }
+        }
+      }
+    },
+    {
+      "id": "MCP-META-007",
+      "description": "read-only mode preserves explicit false conditional values while marking them not applicable",
+      "metadata": {
+        "annotations": {
+          "readOnlyHint": true,
+          "destructiveHint": false,
+          "idempotentHint": false
+        }
+      },
+      "expected": {
+        "status": "CLASSIFIED",
+        "evidence": {
+          "kind": "MCP_TOOL_ANNOTATIONS",
+          "profile": "MCP_2025_11_25",
+          "authority": "ADVISORY_ONLY",
+          "trust": "UNVERIFIED_SERVER",
+          "hints": {
+            "readOnlyHint": { "value": true, "source": "EXPLICIT" },
+            "destructiveHint": { "value": false, "source": "EXPLICIT", "applicability": "NOT_APPLICABLE_READ_ONLY" },
+            "idempotentHint": { "value": false, "source": "EXPLICIT", "applicability": "NOT_APPLICABLE_READ_ONLY" },
+            "openWorldHint": { "value": true, "source": "MCP_DEFAULT" }
+          }
+        }
+      }
+    },
+    {
+      "id": "MCP-META-008",
+      "description": "presentation title is ignored",
+      "metadata": { "annotations": { "title": "Delete file", "readOnlyHint": false } },
+      "expected": {
+        "status": "CLASSIFIED",
+        "evidence": {
+          "kind": "MCP_TOOL_ANNOTATIONS",
+          "profile": "MCP_2025_11_25",
+          "authority": "ADVISORY_ONLY",
+          "trust": "UNVERIFIED_SERVER",
+          "hints": {
+            "readOnlyHint": { "value": false, "source": "EXPLICIT" },
+            "destructiveHint": { "value": true, "source": "MCP_DEFAULT", "applicability": "APPLICABLE" },
+            "idempotentHint": { "value": false, "source": "MCP_DEFAULT", "applicability": "APPLICABLE" },
+            "openWorldHint": { "value": true, "source": "MCP_DEFAULT" }
+          }
+        }
+      }
+    },
+    {
+      "id": "MCP-META-009",
+      "description": "unknown future annotation fields are ignored for forward compatibility",
+      "metadata": {
+        "annotations": {
+          "readOnlyHint": false,
+          "futureRiskHint": { "nested": "unretained" }
+        }
+      },
+      "expected": {
+        "status": "CLASSIFIED",
+        "evidence": {
+          "kind": "MCP_TOOL_ANNOTATIONS",
+          "profile": "MCP_2025_11_25",
+          "authority": "ADVISORY_ONLY",
+          "trust": "UNVERIFIED_SERVER",
+          "hints": {
+            "readOnlyHint": { "value": false, "source": "EXPLICIT" },
+            "destructiveHint": { "value": true, "source": "MCP_DEFAULT", "applicability": "APPLICABLE" },
+            "idempotentHint": { "value": false, "source": "MCP_DEFAULT", "applicability": "APPLICABLE" },
+            "openWorldHint": { "value": true, "source": "MCP_DEFAULT" }
+          }
+        }
+      }
+    },
+    {
+      "id": "MCP-META-010",
+      "description": "case-variant known-field spelling is an unknown extension and cannot override the default",
+      "metadata": { "annotations": { "ReadOnlyHint": true } },
+      "expected": {
+        "status": "CLASSIFIED",
+        "evidence": {
+          "kind": "MCP_TOOL_ANNOTATIONS",
+          "profile": "MCP_2025_11_25",
+          "authority": "ADVISORY_ONLY",
+          "trust": "UNVERIFIED_SERVER",
+          "hints": {
+            "readOnlyHint": { "value": false, "source": "MCP_DEFAULT" },
+            "destructiveHint": { "value": true, "source": "MCP_DEFAULT", "applicability": "APPLICABLE" },
+            "idempotentHint": { "value": false, "source": "MCP_DEFAULT", "applicability": "APPLICABLE" },
+            "openWorldHint": { "value": true, "source": "MCP_DEFAULT" }
+          }
+        }
+      }
+    },
+    {
+      "id": "MCP-META-011",
+      "description": "unrelated outer MCP metadata is ignored",
+      "metadata": {
+        "name": "dangerous_tool",
+        "description": "claims to be safe",
+        "_meta": { "secret": "unretained" },
+        "execution": { "taskSupport": "required" },
+        "annotations": { "openWorldHint": false }
+      },
+      "expected": {
+        "status": "CLASSIFIED",
+        "evidence": {
+          "kind": "MCP_TOOL_ANNOTATIONS",
+          "profile": "MCP_2025_11_25",
+          "authority": "ADVISORY_ONLY",
+          "trust": "UNVERIFIED_SERVER",
+          "hints": {
+            "readOnlyHint": { "value": false, "source": "MCP_DEFAULT" },
+            "destructiveHint": { "value": true, "source": "MCP_DEFAULT", "applicability": "APPLICABLE" },
+            "idempotentHint": { "value": false, "source": "MCP_DEFAULT", "applicability": "APPLICABLE" },
+            "openWorldHint": { "value": false, "source": "EXPLICIT" }
+          }
+        }
+      }
+    },
+    {
+      "id": "MCP-META-012",
+      "description": "null carrier is invalid",
+      "metadata": null,
+      "expected": { "status": "ERROR", "reason": "MCP_TOOL_METADATA_INVALID" }
+    },
+    {
+      "id": "MCP-META-013",
+      "description": "array carrier is invalid",
+      "metadata": [],
+      "expected": { "status": "ERROR", "reason": "MCP_TOOL_METADATA_INVALID" }
+    },
+    {
+      "id": "MCP-META-014",
+      "description": "explicit null annotations is invalid",
+      "metadata": { "annotations": null },
+      "expected": { "status": "ERROR", "reason": "MCP_TOOL_ANNOTATIONS_INVALID" }
+    },
+    {
+      "id": "MCP-META-015",
+      "description": "explicit array annotations is invalid",
+      "metadata": { "annotations": [] },
+      "expected": { "status": "ERROR", "reason": "MCP_TOOL_ANNOTATIONS_INVALID" }
+    },
+    {
+      "id": "MCP-META-016",
+      "description": "readOnlyHint must be boolean",
+      "metadata": { "annotations": { "readOnlyHint": "true" } },
+      "expected": { "status": "ERROR", "reason": "MCP_TOOL_READ_ONLY_HINT_INVALID" }
+    },
+    {
+      "id": "MCP-META-017",
+      "description": "destructiveHint must be boolean",
+      "metadata": { "annotations": { "destructiveHint": 1 } },
+      "expected": { "status": "ERROR", "reason": "MCP_TOOL_DESTRUCTIVE_HINT_INVALID" }
+    },
+    {
+      "id": "MCP-META-018",
+      "description": "idempotentHint must be boolean",
+      "metadata": { "annotations": { "idempotentHint": "false" } },
+      "expected": { "status": "ERROR", "reason": "MCP_TOOL_IDEMPOTENT_HINT_INVALID" }
+    },
+    {
+      "id": "MCP-META-019",
+      "description": "openWorldHint must be boolean",
+      "metadata": { "annotations": { "openWorldHint": 0 } },
+      "expected": { "status": "ERROR", "reason": "MCP_TOOL_OPEN_WORLD_HINT_INVALID" }
+    }
+  ]
+}
